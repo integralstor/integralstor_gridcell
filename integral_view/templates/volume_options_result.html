@@ -1,0 +1,61 @@
+{% extends 'logged_in_base.html' %}
+<style type="text/css">
+    ul.errorlist {
+        margin: 0;
+        padding: 0;
+    }
+    .errorlist li {
+        background-color: white;
+        color: red;
+        display: block;
+        font-size: 10px;
+        margin: 0 0 3px;
+        padding: 4px 5px;
+    }
+</style>
+
+
+{%block contents%}
+<span id="topic-text"> Manage -> Set volume options - results</span><br>
+
+{% if app_debug %}
+Debug info - begin <br>
+{%for result_dict in result_list %}
+Executed {{result_dict.actual_command}}<br>
+{{result_dict}}<br>
+{%endfor%}
+Debug info - end <br><br>
+{%endif%}
+
+<table class="table table-condensed table-bordered">
+<tr>
+<th> Command </th>
+<th> Result </th>
+<th> Error information </th>
+</tr>
+{%for result_dict in result_list %}
+<tr>
+<td> {{result_dict.display_command}} </td>
+<td> 
+{% if result_dict.op_status.op_ret == 0  %}
+Successful
+</td>
+<td>&nbsp;</td>
+{%else%}
+Failed </td>
+<td>(Errno. {{result_dict.op_status.op_errno}} - {{result_dict.op_status.op_errstr}}, {{result_dict.op_status.output}}{% if result_dict.error_list %}, additional error message - {{result_dict.error_list}} {%endif%})
+</td>
+{%endif%}
+</tr>
+{%endfor%}
+</table>
+
+
+
+{%endblock%}
+{%block help_header%}
+Set volume options help
+{%endblock%}
+{%block help_body%}
+<p>Help about setting volume option results - need to be customized…</p>
+{%endblock%}

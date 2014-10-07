@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>-1</opRet>
+  <opErrno>0</opErrno>
+  <opErrstr>Volume testvol already exists</opErrstr>
+</cliOutput>

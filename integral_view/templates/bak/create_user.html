@@ -1,0 +1,80 @@
+{% extends 'logged_in_base.html' %}
+<style type="text/css">
+    ul.errorlist {
+        margin: 0;
+        padding: 0;
+    }
+    .errorlist li {
+        background-color: white;
+        color: red;
+        display: block;
+        font-size: 10px;
+        margin: 0 0 3px;
+        padding: 4px 5px;
+    }
+</style>
+
+
+{%block contents%}
+<span id="topic-text">Manage -> Samba users -> Create a Samba user</span><br>
+
+{{conf_message}}
+
+<form name="create_form" action="" method="post">
+            <table class="table table-bordered" style="width:500px">
+            <tr>
+              <td>
+            <label for="id_unix_user_name">Unix username</label>
+              </td>
+              <td>
+            {{ form.unix_user_name }}
+              </td>
+              <td>
+            {{ form.unix_user_name.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label for="id_win">Windows username</label>
+              </td>
+              <td>
+            {{ form.windows_user_name }}
+              </td>
+              <td>
+            {{ form.windows_user_name.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label for="id_password">Samba password:</label>
+              </td>
+              <td>
+            {{ form.password }}
+              </td>
+              <td>
+            {{ form.password.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label for="id_password_conf">Confirm Samba password</label>
+              </td>
+              <td>
+            {{ form.password_conf }}
+              </td>
+              <td>
+            {{ form.password_conf.errors }}
+              </td>
+            </tr>
+            </table>
+        <a href="/display_users" role="button" class="btn"> Cancel</a>&nbsp;&nbsp;
+        <button type="submit" class="btn"> Create >></button>
+</form>
+
+{%endblock%}
+{%block help_header%}
+Create user help 
+{%endblock%}
+{%block help_body%}
+<p>Help about creating users…</p>
+{%endblock%}

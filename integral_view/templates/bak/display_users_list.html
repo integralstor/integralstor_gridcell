@@ -1,0 +1,53 @@
+{% extends 'logged_in_base.html' %}
+
+{%block contents%}
+
+
+<span id="topic-text">Manage -> Samba users -> View users</span><br>
+
+{% if conf %}
+<i>{{conf}}</i>
+{%endif%}
+<div style="width:95%;position: relative; margin: 5px 0px; padding: 9px 9px 4px; background-color: rgb(255, 255, 255); border: 1px solid rgb(221, 221, 221); border-radius: 4px 4px 4px 4px;">
+{%if user_list%}
+<table class="table table-striped">
+<thead>
+<tr>
+<th>
+Unix user name
+</th>
+<th>
+Windows user name
+</th>
+<th>
+Edit
+</th>
+</thead>
+{%for u in user_list %}
+<tr>
+  <td>
+    {{u.0}}
+  </td>
+  <td>
+    {% if u.1 %}
+    {{u.1}}
+    {%endif%}
+  </td>
+  <td>
+    <a href="/edit_samba_user?unix_user_name={{u.0}}" role="button" class="btn">Edit user</a>
+  </td>
+</tr>
+{%endfor%}
+</table>
+{%else%}
+None here
+{%endif%}
+</div>
+
+{%endblock%}
+{%block help_header%}
+Users list help
+{%endblock%}
+{%block help_body%}
+  <p>Help about user list…</p>
+{%endblock%}

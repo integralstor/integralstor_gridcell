@@ -1,0 +1,63 @@
+<style type="text/css">
+    ul.errorlist {
+        margin: 0;
+        padding: 0;
+    }
+    .errorlist li {
+        background-color: white;
+        color: red;
+        display: block;
+        font-size: 10px;
+        margin: 0 0 3px;
+        padding: 4px 5px;
+    }
+</style>
+{% extends 'logged_in_base.html' %}
+
+{%block serverlist%}
+  {% for i in hostname_list %}
+    <li><a href="#">{{i}}</a></li>
+  {%endfor%}
+{%endblock%}
+{%block volumelist%}
+  {% for i in volume_list %}
+    <li><a href="/volume_specific_op/volume_status/{{i}}">{{i}}</a></li>
+  {%endfor%}
+{%endblock%}
+
+
+{%block contents%}
+<b>Remove storage from the available pool</b> <br><br>
+
+
+<p style="color:red;"> {{error}}</p>
+
+<form action="/perform_op/remove_server/" method="post">
+        <div class="field">
+            <table>
+            <tr>
+              <td>
+            <label for="id_hostname">IP Address:</label>
+              </td>
+              <td>
+            {{ form.hostname }}
+              </td>
+              <td>
+            {{ form.hostname.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td colspan=3 align="left">
+        <input type="submit" value="Remove">
+              </td>
+            </tr>
+            </table>
+        </div>
+</form>
+{%endblock%}
+{%block help_header%}
+Help on removing a block of storage from the available pool
+{%endblock%}
+{%block help_body%}
+<p>Help on removing a block of storage from the available pool </p>
+{%endblock%}

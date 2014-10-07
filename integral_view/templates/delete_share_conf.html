@@ -1,0 +1,42 @@
+{% extends 'logged_in_base.html' %}
+
+{%block contents%}
+
+<!-- Modal -->
+<div class="modal fade" id="processing" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-body" id="myModalBody">
+        <br><br><br>
+        <img src="/static/images/4.gif" >
+        <br><br><br>
+        <p id="p-node-text">Processing.. Please wait.
+        <br><br><br>
+      </div>
+    </div>
+  </div>
+</div>
+
+<span id="topic-text"> Shares -> Delete a share</span><br>
+
+
+<p id="p-warning-text">Are you sure you want to delete the share named "{{name}}"? </p>
+<br>
+<form action="/delete_share/" method="POST">
+<input type=hidden name="name" value="{{name}}">
+<input type=hidden name="share_id" value="{{share_id}}">
+<input type="button" class="btn btn-default" value="Cancel" onClick="window.location='/view_share?access_mode=by_id&index={{share_id}}'"> &nbsp;&nbsp;
+<button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Confirm and delete >></button>
+</form>
+
+
+
+
+
+{%endblock%}
+{%block help_header%}
+Share delete conf help
+{%endblock%}
+{%block help_body%}
+<p>Help about Share delete conf - needs customisation…</p>
+{%endblock%}

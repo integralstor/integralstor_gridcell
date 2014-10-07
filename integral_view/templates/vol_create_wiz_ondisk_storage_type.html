@@ -1,0 +1,32 @@
+{% extends 'logged_in_base.html' %}
+
+{%block contents%}
+<span id="topic-text"> Volumes -> Create a volume - Data storage model</span><br>
+
+<p style="color:red;"> {{error}}</p>
+
+<form  role="form" action="/create_volume_conf/" method="post">
+{{ form.vol_name }}
+{{ form.vol_access }}
+{{ form.vol_type }}
+
+  <label for="id_ondisk_storage">Please select how you would like the data to be stored on disk</label>
+  <div class="form-group" >
+    {% for choice in form.ondisk_storage.field.choices %} 
+        <label class="radio">
+          <input type="radio" name="ondisk_storage" id="id_{{choice.0}}" value="{{choice.0}}" {%if choice.0 == form.initial.ondisk_storage %} checked{%endif%} />{{choice.1}}
+        </label>
+    {%endfor%}
+    {{ form.ondisk_storage.errors }}
+  </div>
+ <button type="submit" class="btn btn-primary"  >Next >></button>
+</form>
+
+
+{%endblock%}
+{%block help_header%}
+Volume creation help
+{%endblock%}
+{%block help_body%}
+<p>Help about creating volumes…</p>
+{%endblock%}

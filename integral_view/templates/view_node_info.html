@@ -1,0 +1,87 @@
+
+{% extends 'logged_in_base.html' %}
+
+{%block contents%}
+
+
+<span id="topic-text"> Node configuration</span><br>
+
+<table class="table table-bordered table-striped table-hover" style="width:60%">
+<tr>
+  <th colspan=2>
+    Disk information
+  </th>
+</tr>
+{% for d in  node.disk_info%}
+<tr>
+  <td>
+  Name 
+  </td>
+  <td>
+  {{d.name}}
+  </td>
+</tr>
+<tr>
+  <td>
+  Serial number 
+  </td>
+  <td>
+  {{d.serial_number}}
+  </td>
+</tr>
+<tr>
+  <td>
+  Capacity 
+  </td>
+  <td>
+  {{d.capacity}}
+  </td>
+</tr>
+{%endfor%}
+<tr>
+  <th colspan=2>
+    Network interfaces    
+  </th>
+</tr>
+{% for k, v in  node.interface_info.items%}
+<tr>
+  <td>
+  Name 
+  </td>
+  <td>
+  {{k}}
+  </td>
+</tr>
+<tr>
+  <td>
+  IP address 
+  </td>
+  <td>
+  {{v.ip}}
+  </td>
+</tr>
+<tr>
+  <td>
+  Mask 
+  </td>
+  <td>
+  {{v.mask}}
+  </td>
+</tr>
+{%endfor%}
+</table>
+<br>
+{%if frm and frm == "remove_node" %}
+<a href="/remove_node" role="button" class="btn btn-default"><< Back </a> &nbsp;&nbsp;
+{%else%}
+<a href="/show/system_config/" role="button" class="btn btn-default"><< Back </a> &nbsp;&nbsp;
+{%endif%}
+
+{%endblock%}
+
+{%block help_header%}
+Node configuration help
+{%endblock%}
+{%block help_body%}
+<p>Help about node configuration…</p>
+{%endblock%}

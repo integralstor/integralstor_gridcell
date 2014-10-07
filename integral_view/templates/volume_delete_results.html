@@ -1,0 +1,39 @@
+{% extends 'logged_in_base.html' %}
+
+
+{%block contents%}
+<span id="topic-text"> Volumes -> Delete volume - results</span><br>
+
+{% if app_debug %}
+Debug info - begin <br>
+{%for result_dict in result_list %}
+Executed {{result_dict.actual_command}}<br>
+{{result_dict}}<br>
+{%endfor%}
+Debug info - end <br><br>
+{%endif%}
+
+<table class="table table-condensed table-bordered">
+<tr>
+<th> Command </th>
+<th> Result </th>
+</tr>
+{%for result_dict in result_list %}
+<tr>
+<td> {{result_dict.command}} </td>
+<td> 
+{{result_dict.result }}
+</td>
+</tr>
+{%endfor%}
+</table>
+
+
+
+{%endblock%}
+{%block help_header%}
+Delete volume help
+{%endblock%}
+{%block help_body%}
+<p>Help about deleting volume results - need to be customized…</p>
+{%endblock%}

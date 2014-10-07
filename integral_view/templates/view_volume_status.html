@@ -1,0 +1,164 @@
+{% extends 'logged_in_base.html' %}
+{%block autorefresh%}
+<meta http-equiv="refresh" content="30" >
+{%endblock%}
+
+{%block contents%}
+
+
+<span id="topic-text"> Volume status </span><br>
+
+<p id="p-instruction-text"> This page will autorefresh every 30 seconds to display updates.</p>
+
+<table class="table table-bordered" style="width:70%">
+<tr>
+  <td>
+  <b> Name</b>
+  </td>
+  <td>
+  {{vol.name}}
+  </td>
+</tr>
+<tr>
+  <td>
+  <b> Type</b>
+  </td>
+  <td>
+  {{vol.type}}
+  </td>
+</tr>
+<tr>
+  <td>
+  <b> Volume status</b>
+  </td>
+  <td>
+  {{vol.status_str}}
+  </td>
+</tr>
+<tr>
+  <td>
+  <b> Data access status</b>
+  </td>
+  <td>
+  {{vol.data_access_status}}
+  </td>
+</tr>
+</table>
+
+<div style="width:70%;border:1px solid rgb(221, 221, 221)">
+<h4>Space utilization</h4>
+
+<div class="progress">
+  <div class="progress-bar" role="progressbar" aria-valuenow="{{vol.size_used_percent}}" aria-valuemin="0" aria-valuemax="100" style="width: {{vol.size_used_percent}}%;">
+    {{vol.size_used_percent}}% used.
+  </div>
+</div>
+
+<table class="table table-bordered" style="width:80%">
+<tr>
+<th>
+Total usable capacity 
+</th>
+<td>
+{{vol.size_total}}
+</td>
+</tr>
+<tr>
+<th>
+Space used
+</th>
+<td>
+{{vol.size_used}}
+</td>
+</tr>
+<tr>
+<th>
+Space free 
+</th>
+<td>
+{{vol.size_free}}
+</td>
+</tr>
+</table>
+
+</div>
+
+{% if vol.data_access_status_code != 0 %}
+
+<p>The following data locations are having issues :</p>
+<table class="table table-bordered" style="width:70%">
+<tr>
+  <th> Problem node </th>
+  <th> Node status
+</tr>
+{% for k, v in vol.brick_status.items %}
+  {%if vol.brick_status.k.status != 1 %}
+  <tr>
+    <td>
+      {{v.hostname}}
+    </td>
+    <td>
+      <button class="btn btn-warning " onClick="load_node_status('{{v.hostname}}', '{{v.hostname}}');"> Details..</button>
+    </td>
+  </tr>
+  {%endif%}
+{%endfor%}
+{%endif%}
+</table>
+
+<div style="width:70%;border:1px solid rgb(221, 221, 221)">
+<h4>Data location processes status</h4>
+
+<table class="table table-bordered" style="width:90%">
+<tr>
+<th>
+Data location
+</th>
+<th>
+Process
+</th>
+<th>
+Status
+</th>
+</tr>
+{%for br, st in vol.brick_status.items %}
+{% if st.self_heal_deamon_status or st.nfs_status %}
+{%if "replicate" in vol.type.lower %}
+<tr>
+<td>
+{{st.hostname}}
+</td>
+<td>
+Self heal deamon
+</td>
+<td>
+{% if st.self_heal_deamon_status == 1 %} Healthy {%else%} Down {%endif%}
+</td>
+</tr>
+{%endif%}
+<tr>
+<td>
+{{st.hostname}}
+</td>
+<td>
+NFS Server
+</td>
+<td>
+{% if st.nfs_status == 1 %} Healthy {%else%} Down {%endif%}
+</td>
+</tr>
+{%endif%}
+{%endfor%}
+</table>
+
+</div>
+<br>
+<a href="/show/volume_status_all/" role="button" class="btn btn-default"><< Back </a> &nbsp;&nbsp;
+{%endblock%}
+{%block help_header%}
+Volume status help
+{%endblock%}
+{%block help_body%}
+<p>Help about volume status…</p>
+{%endblock%}
+

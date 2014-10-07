@@ -1,0 +1,274 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html lang="en">
+<head>
+  <link rel="stylesheet" type="text/css" href="/static/css/a.css">
+  <link rel="stylesheet" href="/static/jquery-ui-1.10.2.custom/css/ui-lightness/jquery-ui-1.10.2.custom.css">
+  <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="/static/bootstrap/css/bootstrap-responsive.min.css"/>
+
+  <title> {%block title%}Fractal View administration console{%endblock%}</title>
+  {%block autorefresh %}{%endblock%}
+<script type="text/javascript">
+var auto_refresh = setInterval(
+function ()
+{
+  $('#alerts').load('/refresh_alerts/').fadeIn("slow");
+}, 5000); 
+</script>
+</head>
+<body>
+  <table id="header_table"  width="100%" border=0>
+    <tr>
+      <td align="left"> <img src="/static/images/Fractal_5.jpg" style="border:solid 0px;width:140px;height:80px;float:left;"></td>
+      <td style="text-align:center"> <span id="header-text">{%block heading%}Fractal-View<sup>&copy;</sup> administration console{%endblock%}</span></td>
+      <td align="right">
+        <div id="alerts" style="margin:5px;position:relative;float:right;text-align:right;border:solid 0px"> 
+        <a  href="/show/alerts/" role="button" class="btn"> View alerts</a> 
+        </div>
+        <div style="margin:5px;position:relative;float:right;text-align:right;border:solid 0px">
+        <a href="#help" role="button" class="btn" data-toggle="modal">Help!</a>
+        <a  href="/logout/" role="button" class="btn"> Logout</a> 
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <div id="container">
+    <div class="navbar" style="width:;letter-spacing:1px;">
+      <div class="navbar-inner" >
+        <ul class="nav">
+          <li class="dropdown" > <a  href="/show/system_status/">System status</a> </li>
+          <li class="divider-vertical"></li>
+          <li class="dropdown" {%block status_selected%}{%endblock%}>
+            <a class="dropdown-toggle"  data-toggle="dropdown" href="#">View</a>
+            <ul class="dropdown-menu">
+              <li><a href="/show/system_config/">System configuration</a></li>
+              <li><a href="/show/volume_info_all">Volume information</a></li>
+              </li>
+            </ul>
+          </li>
+        </li>
+        <li class="divider-vertical"></li>
+        <li class="dropdown">
+          <a class="dropdown-toggle"  data-toggle="dropdown" href="#">Configure</a>
+          <ul class="dropdown-menu">
+            <li><a href="/add_servers" data-toggle="tooltip" title="Add storage to the pool">Add storage</a></li>
+            <li><a href="/server_op/remove_sled" date-toggle="tooltip" title="Remove storage from the pool">Remove storage</a></li>
+            <li><a href="/volume_creation_wizard/select_vol_name" date-toggle="tooltip" title="Create a storage volume">Create a volume</a></li>
+          </ul>
+        </li>
+        <li class="divider-vertical"></li>
+        <li class="dropdown">
+          <a class="dropdown-toggle"  data-toggle="dropdown" href="#">Manage</a>
+          <ul class="dropdown-menu">
+            <li><a href="/volume_specific_op/vol_start/">Start a volume</a></li>
+            <li><a href="/volume_specific_op/vol_stop/">Stop a volume</a></li>
+{% if user.username == 'dlcadmin' %}
+            <li><a href="/volume_specific_op/vol_delete/">Delete a volume</a></li>
+{%endif%}
+            <li><a href="/volume_specific_op/expand_volume/">Expand a volume</a></li>
+            <li><a href="/volume_specific_op/vol_options/">Set volume options</a></li>
+            <li><a href="/show/ntp_settings/">Configure NTP</a></li>
+            <li class="divider"></li>
+            <li class="dropdown-submenu"><a href="#">Background operations </a>
+              <ul class="dropdown-menu">
+                <li><a href="/replace_sled/">Replace a sled</a></li>
+                <li><a href="/volume_specific_op/start_rebalance/">Start volume rebalance</a></li>
+                <li class="divider"></li>
+                <li><a href="/show/batch_status">View status of background processes</a></li>
+              </ul>
+            <li class="divider"></li>
+            <li class="dropdown-submenu"><a href="#">Samba server settings</a>
+              <ul class="dropdown-menu">
+                <li><a href="/samba_server_settings_basic">Basic Settings</a></li>
+                <li><a href="/samba_server_settings_security">Security Settings</a></li>
+              </ul>
+            <li class="dropdown-submenu"><a href="#">Samba shares</a>
+              <ul class="dropdown-menu">
+              <li><a href="/display_shares">View shares</a></li>
+              <li><a href="/create_share">Create a share</a></li>
+              </ul>
+            <li class="dropdown-submenu"><a href="#">Samba users</a>
+              <ul class="dropdown-menu">
+              <li><a href="/display_users">View users</a></li>
+              <li><a href="/create_user">Create a Samba user</a></li>
+              <li><a href="/create_unix_user/">Create a Unix user</a></li>
+              </ul>
+          </ul>
+        </li>
+        <li class="divider-vertical"></li>
+        <li class="dropdown">
+          <a class="dropdown-toggle"  data-toggle="dropdown" href="#">Troubleshoot</a>
+          <ul class="dropdown-menu">
+            <li><a href="/volume_specific_op/rotate_log">Rotate volume log</a></li>
+            <li class="divider"></li>
+            <li class="dropdown-submenu"><a href="#">Download logs</a>
+              <ul class="dropdown-menu">
+                <li><a href="/download_vol_log">Download volume logs</a></li>
+                <li><a href="/download_sys_log">Download system logs</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li class="divider-vertical"></li>
+        <li class="dropdown">
+          <a class="dropdown-toggle"  data-toggle="dropdown" href="#">Admin</a>
+          <ul class="dropdown-menu">
+            <li><a href="/change_admin_password/">Change admin password</a></li>
+            <li><a href="/show/email_settings/">Email settings</a></li>
+            <li><a href="/show/audit_trail/">Audit trail</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+
+
+
+
+
+<div id="contents">
+   {%block contents%}
+  {%endblock%}
+</div>
+
+<div id="footer">
+   {%block footer%}
+    <hr width="">
+    <p>Dev version. Potentially flawed.</p>
+  {%endblock%}
+</div>
+
+<div id="help" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+  <h3 id="myModalLabel">
+{%block help_header%}
+{%endblock%}
+  </h3>
+  </div>
+  <div class="modal-body">
+{%block help_body%}
+{%endblock%}
+  </div>
+  <div class="modal-footer">
+  <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+  </div>
+</div>
+<script src="/static/jquery-ui-1.10.2.custom/js/jquery-1.9.1.js"></script>
+<script src="/static/bootstrap/js/bootstrap.min.js" ></script>
+
+</body>
+</html>
+
+<!--
+              <li class="dropdown-submenu"><a href="#">Volume status</a>
+                <ul class="dropdown-menu">
+                  {% for i in volume_list %}
+                  <li><a href="/volume_specific_op/volume_status/{{i}}">{{i}}</a></li>
+                  {%endfor%}
+                </ul>
+              <li class="dropdown-submenu"><a href="#">Node status</a>
+                <ul class="dropdown-menu">
+                  {% for i in peer_info_list %}
+                    <li><a href="/pull_node_status/{{i.hostname}}">{{i.hostname}}</a></li>
+                  {%endfor%}
+                </ul>
+              </li>
+              <li><a href="/show/trusted_pool_status/">Trusted pool status</a></li>
+              <li><a href="/show/volume_info_all">Volumes information</a></li>
+            <li class="dropdown-submenu">
+              <a href="#"> Create a volume</a>
+              <ul class="dropdown-menu">
+                <li><a href="/create_volume_get_num_bricks/distributed/">Create a distributed volume</a></li>
+                <li><a href="/create_volume_get_num_bricks/replicated/">Create a replicated volume</a></li>
+                <li><a href="/create_volume_get_num_bricks/striped/">Create a striped volume</a></li>
+                <li><a href="/create_volume_get_num_bricks/distributed_striped/">Create a distributed striped volume</a></li>
+                <li><a href="/create_volume_get_num_bricks/distributed_replicated/">Create a distributed replicated volume</a></li>
+                <li><a href="/create_volume_get_num_bricks/striped_replicated/">Create a striped replicated volume</a></li>
+                <li><a href="/create_volume_get_num_bricks/distributed_striped_replicated/">Create a distributed striped replicated volume</a></li>
+              </ul>
+            </li>
+        <li class="divider-vertical"></li>
+        <li >
+          <ul class="dropdown-menu">
+            <li><a href="#"></a></li>
+          </ul>
+        </li>
+        <li class="dropdown">
+          <a class="dropdown-toggle"  data-toggle="dropdown" href="#">Manage volumes</a>
+          <ul class="dropdown-menu">
+          </ul>
+        </li>
+        <li class="divider-vertical"></li>
+        <li>
+          <a  href="/system_status">System status</a>
+          <ul class="dropdown-menu">
+            <li><a href="#"></a></li>
+          </ul>
+        </li>
+<div id="menu">
+
+  <ul id="menu1">
+    <li ><a href="#">Trusted pool setup</a>
+      <ul>
+       <li ><a href="/server_op/add_server">Add server</a></li>
+       <li ><a href="/server_op/remove_server">Remove server</a></li>
+       <li ><a href="/perform_op/view_server_status/">View server status</a></li>
+     </ul>
+    </li>
+    <li><a href="#">Volume creation</a>
+      <ul>
+        <li><a href="/create_volume_get_num_bricks/distributed/">Create a distributed volume</a></li>
+        <li><a href="/create_volume_get_num_bricks/replicated/">Create a replicated volume</a></li>
+        <li><a href="/create_volume_get_num_bricks/striped/">Create a striped volume</a></li>
+        <li><a href="/create_volume_get_num_bricks/distributed_striped/">Create a distributed striped volume</a></li>
+        <li><a href="/create_volume_get_num_bricks/distributed_replicated/">Create a distributed replicated volume</a></li>
+        <li><a href="/create_volume_get_num_bricks/striped_replicated/">Create a striped replicated volume</a></li>
+        <li><a href="/create_volume_get_num_bricks/distributed_striped_replicated/">Create a distributed striped replicated volume</a></li>
+      </ul>
+    </li>
+    <li><a href="#">Volume management</a>
+      <ul>
+        <li><a href="/perform_op/view_volume_info_all">View information about all volumes</a></li>
+        <li><a href="/perform_op/view_volume_status_all">View status of all volumes</a></li>
+        <li><a href="/volume_specific_op/vol_start/">Start a volume</a></li>
+        <li><a href="/volume_specific_op/vol_stop/">Stop a volume</a></li>
+{% if user.username == 'dlcadmin' %}
+        <li><a href="/volume_specific_op/vol_delete/">Delete a volume</a></li>
+{%endif%}
+        <li><a href="/volume_specific_op/expand_volume/">Expand a volume</a></li>
+        <li><a href="/volume_specific_op/start_rebalance/">Start volume rebalance</a></li>
+        <li><a href="/volume_specific_op/stop_rebalance/">Stop volume rebalance</a></li>
+        <li><a href="/volume_specific_op/check_rebalance/">Check volume rebalance status</a></li>
+        <li>Shrink a volume</li>
+        <li>Migrate a volume</li>
+        <li>Tune volume options</li>
+      </ul>
+    </li>
+    <li><a href="#">Manage quotas</a>
+      <ul>
+        <li><a href="/volume_specific_op/enable_quota">Enable volume quotas</a></li>
+        <li><a href="/volume_specific_op/disable_quota">Disable volume quotas</a></li>
+        <li><a href="/volume_specific_op/display_disk_level_quota">Display disk level quotas</a></li>
+      </ul>
+    </li>
+    <li><a href="#">Logging</a>
+      <ul>
+        <li><a href="/view_log/">View log</a></li>
+        <li><a href="/download_log/vol_log">Download volume logs</a></li>
+        <li><a href="/download_log/sys_log">Download system logs</a></li>
+        <li><a href="/volume_specific_op/rotate_log">Rotate volume log</a></li>
+      </ul>
+    </li>
+    <li><a href="/manage_shares" >Manage shares</a>
+  </ul>
+    <script>
+     $( "#menu1" ).menu();
+   </script>
+   {%block selectedmenu%}
+  {%endblock%}
+
+</div>
+-->

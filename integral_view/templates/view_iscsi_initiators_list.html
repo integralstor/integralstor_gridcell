@@ -1,0 +1,66 @@
+{% extends 'logged_in_base.html' %}
+
+{%block contents%}
+
+
+<span id="topic-text">ISCSI access -> Initiators </span><br>
+
+{% if conf %}
+<i>{{conf}}</i><br><br>
+{%endif%}
+
+{% if not initiators_list %}
+No initiators appear to have been created. Click <a href="/iscsi_create_initiator/"> here</a> to create a new initiator. 
+{%else %}
+<div style="width:95%;position: relative; margin: 5px 0px; padding: 9px 9px 4px; background-color: rgb(255, 255, 255); border: 1px solid rgb(221, 221, 221); border-radius: 4px 4px 4px 4px;">
+<table class="table table-striped">
+<thead>
+<tr>
+<th>
+Initiator ID
+</th>
+<th>
+Initiating hostnames
+</th>
+<th>
+Authorized network
+</th>
+<th>
+Description
+</th>
+<th>
+&nbsp;
+</th>
+</thead>
+{%for d in initiators_list %}
+<tr>
+  <td>
+    {{d.id}}
+  </td>
+  <td>
+    {{d.initiators}}
+  </td>
+  <td>
+    {{d.auth_network}}
+  </td>
+  <td>
+    {{d.comment}}
+  </td>
+  <td>
+    <a href="/iscsi_view_initiator?access_mode=by_id&id={{d.id}}" role="button" class="btn btn-default"> Details</a>
+  </td>
+</tr>
+{%endfor%}
+</table>
+</div>
+<br>
+<a href="/iscsi_create_initiator" role="button" class="btn btn-default"> Create a new initiator</a>
+{%endif%}
+
+{%endblock%}
+{%block help_header%}
+Initiators list help
+{%endblock%}
+{%block help_body%}
+  <p>Help about initiators list…</p>
+{%endblock%}

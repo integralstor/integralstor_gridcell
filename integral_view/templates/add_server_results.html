@@ -1,0 +1,60 @@
+{% extends 'logged_in_base.html' %}
+
+{%block contents%}
+
+<span id="topic-text"> Storage pool -> Add storage - results</span><br>
+
+<table style="width:60%" class="table table-condensed table-bordered" >
+<tr>
+<th>
+Operation
+</th>
+<th>
+Result
+</th>
+</tr>
+{% for d in result_list %}
+<tr>
+<td>
+{{d.command}}
+{% if app_debug %}
+<br>{{d.actual_command}}
+{%endif%}
+</td>
+<td>
+{% if d.op_status.op_ret == 0  %}
+Success
+{%else%}
+Failed (Errno. {{d.op_status.op_errno}} - {{d.op_status.op_errstr}}, {{d.op_status.output}}{% if d.error_list %}, additional error message - {{d.error_list}} {%endif%})
+{%endif%}
+</td>
+</tr>
+{%endfor%}
+</table>
+
+<!--
+{%if cmd_output %}
+{% for o in cmd_output%}
+{{o}}<br>
+{%endfor%}
+{% endif %}
+-->
+
+
+{% if cmd_errors  %}
+<p style="color:red">Could not perform the requested action. Errors follow :</p>
+{% for err in cmd_errors%}
+{{err}}<br>
+{%endfor%}
+</p>
+{% endif %}
+
+
+
+{%endblock%}
+{%block help_header%}
+Add storage results help
+{%endblock%}
+{%block help_body%}
+<p>This screen shows the results of adding storage to the storage pool. If multiple storage nodes are being added to the pool then an entry for each node will be displayed. </p><p>Please contact fractalio customer service with the exact error message number and message if needed./p>
+{%endblock%}

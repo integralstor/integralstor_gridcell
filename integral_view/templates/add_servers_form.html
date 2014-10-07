@@ -1,0 +1,114 @@
+{% extends 'logged_in_base.html' %}
+
+{%block contents%}
+<script type="text/javascript">
+function load_node_info(hostname, str) {
+  url='/show/node_info/' + encodeURIComponent(hostname);
+  document.getElementById('myModalLabel').innerHTML = "Node information for " + str ;
+  $('#myModalBody').load(url);
+  $('#myModal').modal();
+}
+</script>
+
+<span id="topic-text"> Add IntegralStor nodes</span><br>
+
+{%if no_available_nodes %}
+
+<p id="p-instruction-text"> There are no nodes available to add to the storage pool. </p>
+<br>
+<p id="p-instruction-text"> Click <a href="/show/system_config"> here </a> to view the current system configuration. </p>
+
+{%else %}
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+      </div>
+      <div class="modal-body" id="myModalBody">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% if form.errors %}
+<p id="error-text"> {{form.errors}}</p>
+{%endif%}
+{% if warn_no_spare%}
+<p id="error-text"> Warning : There are no spare sleds!</p>
+{%elif prompt_for_spare %}
+<p id="error-text"> Warning : This action will add the spare sled!</p>
+{%endif%}
+
+{% if form.hosts.errors %}
+<p id="error-text"> Please select at least one disk</p>
+{%endif %}
+
+
+
+The following nodes will be added to the storage pool.
+<br>
+<br>
+<table class="table table-bordered" style="width:300px">
+<tr>
+  <th>
+    Node name
+  </th>
+  <th>
+    Details
+  </th>
+</tr>
+{%for d in addable_node_list %}
+  <tr>
+    <td>
+      {{d.hostname}}
+    </td>
+    <td>
+      <button class="btn btn-default " onClick="load_node_info('{{d.hostname}}', '{{d.hostname}}');"> Details.. </button>
+    </td>
+  </tr>
+{%endfor%}
+</table>
+
+<!-- Modal -->
+<div class="modal fade" id="processing" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-body" id="myModalBody">
+        <br><br><br>
+        <img src="/static/images/4.gif" >
+        <br><br><br>
+        <p id="p-node-text">Processing.. Please wait.
+        <br><br><br>
+      </div>
+    </div>
+  </div>
+</div>
+
+<span id="instruction-text"> The system automatically selects applicable storage to be added to the available storage pool. Please verify and confirm.</span>
+<br>
+{% if prompt_for_spare %}
+<p id="warning-text"> Warning : This action will add the warm spare sled. </p>
+{%endif%}
+<form id = 'add_servers_form' action="/add_nodes/"  method="post">
+{% for node, display in form.nodes.field.widget.choices %}
+<input type="checkbox"  value="{{ node }}" name="nodes" checked style="display:None">
+{%endfor%}
+<button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Add nodes >></button>
+</form>
+
+{%endif%}
+{%endblock%}
+{%block help_header%}
+Add storage help
+{%endblock%}
+{%block help_body%}
+<p>The system automatically detects nodes that are not part of the storage pool and then presents them in this screen for your confirmation. This is for your information only. </p>
+{%endblock%}

@@ -1,0 +1,103 @@
+{% extends 'logged_in_base.html' %}
+
+{%block contents%}
+
+
+<span id="topic-text">ISCSI access -> Authorized accesses groups </span><br>
+
+{% if conf %}
+<i>{{conf}}</i><br><br>
+{%endif%}
+
+{% if not auth_access_info %}
+No authorized access groups appear to have been created. Click <a href="/iscsi_create_auth_access_group/"> here</a> to create a new authorized access group.
+{%else %}
+{%for k, v in auth_access_info.items %}
+<table class="table " >
+<tr>
+<th>
+Authorized access group ID
+</th>
+<th>
+User
+</th>
+<th>
+Peer user
+</th>
+<th>
+&nbsp;
+</th>
+<th>
+&nbsp;
+</th>
+<th>
+&nbsp;
+</th>
+<th>
+&nbsp;
+</th>
+</tr>
+{% if not v%}
+<tr>
+  <td>
+    {{k}}
+  </td>
+  <td>
+    &nbsp;
+  </td>
+  <td>
+    &nbsp;
+  </td>
+  <td>
+    &nbsp;
+  </td>
+  <td>
+    &nbsp;
+  </td>
+  <td>
+    <a href="/iscsi_create_auth_access_user?access_mode=by_id&auth_access_group_id={{k}}" role="button" class="btn btn-default">Add a user to this group</a>
+  </td>
+  <td>
+    <a href="/iscsi_delete_auth_access_group?access_mode=by_id&auth_access_group_id={{k}}" role="button" class="btn btn-default">Delete this group</a>
+  </td>
+</tr>
+{%else %}
+{% for i in v%}
+<tr>
+  <td>
+    {{k}}
+  </td>
+  <td>
+    {{i.user}}
+  </td>
+  <td>
+    {{i.peer_user}}
+  </td>
+  <td>
+    <a href="/iscsi_edit_auth_access_user?access_mode=by_id&user_id={{i.id}}" role="button" class="btn btn-default"> Edit this user</a>
+  </td>
+  <td>
+    <a href="/iscsi_delete_auth_access_user?access_mode=by_id&user_id={{i.id}}" role="button" class="btn btn-default">Delete this user</a>
+  </td>
+  <td>
+    <a href="/iscsi_create_auth_access_user?access_mode=by_id&auth_access_group_id={{k}}" role="button" class="btn btn-default">Add a user to this group</a>
+  </td>
+  <td>
+    <a href="/iscsi_delete_auth_access_group?access_mode=by_id&auth_access_group_id={{k}}" role="button" class="btn btn-default">Delete this group</a>
+  </td>
+</tr>
+{%endfor%}
+{%endif%}
+</table>
+{%endfor%}
+<br>
+<a href="/iscsi_create_auth_access_group" role="button" class="btn btn-default"> Create a new authorized access group</a>
+{%endif%}
+
+{%endblock%}
+{%block help_header%}
+Authorized access group list help
+{%endblock%}
+{%block help_body%}
+  <p>Help about Authorized access group list…</p>
+{%endblock%}

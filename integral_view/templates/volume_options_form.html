@@ -1,0 +1,91 @@
+{% extends 'logged_in_base.html' %}
+
+{%block contents%}
+<script type="text/javascript">
+function set_field_visibility() {
+  var readonly = document.forms["edit_form"].elements["readonly"].value;
+  if (readonly == "on") {
+    document.forms["edit_form"].elements["nfs_disable"].disabled = true;
+    document.forms["edit_form"].elements["nfs_volume_access"].disabled = true;
+    document.forms["edit_form"].elements["enable_worm"].disabled = true;
+    document.forms["edit_form"].elements["enable_worm"].checked = false;
+  } else {
+    document.forms["edit_form"].elements["nfs_disable"].disabled = false;
+    document.forms["edit_form"].elements["nfs_volume_access"].disabled = false;
+    document.forms["edit_form"].elements["enable_worm"].disabled = false;
+    var nfs_disable = document.forms["edit_form"].elements["nfs_disable"];
+    if (nfs_disable.checked) {
+      document.forms["edit_form"].elements["nfs_volume_access"].disabled = true;
+    }else {
+      document.forms["edit_form"].elements["nfs_volume_access"].disabled = false;
+    }
+  }
+}
+</script>
+<span id="topic-text"> Volumes -> Set volume options</span><br>
+<div  style=" position:relative;border:0px solid #DDDDDD;width:600px; padding:15px 15px 15px;margin:0px 15px;border-radius:4px 4px 0px 0px">
+<form  id="edit_form" action="/set_volume_options/" method="post">
+{{ form.vol_name }}
+  <div class="form-group" >
+    <label for="id_vol_name" >Volume name:</label>
+    {{form.vol_name.value}}
+    {{ form.vol_name.errors }}
+  </div>
+  <div class="form-group" >
+    <label for="id_auth_allow" >Allowed IP addresses:</label>
+    <input type="text"  name="auth_allow" class="form-control" id="id_auth_allow" placeholder="Allowed IP addresses" {% if form.initial.auth_allow %}value="{{form.initial.auth_allow}}" {%endif%}> 
+    {{ form.auth_allow.errors }}
+  </div>
+  <div class="form-group" >
+    <label for="id_auth_reject" >Denied IP addresses:</label>
+    <input type="text"  name="auth_reject" class="form-control" id="id_auth_reject" placeholder="Denied IP addresses" {% if form.initial.auth_reject %}value="{{form.initial.auth_reject}}" {%endif%}> 
+    {{ form.auth_reject.errors }}
+  </div>
+  <div class="form-group" >
+    <label for="id_readonly" >Volume access mode:</label>
+    <select name="readonly" class="form-control" onChange="set_field_visibility();">
+    {% for choice in form.readonly.field.choices %} 
+      <option value="{{choice.0}}" {%if form.initial.readonly == choice.0%} selected="selected" {%endif%}>{{choice.1}}</option>
+    {%endfor%}
+    </select>
+    {{ form.readonly.errors }}
+  </div>
+  <div class="checkbox">
+    <label for="id_enable_worm">
+      <input name="enable_worm" type="checkbox" {% if form.initial.enable_worm%} checked="checked" {%endif%} onClick="set_field_visibility();">
+      Enable WORM (Write Once Read Many) 
+    </label>
+    {{ form.enable_worm.errors }}
+  </div>
+  <div class="checkbox">
+    <label for="id_nfs_disable">
+      <input name="nfs_disable" type="checkbox" {% if form.initial.nfs_disable%} checked="checked" {%endif%} onClick="set_field_visibility();">
+      Disable NFS access
+    </label>
+    {{ form.nfs_disable.errors }}
+  </div>
+  <div class="form-group" >
+    <label for="id_nfs_volume_access" >NFS access mode:</label> 
+    <select name="nfs_volume_access" class="form-control" >
+    {% for choice in form.nfs_volume_access.field.choices %} 
+      <option value="{{choice.0}}" {%if form.initial.nfs_volume_access == choice.0%} selected="selected" {%endif%}>{{choice.1}}</option>
+    {%endfor%}
+    </select>
+    {{ form.nfs_volume_access.errors }}
+  </div>
+  <a href="/show/volume_info_all" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
+  <button type="submit" class="btn btn-primary">Save >></button>
+</form>
+</div>
+
+<script type="text/javascript">
+set_field_visibility();
+</script>
+
+{%endblock%}
+{%block help_header%}
+Volume options help
+{%endblock%}
+{%block help_body%}
+<p>Help about setting volume options…</p>
+{%endblock%}

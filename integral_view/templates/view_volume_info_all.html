@@ -1,0 +1,70 @@
+{% extends 'logged_in_base.html' %}
+
+
+{%block status_selected%}
+style="background-color:white;color:white;"
+{%endblock%}
+
+
+{%block contents%}
+<script type="text/javascript">
+function load_volume_info(name) {
+  url='/show/volume_info/' + encodeURIComponent(name);
+  document.getElementById('myModalLabel').innerHTML = "Volume information for " + name ;
+  $('#myModalBody').load(url);
+  $('#myModal').modal();
+}
+</script>
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+      </div>
+      <div class="modal-body" id="myModalBody">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{%if volume_info_list %}
+
+<span id="topic-text"> Volume configuration</span>
+<br>
+
+<table class="table table-bordered table-striped table-hover table-condensed">
+<tr>
+<th> Volume name </th>
+<th> Type </th>
+<th> Access Mode </th>
+<th> Status </th>
+<th> Details</th>
+</tr>
+{% for o in volume_info_list%}
+<tr>
+<td>{{o.name}}</td>
+<td>{{o.type}}</td>
+<td>{%if o.name in iscsi_volumes %} ISCSI block access {%else%} NFS/CIFS File based access{%endif%}
+<td>{{o.status_str}}</td>
+<td> 
+      <a href="/show/volume_info/{{o.name}}" role="button" class="btn btn-default">Details.. </a>
+</td>
+</tr>
+{%endfor%}
+</table>
+{%else %}
+No volumes created
+{% endif %}
+{%endblock%}
+{%block help_header%}
+Volume info help
+{%endblock%}
+{%block help_body%}
+<p>Help about Volume info …</p>
+{%endblock%}

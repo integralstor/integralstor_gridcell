@@ -1,0 +1,95 @@
+<style type="text/css">
+    ul.errorlist {
+        margin: 0;
+        padding: 0;
+    }
+    .errorlist li {
+        background-color: white;
+        color: red;
+        display: block;
+        font-size: 10px;
+        margin: 0 0 3px;
+        padding: 4px 5px;
+    }
+</style>
+<script type="text/javascript">
+function subm(f,newtarget)
+{
+document.myform.action = "http://"+newtarget+":8000/download_log/sys_log/" ;
+f.submit();
+}
+</script>
+
+
+{% extends 'logged_in_base.html' %}
+
+
+{%block contents%}
+<b>Logging -> Download logs
+
+</b> <br><br>
+
+
+
+<p style="color:red;"> {{error}}</p>
+
+<form name="myform"  method="post">
+        <div class="field">
+            <table>
+{% if log_type == 'sys_log' %}
+            <tr>
+              <td>
+            <label for="id_hostname">Hostname :</label>
+              </td>
+              <td>
+            {{ form.hostname }}
+              </td>
+              <td>
+            {{ form.hostname.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label for="id_sys_log_type">System log type :</label>
+              </td>
+              <td>
+            {{ form.sys_log_type }}
+              </td>
+              <td>
+            {{ form.sys_log_type.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td  colspan=3 style="text-align:center">
+        <input type="button" value="Download" onClick="subm(document.myform,document.myform.hostname.value);">
+              </td>
+            </tr>
+{%elif log_type == 'vol_log' %}
+            <tr>
+              <td>
+            <label for="id_vol_name">Volume name:</label>
+              </td>
+              <td>
+            {{ form.vol_name }}
+              </td>
+              <td>
+            {{ form.vol_name.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td  colspan=3 style="text-align:center">
+        <input type="submit" value="Download">
+              </td>
+            </tr>
+{% endif %}
+            </table>
+        </div>
+</form>
+
+{%endblock%}
+{%block help_header%}
+download logs help
+{%endblock%}
+{%block help_body%}
+<p>Help about downloading logs…</p>
+{%endblock%}

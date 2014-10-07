@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <volStart>
+    <volume>
+      <name>testvol</name>
+      <id>4f59f9c0-5499-47c3-8f53-7d574ff7075d</id>
+    </volume>
+  </volStart>
+</cliOutput>

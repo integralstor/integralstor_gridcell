@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>0</opErrno>
+  <opErrstr/>
+  <volInfo>
+    <volumes>
+      <volume>
+        <name>rvol</name>
+        <id>462adce1-1d0b-44bf-9d2c-2dd5a19fdb07</id>
+        <status>1</status>
+        <statusStr>Started</statusStr>
+        <brickCount>2</brickCount>
+        <distCount>2</distCount>
+        <stripeCount>1</stripeCount>
+        <replicaCount>2</replicaCount>
+        <type>2</type>
+        <typeStr>Replicate</typeStr>
+        <transport>0</transport>
+        <bricks>
+          <brick>s1n1.testing.lan:/data/rvol</brick>
+          <brick>s3n5.testing.lan:/data/rvol</brick>
+        </bricks>
+        <optCount>1</optCount>
+        <options>
+          <option>
+            <name>features.worm</name>
+            <value>enable</value>
+          </option>
+        </options>
+      </volume>
+      <count>1</count>
+    </volumes>
+  </volInfo>
+</cliOutput>

@@ -1,0 +1,206 @@
+<style type="text/css">
+    ul.errorlist {
+        margin: 0;
+        padding: 0;
+    }
+    .errorlist li {
+        background-color: white;
+        color: red;
+        display: block;
+        font-size: 10px;
+        margin: 0 0 3px;
+        padding: 4px 5px;
+    }
+</style>
+<script type="text/javascript">
+
+function load_node_info(hostname, str) {
+  url='/show/node_info/' + encodeURIComponent(hostname);
+  document.getElementById('myModalLabel').innerHTML = "Node information for " + str + "&nbsp; (" + hostname + ")";
+  $('#myModalBody').load(url);
+  $('#myModal').modal();
+}
+</script>
+{% extends 'logged_in_base.html' %}
+
+{%block contents%}
+<!-- Modal -->
+<div id="myModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal-header">
+<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+<h4 id="myModalLabel">Modal header</h4>
+</div>
+<div id="myModalBody" class="modal-body">
+</div>
+<div class="modal-footer">
+<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+</div>
+</div>
+
+
+<table border=0>
+<tr>
+  <td>
+  <table width="100px">
+  <tr>
+    <td>
+    &nbsp;
+    </td>
+  </tr>
+  </table>
+</td>
+<td>
+<table  border=0>
+<tr>
+  <td style="padding:0">
+    <table width=100% border=0 style="border-spacing:0;border-collapse:collapse;">
+    <tr>
+      <td style="padding:0">
+      <img src="/static/images/chassis_left_top.png"  style="height:72px;width:147px;padding:0">
+      </td>
+      </tr>
+      <tr>
+      <td style="padding:0">
+      <img src="/static/images/chassis_left_middle.png" style="height:66px;width:147px;padding:0" title="{% for psu in chassis_component_status.Power_Supply %} {% if psu.Name == "PSU1_Status" %} PSU 1 status : {{psu.status}}, Power supply : {% if psu.code == "0x01" %} on {%else%} off {%endif%}{%endif%}{%endfor%}">
+      </td>
+      </tr>
+      <tr>
+      <td style="padding:0">
+      <img src="/static/images/chassis_left_bottom.png"  style="height:78px;width:147px;padding:0" title="{% for psu in chassis_component_status.Power_Supply %} {% if psu.Name == "PSU2_Status" %} PSU 2 status : {{psu.status}}, Power supply : {% if psu.code == "0x01" %} on {%else%} off {%endif%}{%endif%}{%endfor%}">
+      </td>
+      </td>
+      </tr>
+    </table>
+    </td>
+  </td>
+  {%for al in display_node_list %}
+  <td style="padding:0">
+        <table style="height:210px;border-spacing:0;border-collapse:collapse;"  border=0 >
+        {% for bl in al %}
+        <tr style="padding:0;">
+          <td style="padding:0;height:35px;width:190px;background:url('/static/images/sled1.png') no-repeat;background-size:190px 52px;">
+            <table border=0 style="height:100%;width:100%;border-spacing:0;border-collapse:collapse;">
+            <tr>
+              <td colspan=2 style="border-bottom:solid 1px;text-align:center">
+                <span id="node-text">Sled {{bl.0.sled}}</span> 
+              </td>
+            </tr>
+            <tr>
+              {% for node in bl %}
+              <td style="width:50%;background:{% if not node.present %}darkgray {%elif not node.up%} red {%else%}lightgreen{%endif%}" {% if forloop.counter0 == 0 %}style="border-right:solid 1px" {%endif%} {% if node.present and node.up %} title="{% if "cpu_info" in node %} CPU Status : {{node.cpu_info.status}} CPU Temperature : {{node.cpu_info.temp}} {%endif%} {% if "disk_info" in node %} 
+{% for disk in node.disk_info %} Disk {{forloop.counter}} Serial Number : {{disk.serial_number}}; Disk {{forloop.counter}} S.M.A.R.T Status : {{disk.test_result}}; Disk {{forloop.counter}} capacity : {{disk.capacity}}
+{%endfor%} {%endif%}"{%endif%}>
+                <div style="width:100%; text-align:center;" {% if node.active %} onClick="load_node_info('{{node.hostname}}', 'Sled {{node.sled}} Node {{forloop.counter}}');{%endif%} "><span id="node-text">Node {{forloop.counter}}</span></div>
+              </td>
+              {%endfor %}
+            </tr>
+            </table>
+          </td>
+        </tr>
+        {%endfor%}
+        </table>
+      </td>
+   {%endfor%}
+   <td style="padding:0">
+      <img src="/static/images/chassis_right.png" style="height:212px;width:28px;padding:0">
+    </td>
+ </tr>
+ </table>
+ </td>
+ <td>
+<table width=100px border=0>
+<tr>
+  <td>
+  <i>Hold your mouse over various components to view their status</i><br>
+  </td>
+</tr>
+<tr>
+  <td>
+    <table style="width:200px" class="table table-condensed table-bordered" >
+    <tr>
+      <th colspan=4>
+      Color key
+      </th>
+    </tr>
+    <tr>
+      <td style="background:darkgray">
+      &nbsp;
+      </td>
+      <td>
+      Inactive
+      </td>
+    </tr>
+    <tr>
+      <td style="background:lightgreen">
+      &nbsp;
+      </td>
+      <td>
+      Active
+      </td>
+    </tr>
+    <tr>
+      <td style="background:red">
+      &nbsp;
+      </td>
+      <td>
+      Node not responding!
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td>
+  <table width="100px">
+  <tr>
+    <td>
+    &nbsp;
+    </td>
+  </tr>
+  </table>
+</td>
+<td>
+<table style="height:168px;border-spacing:0;border-collapse:collapse;">
+<tr>
+  <td rowspan=2 style="padding:0">
+  <img src="/static/images/back_fan.png" style="height:219px;width:210px" title="{% for fan in chassis_component_status.Fans %}{% if fan.Fan_Name == "Fan_SYS2_2" %}Front fan status : {{fan.status}}, Front fan RPM: {{fan.RPM}}{%elif fan.Fan_Name == "Fan_SYS2_1"%} Rear fan status : {{fan.status}}, Rear fan RPM: {{fan.RPM}}{%endif%}{%endfor%}">
+  </td>
+  <td rowspan=2 style="padding:0">
+  <img src="/static/images/back_fan.png" style="height:219px;width:210px" title="{% for fan in chassis_component_status.Fans %}{% if fan.Fan_Name == "Fan_SYS1_2" %} Front fan status : {{fan.status}}, Front fan RPM: {{fan.RPM}}{%elif fan.Fan_Name == "Fan_SYS1_1"%} Rear fan status : {{fan.status}}, Rear fan RPM: {{fan.RPM}}{%endif%}{%endfor%}">
+  </td>
+  <td rowspan=2 style="padding:0">
+  <img src="/static/images/back_fan.png" style="height:219px;width:210px" title="{% for fan in chassis_component_status.Fans %}{% if fan.Fan_Name == "Fan_SYS0_2" %}Front fan status : {{fan.status}}, Front fan RPM: {{fan.RPM}}{%elif fan.Fan_Name == "Fan_SYS0_1"%} Rear fan status : {{fan.status}}, Rear fan RPM: {{fan.RPM}}{%endif%}{%endfor%}">
+  </td>
+  <td style="padding:0">
+  <img src="/static/images/psu_back.png" style="height:93px;width:126px" >
+  </td>
+  </tr>
+  <tr>
+  <td style="padding:0">
+  <img src="/static/images/psu_fan.png" style="height:126px;width:126px" title="{% for fan in chassis_component_status.Fans %} {% if fan.Fan_Name == "Fan_SYS3_2" %} Front PSU fan status : {{fan.status}}, Front PSU fan RPM: {{fan.RPM}}{%elif fan.Fan_Name == "Fan_SYS3_1"%} Rear PSU fan status : {{fan.status}}, Rear PSU fan RPM: {{fan.RPM}}{%endif%}{%endfor%}">
+  </td>
+</tr>
+</table>
+</td>
+<td>
+  <table width="100px">
+  <tr>
+    <td>
+    &nbsp;
+    </td>
+  </tr>
+  </table>
+</td>
+</tr>
+</table>
+{%endblock%}
+{%block help_header%}
+Expand volume help
+{%endblock%}
+{%block help_body%}
+<p>Help about expanding volumes…</p>
+{%endblock%}
+

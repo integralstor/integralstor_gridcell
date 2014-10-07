@@ -1,0 +1,134 @@
+{% extends 'logged_in_base.html' %}
+{%block autorefresh%}
+<meta http-equiv="refresh" content="30" >
+{%endblock%}
+
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+      </div>
+      <div class="modal-body" id="myModalBody">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{%block contents%}
+<span id="topic-text"> Dashboard </span>
+<br>
+<p id="p-instruction-text"> This page will autorefresh every 30 seconds to display updates.</p>
+
+<div style="border:0px solid; height:100%;position:relative">
+<div style="width:48%;border:0px solid rgb(221, 221, 221);padding-left:10px;position:absolute;top:5px;left:5px">
+<h4>Status</h4>
+<table class="table table-hover table-bordered" style="width:100%">
+<tr>
+  <th>
+    Component
+  </th>
+  <th>
+    Status
+  </th>
+  <th>
+    Details
+  </th>
+</tr>
+{% if total_nodes > 0 %}
+{% if num_nodes_bad > 0 %}
+  <tr  class="warning">
+{%else%}
+  <tr>
+{%endif%}
+    <td>
+      Platform status
+    </td>
+    <td>
+      {% if num_nodes_bad > 0 %} {{num_nodes_bad}} nodes have problems {%else%} All healthy {%endif%}
+    </td>
+    <td>
+      <a href="/show/system_status" role="button" class="btn {%if num_nodes_bad > 0 %} btn-warning {%else%} btn-default{%endif%}"> Details</a>
+    </td>
+  </tr>
+{%endif%}
+{% if total_pool > 0 %}
+{% if num_pools_bad > 0 %}
+  <tr  class="warning">
+{%else%}
+  <tr>
+{%endif%}
+    <td>
+      Storage pool status
+    </td>
+    <td>
+      {% if num_pools_bad > 0 %} {{num_pools_bad}} nodes in the pool have problems {%else%} All healthy {%endif%}
+    </td>
+    <td>
+      <a href="/show/pool_status" role="button" class="btn {%if num_pools_bad > 0 %} btn-warning {%else%} btn-default{%endif%}"> Details</a>
+    </td>
+  </tr>
+{%endif%}
+{% if total_pool > 0 %}
+{% if num_vols_bad > 0 %}
+  <tr  class="warning">
+{%else%}
+  <tr>
+{%endif%}
+    <td>
+      Volume status
+    </td>
+    <td>
+      {% if num_vols_bad > 0 %} {{num_vols_bad}} volumes problems {%else%} All healthy {%endif%}
+    </td>
+    <td>
+      <a href="/show/volume_status_all" role="button" class="btn {%if num_vols_bad > 0 %} btn-warning {%else%} btn-default{%endif%}"> Details</a>
+    </td>
+  </tr>
+{%endif%}
+</table>
+</div>
+
+
+<div style="padding-left:10px;width:48%;border:0px solid rgb(221, 221, 221);position:absolute;top:5px;right:5px">
+<h4>Space utilization</h4>
+
+<table class="table table-hover table-bordered" style="width:100%">
+<tr>
+  <th>
+    Volume
+  </th>
+  <th>
+    Usage
+  </th>
+</tr>
+{% for v in volume_info_list %}
+<tr>
+  <td>
+    {{v.name}}
+  <td>
+    <div class="progress">
+      <div class="progress-bar" role="progressbar" aria-valuenow="{{v.size_used_percent}}" aria-valuemin="0" aria-valuemax="100" style="width: {{v.size_used_percent}}%;">
+        {{v.size_used_percent}}% used.
+      </div>
+    </div>
+  </td>
+</tr>
+{%endfor%}
+</table>
+</div>
+</div>
+{%endblock%}
+{%block help_header%}
+System status help
+{%endblock%}
+{%block help_body%}
+<p>Help about system status…</p>
+{%endblock%}
+

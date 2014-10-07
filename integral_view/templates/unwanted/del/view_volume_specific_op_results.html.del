@@ -1,0 +1,77 @@
+<style type="text/css">
+    ul.errorlist {
+        margin: 0;
+        padding: 0;
+    }
+    .errorlist li {
+        background-color: white;
+        color: red;
+        display: block;
+        font-size: 10px;
+        margin: 0 0 3px;
+        padding: 4px 5px;
+    }
+</style>
+{% extends 'logged_in_base.html' %}
+{%block selectedmenu%}
+  <script type="text/javascript">
+  <!--
+  {% if op == 'enable_quota' %}
+    d.openTo(51, true);
+  {% elif op == 'disable_quota' %}
+    d.openTo(52, true);
+  {% elif op == 'disable_quota' %}
+    d.openTo(52, true);
+    //-->
+    </script>
+{%endblock%}
+
+{%block contents%}
+{% if op == 'enable_quota' %}
+<b>Volume management -> Enable volume quota</b> <br><br>
+{% elif op == 'disable_quota' %}
+<b>Volume management -> Disable volume quota</b> <br><br>
+{% elif op == 'stop' %}
+<b>Volume management -> Stop a volume</b> <br><br>
+{% elif op == 'delete' %}
+<b>Volume management -> Delete a volume</b> <br><br>
+{% endif %}
+
+
+{% if cmd_errors or cmd_output %}
+Will execute the following command : "{{cmd}}". Only sample outputs/erros given below. <br><br>
+{% endif %}
+{% if cmd_errors  %}
+
+<p style="color:red">Could not 
+{% if op == 'enable_quota' %}
+enable volume quota
+{% elif op == 'disable_quota' %}
+disable volume quota
+{% elif op == 'stop' %}
+stop the volume
+{% elif op == 'delete' %}
+delete the volume
+{% endif %}
+
+. Errors follow :</p>
+{% for err in cmd_errors%}
+{{err}}<br>
+{%endfor%}
+</p>
+
+{%elif cmd_output %}
+
+
+{% for o in cmd_output%}
+{{o}}<br>
+{%endfor%}
+
+
+{% endif %}
+
+
+
+
+
+{%endblock%}

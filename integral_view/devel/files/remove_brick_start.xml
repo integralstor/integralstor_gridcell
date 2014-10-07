@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <volRemoveBrick>
+    <task-id>5994807e-87a2-4d27-8c86-fc367f4aabe2</task-id>
+  </volRemoveBrick>
+</cliOutput>
+

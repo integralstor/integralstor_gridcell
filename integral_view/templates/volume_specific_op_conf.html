@@ -1,0 +1,49 @@
+{% extends 'logged_in_base.html' %}
+
+{%block contents%}
+
+<!-- Modal -->
+<div class="modal fade" id="processing" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-body" id="myModalBody">
+        <br><br><br>
+        <img src="/static/images/4.gif" >
+        <br><br><br>
+        <p id="p-node-text">Processing.. Please wait.
+        <br><br><br>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if op == 'vol_delete' %}
+<span id="topic-text">Volumes -> Delete a volume</span> <br><br>
+{% elif op == 'vol_stop' %}
+<span id="topic-text"> Volumes -> Stop a volume</span><br>
+{% endif %}
+
+
+<p id="p-warning-text">{{op_conf_msg}} </p>
+<br>
+{% if op == 'vol_delete' %}
+<form action="/delete_volume/" method="POST">
+{%else%}
+<form action="/perform_op/{{op}}/{{vol_name}}/" method="POST">
+{% endif %}
+<input type=hidden name="vol_name" value="{{vol_name}}">
+<input type="button" class="btn btn-default" value="Cancel" onClick="window.location='/show/system_status'"> &nbsp;&nbsp;
+<button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Continue >></button>
+</form>
+
+
+
+
+
+{%endblock%}
+{%block help_header%}
+Volume specific op conf help
+{%endblock%}
+{%block help_body%}
+<p>Help about Volume specific op conf - needs customisation…</p>
+{%endblock%}

@@ -1,0 +1,45 @@
+
+<~--  <link rel="stylesheet" type="text/css" href="/static/css/dtree.css">
+  <script type="text/javascript" src="/static/js/dtree.js"></script>
+--> 
+  <script type="text/javascript">
+  <!--
+     d = new dTree('d');
+     d.config.closeSameLevel = true;
+     d.add(0,-1,'');
+     d.add(1,0,'Trusted pool setup','');
+     d.add(10,1,'Add server','/server_op/add_server');
+     d.add(11,1,'Remove server','/server_op/remove_server/');
+     d.add(12,1,'View server status','/perform_op/view_server_status/');
+     d.add(2,0,'Volume creation','');
+     d.add(20,2,'Create distributed volume','/create_volume_get_num_bricks/distributed/');
+     d.add(21,2,'Create replicated volume','/create_volume_get_num_bricks/replicated/');
+     d.add(22,2,'Create striped volume','/create_volume_get_num_bricks/striped/');
+     d.add(23,2,'Create distributed striped volume','/create_volume_get_num_bricks/distributed_striped/');
+     d.add(24,2,'Create distributed replicated volume','/create_volume_get_num_bricks/distributed_replicated/');
+     d.add(25,2,'Create striped replicated volume','/create_volume_get_num_bricks/striped_replicated/');
+     d.add(26,2,'Create distributed striped replicated volume','/create_volume_get_num_bricks/distributed_striped_replicated/');
+     d.add(3,0,'Volume management','');
+     d.add(31,3,'View information about all volumes','/perform_op/view_volume_info_all');
+     d.add(32,3,'View status of all volumes','/perform_op/view_volume_status_all');
+     d.add(33,3,'Delete a volume','/volume_specific_op/vol_delete/');
+     d.add(34,3,'Start a volume','/volume_specific_op/vol_start/');
+     d.add(35,3,'Stop a volume','/volume_specific_op/vol_stop/');
+     d.add(36,3,'Tune volume options','');
+     d.add(37,3,'Expand a volume','');
+     d.add(38,3,'Shrink a volume','');
+     d.add(39,3,'Migrate a volume','');
+     d.add(4,0,'Access control','');
+     d.add(5,0,'Manage quotas','');
+     d.add(51,5,'Enable volume quotas','/volume_specific_op/enable_quota');
+     d.add(52,5,'Disable volume quotas','/volume_specific_op/disable_quota');
+     d.add(53,5,'Display disk level quotas','/volume_specific_op/display_disk_level_quota');
+     d.add(6,0,'Logging','');
+     d.add(61,6,'View logs','/view_log/');
+     d.add(62,6,'Rotate logs','/volume_specific_op/rotate_log');
+
+
+     document.write(d);
+
+    //-->
+    </script>

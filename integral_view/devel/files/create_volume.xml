@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <volCreate>
+    <volume>
+      <name>aa</name>
+      <id>846b69ac-adf5-4b27-8aa6-cdee6f0e465c</id>
+    </volume>
+  </volCreate>
+</cliOutput>
+

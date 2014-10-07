@@ -1,0 +1,61 @@
+{% extends 'logged_in_base.html' %}
+<style type="text/css">
+<link rel="stylesheet" href="/static/jstree/dist/themes/default/style.min.css" />
+</style>
+
+{%block contents%}
+<span id="topic-text">ISCSI access -> Initiators -> Create an ISCSI Initiator</span><br>
+
+
+{{conf_message}}
+
+
+<form class="form-horizontal" role="form" name="create_form" action="" method="post">
+  <table  class="table " style="width:80%">
+    <tr>
+      <td>
+        <label for="id_initiators">Initiating hostnames:</label>
+      </td>
+      <td>
+        <input type="text"  name="initiators" class="form-control" id="id_initiators" placeholder="Use ALL keyword for enter a comma separated list of initiator hostnames"> 
+      </td>
+      <td>
+    {{ form.initiators.errors }}
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <label for="id_auth_network">Authorized network:</label>
+      </td>
+      <td>
+        <input type="text"  name="auth_network" class="form-control" id="id_auth_network" placeholder="Use ALL keyword or a network address with CIDR mask such as 192.168.2.0/24"> 
+      </td>
+      <td>
+    {{ form.auth_network.errors }}
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+    <label for="id_comment">Description:</label>
+      </td>
+      <td>
+        <input type="text"  name="comment" class="form-control" id="id_comment" placeholder="Description of this initiator"> 
+      </td>
+      <td>
+        {{ form.comment.errors }}
+      </td>
+    </tr>
+    </table>
+
+<a href="/iscsi_display_initiators" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
+<button type="submit" class="btn btn-primary"> Create >> </button>
+</form>
+
+{%endblock%}
+{%block help_header%}
+Create initiators help
+{%endblock%}
+{%block help_body%}
+<p>Help about creating initiators…</p>
+{%endblock%}

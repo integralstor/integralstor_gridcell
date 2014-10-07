@@ -1,0 +1,7 @@
+Gathering Heal info on volume v1 has been successful
+
+Brick s5n9.testing.lan:/data/v1
+Number of entries: 0
+
+Brick s6n12.testing.lan:/data/v1
+Number of entries: 0

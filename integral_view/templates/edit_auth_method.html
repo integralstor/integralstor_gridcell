@@ -1,0 +1,33 @@
+
+{% extends 'logged_in_base.html' %}
+
+
+{%block contents%}
+<span id="topic-text">Shares -> Change authentication method </span><br>
+<form id="edit_form" name="edit_form" action="" method="post">
+
+<p id="warning-text"> Warning : This action will result in access control settings being removed from all currently existing shares. </p>
+
+
+<div  style=" position:relative;border:0px solid #DDDDDD;width:600px; padding:15px 15px 15px;margin:0px 15px;border-radius:4px 4px 0px 0px">
+  <div class="form-group" >
+    <label for="id_auth_method">Auth method: </label>
+    <select id="id_auth_method" name="auth_method" class="form-control" >
+      <option value="ads" {% if samba_global_dict.security == "ads" %} selected{%endif%} >Active Directory</option>
+      <option value="users" {% if samba_global_dict.security == "users" %} selected{%endif%} >Local users</option>
+    </select>
+  </div>
+{% if error %}
+<p id="warning-text"> {{error}}</p>
+{%endif%}
+  <a href="/iscsi_view_target?access_mode=by_id&id={{form.initial.id}}" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
+  <button type="submit" class="btn btn-primary">Change authentication method >></button>
+</div>
+</form>
+{%endblock%}
+{%block help_header%}
+Change authentication method help
+{%endblock%}
+{%block help_body%}
+<p>Help about  change authentication method …</p>
+{%endblock%}

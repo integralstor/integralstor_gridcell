@@ -1,0 +1,91 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html lang="en">
+<head>
+  <link rel="stylesheet" type="text/css" href="/static/css/a.css">
+  <title> {%block title%}Datalifecycle admin console{%endblock%}</title>
+</head>
+<body>
+  <table width="100%" border=0><tr><td align="left"> <img src="/static/images/DLC-Logo.jpg" style="float:left;"></td>
+  <td align="left"> <h1>{%block heading%}Admin Console{%endblock%}</h1></td>
+
+   <td ><a  href="/logout/"> Logout</a> | <a href="/change_admin_password/">Change Password</a> </td></tr></table>
+   {%block content%} {%endblock%}
+<div id="container">
+<div id="menu">
+
+<b>Trusted Pool Setup</b><br>
+<ul>
+<li {% if menuItem == 'add_server' %} class=selected {% endif %} >
+<a  href='/add_server/'>Add server</a>
+</li>
+<li {% if menuItem == 'remove_server' %} class=selected {% endif %} >
+<a  href='/remove_server/'>Remove server</a>
+</li>
+<li {% if menuItem == 'view_server_status' %} class=selected {% endif %} >
+<a  href='/view_server_status/'> View server status </a>
+</li>
+</ul>
+<b>Volume Creation</b><br>
+<ul>
+<li {% if menuItem == 'create_distributed_volume' %} class=selected {% endif %} >
+<a  href='/create_volume_get_num_bricks/distributed'> Create distributed volume</a>
+</li>
+<li {% if menuItem == 'create_replicated_volume' %} class=selected {% endif %} >
+<a  href='/create_volume_get_num_bricks/replicated'> Create replicated volume</a>
+</li>
+<li {% if menuItem == 'create_striped_volume' %} class=selected {% endif %} >
+<a  href='/create_volume_get_num_bricks/striped'> Create striped volume</a>
+</li>
+<li {% if menuItem == 'create_distributed_striped_volume' %} class=selected {% endif %} >
+<a  href="/create_volume_get_num_bricks/distributed_striped"> Create a distributed striped volume</a>
+</li>
+<li {% if menuItem == 'create_distributed_replicated' %} class=selected {% endif %} >
+<a  href="/create_volume_get_num_bricks/distributed_replicated"> Create a distributed replicated volume</a>
+</li>
+<li {% if menuItem == 'create_distributed_striped_replicated_volume' %} class=selected {% endif %} >
+<a  href="/create_volume_get_num_bricks/distributed_striped_replicated"> Create a distributed striped replicated volume</a>
+</li>
+<li {% if menuItem == 'create_striped_replicated_volume' %} class=selected {% endif %} >
+<a  href="/create_volume_get_num_bricks/striped_replicated"> Create a striped replicated volume</a>
+</li>
+</ul>
+<b>Volume Management</b><br>
+<ul>
+<li {% if menuItem == 'view_volume_info' %} class=selected {% endif %} >
+<a  href="/view_volume_info_all"> View information of all volumes</a>
+</li>
+<li {% if menuItem == 'view_volume_status' %} class=selected {% endif %} >
+<a  href="/view_volume_status_all"> View status of all volumes</a>
+</li>
+<li {% if menuItem == 'start_volume' %} class=selected {% endif %} >
+<a  href="/volume_specific_op_begin/delete"> Delete a volume</a>
+</li>
+<li {% if menuItem == 'stop_volume' %} class=selected {% endif %} >
+<a  href="/volume_specific_op_begin/stop"> Stop a volume</a>
+</li>
+<li>Tune volume options</li>
+<li>Expand a volume</li>
+<li>Shrink a volume</li>
+<li>Migrate a volume</li>
+<li>Stop a volume</li>
+<li>Delete a volume</li>
+<li>Trigger Self-heal of a volume</li>
+</ul>
+<b>Access Control</b><br>
+<b>Manage Quotas</b><br>
+
+</div>
+<div id="contents">
+   {%block contents%}
+  {%endblock%}
+</div>
+<div id="footer">
+   {%block footer%}
+    <hr>
+    <p>Dev version. Potentially flawed.</p>
+  {%endblock%}
+</div>
+</div>
+</body>
+</html>
+

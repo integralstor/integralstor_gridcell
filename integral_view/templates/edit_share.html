@@ -1,0 +1,188 @@
+{% extends 'logged_in_base.html' %}
+<script type="text/javascript">
+/*
+function set_field_visibility() {
+  var guest_ok = document.forms["edit_form"].elements["guest_ok"];
+  var guest_ok_val;
+  for(var i = 0; i < guest_ok.length; i++){
+    if(guest_ok[i].checked){
+        guest_ok_val = guest_ok[i].value;
+    }
+  }
+  if (guest_ok_val=="yes") {
+    set_select_field_disabled(document.forms["edit_form"].elements["users"], true);
+  } else {
+    set_select_field_disabled(document.forms["edit_form"].elements["users"], false);
+  } 
+}
+function select_guest_ok() {
+  for (var i=0;i<2;i++)
+    if (document.forms["edit_form"].elements["guest_ok"][i].value == "no")
+      document.forms["edit_form"].elements["guest_ok"][i].checked = true;
+}
+*/
+</script>
+
+
+{%block contents%}
+<span id="topic-text">Shares -> View shares -> View share details (Edit)</span><br>
+
+{{conf_message}}
+
+
+<form id="edit_form" name="edit_form" action="" method="post">
+<input name="name" type="hidden" value="{{ form.name.value }}">
+<input name="share_id" type="hidden" value="{{ form.share_id.value }}">
+<input name="vol" type="hidden" value="{{ form.vol.value }}">
+<input name="path" type="hidden" value="{{ form.path.value }}">
+<input name="display_path" type="hidden" value="{{ form.display_path.value }}">
+            <table class="table" style="width:800px">
+            <tr>
+              <td>
+            <label for="id_name">Share name:</label>
+              </td>
+              <td>
+            {{ form.name.value }}
+              </td>
+              <td>
+              &nbsp
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label >Volume:</label>
+              </td>
+              <td>
+            {{ form.vol.value }}
+              </td>
+              <td>
+              &nbsp
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label for="id_path">Directory in volume:</label>
+              </td>
+              <td>
+            {{ form.display_path.value }}
+              </td>
+              <td>
+              &nbsp
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label for="id_comment">Description:</label>
+              </td>
+              <td>
+                <input type="text"  name="comment" class="form-control" id="id_comment" placeholder="Description of this share"> 
+              </td>
+              <td>
+            {{ form.comment.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label for="id_read_only">Readonly:</label>
+              </td>
+              <td>
+            {{ form.read_only }}
+              </td>
+              <td>
+            {{ form.read_only.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label for="id_browseable">Browseable:</label>
+              </td>
+              <td>
+            {{ form.browseable }}
+              </td>
+              <td>
+            {{ form.browseable.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label for="id_guest_ok">Guest access permitted:</label>
+              </td>
+              <td>
+            {{ form.guest_ok }}
+              </td>
+              <td>
+            {{ form.guest_ok.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label for="id_users">Allowed users:</label>
+              </td>
+              <td>
+                {% for choice in form.users.field.choices %} 
+                  <div class="radio" >
+                      <input type="radio" name="users" id="optionsRadios1" value="{{choice.0}}" {%if choice.0 in form.initial.users %} checked="checked"{%endif%}>{{choice.0}}
+                  </div>
+                {%endfor%}
+              </td>
+              <td>
+            {{ form.users.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label for="id_groups">Allowed groups:</label>
+              </td>
+              <td>
+                {% for choice in form.groups.field.choices %} 
+                  <div class="radio" >
+                      <input type="radio" name="groups" id="id_users" value="{{choice.0}}" {%if choice.0 in form.initial.groups %} checked="checked"{%endif%}>{{choice.0}}
+                  </div>
+                {%endfor%}
+              </td>
+              <td>
+            {{ form.groups.errors }}
+              </td>
+            </tr>
+            </table>
+
+        <a href="/view_share?access_mode=by_id&index={{form.share_id.value}}" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
+        <button type="submit" class="btn btn-primary">Save >></button>
+</form>
+<script type="text/javascript">
+function set_select_field_disabled(f, val) {
+  for(var i = 0; i < f.length; i++)
+    f[i].disabled = val
+}
+$("form input[name='guest_ok']").click(function () { 
+    // Handle the click event here
+    //alert("clicked");
+    if (document.forms["edit_form"].elements["guest_ok"].checked) {
+      set_select_field_disabled(document.forms["edit_form"].elements["users"], true);
+      set_select_field_disabled(document.forms["edit_form"].elements["groups"], true);
+    } else {
+      set_select_field_disabled(document.forms["edit_form"].elements["users"], false);
+      set_select_field_disabled(document.forms["edit_form"].elements["groups"], false);
+    }
+    });
+$(window).load(function() {
+  // Handler for .load() called.
+    //alert("loaded");
+    //alert(document.forms["edit_form"].elements["guest_ok"].checked);
+    if (document.forms["edit_form"].elements["guest_ok"].checked) {
+      set_select_field_disabled(document.forms["edit_form"].elements["users"], true);
+      set_select_field_disabled(document.forms["edit_form"].elements["groups"], true);
+    } else {
+      set_select_field_disabled(document.forms["edit_form"].elements["users"], false);
+      set_select_field_disabled(document.forms["edit_form"].elements["groups"], false);
+    }
+  });
+</script>
+
+{%endblock%}
+{%block help_header%}
+Edit share help
+{%endblock%}
+{%block help_body%}
+<p>Help about editing share info…</p>
+{%endblock%}

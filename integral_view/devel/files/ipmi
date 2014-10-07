@@ -1,0 +1,7 @@
+Fan_SYS2_1     | 1300 RPM     | ok
+Fan_SYS2_2     | 1400 RPM     | ok
+Temp_Ambient   | 24 degrees C | ok
+CMOS Battery   | 0x00         | ok
+ROMB Battery   | 0x00         | ok
+VCORE          | 0x01         | ok
+VCORE          | Not Readable | ns

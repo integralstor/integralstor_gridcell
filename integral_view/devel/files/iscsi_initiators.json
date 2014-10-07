@@ -1,0 +1,14 @@
+[
+  {
+    "initiators": "ALL", 
+    "comment": "test", 
+    "id": 1, 
+    "auth_network": "ALL"
+  }, 
+  {
+    "initiators": "a.b.c.d, a1.b.c.d", 
+    "comment": "test_initiator", 
+    "id": 2, 
+    "auth_network": "192.168.1.23/21"
+  }
+]

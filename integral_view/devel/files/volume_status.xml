@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <volStatus>
+    <volumes>
+      <volume>
+        <volName>rvol</volName>
+        <nodeCount>8</nodeCount>
+        <node>
+          <hostname>s1n1.testing.lan</hostname>
+          <path>/data/rvol</path>
+          <status>1</status>
+          <port>49157</port>
+          <pid>1214</pid>
+        </node>
+        <node>
+          <hostname>s3n5.testing.lan</hostname>
+          <path>/data/rvol</path>
+          <status>1</status>
+          <port>49170</port>
+          <pid>1198</pid>
+        </node>
+        <node>
+          <hostname>NFS Server</hostname>
+          <path>localhost</path>
+          <status>1</status>
+          <port>2049</port>
+          <pid>1230</pid>
+        </node>
+        <node>
+          <hostname>Self-heal Daemon</hostname>
+          <path>localhost</path>
+          <status>1</status>
+          <port>N/A</port>
+          <pid>1234</pid>
+        </node>
+        <node>
+          <hostname>NFS Server</hostname>
+          <path>s1n1.testing.lan</path>
+          <status>1</status>
+          <port>2049</port>
+          <pid>1388</pid>
+        </node>
+        <node>
+          <hostname>Self-heal Daemon</hostname>
+          <path>s1n1.testing.lan</path>
+          <status>1</status>
+          <port>N/A</port>
+          <pid>1393</pid>
+        </node>
+        <node>
+          <hostname>NFS Server</hostname>
+          <path>s3n5.testing.lan</path>
+          <status>1</status>
+          <port>2049</port>
+          <pid>1203</pid>
+        </node>
+        <node>
+          <hostname>Self-heal Daemon</hostname>
+          <path>s3n5.testing.lan</path>
+          <status>1</status>
+          <port>N/A</port>
+          <pid>1207</pid>
+        </node>
+        <tasks/>
+      </volume>
+    </volumes>
+  </volStatus>
+</cliOutput>

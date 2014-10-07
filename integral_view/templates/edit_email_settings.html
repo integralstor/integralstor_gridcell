@@ -1,0 +1,76 @@
+{% extends 'logged_in_base.html' %}
+
+{%block contents%}
+<span id="topic-text">Other services -> Email settings (Edit)</span><br>
+
+
+{{conf_message}}
+
+<div id="processing" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal-body">
+<br><br><br>
+<img src="/static/images/4.gif" >
+<br><br><br>
+<p id="p-node-text">Saving settings and send a test mail.. Please wait.
+<br><br><br>
+</div>
+</div>
+
+<form role="form" action="/configure_email_settings/" method="post">
+<div  style=" position:relative;border:0px solid #DDDDDD;width:600px; padding:15px 15px 15px;margin:0px 15px;border-radius:4px 4px 0px 0px">
+  <div class="form-group" >
+    <label for="id_email_server" >SMTP server:</label>
+    <input type="text"  name="email_server" class="form-control" id="id_email_server" placeholder="Enter SMTP server"> 
+    {{ form.email_server.errors }}
+  </div>
+  <div class="form-group" >
+    <label for="id_email_server_port" >SMTP server port:</label>
+    <input type="text"  name="email_server_port" class="form-control" id="id_email_server_port" placeholder="Enter SMTP server port"> 
+    {{ form.email_server_port.errors }}
+  </div>
+  <div class="form-group" >
+    <label for="id_user_name" >SMTP server account username:</label>
+    <input type="text"  name="user_name" class="form-control" id="id_user_name" placeholder="Enter SMTP server username"> 
+    {{ form.user_name.errors }}
+  </div>
+  <div class="form-group" >
+    <label for="id_pswd" >SMTP server account password:</label>
+    <input type="password"  name="pswd" class="form-control" id="id_pswd" placeholder="Enter SMTP server account password"> 
+    {{ form.pswd.errors }}
+  </div>
+  <div class="checkbox">
+    <label for="id_tls">
+      <input name="tls" type="checkbox" {% if form.initial.tls%} checked="checked" {%endif%}>
+      Use TLS
+    </label>
+    {{ form.tls.errors }}
+  </div>
+  <div class="checkbox">
+    <label for="id_email_alerts">
+      <input name="email_alerts" type="checkbox" {% if form.initial.email_alerts%} checked="checked" {%endif%}>
+      Send email for alerts
+    </label>
+    {{ form.email_alerts.errors }}
+  </div>
+  <div class="form-group" >
+    <label for="id_user_name" >SMTP server username:</label>
+    <input type="text"  name="user_name" class="form-control" id="id_user_name" placeholder="Enter SMTP server username"> 
+    {{ form.user_name.errors }}
+  </div>
+  <div class="form-group" >
+    <label for="id_rcpt_list" >Email recipient list:</label>
+    <input type="text"  name="rcpt_list" class="form-control" id="id_rcpt_list" placeholder="Enter email recipient list"> 
+    {{ form.rcpt_list.errors }}
+  </div>
+  <a href="/show/email_settings" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
+  <button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');"> Save </button>
+</div>
+</form>
+
+{%endblock%}
+{%block help_header%}
+Email settings help
+{%endblock%}
+{%block help_body%}
+<p>Help about email settings…</p>
+{%endblock%}

@@ -1,0 +1,108 @@
+{% extends 'logged_in_base.html' %}
+
+{%block contents%}
+<script type="text/javascript">
+function load_node_info(hostname, str) {
+  url='/show/node_info/' + encodeURIComponent(hostname) + '?modal=1';
+  document.getElementById('myModalLabel').innerHTML = "Node information for " + str ;
+  $('#myModalBody').load(url);
+  $('#myModal').modal();
+}
+</script>
+
+<span id="topic-text"> Remove IntegralStor node</span><br>
+
+{% if form.errors %}
+<p id="error-text"> Please select at least one IntegralStor node.</p>
+{%endif%}
+
+{%if not node_list %}
+
+<span id="error-text">None of the IntegralStor nodes can currently be removed from the storage pool. An IntegralStor node may be removed only if it does not have any data volumes on it.<br>
+Please use the "Replace node" menu item to migrate data volumes onto an empty node before performing this operation.</span><br>
+
+{%else %}
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+      </div>
+      <div class="modal-body" id="myModalBody">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+{% if form.hosts.errors %}
+<p id="error-text"> Please select at least one IntegralStor node</p>
+{%endif %}
+
+
+
+Please select an IntegralStor node to remove from the storage pool.
+<br>
+<br>
+<form action="/remove_node/" method="post">
+<table class="table table-bordered" style="width:300px">
+<tr>
+  <th>
+    Node name
+  </th>
+  <th>
+    Select a node
+  </th>
+  <th>
+    Details
+  </th>
+</tr>
+{%for hostname in node_list %}
+  <tr>
+    <td>
+      {{hostname}}
+    </td>
+    <td>
+      <input type="radio"  value="{{ hostname }}" name="node">
+    </td>
+    <td>
+      <a href="/show/node_info/{{hostname}}/?from=remove_node" role="button" class="btn btn-default">Details.. </a>
+    </td>
+  </tr>
+{%endfor%}
+</table>
+
+<input type="button" class="btn btn-default" value="Cancel" onClick="window.location='/show/dashboard'"> &nbsp;&nbsp;
+<button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Remove node >></button>
+</form>
+<!-- Modal -->
+<div class="modal fade" id="processing" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-body" id="myModalBody">
+        <br><br><br>
+        <img src="/static/images/4.gif" >
+        <br><br><br>
+        <p id="p-node-text">Processing.. Please wait.
+        <br><br><br>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{%endif%}
+{%endblock%}
+{%block help_header%}
+Remove storage help
+{%endblock%}
+{%block help_body%}
+<p>Help about removing storage- needs customisation…</p>
+{%endblock%}

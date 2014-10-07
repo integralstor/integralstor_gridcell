@@ -1,0 +1,232 @@
+{ 
+  "s1n1.testing.lan" : 
+    {
+      "system_status" : "up",
+      "disk_status": {
+        "/dev/sda": {
+          "status": "Bad sectors"
+        } 
+      },
+      "interface_status": {
+        "eth1": {
+          "status": "up" 
+        }, 
+        "eth0": {
+          "status": "up" 
+        }
+      },
+      "cpu_status": {
+          "temp": "37 degrees C", 
+          "status": "ok"
+      },
+      "temp_status": {
+          "temp": "37 degrees C", 
+          "status": "ok"
+      },
+      "fan_status": {
+        "Fan_SYS0_1" : {
+          "rpm": "1560 RPM", 
+          "status": "ok"
+        }
+      },
+      "psu_status": {
+        "PSU1" : {
+          "status": "ok",
+          "code": "0x01"
+        }
+      }
+    },
+  "s3n5.testing.lan" : 
+    {
+      "system_status" : "up",
+      "disk_status": {
+        "/dev/sda": {
+          "status": "Bad sectors"
+        } 
+      },
+      "interface_status": {
+        "eth1": {
+          "status": "up" 
+        }, 
+        "eth0": {
+          "status": "up" 
+        }
+      },
+      "cpu_status": {
+          "temp": "37 degrees C", 
+          "status": "ok"
+      },
+      "temp_status": {
+          "temp": "37 degrees C", 
+          "status": "ok"
+      },
+      "fan_status": {
+        "Fan_SYS0_1" : {
+          "rpm": "1560 RPM", 
+          "status": "ok"
+        }
+      },
+      "psu_status": {
+        "PSU1" : {
+          "status": "ok",
+          "code": "0x01"
+        }
+      }
+    },
+  "host1" : 
+    {
+      "system_status" : "up",
+      "disk_status": {
+        "/dev/sda": {
+          "status": "Bad sectors"
+        } 
+      },
+      "interface_status": {
+        "eth1": {
+          "status": "up" 
+        }, 
+        "eth0": {
+          "status": "up" 
+        }
+      },
+      "cpu_status": {
+          "temp": "37 degrees C", 
+          "status": "ok"
+      },
+      "temp_status": {
+          "temp": "37 degrees C", 
+          "status": "ok"
+      },
+      "fan_status": {
+        "Fan_SYS0_1" : {
+          "rpm": "1560 RPM", 
+          "status": "ok"
+        }
+      },
+      "psu_status": {
+        "PSU1" : {
+          "status": "ok",
+          "code": "0x01"
+        }
+      }
+    },
+  "bkrram-laptop" : 
+    {
+      "system_status" : "up",
+      "disk_status": {
+        "/dev/sda": {
+          "status": "Bad sectors"
+        } 
+      },
+      "interface_status": {
+        "eth1": {
+          "status": "up" 
+        }, 
+        "eth0": {
+          "status": "up" 
+        }
+      },
+      "cpu_status": {
+          "temp": "37 degrees C", 
+          "status": "ok"
+      },
+      "temp_status": {
+          "temp": "37 degrees C", 
+          "status": "ok"
+      },
+      "fan_status": {
+        "Fan_SYS0_1" : {
+          "rpm": "1560 RPM", 
+          "status": "ok"
+        }
+      },
+      "psu_status": {
+        "PSU1" : {
+          "status": "ok",
+          "code": "0x01"
+        }
+      }
+    },
+  "host2" : 
+    {
+      "system_status" : "up",
+      "disk_status": {
+        "/dev/sda": {
+          "status": "Bad sectors"
+        } 
+      },
+      "interface_status": {
+        "eth1": {
+          "status": "up" 
+        }, 
+        "eth0": {
+          "status": "up" 
+        }
+      },
+      "cpu_status": {
+          "temp": "37 degrees C", 
+          "status": "ok"
+      },
+      "temp_status": {
+          "temp": "37 degrees C", 
+          "status": "ok"
+      },
+      "fan_status": {
+        "Fan_SYS0_1" : {
+          "rpm": "1560 RPM", 
+          "status": "ok"
+        }
+      },
+      "psu_status": {
+        "PSU1" : {
+          "status": "ok",
+          "code": "0x01"
+        }
+      }
+    },
+  "host8" : 
+    {
+      "system_status" : "up",
+      "disk_status": {
+        "/dev/sda": {
+          "status": "Bad sectors"
+        } 
+      },
+      "interface_status": {
+        "eth1": {
+          "status": "up" 
+        }, 
+        "eth0": {
+          "status": "up" 
+        }
+      },
+      "cpu_status": {
+          "temp": "37 degrees C", 
+          "status": "ok"
+      },
+      "temp_status": {
+          "temp": "37 degrees C", 
+          "status": "ok"
+      },
+      "fan_status": {
+        "Fan_SYS0_1" : {
+          "rpm": "1560 RPM", 
+          "status": "ok"
+        }
+      },
+      "psu_status": {
+        "PSU1" : {
+          "status": "ok",
+          "code": "0x01"
+        }
+      }
+    },
+  "host3" : 
+    {
+      "system_status" : "no response"
+    },
+  "host4" : 
+    {
+      "system_status" : "no response"
+    }
+}

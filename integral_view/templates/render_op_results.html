@@ -1,0 +1,85 @@
+{% extends 'logged_in_base.html' %}
+<style type="text/css">
+    ul.errorlist {
+        margin: 0;
+        padding: 0;
+    }
+    .errorlist li {
+        background-color: white;
+        color: red;
+        display: block;
+        font-size: 10px;
+        margin: 0 0 3px;
+        padding: 4px 5px;
+    }
+</style>
+
+
+{%block contents%}
+{% if op == 'add_server' %}
+<b>Trusted pool setup -> Add server </b> <br><br>
+{% elif op == 'remove_server' %}
+<b>Trusted pool setup -> Remove server </b> <br><br>
+{% elif op == 'view_server_status' %}
+<b>Trusted pool setup -> View server status</b> <br><br>
+{% elif op == 'vol_start' %}
+<b>Volume management -> Start a volume </b> <br><br>
+{% elif op == 'start_rebalance' %}
+<b>Volume management -> Start volume rebalance</b> <br><br>
+{% elif op == 'stop_rebalance' %}
+<b>Volume management -> Stop volume rebalance</b> <br><br>
+{% elif op == 'check_rebalance' %}
+<b>Volume management -> Check volume rebalance status</b> <br><br>
+{% elif op == 'vol_stop' %}
+<b>Volume management -> Stop a volume </b> <br><br>
+{% elif op == 'vol_delete' %}
+<b>Volume management -> Delete a volume </b> <br><br>
+{% elif op == 'view_volume_status_all' %}
+<b>Volume management -> View the status of all volumes</b> <br><br>
+{% elif op == 'view_volume_info_all' %}
+<b>Volume management -> View the information about all volumes</b> <br><br>
+{% elif op == 'enable_quota' %}
+<b>Enable quotas -> Enable volume quotas</b> <br><br>
+{% elif op == 'disable_quota' %}
+<b>Enable quotas -> Disable volume quotas</b> <br><br>
+{% elif op == 'display_disk_level_quota' %}
+<b>Enable quotas -> Display disk level quotas</b> <br><br>
+{% elif op == 'rotate_log' %}
+<b>Logging -> Rotate log</b> <br><br>
+{% elif op == 'expand_volume' %}
+<b>Volume management -> Expand volume</b> <br><br>
+{% endif%}
+{% if app_debug %}
+Executed the following command : "{{cmd}}". <br><br>
+{% endif %}
+
+{%if cmd_output %}
+
+
+{% for o in cmd_output%}
+{{o}}<br>
+{%endfor%}
+{% endif %}
+
+{% if op == 'expand_volume' %}
+<p>Click <a href="/show/volume_info_all">here</a> to check the new volume information.</p>
+<p> Please make sure you rebalance the volume to ensure that all files are visible at the mount point. Click <a href="/volume_specific_op/start_rebalance">here</a> to start the rebalance operation.
+{% endif%}
+
+{% if cmd_errors  %}
+<p style="color:red">Could not perform the requested action. Errors follow :</p>
+{% for err in cmd_errors%}
+{{err}}<br>
+{%endfor%}
+</p>
+{% endif %}
+
+
+
+{%endblock%}
+{%block help_header%}
+Op results help
+{%endblock%}
+{%block help_body%}
+<p>Help about op results - need to be customized…</p>
+{%endblock%}

@@ -1,0 +1,129 @@
+
+{% extends 'logged_in_base.html' %}
+
+{%block contents%}
+
+
+<span id="topic-text"> Volume configuration  </span><br>
+
+
+<table class="table table-bordered">
+<tr>
+  <td>
+  <b> Name</b>
+  </td>
+  <td>
+  {{vol.name}}
+  </td>
+</tr>
+<tr>
+  <td>
+  <b> Type</b>
+  </td>
+  <td>
+  {{vol.type}}
+  </td>
+</tr>
+<tr>
+  <td>
+  <b> Access mode</b>
+  </td>
+  <td>
+  {% if iscsi %}
+    ISCSI block access
+  {%else %}
+    NFS/CIFS file access
+  {%endif%}
+  </td>
+</tr>
+<tr>
+  <td>
+  <b> Status</b>
+  </td>
+  <td>
+  {{vol.status_str}}
+  </td>
+</tr>
+<tr>
+  <td>
+  <b> Number of disks used</b>
+  </td>
+  <td>
+  {{vol.brick_count}}
+  </td>
+</tr>
+{% if replicate %}
+<tr>
+  <td>
+  <b> Number of data copies</b>
+  </td>
+  <td>
+    {{vol.replica_count}}
+  </td>
+</tr>
+{% elif distribute %}
+<tr>
+  <td>
+  <b> Data spead across </b>
+  </td>
+  <td>
+    {{vol.brick_count}} node{% if vol.brick_count != '1' %}s{%endif%}
+  </td>
+</tr>
+{%endif%}
+<tr>
+  <td>
+  <b> Data locations</b>
+  </td>
+  <td>
+    <ul>
+    {%for l in vol.bricks%}
+      {%if l|length > 1 %}
+      <li> <ul>
+      {%endif%}
+      {%for i in l %}
+       <li>{{i}}
+      {%endfor%}
+      {%if l|length > 1 %}
+      </ul></li>
+      {%endif%}
+    {%endfor%}
+    </ul>
+  </td>
+</tr>
+{%if vol.options %}
+<tr>
+  <td>
+  <b> Extra options</b>
+  </td>
+  <td>
+    <ul>
+    {%for o in vol.options%}
+       {% if o.name == "auth.reject" %} 
+       <li>Disallowed hosts (all access methods) : {{o.value}}</li>
+       {% elif o.name == "auth.allow" %} 
+       <li>Permitted hosts (all access methods) : {{o.value}}</li>
+       {% elif o.name == "nfs.rpc-auth-reject" %} 
+       <li>Disallowed hosts (NFS only) : {{o.value}}</li>
+       {% elif o.name == "nfs.rpc-auth-allow" %} 
+       <li>Permitted hosts (NFS only) : {{o.value}}</li>
+       {%else%}
+       <li> {{o.name}}:{{o.value}}</li>
+       {%endif%}
+    {%endfor%}
+    </ul>
+  </td>
+</tr>
+{%endif%}
+</table>
+<br>
+
+<a href="/show/volume_info_all/" role="button" class="btn btn-default"><< Back </a> &nbsp;&nbsp;
+
+{%endblock%}
+{%block help_header%}
+Volume configuration help
+{%endblock%}
+{%block help_body%}
+<p>Help about volume configuration…</p>
+{%endblock%}

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <volRebalance>
+    <task-id>1afc412e-6c72-4cc2-864f-31227b3fba15</task-id>
+    <op>5</op>
+  </volRebalance>
+</cliOutput>

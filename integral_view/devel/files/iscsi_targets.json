@@ -1,0 +1,13 @@
+[
+  {
+    "vol_name": "aa", 
+    "target_alias": "new_target_alias", 
+    "init_group_id": "2", 
+    "target_name": "new_target", 
+    "lun_size": 28, 
+    "auth_method": "CHAP", 
+    "auth_group_id": "2", 
+    "queue_depth": 21, 
+    "id": 1
+  }
+]

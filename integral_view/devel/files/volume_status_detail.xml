@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <volStatus>
+    <volumes>
+      <volume>
+        <volName>rvol</volName>
+        <nodeCount>2</nodeCount>
+        <node>
+          <hostname>s1n1.testing.lan</hostname>
+          <path>/data/rvol</path>
+          <status>1</status>
+          <port>49157</port>
+          <pid>1214</pid>
+          <sizeTotal>128284868608</sizeTotal>
+          <sizeFree>12825110</sizeFree>
+          <device>/dev/sda4</device>
+          <blockSize>4096</blockSize>
+          <mntOptions>rw</mntOptions>
+          <fsName>xfs</fsName>
+        </node>
+        <node>
+          <hostname>s3n5.testing.lan</hostname>
+          <path>/data/rvol</path>
+          <status>1</status>
+          <port>49170</port>
+          <pid>1198</pid>
+          <sizeTotal>128289062912</sizeTotal>
+          <sizeFree>12825529</sizeFree>
+          <device>/dev/sda4</device>
+          <blockSize>4096</blockSize>
+          <mntOptions>rw</mntOptions>
+          <fsName>xfs</fsName>
+        </node>
+      </volume>
+    </volumes>
+  </volStatus>
+</cliOutput>

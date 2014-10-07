@@ -1,0 +1,16 @@
+[
+  {
+    "secret": "pass", 
+    "peer_user": "", 
+    "peer_secret": "", 
+    "id": 1, 
+    "user": "user2"
+  }, 
+  {
+    "secret": "p1", 
+    "peer_user": "puser2", 
+    "peer_secret": "p2", 
+    "id": 2, 
+    "user": "user2"
+  }
+]

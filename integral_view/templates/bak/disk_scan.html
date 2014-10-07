@@ -1,0 +1,98 @@
+{% extends 'logged_in_base.html' %}
+<script type="text/javascript">
+function display_status(st) 
+{
+
+  //alert("Hi");
+  //orig = document.getElementById('statusdiv').innerHTML
+  //document.getElementById('statusdiv').innerHTML = orig + "<br>"+st; 
+  document.getElementById('statusdiv').innerHTML = st; 
+  //alert("Hi again");
+
+}
+
+function update_success(nodename)
+{
+  orig = document.getElementById('successdiv').innerHTML
+  document.getElementById('successdiv').innerHTML = orig + "<br>"+nodename; 
+
+}
+function begin_scan()
+  {
+    document.getElementById('statusdiv').style.display = 'block'
+    document.getElementById('successdiv').style.display = 'block'
+    // Create an iframe.
+    var iframe = document.createElement("iframe");
+ 
+    // Point the iframe to the location of
+    //  the long running process.
+    iframe.src = "/disk_scan/";
+ 
+    // Make the iframe invisible.
+    iframe.style.display = "none";
+ 
+    // Add the iframe to the DOM.  The process
+    //  will begin execution at this point.
+    document.body.appendChild(iframe);
+  }
+</script>
+<style type="text/css">
+    ul.errorlist {
+        margin: 0;
+        padding: 0;
+    }
+    .errorlist li {
+        background-color: white;
+        color: red;
+        display: block;
+        font-size: 10px;
+        margin: 0 0 3px;
+        padding: 4px 5px;
+    }
+</style>
+
+{%block serverlist%}
+  {% for i in hostname_list %}
+    <li><a href="#">{{i}}</a></li>
+  {%endfor%}
+{%endblock%}
+{%block volumelist%}
+  {% for i in volume_list %}
+    <li><a href="/volume_specific_op/volume_status/{{i}}">{{i}}</a></li>
+  {%endfor%}
+{%endblock%}
+
+
+{%block contents%}
+<b>Scan for raw disks</b> <br><br>
+
+
+
+<button onClick="begin_scan();return false;"> Initiate scan</button>
+<p>
+
+<table border = 1>
+<tr>
+<td>
+<b> Disk scan progress </b><p>
+<div id="statusdiv" style="display:None"> 
+
+  
+</div>
+</td>
+<td>
+<b> List of disks discovered </b><p>
+<div id="successdiv" style="display:None">
+</div>
+</td>
+</tr>
+</table>
+
+
+{%endblock%}
+{%block help_header%}
+Help on removing a block of storage from the available pool
+{%endblock%}
+{%block help_body%}
+<p>Help on removing a block of storage from the available pool </p>
+{%endblock%}

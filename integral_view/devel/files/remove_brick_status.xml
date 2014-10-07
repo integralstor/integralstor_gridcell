@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <volRemoveBrick>
+    <nodeCount>4</nodeCount>
+    <node>
+      <nodeName>localhost</nodeName>
+      <files>0</files>
+      <size>0</size>
+      <lookups>0</lookups>
+      <failures>0</failures>
+      <status>0</status>
+      <statusStr>not started</statusStr>
+    </node>
+    <node>
+      <nodeName>s6n12.testing.lan</nodeName>
+      <files>0</files>
+      <size>0</size>
+      <lookups>100</lookups>
+      <failures>0</failures>
+      <status>0</status>
+      <statusStr>in progress</statusStr>
+    </node>
+    <node>
+      <nodeName>s6n11.testing.lan</nodeName>
+      <files>100</files>
+      <size>35000000</size>
+      <lookups>200</lookups>
+      <failures>0</failures>
+      <status>0</status>
+      <statusStr>in progress</statusStr>
+    </node>
+    <node>
+      <nodeName>s5n10.testing.lan</nodeName>
+      <files>0</files>
+      <size>0</size>
+      <lookups>0</lookups>
+      <failures>0</failures>
+      <status>0</status>
+      <statusStr>not started</statusStr>
+    </node>
+    <aggregate>
+      <files>100</files>
+      <size>35000000</size>
+      <lookups>300</lookups>
+      <failures>0</failures>
+      <status>3</status>
+      <statusStr>in progress</statusStr>
+    </aggregate>
+  </volRemoveBrick>
+</cliOutput>
+

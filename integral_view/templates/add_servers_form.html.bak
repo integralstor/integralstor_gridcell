@@ -1,0 +1,115 @@
+<script type="text/javascript">
+var ip_counter=1
+</script>
+
+<script type="text/javascript">
+function add_another(formid, tbid) {
+
+  var table = document.getElementById(tbid);
+  for (i=0;i<1;i++) {
+    var rowcount = table.rows.length;
+    var row = table.insertRow(rowcount);
+    var cell1 = row.insertCell(0);
+    var cell2 = row.insertCell(1);
+    var cell3 = row.insertCell(2);
+
+    var x = document.getElementById(formid);
+    var label1 = document.createElement("label");
+    var input1 = document.createElement("input");
+    input1.setAttribute("type", "text");
+    input1.setAttribute("name", "ip"+ip_counter);
+    //input1.setAttribute("name", "ip");
+    input1.setAttribute("id", "id_ip"+ip_counter);
+    //input1.setAttribute("id", "id_ip");
+    label1.setAttribute("for", "ip"+ip_counter);
+    label1.setAttribute("for", "ip");
+    label1.innerHTML = "Storage IP Address";
+
+    cell1.appendChild(label1);
+    cell2.appendChild(input1);
+    ip_counter++;
+  }
+}
+
+function set_value(id, value) {
+  document.getElementById(id).value = value;
+
+}
+
+</script>
+<style type="text/css">
+    ul.errorlist {
+        margin: 0;
+        padding: 0;
+    }
+    .errorlist li {
+        background-color: white;
+        color: red;
+        display: block;
+        font-size: 10px;
+        margin: 0 0 3px;
+        padding: 4px 5px;
+    }
+</style>
+{% extends 'logged_in_base.html' %}
+
+{%block serverlist%}
+  {% for i in hostname_list %}
+    <li><a href="#">{{i}}</a></li>
+  {%endfor%}
+{%endblock%}
+{%block volumelist%}
+  {% for i in volume_list %}
+    <li><a href="/volume_specific_op/volume_status/{{i}}">{{i}}</a></li>
+  {%endfor%}
+{%endblock%}
+
+
+{%block contents%}
+<b>Add storage to the available pool</b> <br><br>
+
+
+<p style="color:red;"> {{error}}</p>
+
+<form id = 'add_servers_form' action="/add_servers/" onsubmit="set_value('num_ips', ip_counter);" method="post">
+<input type=hidden name="num_ips" id = 'num_ips' >
+        <div class="field">
+            <table id='tbl' >
+{% for ip in form.ip_fields%}
+            <tr>
+              <td>
+            <label for="id_{{ip.name}}">Storage IP address:</label>
+              </td>
+              <td>
+            {{ ip }}
+              </td>
+              <td>
+            {{ ip.errors }}
+              </td>
+            </tr>
+<script type=text/javascript>
+ip_counter = {{forloop.counter0}} + 1
+</script>
+{%endfor%}
+</table>
+<table >
+            <tr>
+              <td  align="left">
+        <input type="button" value="Add one more.." onClick="add_another('add_servers_form', 'tbl');return false;"/>
+              </td>
+            </tr>
+            <tr>
+              <td  align="left">
+        <input type="submit" value="Done. Add them all ">
+              </td>
+            </tr>
+            </table>
+        </div>
+</form>
+{%endblock%}
+{%block help_header%}
+Add storagehelp
+{%endblock%}
+{%block help_body%}
+<p>Help about adding storage- needs customisation…</p>
+{%endblock%}

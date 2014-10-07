@@ -1,0 +1,43 @@
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html lang="en">
+<head>
+<script src="/static/jquery-ui-1.10.2.custom/js/jquery-1.9.1.js"></script>
+<script type="text/javascript">
+function sleep() {
+  return;
+}
+function get_data() {
+alert("1");
+var done = 0;
+while (done == 0) {
+$.ajax({
+    url: "/show/test_json",
+    dataType: "json"
+    }).success(function(data){
+      alert(data.length);
+      if (data.length > 2) {
+        done = 1;
+        alert("Done!");
+      }
+      else {
+          $('#data').append(JSON.stringify(data));
+          alert("got data");
+      }
+     });
+     //if (done == 0)
+       //setTimeout(function() {sleep()}, 5000);
+}
+}
+$(document).ready(function(){ 
+//DOCUMENT READY FUNCTION
+  get_data();
+}); 
+</script>
+</head>
+<body >
+<div id="data">
+<input type="submit" onClick="get_data();"</div>
+<script>
+</script>
+</body>

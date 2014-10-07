@@ -1,0 +1,108 @@
+{% extends 'logged_in_base.html' %}
+
+
+{%block contents%}
+<span id="topic-text">ISCSI access-> View authorized access group -> View authorized access group details (Edit)</span><br>
+
+{{conf_message}}
+
+<form id="edit_form" name="edit_form" action="" method="post">
+<input name="auth_access_group_id" type="hidden" value="{{form.initial.auth_access_group_id}}">
+<input name="user_id" type="hidden" value="{{form.initial.user_id}}">
+  <table class="table table-bordered" style="width:80%">
+  <tr>
+    <td>
+      <label for="id_id">Authorized access group ID:</label>
+    </td>
+    <td>
+      {{form.initial.id}}
+    </td>
+    <td>
+      {{ form.id.errors }}
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <label for="id_user">User:</label>
+    </td>
+    <td>
+        <input type="text"  name="user" class="form-control" id="id_user" value="{{form.initial.user}}" placeholder="Username on the server for CHAP authentication" >
+    </td>
+    <td>
+      {{ form.user.errors }}
+    </td>
+  </tr>
+    <tr>
+      <td>
+        <label for="id_secret">Secret:</label>
+      </td>
+      <td>
+        <input type="password"  name="secret" class="form-control" id="id_secret" placeholder="Password to be associated with the user" value="{{form.initial.secret}}"> 
+      </td>
+      <td>
+    {{ form.secret.errors }}
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <label for="id_secret_conf">Secret (Confirm):</label>
+      </td>
+      <td>
+        <input type="password"  name="secret_conf" class="form-control" id="id_secret_conf" placeholder="Confirmation of password to be associated with the user" value="{{form.initial.secret_conf}}"> 
+      </td>
+      <td>
+    {{ form.secret_conf.errors }}
+      </td>
+    </tr>
+
+<!--
+    <tr>
+      <td>
+        <label for="id_peer_user">Peer user:</label>
+      </td>
+      <td>
+        <input type="text"  name="peer_user" class="form-control" id="id_peer_user" placeholder="Only input when configuring mutual CHAP;" value="{{form.initial.peer_user}}"> 
+      </td>
+      <td>
+    {{ form.peer_user.errors }}
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <label for="id_peer_secret">Secret:</label>
+      </td>
+      <td>
+        <input type="password"  name="peer_secret" class="form-control" id="id_peer_secret" placeholder="Mutual secret password which must be different than the Secret; required if the Peer User is set" value="{{form.initial.peer_secret}}"> 
+      </td>
+      <td>
+    {{ form.peer_secret.errors }}
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <label for="id_peer_secret_conf">Secret (Confirm):</label>
+      </td>
+      <td>
+        <input type="password"  name="peer_secret_conf" class="form-control" id="id_peer_secret_conf" placeholder="Confirmation of mutual secret password " value="{{form.initial.peer_secret_conf}}"> 
+      </td>
+      <td>
+    {{ form.peer_secret_conf.errors }}
+      </td>
+    </tr>
+
+-->
+
+
+  </table>
+
+  <a href="/iscsi_view_auth_access_group?access_mode=by_id&id={{form.initial.id}}" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
+  <button type="submit" class="btn btn-primary">Save >></button>
+</form>
+
+{%endblock%}
+{%block help_header%}
+Edit authorized access group help
+{%endblock%}
+{%block help_body%}
+<p>Help about editing authorized access group info…</p>
+{%endblock%}

@@ -1,0 +1,83 @@
+{% extends 'logged_in_base.html' %}
+<style type="text/css">
+    ul.errorlist {
+        margin: 0;
+        padding: 0;
+    }
+    .errorlist li {
+        background-color: white;
+        color: red;
+        display: block;
+        font-size: 10px;
+        margin: 0 0 3px;
+        padding: 4px 5px;
+    }
+</style>
+
+
+{%block contents%}
+<span id="topic-text">Manage -> Samba users -> View users -> Edit user</span><br>
+
+{{conf_message}}
+
+<form name="edit_form" action="" method="post">
+{{form.unix_user_name}}
+{{form.old_windows_user_name}}
+{{form.action}}
+            <table class="table">
+            <tr>
+              <td>
+            <label>Unix username</label>
+              </td>
+              <td>
+            {{ form.unix_user_name.value }}
+              </td>
+              <td>
+              &nbsp;
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label for="id_windows_user_name">Windows username</label>
+              </td>
+              <td>
+            {{ form.windows_user_name }}
+              </td>
+              <td>
+            {{ form.windows_user_name.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label for="id_password">Samba Password</label>
+              </td>
+              <td>
+            {{ form.password }}
+              </td>
+              <td>
+            {{ form.password.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label for="id_password_conf">Confirm Samba Password</label>
+              </td>
+              <td>
+            {{ form.password_conf }}
+              </td>
+              <td>
+            {{ form.password_conf.errors }}
+              </td>
+            </tr>
+            </table>
+    <a href="/display_users" role="button" class="btn"> Cancel</a>
+        <button type="submit" class="btn"> Save </button>
+</form>
+
+{%endblock%}
+{%block help_header%}
+Edit user help
+{%endblock%}
+{%block help_body%}
+<p>Help about editing user info…</p>
+{%endblock%}

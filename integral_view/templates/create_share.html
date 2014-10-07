@@ -1,0 +1,244 @@
+{% extends 'logged_in_base.html' %}
+<style type="text/css">
+<link rel="stylesheet" href="/static/jstree/dist/themes/default/style.min.css" />
+</style>
+<script type="text/javascript">
+function set_field_visibility() {
+  var guest_ok = document.forms["create_form"].elements["guest_ok"];
+  var guest_ok_val;
+  for(var i = 0; i < guest_ok.length; i++){
+    if(guest_ok[i].checked){
+        guest_ok_val = guest_ok[i].value;
+    }
+  }
+  if (guest_ok_val=="yes") {
+    set_select_field_disabled(document.forms["create_form"].elements["users"], true);
+  } else {
+    set_select_field_disabled(document.forms["create_form"].elements["users"], false);
+  } 
+}
+function set_select_field_disabled(f, val) {
+  for(var i = 0; i < f.length; i++)
+    f[i].disabled = val
+}
+function select_guest_ok() {
+  for (var i=0;i<2;i++)
+    if (document.forms["create_form"].elements["guest_ok"][i].value == "no")
+      document.forms["create_form"].elements["guest_ok"][i].checked = true;
+}
+</script>
+
+
+{%block contents%}
+<span id="topic-text">Shares -> Create a share</span><br>
+
+
+{{conf_message}}
+
+
+<form class="form-horizontal" role="form"name="create_form" action="" method="post">
+<input type="hidden" name="display_path">
+            <table  class="table " style="width:800px">
+            <tr>
+              <td>
+            <label for="id_name">Share name:</label>
+              </td>
+              <td>
+                <input type="text"  name="name" class="form-control" id="id_name" placeholder="Share name"> 
+              </td>
+              <td>
+            {{ form.name.errors }}
+              </td>
+            </tr>
+
+            <tr>
+              <td>
+            <label for="id_vol">Volume :</label>
+              </td>
+              <td>
+                <select id="id_vol" name="vol" class="form-control">
+                {% for choice in form.vol.field.choices %} 
+                  <option value="{{choice.0}}" {%if form.initial.ad_schema_mode == choice.0%} selected="selected" {%endif%}>{{choice.1}}</option>
+                {%endfor%}
+                </select>
+              </td>
+              <td>
+            {{ form.vol.errors }}
+              </td>
+            </tr>
+
+            <tr>
+              <td>
+            <label for="id_path">Directory within volume:</label>
+              </td>
+              <td>
+                <input type="text"  name="path" class="form-control" id="id_path" placeholder="Click the Browse button to choose a directory.." disabled> 
+                    <a href="" role="button" class="btn btn-default" onClick="displayTree();return false;"> Browse..</a>
+                        <div id="pathdiv" style="display:inline">
+                        </div>
+              </td>
+              <td>
+                {{ form.path.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label for="id_comment">Description:</label>
+              </td>
+              <td>
+                <input type="text"  name="comment" class="form-control" id="id_comment" placeholder="Description of this share"> 
+              </td>
+              <td>
+                {{ form.comment.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label for="id_readonly">Readonly:</label>
+              </td>
+              <td>
+            {{ form.read_only }}
+              </td>
+              <td>
+            {{ form.read_only.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label for="id_browseable">Visible:</label>
+              </td>
+              <td>
+            {{ form.browseable }}
+              </td>
+              <td>
+            {{ form.browseable.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label for="id_guest_ok">Accessible to all(guest ok):</label>
+              </td>
+              <td>
+            {{ form.guest_ok }}
+              </td>
+              <td>
+            {{ form.guest_ok.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label for="id_users">Permitted users:</label>
+              </td>
+              <td>
+                {% for choice in form.users.field.choices %} 
+                  <div class="radio" >
+                      <input type="radio" name="users" id="optionsRadios1" value="{{choice.0}}" {%if choice.0 in form.initial.users %} checked="checked"{%endif%}>{{choice.0}}
+                  </div>
+                {%endfor%}
+              </td>
+              <td>
+            {{ form.users.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label for="id_groups">Permitted groups:</label>
+              </td>
+              <td>
+                {% for choice in form.groups.field.choices %} 
+                  <div class="radio" >
+                      <input type="radio" name="groups" id="id_users" value="{{choice.0}}" {%if choice.0 in form.initial.groups %} checked="checked"{%endif%}>{{choice.0}}
+                  </div>
+                {%endfor%}
+              </td>
+              <td>
+            {{ form.groups.errors }}
+              </td>
+            </tr>
+            </table>
+
+        <a href="/display_shares" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
+        <button type="submit" class="btn btn-primary" onClick="document.getElementById('id_path').disabled = false;return true;")> Create >> </button>
+</form>
+<script type="text/javascript">
+document.getElementById('id_path').disabled = true;
+function set_select_field_disabled(f, val) {
+  for(var i = 0; i < f.length; i++)
+    f[i].disabled = val
+}
+$("form input[name='guest_ok']").click(function () { 
+    // Handle the click event here
+    //alert("clicked");
+    if (document.forms["create_form"].elements["guest_ok"].checked) {
+      set_select_field_disabled(document.forms["create_form"].elements["users"], true);
+      set_select_field_disabled(document.forms["create_form"].elements["groups"], true);
+    } else {
+      set_select_field_disabled(document.forms["create_form"].elements["users"], false);
+      set_select_field_disabled(document.forms["create_form"].elements["groups"], false);
+    }
+    });
+$(window).load(function() {
+  // Handler for .load() called.
+    //alert("loaded");
+    //alert(document.forms["create_form"].elements["guest_ok"].checked);
+    document.forms["create_form"].elements["guest_ok"].checked = false
+    set_select_field_disabled(document.forms["create_form"].elements["users"], false);
+    set_select_field_disabled(document.forms["create_form"].elements["groups"], false);
+  });
+</script>
+  <script src="/static/jstree/dist/libs/jquery.js"></script>
+  <script src="/static/jstree/dist/jstree.min.js"></script>
+            <script>
+            function displayTree() {
+              document.getElementById("pathdiv").style.display = "block";
+              $('#pathdiv').jstree({ 'core' : {
+                  'multiple':false,
+                  'data' : {
+                    'full_path': 'dummy',
+                    'url' : function (node) {
+                      return node.id === '#' ? 
+                        '/show/dir_contents?first=1&dir=/' : 
+                        '/show/dir_contents'; 
+                    },
+                    'data' : function (node) {
+                      var e = document.getElementById("id_vol");
+                      if (node.data) {
+                        return {  'dir' : node.data['dir'] , 'id':node.id, "vol_name": e.options[e.selectedIndex].value};
+                      }
+                      else
+                        return { 'dir' : node.text , 'id':node.id, "vol_name": e.options[e.selectedIndex].value};
+                    }
+                  }
+              } });
+            $(function () {
+              $('#pathdiv').on('load_node.jstree', function (e, data) {
+                  var n = data.instance.get_node(data.node["id"]);
+                  var txt = data.instance.get_node(n["children_d"][0])["text"];
+                  if (txt == "_error_") {
+                    alert("Error parsing the volume directories.");
+                    document.getElementById("pathdiv").style.display = "none";
+                  }
+                return true;
+                })
+            });
+            $(function () {
+              $('#pathdiv').on('changed.jstree', function (e, data) {
+                  var i, j, r = [];
+                  r = data.instance.get_node(data.selected[0]).text;
+                  rfp = data.instance.get_node(data.selected[0]).data["dir"];
+                  document.forms["create_form"].elements["path"].value = rfp;
+                  document.forms["create_form"].elements["display_path"].value = rfp;
+                  document.getElementById("pathdiv").style.display = "none";
+                })
+                .jstree();
+            });
+          }
+            </script>
+
+{%endblock%}
+{%block help_header%}
+Create share help
+{%endblock%}
+{%block help_body%}
+<p>Help about creating shares…</p>
+{%endblock%}

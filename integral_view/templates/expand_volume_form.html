@@ -1,0 +1,67 @@
+{% extends 'logged_in_base.html' %}
+
+{%block contents%}
+<!-- Modal -->
+<div class="modal fade" id="processing" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-body" id="myModalBody">
+        <br><br><br>
+        <img src="/static/images/4.gif" >
+        <br><br><br>
+        <p id="p-node-text">Processing.. Please wait.
+        <br><br><br>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<span id="topic-text"> Volumes -> Expand volume</span><br>
+<br>
+<span id="instruction-text"> The volume will be expanded by adding the following storage locations. The system automatically selects available storage to be added to the volume. <br><br>Please verify and confirm.<span><br>
+
+
+<br>
+<br>
+
+<table class="table table-bordered" style="width:400px">
+<tr>
+  <th>
+    Node and disk 
+  </th>
+</tr>
+{% for n in node_list %}
+  <tr>
+    <td>
+      {% if vol_type == "replicated" %}
+        <ul>
+        {% for l in n %}
+        <li> {{l}}
+        {%endfor%}
+        </ul>
+      {%else%}
+        {% for l in n %}
+        {{l}}
+        {%endfor%}
+      {%endif%}
+    </td>
+  </tr>
+{%endfor%}
+</table>
+
+
+<form action="/expand_volume/" method="post">
+<input type=hidden name="cmd" value="{{cmd}}">
+<input type=hidden name="vol_name" value="{{vol_name}}">
+<input type=hidden name="count" value="{{count}}">
+<button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Expand >></button>
+</form>
+
+{%endblock%}
+{%block help_header%}
+Expand volume help
+{%endblock%}
+{%block help_body%}
+<p>Help about expanding volumes…</p>
+{%endblock%}

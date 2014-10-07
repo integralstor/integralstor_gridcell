@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{%block content%}
+
+{% if invalidUser %}
+<p style="color:red;"> Invalid User or Password. Please try again</p>
+{% endif %}
+
+<br><br>
+<div style="width:500px;margin:auto;border:solid 0px">
+<form role="form" action="/login/" method="post">
+{% csrf_token %}
+  <div class="form-group">
+    <label for="id_username" >Username:</label>
+    <input type="text"  name="username" class="form-control" id="id_username" placeholder="Enter username"> 
+    {{ form.username.errors }}
+  </div>
+  <div class="form-group">
+    <label for="id_password">Password:</label>
+    <input type="password"  name="password" class="form-control" id="id_password" placeholder="Enter password">
+    {{ form.password.errors }}
+  </div>
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+<!--
+        <div class="field">
+            <table class="table">
+            <tr>
+              <td>
+            <label for="id_username">Username:</label>
+              </td>
+              <td>
+            {{ form.username }}
+              </td>
+              <td>
+            {{ form.username.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label for="id_password">Password:</label>
+              </td>
+              <td>
+            {{ form.password }}
+              </td>
+              <td>
+            {{ form.password.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td colspan=3 style="text-align:center">
+                <button type="submit" class="btn btn-primary active">Login </button>
+              </td>
+            </tr>
+            </table>
+        </div>
+-->
+<script src="/static/jquery-ui-1.10.2.custom/js/jquery-1.9.1.js"></script>
+<script type="text/javascript">
+$(function() {
+  $("#id_username").focus();
+  });
+</script>
+</div>
+{%endblock%}

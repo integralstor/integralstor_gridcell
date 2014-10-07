@@ -1,0 +1,41 @@
+{% extends 'logged_in_base.html' %}
+
+{%block contents%}
+
+<!-- Modal -->
+<div class="modal fade" id="processing" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-body" id="myModalBody">
+        <br><br><br>
+        <img src="/static/images/4.gif" >
+        <br><br><br>
+        <p id="p-node-text">Processing.. Please wait.
+        <br><br><br>
+      </div>
+    </div>
+  </div>
+</div>
+
+<span id="topic-text"> ISCSI Access -> Delete an ISCSI authorized access user </span><br>
+
+
+<p id="p-warning-text">Are you sure you want to delete the authorized access user with id {{user_id}} (user {{user}} {% if peer_user %}peer user ({{peer_user}}{%endif%})? </p>
+<br>
+<form action="/iscsi_delete_auth_access_user/" method="POST">
+<input type=hidden name="user_id" value="{{user_id}}">
+<input type="button" class="btn btn-default" value="Cancel" onClick="window.location='/iscsi_display_auth_access_group_list'"> &nbsp;&nbsp;
+<button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Confirm and delete >></button>
+</form>
+
+
+
+
+
+{%endblock%}
+{%block help_header%}
+ISCSI authorized access group delete conf help
+{%endblock%}
+{%block help_body%}
+<p>Help about ISCSI authorized access group delete conf - needs customisation…</p>
+{%endblock%}

@@ -1,0 +1,102 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html lang="en">
+<head>
+  <link rel="stylesheet" type="text/css" href="/static/css/a.css">
+    <link rel="stylesheet" href="/static/jquery-ui-1.10.2.custom/css/ui-lightness/jquery-ui-1.10.2.custom.css">
+     <style>
+       .ui-menu {
+           width: 200px;
+       }
+    </style>
+    <script src="/static/jquery-ui-1.10.2.custom/js/jquery-1.9.1.js"></script>
+    <script src="/static/jquery-ui-1.10.2.custom/js/jquery-ui-1.10.2.custom.js"></script>
+  <title> {%block title%}Datalifecycle admin console{%endblock%}</title>
+</head>
+<body>
+  <table id="header_table" width="810px" border=0><tr><td align="left"> <img src="/static/images/DLC-Logo.jpg" style="float:left;"></td>
+  <td align="left"> <h1>{%block heading%}Admin Console{%endblock%}</h1></td>
+
+   <td ><a  href="/logout/"> Logout</a> | <a href="/change_admin_password/">Change Password</a> </td></tr></table>
+<div id="container">
+<div id="menu">
+
+  <ul id="menu1">
+    <li ><a href="#">Trusted pool setup</a>
+      <ul>
+       <li ><a href="/server_op/add_server">Add server</a></li>
+       <li ><a href="/server_op/remove_server">Remove server</a></li>
+       <li ><a href="/perform_op/view_server_status/">View server status</a></li>
+     </ul>
+    </li>
+    <li><a href="#">Volume creation</a>
+      <ul>
+        <li><a href="/create_volume_get_num_bricks/distributed/">Create a distributed volume</a></li>
+        <li><a href="/create_volume_get_num_bricks/replicated/">Create a replicated volume</a></li>
+        <li><a href="/create_volume_get_num_bricks/striped/">Create a striped volume</a></li>
+        <li><a href="/create_volume_get_num_bricks/distributed_striped/">Create a distributed striped volume</a></li>
+        <li><a href="/create_volume_get_num_bricks/distributed_replicated/">Create a distributed replicated volume</a></li>
+        <li><a href="/create_volume_get_num_bricks/striped_replicated/">Create a striped replicated volume</a></li>
+        <li><a href="/create_volume_get_num_bricks/distributed_striped_replicated/">Create a distributed striped replicated volume</a></li>
+      </ul>
+    </li>
+    <li><a href="#">Volume management</a>
+      <ul>
+        <li><a href="/perform_op/view_volume_info_all">View information about all volumes</a></li>
+        <li><a href="/perform_op/view_volume_status_all">View status of all volumes</a></li>
+        <li><a href="/volume_specific_op/vol_start/">Start a volume</a></li>
+        <li><a href="/volume_specific_op/vol_stop/">Stop a volume</a></li>
+{% if user.username == 'dlcadmin' %}
+        <li><a href="/volume_specific_op/vol_delete/">Delete a volume</a></li>
+{%endif%}
+        <li><a href="/volume_specific_op/expand_volume/">Expand a volume</a></li>
+        <li><a href="/volume_specific_op/start_rebalance/">Start volume rebalance</a></li>
+        <li><a href="/volume_specific_op/stop_rebalance/">Stop volume rebalance</a></li>
+        <li><a href="/volume_specific_op/check_rebalance/">Check volume rebalance status</a></li>
+<!--
+        <li>Shrink a volume</li>
+        <li>Migrate a volume</li>
+        <li>Tune volume options</li>
+-->
+      </ul>
+    </li>
+    <li><a href="#">Manage quotas</a>
+      <ul>
+        <li><a href="/volume_specific_op/enable_quota">Enable volume quotas</a></li>
+        <li><a href="/volume_specific_op/disable_quota">Disable volume quotas</a></li>
+        <li><a href="/volume_specific_op/display_disk_level_quota">Display disk level quotas</a></li>
+      </ul>
+    </li>
+    <li><a href="#">Logging</a>
+      <ul>
+<!--
+        <li><a href="/view_log/">View log</a></li>
+-->
+        <li><a href="/download_log/vol_log">Download volume logs</a></li>
+        <li><a href="/download_log/sys_log">Download system logs</a></li>
+        <li><a href="/volume_specific_op/rotate_log">Rotate volume log</a></li>
+      </ul>
+    </li>
+    <li><a href="/manage_shares" >Manage shares</a>
+  </ul>
+
+    <script>
+     $( "#menu1" ).menu();
+   </script>
+   {%block selectedmenu%}
+  {%endblock%}
+
+</div>
+<div id="contents">
+   {%block contents%}
+  {%endblock%}
+</div>
+<div id="footer">
+   {%block footer%}
+    <hr width="830px">
+    <p>Dev version. Potentially flawed.</p>
+  {%endblock%}
+</div>
+</div>
+</body>
+</html>
+

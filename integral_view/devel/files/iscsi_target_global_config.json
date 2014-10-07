@@ -1,0 +1,16 @@
+{
+  "max_receive_data_segment_length": 99, 
+  "base_name": "iqn.2014-15.org.fractalio:test", 
+  "discovery_auth_group": "2", 
+  "max_presend_r2t": 99, 
+  "max_sessions": 99, 
+  "first_burst_length": 99, 
+  "nop_in_interval": 99, 
+  "default_time_to_retain": 99, 
+  "max_outstanding_r2t": 99, 
+  "io_timeout": 99, 
+  "discovery_auth_method": "None", 
+  "default_time_to_wait": 99, 
+  "max_burst_length": 99, 
+  "max_connections": 99
+}

@@ -1,0 +1,94 @@
+{% extends 'logged_in_base.html' %}
+{%block autorefresh%}
+<meta http-equiv="refresh" content="30" >
+{%endblock%}
+
+{%block contents%}
+<script type="text/javascript">
+
+function load_node_status(hostname, str) {
+  url='/show/node_status/' + encodeURIComponent(hostname);
+  document.getElementById('myModalLabel').innerHTML = "Node information for " + str ;
+  //document.getElementById('myModalLabel').innerHTML = "Node information for " + str + "&nbsp; (" + hostname + ")";
+  $('#myModalBody').load(url);
+  $('#myModal').modal();
+}
+</script>
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+      </div>
+      <div class="modal-body" id="myModalBody">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<span id="topic-text"> Platform status </span><br>
+
+<p id="p-instruction-text"> This page will autorefresh every 30 seconds to display updates.</p>
+
+
+<table class="table table-bordered table-condensed table-hover" style="width:800px">
+  <tr>
+    <th>
+      Node name
+    </th>
+    <th>
+      <b>Node Status </b>
+    </th>
+    <th>
+      <b>Storage pool status</b>
+    </th>
+    <th>
+      Click for details
+    </th>
+{% for hostname, d in system_info.items %}
+  {% if d.system_status != "healthy" or  d.cluster_status != 1 %}
+  <tr class="warning">
+  {%else%}
+  <tr>
+  {%endif%}
+    <td>
+      {{hostname}}
+    </td>
+    <td>
+      Node {{d.system_status|title}}
+    </td>
+    <td>
+      {% if d.cluster_status == 1 %}
+      online
+      {%else%}
+      Offline
+      {%endif%}
+    </td>
+    <td>
+      {% if d.system_status == "healthy" %}
+      <a href="/show/node_status/{{hostname}}/?from=system_status" role="button" class="btn btn-default">Details.. </a>
+      {%elif d.system_status == "degraded" %}
+      <a href="/show/node_status/{{hostname}}/?from=system_status" role="button" class="btn btn-warning">Details.. </a>
+      {%else%}
+      <a href="/show/node_status/{{hostname}}/?from=system_status" role="button" class="btn btn-warning" disabled >Details.. </a>
+      {%endif%}
+    </td>
+  </tr>
+{%endfor%}
+</table>
+{%endblock%}
+{%block help_header%}
+System status help
+{%endblock%}
+{%block help_body%}
+<p>Help about system status…</p>
+{%endblock%}
+

@@ -1,0 +1,947 @@
+[root@s5n9 ~]# gluster peer status  --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>0</opErrno>
+  <opErrstr/>
+  <peerStatus>
+    <peer>
+      <uuid>311e157a-e5c1-4e5e-958b-81c34365c451</uuid>
+      <hostname>192.168.1.212</hostname>
+      <connected>1</connected>
+      <state>3</state>
+      <stateStr>Peer in Cluster</stateStr>
+    </peer>
+    <peer>
+      <uuid>6ff76bdf-3c41-495f-9fc7-be3a01080b36</uuid>
+      <hostname>192.168.1.211</hostname>
+      <connected>1</connected>
+      <state>3</state>
+      <stateStr>Peer in Cluster</stateStr>
+    </peer>
+    <peer>
+      <uuid>78dfae6c-acb4-4b56-b2ce-2afd7a6ae946</uuid>
+      <hostname>192.168.1.210</hostname>
+      <connected>1</connected>
+      <state>3</state>
+      <stateStr>Peer in Cluster</stateStr>
+    </peer>
+  </peerStatus>
+</cliOutput>
+
+[root@s5n9 ~]# gluster peer detach 192.168.1.211  --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>0</opErrno>
+  <opErrstr>(null)</opErrstr>
+  <output>success</output>
+</cliOutput>
+
+
+[root@s5n9 ~]# gluster --remote-host=192.168.1.210 peer status --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>0</opErrno>
+  <opErrstr/>
+  <peerStatus>
+    <peer>
+      <uuid>311e157a-e5c1-4e5e-958b-81c34365c451</uuid>
+      <hostname>192.168.1.212</hostname>
+      <connected>1</connected>
+      <state>3</state>
+      <stateStr>Peer in Cluster</stateStr>
+    </peer>
+    <peer>
+      <uuid>4917e04c-e888-4435-a283-6af0d7e8e88f</uuid>
+      <hostname>192.168.1.209</hostname>
+      <connected>1</connected>
+      <state>3</state>
+      <stateStr>Peer in Cluster</stateStr>
+    </peer>
+    <peer>
+      <uuid>6ff76bdf-3c41-495f-9fc7-be3a01080b36</uuid>
+      <hostname>192.168.1.211</hostname>
+      <connected>1</connected>
+      <state>3</state>
+      <stateStr>Peer in Cluster</stateStr>
+    </peer>
+  </peerStatus>
+</cliOutput>
+
+
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <volCreate>
+    <volume>
+      <name>testvol</name>
+      <id>4f59f9c0-5499-47c3-8f53-7d574ff7075d</id>
+    </volume>
+  </volCreate>
+</cliOutput>
+
+[root@s5n9 ~]# gluster volume create testvol replica 2 transport tcp 192.168.1.209:/data/testvol 192.168.1.210:/data/testvol --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>-1</opRet>
+  <opErrno>0</opErrno>
+  <opErrstr>Volume testvol already exists</opErrstr>
+</cliOutput>
+
+
+[root@s5n9 ~]# gluster volume info testvol --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>0</opErrno>
+  <opErrstr/>
+  <volInfo>
+    <volumes>
+      <volume>
+        <name>testvol</name>
+        <id>4f59f9c0-5499-47c3-8f53-7d574ff7075d</id>
+        <status>0</status>
+        <statusStr>Created</statusStr>
+        <brickCount>2</brickCount>
+        <distCount>2</distCount>
+        <stripeCount>1</stripeCount>
+        <replicaCount>2</replicaCount>
+        <type>2</type>
+        <typeStr>Replicate</typeStr>
+        <transport>0</transport>
+        <bricks>
+          <brick>192.168.1.209:/data/testvol</brick>
+          <brick>192.168.1.210:/data/testvol</brick>
+        </bricks>
+        <optCount>0</optCount>
+        <options/>
+      </volume>
+      <count>1</count>
+    </volumes>
+  </volInfo>
+</cliOutput>
+
+[root@s5n9 ~]# gluster volume start testvol --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <volStart>
+    <volume>
+      <name>testvol</name>
+      <id>4f59f9c0-5499-47c3-8f53-7d574ff7075d</id>
+    </volume>
+  </volStart>
+</cliOutput>
+
+
+[root@s5n9 ~]# gluster volume add-brick testvol 192.168.1.211:/data/testvol 192.168.1.212:/data/testvol --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <cliOp>volAddBrick</cliOp>
+  <output>Add Brick successful</output>
+</cliOutput>
+
+
+[root@s5n9 ~]# gluster volume info testvol --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>0</opErrno>
+  <opErrstr/>
+  <volInfo>
+    <volumes>
+      <volume>
+        <name>testvol</name>
+        <id>4f59f9c0-5499-47c3-8f53-7d574ff7075d</id>
+        <status>1</status>
+        <statusStr>Started</statusStr>
+        <brickCount>4</brickCount>
+        <distCount>2</distCount>
+        <stripeCount>1</stripeCount>
+        <replicaCount>2</replicaCount>
+        <type>5</type>
+        <typeStr>Distributed-Replicate</typeStr>
+        <transport>0</transport>
+        <bricks>
+          <brick>192.168.1.209:/data/testvol</brick>
+          <brick>192.168.1.210:/data/testvol</brick>
+          <brick>192.168.1.211:/data/testvol</brick>
+          <brick>192.168.1.212:/data/testvol</brick>
+        </bricks>
+        <optCount>0</optCount>
+        <options/>
+      </volume>
+      <count>1</count>
+    </volumes>
+  </volInfo>
+</cliOutput>
+
+[root@s5n9 ~]# gluster volume log rotate testvol --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <cliOp>volLogRotate</cliOp>
+  <output>log rotate successful</output>
+</cliOutput>
+
+
+[root@s5n9 ~]# gluster volume stop testvol --xml
+Stopping volume will make its data inaccessible. Do you want to continue? (y/n) y
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <volStop>
+    <volume>
+      <name>testvol</name>
+      <id>4f59f9c0-5499-47c3-8f53-7d574ff7075d</id>
+    </volume>
+  </volStop>
+</cliOutput>
+
+[root@s5n9 ~]# gluster volume create testvol1 transport tcp 192.168.1.209:/data/testvol1 --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <volCreate>
+    <volume>
+      <name>testvol1</name>
+      <id>94a558bb-ca37-4cc4-958f-5981d0ae2d6c</id>
+    </volume>
+  </volCreate>
+</cliOutput>
+
+
+[root@s5n9 ~]# gluster volume info testvol1 --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>0</opErrno>
+  <opErrstr/>
+  <volInfo>
+    <volumes>
+      <volume>
+        <name>testvol1</name>
+        <id>94a558bb-ca37-4cc4-958f-5981d0ae2d6c</id>
+        <status>0</status>
+        <statusStr>Created</statusStr>
+        <brickCount>1</brickCount>
+        <distCount>1</distCount>
+        <stripeCount>1</stripeCount>
+        <replicaCount>1</replicaCount>
+        <type>0</type>
+        <typeStr>Distribute</typeStr>
+        <transport>0</transport>
+        <bricks>
+          <brick>192.168.1.209:/data/testvol1</brick>
+        </bricks>
+        <optCount>0</optCount>
+        <options/>
+      </volume>
+      <count>1</count>
+    </volumes>
+  </volInfo>
+</cliOutput>
+
+[root@s5n9 views]# gluster volume create v1 replica 2 transport tcp s5n9.testing.lan:/data/v1 s5n10.testing.lan:/data/v1 s6n11.testing.lan:/data/v1 s6n12.testing.lan:/data/v1 --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <volCreate>
+    <volume>
+      <name>v1</name>
+      <id>ac8b4a87-16cf-4478-acf6-21bd253f54f9</id>
+    </volume>
+  </volCreate>
+</cliOutput>
+[root@s5n9 views]# gluster volume info v1
+ 
+Volume Name: v1
+Type: Distributed-Replicate
+Volume ID: ac8b4a87-16cf-4478-acf6-21bd253f54f9
+Status: Created
+Number of Bricks: 2 x 2 = 4
+Transport-type: tcp
+Bricks:
+Brick1: s5n9.testing.lan:/data/v1
+Brick2: s5n10.testing.lan:/data/v1
+Brick3: s6n11.testing.lan:/data/v1
+Brick4: s6n12.testing.lan:/data/v1
+
+
+[root@s5n9 ~]# gluster volume add-brick v3 s6n11.testing.lan:/data/v3 s6n12.testing.lan:/data/v3 --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <cliOp>volAddBrick</cliOp>
+  <output>Add Brick successful</output>
+</cliOutput>
+
+[root@s5n9 ~]# gluster volume remove-brick v3 s6n11.testing.lan:/data/v3 s6n12.testing.lan:/data/v3 --xml
+Removing brick(s) can result in data loss. Do you want to Continue? (y/n) y
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>2</opErrno>
+  <opErrstr/>
+  <volRemoveBrick/>
+</cliOutput>
+
+[root@s5n9 ~]# gluster volume rebalance v3 start force --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <volRebalance>
+    <task-id>1afc412e-6c72-4cc2-864f-31227b3fba15</task-id>
+    <op>5</op>
+  </volRebalance>
+</cliOutput>
+[root@s5n9 ~]# gluster volume rebalance v3 status --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <volRebalance>
+    <task-id>1afc412e-6c72-4cc2-864f-31227b3fba15</task-id>
+    <op>3</op>
+    <nodeCount>4</nodeCount>
+    <node>
+      <nodeName>localhost</nodeName>
+      <files>6</files>
+      <size>2100000</size>
+      <lookups>18</lookups>
+      <failures>0</failures>
+      <status>1</status>
+      <statusStr>in progress</statusStr>
+    </node>
+    <node>
+      <nodeName>s6n12.testing.lan</nodeName>
+      <files>0</files>
+      <size>0</size>
+      <lookups>100</lookups>
+      <failures>0</failures>
+      <status>3</status>
+      <statusStr>completed</statusStr>
+    </node>
+    <node>
+      <nodeName>s6n11.testing.lan</nodeName>
+      <files>0</files>
+      <size>0</size>
+      <lookups>100</lookups>
+      <failures>0</failures>
+      <status>3</status>
+      <statusStr>completed</statusStr>
+    </node>
+    <node>
+      <nodeName>s5n10.testing.lan</nodeName>
+      <files>0</files>
+      <size>0</size>
+      <lookups>100</lookups>
+      <failures>0</failures>
+      <status>3</status>
+      <statusStr>completed</statusStr>
+    </node>
+    <aggregate>
+      <files>6</files>
+      <size>2100000</size>
+      <lookups>318</lookups>
+      <failures>0</failures>
+      <status>1</status>
+      <statusStr>in progress</statusStr>
+    </aggregate>
+  </volRebalance>
+</cliOutput>
+
+
+
+[root@s5n9 ~]# gluster volume rebalance v3 status --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <volRebalance>
+    <task-id>1afc412e-6c72-4cc2-864f-31227b3fba15</task-id>
+    <op>3</op>
+    <nodeCount>4</nodeCount>
+    <node>
+      <nodeName>localhost</nodeName>
+      <files>45</files>
+      <size>15750000</size>
+      <lookups>145</lookups>
+      <failures>0</failures>
+      <status>3</status>
+      <statusStr>completed</statusStr>
+    </node>
+    <node>
+      <nodeName>s6n12.testing.lan</nodeName>
+      <files>0</files>
+      <size>0</size>
+      <lookups>100</lookups>
+      <failures>0</failures>
+      <status>3</status>
+      <statusStr>completed</statusStr>
+    </node>
+    <node>
+      <nodeName>s6n11.testing.lan</nodeName>
+      <files>0</files>
+      <size>0</size>
+      <lookups>100</lookups>
+      <failures>0</failures>
+      <status>3</status>
+      <statusStr>completed</statusStr>
+    </node>
+    <node>
+      <nodeName>s5n10.testing.lan</nodeName>
+      <files>0</files>
+      <size>0</size>
+      <lookups>100</lookups>
+      <failures>0</failures>
+      <status>3</status>
+      <statusStr>completed</statusStr>
+    </node>
+    <aggregate>
+      <files>45</files>
+      <size>15750000</size>
+      <lookups>445</lookups>
+      <failures>0</failures>
+      <status>3</status>
+      <statusStr>completed</statusStr>
+    </aggregate>
+  </volRebalance>
+</cliOutput>
+
+[root@s5n9 ~]# gluster volume rebalance v3 status
+                                    Node Rebalanced-files          size       scanned      failures       skipped         status run time in secs
+                               ---------      -----------   -----------   -----------   -----------   -----------   ------------   --------------
+                               localhost               45        15.0MB           145             0             0      completed            90.00
+                       s6n12.testing.lan                0        0Bytes           100             0             0      completed             1.00
+                       s6n11.testing.lan                0        0Bytes           100             0             0      completed             1.00
+                       s5n10.testing.lan                0        0Bytes           100             0             0      completed             0.00
+volume rebalance: v3: success:
+
+[root@s5n9 ~]# gluster volume remove-brick v3 s5n9.testing.lan:/data/v3 s5n10.testing.lan:/data/v3 --xml
+Removing brick(s) can result in data loss. Do you want to Continue? (y/n) y
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <volRemoveBrick>
+    <task-id>1afc412e-6c72-4cc2-864f-31227b3fba15</task-id>
+  </volRemoveBrick>
+</cliOutput>
+
+[root@s5n9 ~]# gluster volume info v3
+ 
+Volume Name: v3
+Type: Replicate
+Volume ID: a20a44c7-9062-46bd-9867-cd9d60925b4d
+Status: Started
+Number of Bricks: 1 x 2 = 2
+Transport-type: tcp
+Bricks:
+Brick1: s6n11.testing.lan:/data/v3
+Brick2: s6n12.testing.lan:/data/v3
+
+[root@s5n9 ~]# gluster volume info v3 --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>0</opErrno>
+  <opErrstr/>
+  <volInfo>
+    <volumes>
+      <volume>
+        <name>v3</name>
+        <id>a20a44c7-9062-46bd-9867-cd9d60925b4d</id>
+        <status>1</status>
+        <statusStr>Started</statusStr>
+        <brickCount>2</brickCount>
+        <distCount>2</distCount>
+        <stripeCount>1</stripeCount>
+        <replicaCount>2</replicaCount>
+        <type>2</type>
+        <typeStr>Replicate</typeStr>
+        <transport>0</transport>
+        <bricks>
+          <brick>s6n11.testing.lan:/data/v3</brick>
+          <brick>s6n12.testing.lan:/data/v3</brick>
+        </bricks>
+        <optCount>0</optCount>
+        <options/>
+      </volume>
+      <count>1</count>
+    </volumes>
+  </volInfo>
+</cliOutput>
+
+
+[root@s5n9 ~]# gluster volume add-brick v3 s5n9.testing.lan:/data/v3 s5n10.testing.lan:/data/v3  --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <cliOp>volAddBrick</cliOp>
+  <output>Add Brick successful</output>
+</cliOutput>
+
+[root@s5n9 ~]# gluster volume remove-brick v3 s6n11.testing.lan:/data/v3 s6n12.testing.lan:/data/v3 start --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <volRemoveBrick>
+    <task-id>5994807e-87a2-4d27-8c86-fc367f4aabe2</task-id>
+  </volRemoveBrick>
+</cliOutput>
+
+[root@s5n9 ~]# gluster volume remove-brick v3 s6n11.testing.lan:/data/v3 s6n12.testing.lan:/data/v3 status --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <volRemoveBrick>
+    <nodeCount>4</nodeCount>
+    <node>
+      <nodeName>localhost</nodeName>
+      <files>0</files>
+      <size>0</size>
+      <lookups>0</lookups>
+      <failures>0</failures>
+      <status>0</status>
+      <statusStr>not started</statusStr>
+    </node>
+    <node>
+      <nodeName>s6n12.testing.lan</nodeName>
+      <files>0</files>
+      <size>0</size>
+      <lookups>100</lookups>
+      <failures>0</failures>
+      <status>3</status>
+      <statusStr>completed</statusStr>
+    </node>
+    <node>
+      <nodeName>s6n11.testing.lan</nodeName>
+      <files>10</files>
+      <size>3500000</size>
+      <lookups>11</lookups>
+      <failures>0</failures>
+      <status>1</status>
+      <statusStr>in progress</statusStr>
+    </node>
+    <node>
+      <nodeName>s5n10.testing.lan</nodeName>
+      <files>0</files>
+      <size>0</size>
+      <lookups>0</lookups>
+      <failures>0</failures>
+      <status>0</status>
+      <statusStr>not started</statusStr>
+    </node>
+    <aggregate>
+      <files>10</files>
+      <size>3500000</size>
+      <lookups>111</lookups>
+      <failures>0</failures>
+      <status>1</status>
+      <statusStr>in progress</statusStr>
+    </aggregate>
+  </volRemoveBrick>
+</cliOutput>
+
+[root@s5n9 ~]# gluster volume remove-brick v3 s6n11.testing.lan:/data/v3 s6n12.testing.lan:/data/v3 status --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <volRemoveBrick>
+    <nodeCount>4</nodeCount>
+    <node>
+      <nodeName>localhost</nodeName>
+      <files>0</files>
+      <size>0</size>
+      <lookups>0</lookups>
+      <failures>0</failures>
+      <status>0</status>
+      <statusStr>not started</statusStr>
+    </node>
+    <node>
+      <nodeName>s6n12.testing.lan</nodeName>
+      <files>0</files>
+      <size>0</size>
+      <lookups>100</lookups>
+      <failures>0</failures>
+      <status>3</status>
+      <statusStr>completed</statusStr>
+    </node>
+    <node>
+      <nodeName>s6n11.testing.lan</nodeName>
+      <files>100</files>
+      <size>35000000</size>
+      <lookups>200</lookups>
+      <failures>0</failures>
+      <status>3</status>
+      <statusStr>completed</statusStr>
+    </node>
+    <node>
+      <nodeName>s5n10.testing.lan</nodeName>
+      <files>0</files>
+      <size>0</size>
+      <lookups>0</lookups>
+      <failures>0</failures>
+      <status>0</status>
+      <statusStr>not started</statusStr>
+    </node>
+    <aggregate>
+      <files>100</files>
+      <size>35000000</size>
+      <lookups>300</lookups>
+      <failures>0</failures>
+      <status>0</status>
+      <statusStr>not started</statusStr>
+    </aggregate>
+  </volRemoveBrick>
+</cliOutput>
+
+[root@s5n9 ~]# gluster volume remove-brick v3 s6n11.testing.lan:/data/v3 s6n12.testing.lan:/data/v3 commit --xml
+Removing brick(s) can result in data loss. Do you want to Continue? (y/n) y
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <volRemoveBrick>
+    <task-id>5994807e-87a2-4d27-8c86-fc367f4aabe2</task-id>
+  </volRemoveBrick>
+</cliOutput>
+
+[root@s5n9 ~]# gluster volume replace-brick v3 s5n9.testing.lan:/data/v3 s6n11.testing.lan:/data/v3 commit force --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr>replace-brick commit successful</opErrstr>
+  <volReplaceBrick>
+    <op>6</op>
+  </volReplaceBrick>
+</cliOutput>
+
+[root@s5n9 ~]# gluster volume replace-brick v3 s6n11.testing.lan:/data/v3 s6n12.testing.lan:/data/v3 commit force --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr>replace-brick commit successful</opErrstr>
+  <volReplaceBrick>
+    <op>6</op>
+  </volReplaceBrick>
+</cliOutput>
+
+
+[root@s5n9 ~]# gluster volume heal v3 full --xml;gluster volume heal info
+Launching Heal operation on volume v3 has been successful
+Use heal info commands to check status
+
+
+
+[root@s5n9 ~]# gluster --version
+glusterfs 3.4.1 built on Oct  1 2013 16:23:12
+Repository revision: git://git.gluster.com/glusterfs.git
+Copyright (c) 2006-2011 Gluster Inc. <http://www.gluster.com>
+GlusterFS comes with ABSOLUTELY NO WARRANTY.
+You may redistribute copies of GlusterFS under the terms of the GNU General Public License.
+
+
+[root@s5n9 ~]# gluster peer status
+Number of Peers: 3
+
+Hostname: s6n12.testing.lan
+Uuid: 311e157a-e5c1-4e5e-958b-81c34365c451
+State: Peer in Cluster (Connected)
+
+Hostname: s6n11.testing.lan
+Uuid: 6ff76bdf-3c41-495f-9fc7-be3a01080b36
+State: Peer in Cluster (Connected)
+
+Hostname: s5n10.testing.lan
+Uuid: 78dfae6c-acb4-4b56-b2ce-2afd7a6ae946
+State: Peer in Cluster (Connected)
+
+
+[root@s5n9 ~]# gluster volume create distvol transport tcp s5n9.testing.lan:/data/distvol s5n10.testing.lan:/data/distvol
+volume create: distvol: success: please start the volume to access data
+[root@s5n9 ~]# gluster volume start distvol
+volume start: distvol: success
+
+
+[root@s5n9 ~]# gluster volume info distvol
+ 
+Volume Name: distvol
+Type: Distribute
+Volume ID: 1a34c07e-0648-4b1a-a2c2-88bec1ec15cc
+Status: Started
+Number of Bricks: 2
+Transport-type: tcp
+Bricks:
+Brick1: s5n9.testing.lan:/data/distvol
+Brick2: s5n10.testing.lan:/data/distvol
+
+****** I then nfs mounted this volume onto my machine and with a script, generated 100 files. The distribution after that is below : ******
+
+[root@s5n9 ~]# ls -l /data/distvol | wc -l
+52
+[root@s5n10 ~]# ls -l /data/distvol | wc -l
+50
+
+[root@s5n9 ~]# gluster volume add-brick distvol s6n11.testing.lan:/data/distvol --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <cliOp>volAddBrick</cliOp>
+  <output>Add Brick successful</output>
+</cliOutput>
+
+[root@s5n9 ~]# gluster volume remove-brick distvol s5n9.testing.lan:/data/distvol start --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>0</opErrno>
+  <opErrstr/>
+  <volRemoveBrick>
+    <task-id>2f132640-c5f5-4851-9a34-0228be14a734</task-id>
+  </volRemoveBrick>
+</cliOutput>
+
+[root@s5n9 ~]# gluster volume remove-brick distvol s5n9.testing.lan:/data/distvol status
+                                    Node Rebalanced-files          size       scanned      failures       skipped         status run-time in secs
+                               ---------      -----------   -----------   -----------   -----------   -----------   ------------   --------------
+                               localhost               51        17.0MB           151             0      completed             3.00
+                       s6n12.testing.lan                0        0Bytes             0             0    not started             0.00
+                       s6n11.testing.lan                0        0Bytes             0             0    not started             0.00
+                       s5n10.testing.lan                0        0Bytes             0             0    not started             0.00
+
+
+
+[root@s5n9 ~]# gluster volume remove-brick distvol s5n9.testing.lan:/data/distvol status --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <volRemoveBrick>
+    <task-id>2f132640-c5f5-4851-9a34-0228be14a734</task-id>
+    <nodeCount>4</nodeCount>
+    <node>
+      <nodeName>localhost</nodeName>
+      <files>51</files>
+      <size>17850000</size>
+      <lookups>151</lookups>
+      <failures>0</failures>
+      <status>3</status>
+      <statusStr>completed</statusStr>
+    </node>
+    <node>
+      <nodeName>s6n12.testing.lan</nodeName>
+      <files>0</files>
+      <size>0</size>
+      <lookups>0</lookups>
+      <failures>0</failures>
+      <status>0</status>
+      <statusStr>not started</statusStr>
+    </node>
+    <node>
+      <nodeName>s6n11.testing.lan</nodeName>
+      <files>0</files>
+      <size>0</size>
+      <lookups>0</lookups>
+      <failures>0</failures>
+      <status>0</status>
+      <statusStr>not started</statusStr>
+    </node>
+    <node>
+      <nodeName>s5n10.testing.lan</nodeName>
+      <files>0</files>
+      <size>0</size>
+      <lookups>0</lookups>
+      <failures>0</failures>
+      <status>0</status>
+      <statusStr>not started</statusStr>
+    </node>
+    <aggregate>
+      <files>51</files>
+      <size>17850000</size>
+      <lookups>151</lookups>
+      <failures>0</failures>
+      <status>0</status>
+      <statusStr>not started</statusStr>
+    </aggregate>
+  </volRemoveBrick>
+</cliOutput>
+
+
+[root@s5n9 ~]# gluster volume remove-brick distvol s5n9.testing.lan:/data/distvol commit --xml
+Removing brick(s) can result in data loss. Do you want to Continue? (y/n) y
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <volRemoveBrick>
+    <task-id>2f132640-c5f5-4851-9a34-0228be14a734</task-id>
+  </volRemoveBrick>
+</cliOutput>
+
+
+[root@s5n9 ~]# gluster volume remove-brick drvol s5n9.testing.lan:/data/drvol s5n10.testing.lan:/data/drvol status --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <volRemoveBrick>
+    <task-id>4657579b-6120-46b0-bded-4fee34097266</task-id>
+    <nodeCount>4</nodeCount>
+    <node>
+      <nodeName>localhost</nodeName>
+      <files>65</files>
+      <size>22750000</size>
+      <lookups>66</lookups>
+      <failures>0</failures>
+      <status>1</status>
+      <statusStr>in progress</statusStr>
+    </node>
+    <node>
+      <nodeName>s6n12.testing.lan</nodeName>
+      <files>0</files>
+      <size>0</size>
+      <lookups>0</lookups>
+      <failures>0</failures>
+      <status>0</status>
+      <statusStr>not started</statusStr>
+    </node>
+    <node>
+      <nodeName>s6n11.testing.lan</nodeName>
+      <files>0</files>
+      <size>0</size>
+      <lookups>0</lookups>
+      <failures>0</failures>
+      <status>0</status>
+      <statusStr>not started</statusStr>
+    </node>
+    <node>
+      <nodeName>s5n10.testing.lan</nodeName>
+      <files>0</files>
+      <size>0</size>
+      <lookups>100</lookups>
+      <failures>0</failures>
+      <status>3</status>
+      <statusStr>completed</statusStr>
+    </node>
+    <aggregate>
+      <files>65</files>
+      <size>22750000</size>
+      <lookups>166</lookups>
+      <failures>0</failures>
+      <status>1</status>
+      <statusStr>in progress</statusStr>
+    </aggregate>
+  </volRemoveBrick>
+</cliOutput>
+
+[root@s5n9 ~]# gluster volume remove-brick drvol s5n9.testing.lan:/data/drvol s5n10.testing.lan:/data/drvol status --xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <volRemoveBrick>
+    <task-id>4657579b-6120-46b0-bded-4fee34097266</task-id>
+    <nodeCount>4</nodeCount>
+    <node>
+      <nodeName>localhost</nodeName>
+      <files>100</files>
+      <size>35000000</size>
+      <lookups>200</lookups>
+      <failures>0</failures>
+      <status>3</status>
+      <statusStr>completed</statusStr>
+    </node>
+    <node>
+      <nodeName>s6n12.testing.lan</nodeName>
+      <files>0</files>
+      <size>0</size>
+      <lookups>0</lookups>
+      <failures>0</failures>
+      <status>0</status>
+      <statusStr>not started</statusStr>
+    </node>
+    <node>
+      <nodeName>s6n11.testing.lan</nodeName>
+      <files>0</files>
+      <size>0</size>
+      <lookups>0</lookups>
+      <failures>0</failures>
+      <status>0</status>
+      <statusStr>not started</statusStr>
+    </node>
+    <node>
+      <nodeName>s5n10.testing.lan</nodeName>
+      <files>0</files>
+      <size>0</size>
+      <lookups>100</lookups>
+      <failures>0</failures>
+      <status>3</status>
+      <statusStr>completed</statusStr>
+    </node>
+    <aggregate>
+      <files>100</files>
+      <size>35000000</size>
+      <lookups>300</lookups>
+      <failures>0</failures>
+      <status>0</status>
+      <statusStr>not started</statusStr>
+    </aggregate>
+  </volRemoveBrick>
+</cliOutput>
+
+[root@s5n9 ~]# gluster volume remove-brick drvol s5n9.testing.lan:/data/drvol s5n10.testing.lan:/data/drvol commit --xml
+Removing brick(s) can result in data loss. Do you want to Continue? (y/n) y
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <volRemoveBrick>
+    <task-id>4657579b-6120-46b0-bded-4fee34097266</task-id>
+  </volRemoveBrick>
+</cliOutput>
+
+

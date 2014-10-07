@@ -1,0 +1,8 @@
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr/>
+  <volRemoveBrick>
+    <task-id>2f132640-c5f5-4851-9a34-0228be14a734</task-id>
+  </volRemoveBrick>
+</cliOutput>

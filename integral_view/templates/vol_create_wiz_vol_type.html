@@ -1,0 +1,63 @@
+{% extends 'logged_in_base.html' %}
+
+<script type="text/javascript">
+function subm() {
+
+  var el = document.forms[0].elements["vol_type"]
+  val=""
+  for (i=0;i<el.length;i++) {
+    if (el[i].checked)
+      val = el[i].value
+  }
+  if (val == "replicated")
+    document.forms[0].action = "/create_volume_conf/";
+//    document.forms[0].action = "/volume_creation_wizard/repl_count/";
+  else if (val == "distributed")
+    document.forms[0].action = "/create_volume_conf/";
+  else {
+    alert("Please make a selection");
+    return false;
+  }
+  document.forms[0].submit();
+  return true;
+
+}
+</script>
+
+
+{%block contents%}
+<span id="topic-text"> Volumes -> Create a volume - Volume Type (Data storage model)</span><br>
+
+<p style="color:red;"> {{error}}</p>
+
+<form  role="form" action="/volume_creation_wizard/select_ondisk_storage_type" method="post">
+{{ form.vol_name }}
+{{ form.vol_access }}
+{% if form.initial.vol_access == 'iscsi' %}
+<input type="hidden" name="vol_type" value="replicated">
+
+  <label >All data in this volume will be replicated in order to maintain redundancy for the block device. </label>
+  <br><br>
+{%else%}
+
+  <label for="id_vol_type">Please select a volume type (data distribution model)</label>
+  <div class="form-group" >
+    {% for choice in form.vol_type.field.choices %} 
+        <label class="radio">
+          <input type="radio" name="vol_type" id="id_{{choice.0}}" value="{{choice.0}}" {%if choice.0 == form.initial.vol_type %} checked{%endif%} />{{choice.1}}
+        </label>
+    {%endfor%}
+    {{ form.vol_type.errors }}
+  </div>
+{%endif%}
+ <button type="submit" class="btn btn-primary" onClick="subm();return false;" >Next >></button>
+</form>
+
+
+{%endblock%}
+{%block help_header%}
+Volume creation help
+{%endblock%}
+{%block help_body%}
+<p>Help about creating volumes…</p>
+{%endblock%}

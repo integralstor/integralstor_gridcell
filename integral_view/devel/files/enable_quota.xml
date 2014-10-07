@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>115</opErrno>
+  <opErrstr>Enabling quota has been successful</opErrstr>
+  <cliOp>volQuota</cliOp>
+  <output>Enabling quota has been successful</output>
+</cliOutput>

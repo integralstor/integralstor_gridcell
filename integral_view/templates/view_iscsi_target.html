@@ -1,0 +1,125 @@
+{% extends 'logged_in_base.html' %}
+
+
+{%block contents%}
+<span id="topic-text"> ISCSI access -> Targets -> View target details </span><br>
+
+
+
+{{conf_message}}
+
+  <form class="form-horizontal" role="form">
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Target ID</label>
+    <div class="col-sm-10">
+      <p class="form-control-static">{{target.id}}</p>
+    </div>
+  </div>
+<!--
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Target Name</label>
+    <div class="col-sm-10">
+      <p class="form-control-static">{{target.target_name}}</p>
+    </div>
+  </div>
+-->
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Volume </label>
+    <div class="col-sm-10">
+      <p class="form-control-static">{{target.vol_name}}</p>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Target alias</label>
+    <div class="col-sm-10">
+      <p class="form-control-static">{{target.target_alias}}</p>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">LUN size</label>
+    <div class="col-sm-10">
+      <p class="form-control-static">{{target.lun_size}}GB</p>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Auth method </label>
+    <div class="col-sm-10">
+      <p class="form-control-static">{{target.auth_method}}</p>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Queue depth</label>
+    <div class="col-sm-10">
+      <p class="form-control-static">{{target.queue_depth}}</p>
+    </div>
+  </div>
+<!--
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Block size</label>
+    <div class="col-sm-10">
+      <p class="form-control-static">{{target.block_size}}</p>
+    </div>
+  </div>
+-->
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Authorization group ID</label>
+    <div class="col-sm-10">
+      <p class="form-control-static">{{target.auth_group_id}}</p>
+    </div>
+  </div>
+  <div id="id_auth_group_info" style="display:block;width:600px" class="alert alert-info">
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Initiator ID</label>
+    <div class="col-sm-10">
+      <p class="form-control-static">{{target.init_group_id}}</p>
+    </div>
+  </div>
+  <div id="id_init_group_info" style="display:block;width:600px" class="alert alert-info">
+  </div>
+  </form>
+
+<a href="/iscsi_display_targets" role="button" class="btn btn-default"><< Targets list</a>
+<a href="/iscsi_edit_target?id={{target.id}}" role="button" class="btn btn-default">Modify..</a>
+<a href="/iscsi_delete_target?id={{target.id}}" role="button" class="btn btn-default">Delete this target..</a>
+
+<script type="text/javascript">
+function display_initiator_info(v, div_id) {
+  var path = '/show/iscsi_initiator_info?id='+v;
+  $.ajax({
+    type: "GET",
+    url: path,
+    data: "id=" + v, // appears as $_GET['id'] @ ur backend side
+    success: function(data) {
+          // data is ur summary
+         $('#'+div_id).html(data);
+    }
+  });
+}
+function display_access_info(v, div_id) {
+  var path = '/show/iscsi_auth_access_info?id='+v;
+  $.ajax({
+    type: "GET",
+    url: path,
+    data: "id=" + v, // appears as $_GET['id'] @ ur backend side
+    success: function(data) {
+          // data is ur summary
+         $('#'+div_id).html(data);
+    }
+  });
+}
+$(window).load(function() {
+  // Handler for .load() called.
+    //alert("loaded");
+    display_access_info('{{target.auth_group_id}}', 'id_auth_group_info'); 
+    display_initiator_info('{{target.init_group_id}}', 'id_init_group_info'); 
+  });
+</script>
+
+{%endblock%}
+{%block help_header%}
+ISCSI target info help
+{%endblock%}
+{%block help_body%}
+<p>Help about ISCSI target info…</p>
+{%endblock%}

@@ -1,0 +1,51 @@
+
+{% extends 'logged_in_base.html' %}
+
+
+{%block contents%}
+
+<div class="accordion" id="accordion2">
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseOne" style="font-weight:bold;font-size:medium;">
+        Trusted pool status
+      </a>
+    </div>
+    <div id="collapseOne" class="accordion-body collapse in">
+      <div class="accordion-inner">
+{%if peer_info_list %}
+
+{% for o in peer_info_list%}
+Hostname : {{o.hostname}}<br>
+State : {{o.state}}<p>
+{%endfor%}
+{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseTwo" style="font-weight:bold;font-size:medium;">
+        Volume status
+      </a>
+    </div>
+    <div id="collapseTwo" class="accordion-body collapse">
+      <div class="accordion-inner">
+{%if cmd_output %}
+
+
+{% for o in cmd_output%}
+{{o}}<br>
+{%endfor%}
+{% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{%endblock%}
+{%block help_header%}
+System status help
+{%endblock%}
+{%block help_body%}
+<p>Help about system status…</p>
+{%endblock%}

@@ -1,0 +1,52 @@
+{% extends 'logged_in_base.html' %}
+
+{%block contents%}
+
+<span id="topic-text"> Volumes  -> Background operations -> Background processes list</span><br>
+<div style="position: relative; margin: 15px 0px; padding: 39px 19px 14px; background-color: rgb(255, 255, 255); border: 1px solid rgb(221, 221, 221); border-radius: 4px 4px 4px 4px;">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Process
+</th>
+<th>
+Submit time
+</th>
+<th>
+Start time
+</th>
+<th>
+Click for details
+</th>
+</thead>
+{%for d in file_list %}
+<tr>
+  <td>
+    {{d.title}}
+  </td>
+  <td>
+    {{d.initiate_time}}
+  </td>
+  <td>
+    {% if not d.start_time %}
+      Not started
+    {%else%}
+      {{d.start_time}}
+    {%endif%}
+  </td>
+  <td>
+    <a href="{{d.status_url}}" role="button" class="btn btn-default">Details</a>
+  </td>
+</tr>
+{%endfor%}
+</table>
+</div>
+
+{%endblock%}
+{%block help_header%}
+Batch jobs help
+{%endblock%}
+{%block help_body%}
+  <p>Help about Batch jobs </p>
+{%endblock%}

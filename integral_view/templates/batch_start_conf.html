@@ -1,0 +1,17 @@
+{% extends 'logged_in_base.html' %}
+
+{%block contents%}
+
+<p>
+A background process will be started soon to carry out the requested task. <p>Click <a href="/show/batch_status_details/{{fname}}">here </a> to view the status of this process. </p>
+<p>The status of all such background processes can be viewed <a href="/show/batch_status"> here</a> or from the "Manage -> Background operations-> View status of background processes" status menu item.
+</p>
+
+{%endblock%}
+
+{%block help_header%}
+Batch process confirmation help
+{%endblock%}
+{%block help_body%}
+  <p>Help about Batch process confirmation …</p>
+{%endblock%}

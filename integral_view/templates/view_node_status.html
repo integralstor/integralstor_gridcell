@@ -1,0 +1,105 @@
+{% extends 'logged_in_base.html' %}
+{%block autorefresh%}
+<meta http-equiv="refresh" content="30" >
+{%endblock%}
+
+{%block contents%}
+
+
+<span id="topic-text">  Node status</span><br>
+
+<p id="p-instruction-text"> This page will autorefresh every 30 seconds to display updates.</p>
+
+{% if node.system_status != "down" %}
+<table class="table table-bordered table-striped table-hover" style="width:800px">
+{% for k, v in  node.disk_status.items%}
+<tr>
+  <th>
+    Component
+  </th>
+  <th>
+    Status
+  </th>
+</tr>
+<tr>
+  <td>
+  Disk {{k}}
+  </td>
+  <td>
+  {{v.status}}
+  </td>
+</tr>
+{%endfor%}
+{% for k, v in  node.interface_status.items%}
+<tr>
+  <td>
+   Interface {{k}}
+  </td>
+  <td>
+  {{v.status}}
+  </td>
+</tr>
+{%endfor%}
+{% for k, v in  node.fan_status.items%}
+<tr>
+  <td>
+   Fan {{k}}
+  </td>
+  <td>
+  {{v.status}}
+  </td>
+</tr>
+{%endfor%}
+{% for k, v in  node.psu_status.items%}
+<tr>
+  <td>
+   PSU {{k}}
+  </td>
+  <td>
+  {{v.status}}
+  </td>
+</tr>
+{%endfor%}
+<tr>
+  <td>
+    CPU Status
+  </td>
+  <td>
+    {{node.cpu_status.status}}
+  </td>
+</tr>
+<tr>
+  <td>
+    CPU Temperature
+  </td>
+  <td>
+    {{node.cpu_status.temp}}
+  </td>
+</tr>
+<tr>
+  <td>
+    System temperature
+  </td>
+  <td>
+    {{node.temp_status.temp}}
+  </td>
+</tr>
+</table>
+{%else%}
+Node is down
+{%endif%}
+{%if frm%}
+<a href="/show/{{frm}}/" role="button" class="btn btn-default"><< Back </a> &nbsp;&nbsp;
+{%endif%}
+<a href="/flag_node?node={{node_name}}" role="button" class="btn btn-default">Activate node identification LED </a> 
+<br><br>
+<p> Activating the node identification LED will cause a blue LED on that node to blink for 4 minutes, to help you physically identify this node.</p>
+
+{%endblock%}
+{%block help_header%}
+Node status help
+{%endblock%}
+{%block help_body%}
+<p>Help about node status…</p>
+{%endblock%}
+

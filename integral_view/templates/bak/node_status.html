@@ -1,0 +1,64 @@
+
+
+
+
+<h3> Node status</h3>
+<table class="table table-bordered table-striped table-condensed">
+{%if hostname %}
+<tr>
+<td> Host name </td>
+<td>{{hostname}}</td>
+</tr>
+{%endif%}
+{%if ip_info %}
+<tr>
+<td>  IP Address</td>
+<td> {{ip_info.ip}} </td>
+</tr>
+<tr>
+<td>  Broadcast </td>
+<td> {{ip_info.bcast}} </td>
+</tr>
+<tr>
+<td>  Subnet mask </td>
+<td> {{ip_info.mask}} </td>
+</tr>
+{%endif%}
+</table>
+<h3> Services status</h3>
+<table class="table table-bordered table-striped table-condensed">
+<tr>
+<td>  <strong>Service name</strong></td>
+<td> <strong> Status</strong> </td>
+</tr>
+{%if nfs_status %}
+<tr>
+<td>  NFS</td>
+<td> 
+{% for i in nfs_status%}
+{{i}}<br>
+{%endfor%}
+</td>
+</tr>
+{%endif%}
+{%if gluster_status %}
+<tr>
+<td>  Gluster</td>
+<td> 
+{% for i in gluster_status%}
+{{i}}<br>
+{%endfor%}
+</td>
+</tr>
+{%endif%}
+{%if smb_status %}
+<tr>
+<td>  CIFS</td>
+<td> 
+{% for i in smb_status%}
+{{i}}<br>
+{%endfor%}
+</td>
+</tr>
+{%endif%}
+</table>

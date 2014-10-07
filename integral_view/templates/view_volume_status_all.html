@@ -1,0 +1,105 @@
+{% extends 'logged_in_base.html' %}
+
+
+{%block status_selected%}
+style="background-color:white;color:white;"
+{%endblock%}
+
+
+{%block contents%}
+<script type="text/javascript">
+function load_volume_status(name) {
+  url='/show/volume_status/' + encodeURIComponent(name);
+  document.getElementById('myModalLabel').innerHTML = "Volume information for " + name ;
+  $('#myModalBody').load(url);
+  $('#myModal').modal();
+}
+</script>
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+      </div>
+      <div class="modal-body" id="myModalBody">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{%if volume_info_list %}
+
+<span id="topic-text"> Volume Status</span>
+<br>
+
+<table style="width:100%;" class="table table-bordered table-striped table-hover table-condensed">
+<tr >
+<th> Volume name </th>
+<th> Type </th>
+<th> Status </th>
+<th> Data access status </th>
+<th> Data location process status</th>
+<th style="width:30%"> Space utilisation</th>
+<th> Details</th>
+</tr>
+{% for v in volume_info_list%}
+  {% if v.status  == 1%}
+  {% if v.data_access_status_code != 0 or not v.processes_ok  %}
+  <tr  class="warning">
+  {%else%}
+  <tr >
+  {%endif%}
+  {%else%}
+  <tr>
+  {%endif%}
+<td>{{v.name}} </td>
+<td>{{v.type}}</td>
+<td>{{v.status_str}}</td>
+{% if v.status == 1 %}
+<td>{{v.data_access_status}}</td>
+<td>{% if v.processes_ok  %} Healthy {%else%} Some processe(s) down{%endif%}</td>
+{%else%}
+<td>Not accessible</td>
+<td>Not started</td>
+{%endif%}
+<td>
+<div class="progress">
+  <div class="progress-bar" role="progressbar" aria-valuenow="{{v.size_used_percent}}" aria-valuemin="0" aria-valuemax="100" style="width: {{v.size_used_percent}}%;">
+    {{v.size_used_percent}}% used.
+  </div>
+</div>
+
+</td>
+{% if v.status == 1 %}
+{% if v.data_access_status_code != 0 or not v.processes_ok  %}
+<td> 
+      <a href="/show/volume_status/{{v.name}}/" role="button" class="btn btn-warning">Details.. </a>
+</td>
+{%else%}
+<td> 
+      <a href="/show/volume_status/{{v.name}}/" role="button" class="btn btn-default">Details.. </a>
+</td>
+{%endif%}
+{%else%} 
+<td> Start volume to view status..</td>
+{%endif%}
+
+</tr>
+{%endfor%}
+</table>
+{%else %}
+No volumes created
+{% endif %}
+{%endblock%}
+{%block help_header%}
+Volume status help
+{%endblock%}
+{%block help_body%}
+<p>Help about Volume status …</p>
+{%endblock%}

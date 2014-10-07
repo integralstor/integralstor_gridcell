@@ -1,0 +1,323 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html lang="en">
+<head>
+  <META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+  <link rel="stylesheet" href="/static/jquery-ui-1.10.2.custom/css/ui-lightness/jquery-ui-1.10.2.custom.css">
+  <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.css" type="text/css" />
+  <link rel="stylesheet" href="/static/bootstrap/css/bootstrap-responsive.min.css"/>
+  <link rel="stylesheet" href="/static/jstree/dist/themes/default/style.min.css" />
+  <link rel="stylesheet" type="text/css" href="/static/css/modify_bootstrap.css">
+  <link rel="stylesheet" type="text/css" href="/static/css/a.css">
+
+  <title> {%block title%}fractal view administration console{%endblock%}</title>
+  {%block autorefresh %}{%endblock%}
+<script type="text/javascript">
+var auto_refresh = setInterval(
+function ()
+{
+  $('#alerts').load('/refresh_alerts/').fadeIn("slow");
+}, 5000); 
+</script>
+<script src="/static/jquery-ui-1.10.2.custom/js/jquery-1.9.1.js"></script>
+<script src="/static/bootstrap/js/bootstrap.min.js" ></script>
+{%block header_scripts%}
+{%endblock%}
+</head>
+<body>
+  <table id="header_table"  width="100%" border=0>
+    <tr>
+<!--      <td align="left" style="padding:10px"> <img src="/static/images/logo.jpg" style="padding:10px;border:solid 0px;width:140px;height:80px;float:left;"></td>-->
+      <td align="left" style="padding:10px"> <img src="/static/images/integralview.png" style="border:solid 0px;width:80px;height:40px;"></td>
+<!--      <td style="text-align:center"> <span id="header-text">{%block heading%}fractal-view<sup>&copy;</sup> administration console{%endblock%}</span></td>-->
+      <td align="right">
+        <img src="/static/images/logo.jpg" style="border:solid 0px;width:140px;height:80px;float:right;">
+<!--
+        <div id="alerts" style="margin:5px;position:relative;float:right;text-align:right;border:solid 0px"> 
+        <a  href="/show/alerts/" role="button" class="btn btn-default"> View alerts</a> 
+        </div>
+        <div style="margin:5px;position:relative;float:right;text-align:right;border:solid 0px">
+        <a href="#help" role="button" class="btn btn-default " data-toggle="modal">Help!</a>
+        <a  href="/logout/" role="button" class="btn btn-default"> Logout</a> 
+        </div>
+-->
+      </td>
+    </tr>
+  </table>
+
+
+  <div id="container">
+    <nav class="navbar navbar-default" role="navigation" style="letter-spacing:1px">
+      <div class="container-fluid">
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+        <ul class="nav navbar-nav">
+          <li> <a  href="/show/dashboard/" > Dashboard</a> 
+          </li>
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Platform <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+              <!--
+              <li style="letter-spacing:1px"><a href="/show/dashboard" data-toggle="tooltip" title="View status of all components" style="letter-spacing:1px">Dashboard</a></li>
+              <li class="divider"></li>
+              <li><span>Status</span></li>
+              -->
+              <li style="letter-spacing:1px"><a href="/show/system_status" data-toggle="tooltip" title="View current system status" style="letter-spacing:1px">Platform status</a></li>
+              <!--
+              <li class="divider"></li>
+              <li><span>Configuration</span></li>
+              -->
+              <li><a href="/show/system_config/">Platform configuration</a></li>
+            </ul>
+          </li>
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Storage pool <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+              <li><a href="/show/pool_status" data-toggle="tooltip" title="View the currently available storagestorage">View IntegralStor storage nodes</a></li>
+              <li><a href="/add_nodes" data-toggle="tooltip" title="Add IntegralStor to the storgae pool">Add IntegralStor nodes</a></li>
+              <li><a href="/remove_node" date-toggle="tooltip" title="Remove storage from the pool">Remove an IntegralStor node</a></li>
+            </ul>
+          </li>
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Volumes <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+              <li><a href="/show/volume_info_all/">View volume configuration</a></li>
+              <li style="letter-spacing:1px"><a href="/show/volume_status_all" data-toggle="tooltip" title="View current volume status" style="letter-spacing:1px">View volume status</a></li>
+              <li class="divider"></li>
+              <li><a href="/volume_creation_wizard/select_vol_name" date-toggle="tooltip" title="Create a storage volume">Create a volume</a></li>
+              <li><a href="/volume_specific_op/vol_delete/">Delete a volume</a></li>
+              <li><a href="/volume_specific_op/vol_start/">Start a volume</a></li>
+              <li><a href="/volume_specific_op/vol_stop/">Stop a volume</a></li>
+              <li><a href="/volume_specific_op/expand_volume/">Expand a volume</a></li>
+              <li><a href="/volume_specific_op/vol_options/">Set volume options</a></li>
+              <li><a href="/volume_specific_op/vol_quota/">Set volume quota</a></li>
+              <li class="divider"></li>
+              <li><span>Background operations</span></li>
+              <li><a href="/replace_node/">Replace a node</a></li>
+              <li><a href="/volume_specific_op/start_rebalance/">Start volume rebalance</a></li>
+            </ul>
+          </li>
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Other services <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+              <li><a href="/show/ntp_settings/">Configure NTP</a></li>
+              <li><a href="/show/email_settings/">Email settings</a></li>
+              <li><a href="/show/batch_status">View status of background processes</a></li>
+            </ul>
+          </li>
+          <li class="divider-vertical"></li>
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">File access <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+              <li><span>Authentication</span></li>
+              <li><a href="/auth_server_settings">Authentication settings</a></li>
+              <li><a href="/edit_auth_method">Change authentication method</a></li>
+              <li><a href="/view_local_users">Local users</a></li>
+              <li><span>Shares</span></li>
+              <li><a href="/display_shares">View shares</a></li>
+              <li><a href="/create_share">Create a share</a></li>
+            </ul>
+          </li>
+          <li class="divider-vertical"></li>
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">ISCSI access <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+              <li><a href="/iscsi_view_target_global_config">Global configuration for targets</a></li>
+              <li><a href="/iscsi_display_targets">Targets</a></li>
+              <li><a href="/iscsi_display_initiators">Initiators</a></li>
+              <li><a href="/iscsi_display_auth_access_group_list">Authorized access groups</a></li>
+            </ul>
+          </li>
+          <li class="divider-vertical"></li>
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Logging <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+              <li><span>Volume logs</span></li>
+              <li><a href="/volume_specific_op/rotate_log">Rotate volume log</a></li>
+              <li><a href="/download_vol_log">Download volume logs</a></li>
+              <li><span>System logs</span></li>
+              <li><a href="/download_sys_log">Download system logs</a></li>
+              <li><span>Alerts</span></li>
+              <li><a href="/show/alerts">View current alerts</a></li>
+              <li><a href="/rotate_log/alerts">Rotate alerts log</a></li>
+              <li><a href="/view_rotated_log_list/alerts">View older alerts</a></li>
+              <li><span>Audit trail</span></li>
+              <li><a href="/show/audit_trail/">View current audit trail</a></li>
+              <li><a href="/rotate_log/audit_trail">Rotate audit trail</a></li>
+              <li><a href="/view_rotated_log_list/audit_trail">View older audit trails</a></li>
+            </ul>
+          </li>
+          <li class="divider-vertical"></li>
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Admin <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+              <li><a href="/change_admin_password/">Change admin password</a></li>
+              <li><a href="/hardware_scan/">Scan for new nodes</a></li>
+              <li><a href="/reset_to_factory_defaults/">Reset to factory defaults</a></li>
+            </ul>
+          </li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+          <!--
+          <li> <a  href="/show/dashboard/" > Home</a> 
+          </li>
+          -->
+          <li>
+            <a href="#help" data-toggle="modal">Help!</a>
+          </li>
+          <li>
+            <a  href="/logout/" > Logout</a> 
+          </li>
+          <li>
+            <div id="alerts" style="padding-top:10px;padding-bottom:15px">
+            <a  href="/show/alerts/" role="button" class="btn btn-default btn-sm"> View alerts</a> 
+            </div>
+            <span id="alerts" style="padding:0px"> 
+            </span>
+          </li>
+        </ul>
+        </div> <!-- collapse -->
+      </div> <!-- container-fluid -->
+    </nav>
+  </div>
+<!--        
+      <div class="navbar-inner" >
+        <ul class="nav">
+          <li class="dropdown">
+            <a class="dropdown-toggle"  data-toggle="dropdown" href="#">View</a>
+            <ul class="dropdown-menu">
+              <li><a href="/show/system_status" data-toggle="tooltip" title="View current system status">System status</a></li>
+              <li class="dropdown-submenu"><a href="#">Configuration</a>
+                <ul class="dropdown-menu">
+                  <li><a href="/show/system_config/">System configuration</a></li>
+                  <li><a href="/show/volume_info_all/">Volume information</a></li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li class="divider-vertical"></li>
+          <li class="dropdown">
+            <a class="dropdown-toggle"  data-toggle="dropdown" href="#">Storage pool</a>
+            <ul class="dropdown-menu">
+              <li><a href="/add_servers" data-toggle="tooltip" title="Add storage to the pool">Add storage</a></li>
+              <li><a href="/server_op/remove_sled" date-toggle="tooltip" title="Remove storage from the pool">Remove storage</a></li>
+            </ul>
+          </li>
+          <li class="divider-vertical"></li>
+          <li class="dropdown">
+            <a class="dropdown-toggle"  data-toggle="dropdown" href="#">Volumes</a>
+            <ul class="dropdown-menu">
+              <li><a href="/volume_creation_wizard/select_vol_name" date-toggle="tooltip" title="Create a storage volume">Create a volume</a></li>
+              <li><a href="/volume_specific_op/vol_start/">Start a volume</a></li>
+              <li><a href="/volume_specific_op/vol_stop/">Stop a volume</a></li>
+              <li><a href="/volume_specific_op/vol_delete/">Delete a volume</a></li>
+              <li><a href="/volume_specific_op/expand_volume/">Expand a volume</a></li>
+              <li><a href="/volume_specific_op/vol_options/">Set volume options</a></li>
+              <li class="divider"></li>
+              <li class="dropdown-submenu"><a href="#">Background operations </a>
+                <ul class="dropdown-menu">
+                  <li><a href="/replace_sled/">Replace a sled</a></li>
+                  <li><a href="/volume_specific_op/start_rebalance/">Start volume rebalance</a></li>
+                  <li class="divider"></li>
+                  <li><a href="/show/batch_status">View status of background processes</a></li>
+                </ul>
+            </ul>
+          </li>
+          <li class="divider-vertical"></li>
+          <li class="dropdown">
+            <a class="dropdown-toggle"  data-toggle="dropdown" href="#">Other services</a>
+            <ul class="dropdown-menu">
+              <li><a href="/show/ntp_settings/">Configure NTP</a></li>
+              <li><a href="/show/email_settings/">Email settings</a></li>
+            </ul>
+          </li>
+          <li class="divider-vertical"></li>
+          <li class="dropdown">
+            <a class="dropdown-toggle"  data-toggle="dropdown" href="#">Shares</a>
+            <ul class="dropdown-menu">
+              <li><a href="/samba_server_settings">Authentication settings</a></li>
+              <li><a href="/display_shares">View shares</a></li>
+              <li><a href="/create_share">Create a share</a></li>
+            </ul>
+          </li>
+          <li class="divider-vertical"></li>
+          <li class="dropdown">
+            <a class="dropdown-toggle"  data-toggle="dropdown" href="#">Logging</a>
+            <ul class="dropdown-menu">
+              <li class="dropdown-submenu"><a href="#">Volume logs</a>
+                <ul class="dropdown-menu">
+                  <li><a href="/volume_specific_op/rotate_log">Rotate volume log</a></li>
+                  <li><a href="/download_vol_log">Download volume logs</a></li>
+                </ul>
+              </li>
+              <li class="dropdown-submenu"><a href="#">System logs</a>
+                <ul class="dropdown-menu">
+                  <li><a href="/download_sys_log">Download system logs</a></li>
+                </ul>
+              </li>
+              <li class="dropdown-submenu"><a href="#">Alerts</a>
+                <ul class="dropdown-menu">
+                  <li><a href="/show/alerts">View current alerts</a></li>
+                  <li><a href="/rotate_log/alerts">Rotate alerts log</a></li>
+                  <li><a href="/view_rotated_log_list/alerts">View older alerts</a></li>
+                </ul>
+              </li>
+              <li class="dropdown-submenu"><a href="#">Audit trail</a>
+                <ul class="dropdown-menu">
+                  <li><a href="/show/audit_trail/">View current audit trail</a></li>
+                  <li><a href="/rotate_log/audit_trail">Rotate audit trail</a></li>
+                  <li><a href="/view_rotated_log_list/audit_trail">View older audit trails</a></li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li class="divider-vertical"></li>
+          <li class="dropdown">
+            <a class="dropdown-toggle"  data-toggle="dropdown" href="#">Admin</a>
+            <ul class="dropdown-menu">
+              <li><a href="/change_admin_password/">Change admin password</a></li>
+              <li><a href="/reset_to_factory_defaults/">Reset to factory defaults</a></li>
+            </ul>
+          </li>
+        </ul>
+    </div>
+  </div>
+-->
+
+
+
+
+
+<div id="contents">
+   {%block contents%}
+  {%endblock%}
+</div>
+
+<div id="footer" >
+   {%block footer%}
+  {%endblock%}
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="help" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h3 id="myModalLabel">
+          {%block help_header%}
+          {%endblock%}
+          </h3>
+      </div>
+      <div class="modal-body" >
+      {%block help_body%}
+      {%endblock%}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
+

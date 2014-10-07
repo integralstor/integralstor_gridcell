@@ -1,0 +1,46 @@
+{% extends 'logged_in_base.html' %}
+
+{%block contents%}
+{%if op == "vol_stop"%}
+<span id="topic-text"> Volumes -> Stop a volume - results</span><br>
+{%elif op == "vol_start"%}
+<span id="topic-text"> Volumes -> Start a volume - results</span><br>
+{%elif op == "vol_start"%}
+<span id="topic-text"> Volumes -> Expand a volume - results</span><br>
+{%endif%}
+
+{% if app_debug %}
+Debug info - begin <br>
+Executed {{result_dict.actual_command}}<br>
+{{result_dict}}<br>
+Debug info - end <br><br>
+{%endif%}
+
+{% if result_dict.op_status.op_ret == 0  %}
+{{result_dict.command}} - Successful
+{%else%}
+{{result_dict.command}} - Failed (Errno. {{result_dict.op_status.op_errno}} - {{result_dict.op_status.op_errstr}}, {{result_dict.op_status.output}}{% if result_dict.error_list %}, additional error message - {{result_dict.error_list}} {%endif%})
+{%endif%}
+
+
+
+
+{%endblock%}
+{%block help_header%}
+{%if op == "vol_stop"%}
+Volume start results help
+{%elif op == "vol_start"%}
+Volume stop results help
+{%elif op == "expand_volume"%}
+Expand volume results help
+{%endif%}
+{%endblock%}
+{%block help_body%}
+{%if op == "vol_stop"%}
+<p>Help about volume stop results - need to be customized…</p>
+{%elif op == "vol_start"%}
+<p>Help about volume start results - need to be customized…</p>
+{%elif op == "expand_volume"%}
+<p>Help about Expand volume results - need to be customized…</p>
+{%endif%}
+{%endblock%}

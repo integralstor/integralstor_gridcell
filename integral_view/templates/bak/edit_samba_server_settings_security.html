@@ -1,0 +1,133 @@
+{% extends 'logged_in_base.html' %}
+<style type="text/css">
+    ul.errorlist {
+        margin: 0;
+        padding: 0;
+    }
+    .errorlist li {
+        background-color: white;
+        color: red;
+        display: block;
+        font-size: 10px;
+        margin: 0 0 3px;
+        padding: 4px 5px;
+    }
+</style>
+<script type="text/javascript">
+function set_field_visibility() {
+  var sec = document.forms["save_form"].elements["security"];
+  var sec_value;
+  for(var i = 0; i < sec.length; i++){
+    if(sec[i].checked){
+        sec_value = sec[i].value;
+    }
+  }
+  if (sec_value=="ads") {
+    document.forms["save_form"].elements["realm"].disabled = false;
+    document.forms["save_form"].elements["password_server"].disabled = false;
+    document.forms["save_form"].elements["realm"].disabled = false;
+    document.forms["save_form"].elements["encrypt_passwords"].disabled = false;
+    set_radio_field_disabled(document.forms["save_form"].elements["encrypt_passwords"], false);
+  } else if (sec_value == "domain") {
+    document.forms["save_form"].elements["realm"].disabled = true;
+    document.forms["save_form"].elements["password_server"].disabled = false;
+    document.forms["save_form"].elements["encrypt_passwords"].disabled = true;
+    set_radio_field_disabled(document.forms["save_form"].elements["encrypt_passwords"], true);
+  } else if (sec_value == "server") {
+    document.forms["save_form"].elements["realm"].disabled = true;
+    document.forms["save_form"].elements["password_server"].disabled = false;
+    document.forms["save_form"].elements["encrypt_passwords"].disabled = false;
+    set_radio_field_disabled(document.forms["save_form"].elements["encrypt_passwords"], false);
+  } else if (sec_value == "share" || sec_val == "user") {
+    document.forms["save_form"].elements["realm"].disabled = true;
+    document.forms["save_form"].elements["password_server"].disabled = true;
+    document.forms["save_form"].elements["encrypt_passwords"].disabled = false;
+    set_radio_field_disabled(document.forms["save_form"].elements["encrypt_passwords"], false);
+  } 
+}
+function set_radio_field_disabled(f, val) {
+  for(var i = 0; i < f.length; i++)
+    f[i].disabled = val
+}
+</script>
+
+
+{%block contents%}
+<span id="topic-text">Manage -> Samba server settings -> Security settings (Edit)</span><br>
+
+<form name="save_form" action="/save_samba_server_settings_security/" method="post" >
+        <div class="field">
+            <table class="table ">
+            <tr>
+              <td>
+            <label for="id_security">Authentication mode:</label>
+              </td>
+              <td>
+            {{ form.security }}
+              </td>
+              <td>
+            {{ form.security.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label for="id_password_server">Authentication server:</label>
+              </td>
+              <td>
+            {{ form.password_server }}
+              </td>
+              <td>
+            {{ form.password_server.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label for="id_realm">Kerberos realm:</label>
+              </td>
+              <td>
+            {{ form.realm }}
+              </td>
+              <td>
+            {{ form.realm.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label for="id_encrypt_passwords">Encrypt passwords:</label>
+              </td>
+              <td>
+            {{ form.encrypt_passwords }}
+              </td>
+              <td>
+            {{ form.encrypt_passwords.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label for="id_guest_account">Guest account:</label>
+              </td>
+              <td>
+            {{ form.guest_account }}
+              </td>
+              <td>
+            {{ form.guest_account.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td colspan=3 style="text-align:center">
+        <button type="submit" class="btn"> Save </button>
+              </td>
+            </tr>
+            </table>
+        </div>
+</form>
+<script type="text/javascript">
+set_field_visibility();
+</script>
+{%endblock%}
+{%block help_header%}
+Samba server security settings help
+{%endblock%}
+{%block help_body%}
+<p>Help about samba server security settings…</p>
+{%endblock%}

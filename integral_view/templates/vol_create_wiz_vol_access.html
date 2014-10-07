@@ -1,0 +1,55 @@
+{% extends 'logged_in_base.html' %}
+
+<script type="text/javascript">
+function subm() {
+
+  var el = document.forms[0].elements["vol_type"]
+  val=""
+  for (i=0;i<el.length;i++) {
+    if (el[i].checked)
+      val = el[i].value
+  }
+  if (val == "replicated")
+    document.forms[0].action = "/create_volume_conf/";
+//    document.forms[0].action = "/volume_creation_wizard/repl_count/";
+  else if (val == "distributed")
+    document.forms[0].action = "/create_volume_conf/";
+  else {
+    alert("Please make a selection");
+    return false;
+  }
+  document.forms[0].submit();
+  return true;
+
+}
+</script>
+
+
+{%block contents%}
+<span id="topic-text"> Volumes -> Create a volume - Data access method</span><br>
+
+<p style="color:red;"> {{error}}</p>
+
+<form  role="form" action="/volume_creation_wizard/select_vol_type" method="post">
+{{ form.vol_name }}
+  <label for="id_vol_access">How will the data in this volume be accessed?</label>
+  <div class="form-group" >
+    {% for choice in form.vol_access.field.choices %} 
+        <label class="radio">
+          <input type="radio" name="vol_access" id="id_{{choice.0}}" value="{{choice.0}}" {%if choice.0 == form.initial.vol_access %} checked{%endif%} />{{choice.1}}
+        </label>
+    {%endfor%}
+    {{ form.vol_access.errors }}
+  </div>
+<br>
+ <button type="submit" class="btn btn-primary" onClick="subm();return false;" >Next >></button>
+</form>
+
+
+{%endblock%}
+{%block help_header%}
+Volume creation help
+{%endblock%}
+{%block help_body%}
+<p>Help about creating volumes…</p>
+{%endblock%}

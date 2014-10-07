@@ -1,0 +1,70 @@
+{% extends 'logged_in_base.html' %}
+
+{%block contents%}
+
+
+<span id="topic-text">ISCSI access -> Targets </span><br>
+
+{% if conf %}
+<i>{{conf}}</i><br><br>
+{%endif%}
+
+{% if not targets_list %}
+No targets appear to have been created. Click <a href="/iscsi_create_target/"> here</a> to create a new target.
+{%else %}
+<div style="width:95%;position: relative; margin: 5px 0px; padding: 9px 9px 4px; background-color: rgb(255, 255, 255); border: 1px solid rgb(221, 221, 221); border-radius: 4px 4px 4px 4px;">
+<table class="table table-striped">
+<thead>
+<tr>
+<th>
+Target ID
+</th>
+<!--
+<th>
+Target name
+</th>
+-->
+<th>
+Volume name
+</th>
+<th>
+Target alias
+</th>
+<th>
+&nbsp;
+</th>
+</thead>
+{%for d in targets_list %}
+<tr>
+  <td>
+    {{d.id}}
+  </td>
+<!--
+  <td>
+    {{d.target_name}}
+  </td>
+-->
+  <td>
+    {{d.vol_name}}
+  </td>
+  <td>
+    {{d.target_alias}}
+  </td>
+  <td>
+    <a href="/iscsi_view_target?access_mode=by_id&id={{d.id}}" role="button" class="btn btn-default"> Details</a>
+  </td>
+</tr>
+{%endfor%}
+</table>
+</div>
+<br>
+<a href="/iscsi_create_target" role="button" class="btn btn-default"> Create a new target</a>
+{%endif%}
+
+{%endblock%}
+{%block help_header%}
+targets list help
+{%endblock%}
+{%block help_body%}
+  <p>Help about targets list…</p>
+{%endblock%}

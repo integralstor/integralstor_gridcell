@@ -1,0 +1,10 @@
+[
+  {
+    "peer_user": "", 
+    "user_id": 1, 
+    "peer_secret": "", 
+    "secret": "pas", 
+    "auth_access_group_id": 2, 
+    "user": "user"
+  }
+]
