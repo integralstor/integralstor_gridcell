@@ -1,5 +1,7 @@
 import json, time, os, shutil, tempfile, os.path, re, subprocess, sys
 
+import salt.client, salt.wheel
+
 import django.template, django
 from django.conf import settings
 
@@ -659,6 +661,45 @@ def reset_to_factory_defaults(request):
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
 def hardware_scan(request):
+
+  return_dict = {}
+  url = 'add_nodes_form.html'
+  local = salt.client.LocalClient()
+  opts = salt.config.master_config(settings.SALT_MASTER_CONFIG)
+  wheel = salt.wheel.Wheel(opts)
+  keys = wheel.call_func('key.list_all')
+  print keys
+  pending_minions = keys['minions_pre']
+  if request.method == 'GET':
+    # Return a list of new nodes available to be pulled into the grid
+    if pending_minions:
+      form = common_forms.AddNodesForm(pending_minions_list = pending_minions)
+      return_dict["form"] = form
+    else:
+      return_dict["no_new_nodes"] = True
+  else:
+    form = common_forms.AddNodesForm(request.POST, pending_minions_list = pending_minions)
+    if form.is_valid():
+      # User has chosed some nodes to be added so add them.
+      cd = form.cleaned_data
+      pending_minions = cd["nodes"]
+      nodes = {}
+      success = []
+      failed = []
+      if pending_minions:
+        for m in pending_minions:
+          #print "Accepting %s"%m
+          if wheel.call_func('key.accept', match=('%s'%m,)):
+            audit.audit("hardware_scan_node_added", "Added a new node %s to the grid"%m, request.META["REMOTE_ADDR"])
+            success.append(m)
+          else:
+            failed.append(m)
+      nodes["success"] = success
+      nodes["failed"] = failed
+      url = 'add_nodes_result.html'
+      return django.http.HttpResponseRedirect('/show/dashboard/')
+  return django.shortcuts.render_to_response(url, return_dict, context_instance = django.template.context.RequestContext(request))
+'''
   return_dict = {}
   t = time.localtime()
   try:
@@ -710,6 +751,7 @@ def hardware_scan(request):
   return_dict["file_name"] = file_name
   audit.audit("hardware_scan_start", "Scheduled a scan for new hardware", request.META["REMOTE_ADDR"])
   return django.http.HttpResponseRedirect('/show/batch_start_conf/%s'%file_name)
+'''
 
 def accept_manifest(request):
   if request.method == "GET":
