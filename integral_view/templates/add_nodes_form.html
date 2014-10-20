@@ -1,0 +1,60 @@
+{% extends 'logged_in_base.html' %}
+
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+      </div>
+      <div class="modal-body" id="myModalBody">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{%block contents%}
+<span id="topic-text"> Scan for new hardware </span>
+<br>
+{% if no_new_nodes %}
+The hardware scan did not detect any new nodes.
+{%else%}
+Please select the nodes that you want to add to the grid
+<form id="edit_form" name="edit_form" action="" method="post">
+<table class="table table-hover table-bordered" style="width:60%">
+  <tr>
+    <td>
+      <label for="id_nodes">Discovered new nodes :</label>
+    </td>
+    <td>
+    {% for choice in form.nodes.field.choices %} 
+    <div class="checkbox">
+    <label>
+    <input type="checkbox" name="nodes" id="optionsRadios1" value="{{choice.0}}" {%if choice.0 in form.initial.nodes %} checked="checked"{%endif%}>{{choice.0}}
+    </label>
+    </div>
+    {%endfor%}
+    </td>
+    <td>
+      {{form.nodes.errors}}
+    </td>
+  </tr>
+  </table>
+  <a hhref="/show/dashboard" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
+  <button type="submit" class="btn btn-primary">Add nodes >></button>
+</form>
+{%endif%}
+
+{%endblock%}
+{%block help_header%}
+Scan for new hardware help
+{%endblock%}
+{%block help_body%}
+<p>Help about scanning for new hardware…</p>
+{%endblock%}
+

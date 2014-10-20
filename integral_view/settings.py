@@ -4,8 +4,9 @@ DEBUG = True
 
 APP_DEBUG = True
 PRODUCTION = False
-DEVEL_APP_ROOT = ''
+DEVEL_APP_ROOT = '/home/bkrram/fractal/integral_view/'
 PRODUCTION_APP_ROOT = '/opt/fractalio/integral_view'
+SALT_MASTER_CONFIG = '/etc/salt/master'
 APP_NAME = 'integral_view'
 
 if PRODUCTION:

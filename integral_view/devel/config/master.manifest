@@ -1,0 +1,159 @@
+{ 
+  "host1" : 
+    {
+      "disk_info": [
+        {
+          "name": "/dev/sda", 
+          "pool_name": "disk1",
+          "serial_number": "9XG3Q2E6", 
+          "capacity": "800.2 GB"
+        },
+        {
+          "name": "/dev/sdb", 
+          "pool_name": "disk2",
+          "serial_number": "9XG3Q2E6", 
+          "capacity": "900.2 GB"
+        }
+      ],
+      "interface_info": {
+        "eth1": {
+          "ip": "127.0.0.1", 
+          "mask": "255.0.0.0"
+        }, 
+        "eth0": {
+          "ip": "192.168.1.214", 
+          "bcast": "192.168.1.255", 
+          "mask": "255.255.255.0"
+        }
+      } 
+    },
+  "host2" : 
+    {
+      "disk_info": [
+        {
+          "name": "/dev/sda", 
+          "pool_name": "disk1",
+          "serial_number": "9XG3Q2E6", 
+          "capacity": "800.2 GB"
+        },
+        {
+          "name": "/dev/sdb", 
+          "pool_name": "disk2",
+          "serial_number": "9XG3Q2E6", 
+          "capacity": "900.2 GB"
+        }
+      ],
+      "interface_info": {
+        "eth1": {
+          "ip": "127.0.0.1", 
+          "mask": "255.0.0.0"
+        }, 
+        "eth0": {
+          "ip": "192.168.1.214", 
+          "bcast": "192.168.1.255", 
+          "mask": "255.255.255.0"
+        }
+      } 
+    },
+  "dlc" : 
+    {
+      "disk_info": [
+        {
+          "name": "/dev/sda", 
+          "serial_number": "9XG3Q2E6", 
+          "pool_name": "disk1",
+          "capacity": "800.2 GB"
+        },
+        {
+          "name": "/dev/sdb", 
+          "pool_name": "disk2",
+          "serial_number": "9XG3Q2E6", 
+          "capacity": "900.2 GB"
+        }
+      ],
+      "interface_info": {
+        "eth1": {
+          "ip": "127.0.0.1", 
+          "mask": "255.0.0.0"
+        }, 
+        "eth0": {
+          "ip": "192.168.1.214", 
+          "bcast": "192.168.1.255", 
+          "mask": "255.255.255.0",
+          "active_ip":true
+        }
+      } 
+    },
+  "host3" : 
+    {
+      "disk_info": [
+        {
+          "name": "/dev/sda", 
+          "pool_name": "disk1",
+          "serial_number": "9XG3Q2E6", 
+          "capacity": "800.2 GB"
+        }
+      ],
+      "interface_info": {
+        "eth1": {
+          "ip": "127.0.0.1", 
+          "mask": "255.0.0.0"
+        }, 
+        "eth0": {
+          "ip": "192.168.1.214", 
+          "bcast": "192.168.1.255", 
+          "mask": "255.255.255.0"
+        }
+      } 
+    },
+  "host4" : 
+    {
+      "disk_info": [
+        {
+          "name": "/dev/sda", 
+          "pool_name": "disk1",
+          "serial_number": "9XG3Q2E6", 
+          "capacity": "800.2 GB"
+        }
+      ],
+      "interface_info": {
+        "eth1": {
+          "ip": "127.0.0.1", 
+          "mask": "255.0.0.0"
+        }, 
+        "eth0": {
+          "ip": "192.168.1.214", 
+          "bcast": "192.168.1.255", 
+          "mask": "255.255.255.0"
+        }
+      } 
+    },
+  "host8" : 
+    {
+      "disk_info": [
+        {
+          "name": "/dev/sda", 
+          "pool_name": "disk1",
+          "serial_number": "9XG3Q2E6", 
+          "capacity": "800.2 GB"
+        },
+        {
+          "name": "/dev/sda", 
+          "pool_name": "disk2",
+          "serial_number": "9XG3Q2AA", 
+          "capacity": "1000.2 GB"
+        }
+      ],
+      "interface_info": {
+        "eth1": {
+          "ip": "127.0.0.1", 
+          "mask": "255.0.0.0"
+        }, 
+        "eth0": {
+          "ip": "192.168.1.214", 
+          "bcast": "192.168.1.255", 
+          "mask": "255.255.255.0"
+        }
+      } 
+    }
+}
