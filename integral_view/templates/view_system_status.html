@@ -54,7 +54,7 @@ function load_node_status(hostname, str) {
       Click for details
     </th>
 {% for hostname, d in system_info.items %}
-  {% if d.system_status != "healthy" or  d.cluster_status != 1 %}
+  {% if d.node_status != 0 or  d.cluster_status != 1 %}
   <tr class="warning">
   {%else%}
   <tr>
@@ -63,7 +63,7 @@ function load_node_status(hostname, str) {
       {{hostname}}
     </td>
     <td>
-      Node {{d.system_status|title}}
+      {{d.node_status_str|title}}
     </td>
     <td>
       {% if d.cluster_status == 1 %}
@@ -73,9 +73,9 @@ function load_node_status(hostname, str) {
       {%endif%}
     </td>
     <td>
-      {% if d.system_status == "healthy" %}
+      {% if d.node_status == 0 %}
       <a href="/show/node_status/{{hostname}}/?from=system_status" role="button" class="btn btn-default">Details.. </a>
-      {%elif d.system_status == "degraded" %}
+      {%elif d.node_status > 0  %}
       <a href="/show/node_status/{{hostname}}/?from=system_status" role="button" class="btn btn-warning">Details.. </a>
       {%else%}
       <a href="/show/node_status/{{hostname}}/?from=system_status" role="button" class="btn btn-warning" disabled >Details.. </a>

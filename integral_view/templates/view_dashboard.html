@@ -68,7 +68,7 @@
       Storage pool status
     </td>
     <td>
-      {% if num_pools_bad > 0 %} {{num_pools_bad}} nodes in the pool have problems {%else%} All healthy {%endif%}
+      {% if num_pools_bad > 0 %} Some nodes ({{num_pools_bad}}) in the pool have problems {%else%} All healthy {%endif%}
     </td>
     <td>
       <a href="/show/pool_status" role="button" class="btn {%if num_pools_bad > 0 %} btn-warning {%else%} btn-default{%endif%}"> Details</a>

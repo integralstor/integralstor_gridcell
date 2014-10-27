@@ -1,12 +1,12 @@
 #!/usr/bin/python
 
 import salt.client
-import json, os, datetime, shutil
+import json, os, datetime, shutil, sys
 import lock
 
 def _gen_manifest_info():
   local = salt.client.LocalClient()
-  data = local.cmd('*', 'grains.item', ['disk_info', 'hwaddr_interfaces', 'ip_interfaces', 'mem_total', 'fqdn', 'cpu_model'])
+  data = local.cmd('*', 'grains.item', ['disk_info', 'hwaddr_interfaces', 'mem_total', 'fqdn', 'cpu_model'])
   #print data
   if not data:
     return -1, None
@@ -18,14 +18,16 @@ def _gen_manifest_info():
       for int_name, mac_addr in v['hwaddr_interfaces'].items():
         d = {}
         d['mac_addr'] = mac_addr
+        '''
         if 'ip_interfaces' in v and int_name in v['ip_interfaces']:
           d['ip_addr'] = v['ip_interfaces'][int_name]
         else:
           d['ip_addr'] = []
+        '''
         v['interface_info'][int_name] = d 
 
       v.pop('hwaddr_interfaces', None)
-      v.pop('ip_interfaces', None)
+      #v.pop('ip_interfaces', None)
     ret[k] = v
     return 0, ret
 
@@ -61,7 +63,11 @@ atexit.register(lock.release_lock, 'generate_manifest')
 
 def main():
 
-  rc = gen_manifest('/tmp')
+  num_args = len(sys.argv)
+  if num_args > 1:
+    rc = gen_manifest(os.path.normpath(sys.argv[1]))
+  else:
+    rc = gen_manifest('/home/bkrram/fractal/integral_view/integral_view/devel/config')
   #print rc
   print rc
 

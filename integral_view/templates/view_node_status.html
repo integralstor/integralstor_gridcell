@@ -10,12 +10,14 @@
 
 <p id="p-instruction-text"> This page will autorefresh every 30 seconds to display updates.</p>
 
-{% if node.system_status != "down" %}
+{% if node.node_status != -1 %}
 <table class="table table-bordered table-striped table-hover" style="width:800px">
-{% for k, v in  node.disk_status.items%}
 <tr>
   <th>
-    Component
+    Component Type
+  </th>
+  <th>
+    Component Detail
   </th>
   <th>
     Status
@@ -23,20 +25,37 @@
 </tr>
 <tr>
   <td>
-  Disk {{k}}
+  CPU 
   </td>
   <td>
-  {{v.status}}
+    Load averages
+  </td>
+  <td>
+    15 minute average : {{node.load_avg.15_min}}<br>5 minute average : {{node.load_avg.5_min}}<br> 1 minute average : {{node.load_avg.1_min}}
+  </td>
+</tr>
+{% for disk in  node.disks%}
+<tr>
+  <td>
+  Disk
+  </td>
+  <td>
+    Serial number : {{disk.serial_number}}, Name : {{disk.disk_name}}
+  </td>
+  <td>
+  {{disk.status}}
   </td>
 </tr>
 {%endfor%}
-{% for k, v in  node.interface_status.items%}
+{% for interface in  node.interfaces%}
 <tr>
   <td>
-   Interface {{k}}
+   Interface
   </td>
   <td>
-  {{v.status}}
+  Interface name : {{interface.if_name}}
+  <td>
+  {{interface.status}}
   </td>
 </tr>
 {%endfor%}
@@ -44,16 +63,6 @@
 <tr>
   <td>
    Fan {{k}}
-  </td>
-  <td>
-  {{v.status}}
-  </td>
-</tr>
-{%endfor%}
-{% for k, v in  node.psu_status.items%}
-<tr>
-  <td>
-   PSU {{k}}
   </td>
   <td>
   {{v.status}}

@@ -1,158 +1,120 @@
-{ 
-  "host1" : 
-    {
-      "system_status" : "healthy",
-      "disk_status": {
-        "/dev/sda": {
-          "status": "Bad sectors"
-        } 
-      },
-      "interface_status": {
-        "eth1": {
-          "status": "up" 
-        }, 
-        "eth0": {
-          "status": "up" 
-        }
-      },
-      "cpu_status": {
-          "temp": "37 degrees C", 
-          "status": "ok"
-      },
-      "temp_status": {
-          "temp": "37 degrees C", 
-          "status": "ok"
-      },
-      "fan_status": {
-        "Fan_SYS0_1" : {
-          "rpm": "1560 RPM", 
-          "status": "ok"
-        }
-      },
-      "psu_status": {
-        "PSU1" : {
-          "status": "ok",
-          "code": "0x01"
-        }
+{
+  "dlc": {
+    "disk_usage": {
+      "/sys/fs/fuse/connections": {
+        "available": 0, 
+        "total": 0
+      }, 
+      "/proc": {
+        "available": 0, 
+        "total": 0
+      }, 
+      "/dev": {
+        "available": 1018114048, 
+        "total": 1018118144
+      }, 
+      "/proc/sys/fs/binfmt_misc": {
+        "available": 0, 
+        "total": 0
+      }, 
+      "/dev/pts": {
+        "available": 0, 
+        "total": 0
+      }, 
+      "/run": {
+        "available": 204222464, 
+        "total": 205426688
+      }, 
+      "/": {
+        "available": 34078613504, 
+        "total": 247666171904
+      }, 
+      "/sys/kernel/security": {
+        "available": 0, 
+        "total": 0
+      }, 
+      "/run/lock": {
+        "available": 5242880, 
+        "total": 5242880
+      }, 
+      "/run/shm": {
+        "available": 1026699264, 
+        "total": 1027117056
+      }, 
+      "/sys/kernel/debug": {
+        "available": 0, 
+        "total": 0
+      }, 
+      "/home/bkrram/.gvfs": {
+        "available": 0, 
+        "total": 0
+      }, 
+      "/sys": {
+        "available": 0, 
+        "total": 0
       }
-    },
-  "dlc" : 
-    {
-      "system_status" : "degraded",
-      "disk_status": {
-        "/dev/sda": {
-          "status": "Bad sectors"
-        } 
-      },
-      "interface_status": {
-        "eth1": {
-          "status": "up" 
-        }, 
-        "eth0": {
-          "status": "up" 
-        }
-      },
-      "cpu_status": {
-          "temp": "37 degrees C", 
-          "status": "ok"
-      },
-      "temp_status": {
-          "temp": "37 degrees C", 
-          "status": "ok"
-      },
-      "fan_status": {
-        "Fan_SYS0_1" : {
-          "rpm": "1560 RPM", 
-          "status": "ok"
-        }
-      },
-      "psu_status": {
-        "PSU1" : {
-          "status": "ok",
-          "code": "0x01"
-        }
+    }, 
+    "errors": [], 
+    "interfaces": [
+      {
+        "status": "up", 
+        "hwaddr": "00:00:00:00:00:00", 
+        "inet": [
+          {
+            "broadcast": null, 
+            "netmask": "255.0.0.0", 
+            "label": "lo", 
+            "address": "127.0.0.1"
+          }
+        ], 
+        "if_name": "lo"
+      }, 
+      {
+        "status": "up", 
+        "hwaddr": "00:21:6a:76:47:9c", 
+        "inet": [
+          {
+            "broadcast": "192.168.0.255", 
+            "netmask": "255.255.255.0", 
+            "label": "wlan0", 
+            "address": "192.168.0.88"
+          }
+        ], 
+        "if_name": "wlan0"
+      }, 
+      {
+        "status": "up", 
+        "hwaddr": "00:23:ae:2c:22:09", 
+        "if_name": "eth0"
       }
-    },
-  "host2" : 
-    {
-      "system_status" : "degraded",
-      "disk_status": {
-        "/dev/sda": {
-          "status": "Bad sectors"
-        } 
-      },
-      "interface_status": {
-        "eth1": {
-          "status": "up" 
-        }, 
-        "eth0": {
-          "status": "up" 
-        }
-      },
-      "cpu_status": {
-          "temp": "37 degrees C", 
-          "status": "ok"
-      },
-      "temp_status": {
-          "temp": "37 degrees C", 
-          "status": "ok"
-      },
-      "fan_status": {
-        "Fan_SYS0_1" : {
-          "rpm": "1560 RPM", 
-          "status": "ok"
-        }
-      },
-      "psu_status": {
-        "PSU1" : {
-          "status": "ok",
-          "code": "0x01"
-        }
+    ], 
+    "disks": [
+      {
+        "status": "PASSED", 
+        "serial_number": "WD-WX40A89C5822", 
+        "capacity": "250.1 GB", 
+        "disk_name": "/dev/sda"
       }
-    },
-  "host8" : 
-    {
-      "system_status" : "healthy",
-      "disk_status": {
-        "/dev/sda": {
-          "status": "Bad sectors"
-        } 
-      },
-      "interface_status": {
-        "eth1": {
-          "status": "up" 
-        }, 
-        "eth0": {
-          "status": "up" 
-        }
-      },
-      "cpu_status": {
-          "temp": "37 degrees C", 
-          "status": "ok"
-      },
-      "temp_status": {
-          "temp": "37 degrees C", 
-          "status": "ok"
-      },
-      "fan_status": {
-        "Fan_SYS0_1" : {
-          "rpm": "1560 RPM", 
-          "status": "ok"
-        }
-      },
-      "psu_status": {
-        "PSU1" : {
-          "status": "ok",
-          "code": "0x01"
-        }
+    ], 
+    "cpu_model": "Intel(R) Core(TM)2 Duo CPU     P8400  @ 2.26GHz", 
+    "fqdn": "dlc", 
+    "node_status": 0, 
+    "load_avg": {
+      "5_min": 0.73, 
+      "15_min": 0.77, 
+      "cpu_cores": 2, 
+      "1_min": 0.7
+    }, 
+    "node_status_str": "Healthy", 
+    "memory": {
+      "mem_free": {
+        "unit": "MB", 
+        "value": "128"
+      }, 
+      "mem_total": {
+        "unit": "MB", 
+        "value": "1959"
       }
-    },
-  "host3" : 
-    {
-      "system_status" : "no response"
-    },
-  "host4" : 
-    {
-      "system_status" : "no response"
     }
+  }
 }

@@ -189,7 +189,7 @@ def build_expand_volume_command(vol, si):
     ondisk_storage = "deduplicated"
 
   for hostname in si.keys():
-    if si[hostname]["system_status"] != "healthy" or si[hostname]["in_cluster"] == False:
+    if si[hostname]["node_status"] != 0 or si[hostname]["in_cluster"] == False:
       continue
     if vol["name"] in si[hostname]["volume_list"]:
       continue
@@ -230,7 +230,7 @@ def build_create_volume_command(vol_name, vol_type, ondisk_storage, repl_count, 
   # Get the number of active nodes and their names
   anl = []
   for hostname in si.keys():
-    if si[hostname]["system_status"] != "healthy" or si[hostname]["in_cluster"] == False:
+    if si[hostname]["node_status"] != 0 or si[hostname]["in_cluster"] == False:
       continue
     num_nodes += 1
     anl.append(hostname)

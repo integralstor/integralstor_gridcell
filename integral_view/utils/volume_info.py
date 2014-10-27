@@ -128,7 +128,7 @@ def get_expandable_node_list(si, vol, replicated, replica_count):
     pass
   else:
     for hostname in si.keys():
-      if si[hostname]["system_status"] != "healthy":
+      if si[hostname]["node_status"] != 0:
         continue
       if vol["name"] in si[hostname][volume_list]:
         continue
@@ -237,7 +237,7 @@ def get_replacement_node_info(si, vil):
   dest_node_list = []
   sil = si.items()
   for hostname in si.keys():
-    if si[hostname]["system_status"] != "healthy" :
+    if si[hostname]["node_status"] != 0 :
       continue
     if not si[hostname]["in_cluster"] :
       continue
