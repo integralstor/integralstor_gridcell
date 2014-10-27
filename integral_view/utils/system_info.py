@@ -108,17 +108,19 @@ def load_system_config():
 
   with open(msfn, "r") as f:
     ms_nodes = json.load(f)
+  '''
   with open(mmfn, "r") as f:
     mm_nodes = json.load(f)
   
   d = {}
-  for k in mm_nodes.keys():
+  for k in ms_nodes.keys():
     d[k] = mm_nodes[k]
 
   for k in ms_nodes.keys():
     if k in d:
       for k1 in ms_nodes[k].keys():
         d[k][k1] = ms_nodes[k][k1]
+  '''
 
   peer_list = xml_parse.get_peer_list()
   #if peer_list:
@@ -126,17 +128,17 @@ def load_system_config():
   #  localhost = socket.gethostname().strip()
   #  peer_list.append(localhost)
 
-  for k in d.keys():
-    d[k]["in_cluster"] = False
+  for k in ms_nodes.keys():
+    ms_nodes[k]["in_cluster"] = False
     if peer_list:
       for peer in peer_list:
         if k == peer["hostname"]:
-          d[k]["in_cluster"] = True
-          d[k]["cluster_status"] = int(peer["status"])
+          ms_nodes[k]["in_cluster"] = True
+          ms_nodes[k]["cluster_status"] = int(peer["status"])
       #if k in peer_list:
       #  d[k]["in_cluster"] = True
-    d[k]["volume_list"] = volume_info.get_volumes_on_node(k, None)
-  return d
+    ms_nodes[k]["volume_list"] = volume_info.get_volumes_on_node(k, None)
+  return ms_nodes
 
 '''
 def get_node(hostname, scl):
@@ -172,7 +174,7 @@ def get_available_node_list(si):
   #Return a list of nodes that can be pulled into the trusted pool. This does not have any spare sled logic. If a 
   nl = []
   for hostname, node in si.iteritems():
-    if node["system_status"] != "healthy":
+    if node["node_status"] != 0:
       continue
     if node["in_cluster"]:
       continue

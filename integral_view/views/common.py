@@ -358,7 +358,7 @@ def show(request, page, info = None):
       template = "view_pool_status.html"
       num_free_nodes = 0
       for name, node in si.items():
-        if node["system_status"] != "down" and (not node["in_cluster"]):
+        if node["node_status"] >= 0  and (not node["in_cluster"]):
           num_free_nodes += 1
       return_dict['num_free_nodes'] = num_free_nodes
 
@@ -372,7 +372,7 @@ def show(request, page, info = None):
       total_vols = len(vil)
 
       for k, v in si.items():
-        if v["system_status"] != "healthy":
+        if v["node_status"] != 0:
           num_nodes_bad += 1
         if v["in_cluster"] :
           total_pool += 1

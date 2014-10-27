@@ -16,7 +16,7 @@ class SystemLogsForm(forms.Form):
 
     if si:
       for hostname in si.keys():
-        if not si[hostname]["system_status"]:
+        if si[hostname]["node_status"] < 0:
           continue
         tup = (hostname,hostname)
         ch.append(tup)

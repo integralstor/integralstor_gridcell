@@ -8,64 +8,83 @@
 
 <table class="table table-bordered table-striped table-hover" style="width:60%">
 <tr>
-  <th colspan=2>
-    Disk information
+  <th>
+    CPU
+  </th>
+  <td>
+    {{node.cpu_model}}
+  </td>
+</tr>
+<tr>
+  <th>
+    Memory
+  </th>
+  <td>
+    {{ node.memory.mem_total.value}} {{node.memory.mem_total.unit}}
+  </td>
+</tr>
+</table>
+<table class="table table-bordered table-striped table-hover" style="width:60%">
+<tr>
+  <th colspan=3>
+    Disks
   </th>
 </tr>
-{% for d in  node.disk_info%}
 <tr>
-  <td>
-  Name 
-  </td>
-  <td>
-  {{d.name}}
-  </td>
+  <th >
+    Name
+  </th>
+  <th >
+    Serial number
+  </th>
+  <th >
+    Capacity
+  </th>
 </tr>
+{% for d in  node.disks%}
 <tr>
   <td>
-  Serial number 
+  {{d.disk_name}}
   </td>
   <td>
   {{d.serial_number}}
-  </td>
-</tr>
-<tr>
-  <td>
-  Capacity 
   </td>
   <td>
   {{d.capacity}}
   </td>
 </tr>
 {%endfor%}
+</table>
+
+<table class="table table-bordered table-striped table-hover" style="width:60%">
 <tr>
-  <th colspan=2>
-    Network interfaces    
+  <th colspan=3>
+    Network interfaces
   </th>
 </tr>
-{% for k, v in  node.interface_info.items%}
 <tr>
-  <td>
-  Name 
-  </td>
-  <td>
-  {{k}}
-  </td>
+  <th >
+    Name
+  </th>
+  <th >
+    MAC Address
+  </th>
+  <th >
+    IP configuration
+  </th>
 </tr>
+{% for inter in  node.interfaces%}
 <tr>
   <td>
-  IP address 
+  {{inter.if_name}}
   </td>
   <td>
-  {{v.ip}}
-  </td>
-</tr>
-<tr>
-  <td>
-  Mask 
+  {{inter.hwaddr}}
   </td>
   <td>
-  {{v.mask}}
+  {% for inet in inter.inet %}
+  (IP Address : {{inet.address}}, Netmask : {{inet.netmask}}), 
+  {%endfor%}
   </td>
 </tr>
 {%endfor%}

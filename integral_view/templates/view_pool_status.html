@@ -51,7 +51,7 @@ function load_node_info(hostname, str) {
       Node details
     </th>
 {% for hostname, d in system_info.items %}
-  {% if d.system_status != "down" %}
+  {% if d.node_status >= 0 %}
     {% if d.in_cluster %}
       {% if d.cluster_status != 1 %}
         <tr class="warning">
@@ -91,7 +91,7 @@ function load_node_info(hostname, str) {
       Node details
     </th>
 {% for hostname, d in system_info.items %}
-  {% if d.system_status != "down" %}
+  {% if d.node_status >= 0 %}
     {% if not d.in_cluster %}
         <tr>
           <td>
