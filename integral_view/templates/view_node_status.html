@@ -25,6 +25,28 @@
 </tr>
 <tr>
   <td>
+    CPU 
+  </td>
+  <td>
+    Status
+  </td>
+  <td>
+    {{node.cpu_status.status}}
+  </td>
+</tr>
+<tr>
+  <td>
+    CPU 
+  </td>
+  <td>
+    Temperature
+  </td>
+  <td>
+    {{node.cpu_status.temp}}
+  </td>
+</tr>
+<tr>
+  <td>
   CPU 
   </td>
   <td>
@@ -32,6 +54,17 @@
   </td>
   <td>
     15 minute average : {{node.load_avg.15_min}}<br>5 minute average : {{node.load_avg.5_min}}<br> 1 minute average : {{node.load_avg.1_min}}
+  </td>
+</tr>
+<tr>
+  <td>
+    System 
+  </td>
+  <td>
+    Temperature
+  </td>
+  <td>
+    {{node.temp_status.temp}}
   </td>
 </tr>
 {% for disk in  node.disks%}
@@ -69,30 +102,6 @@
   </td>
 </tr>
 {%endfor%}
-<tr>
-  <td>
-    CPU Status
-  </td>
-  <td>
-    {{node.cpu_status.status}}
-  </td>
-</tr>
-<tr>
-  <td>
-    CPU Temperature
-  </td>
-  <td>
-    {{node.cpu_status.temp}}
-  </td>
-</tr>
-<tr>
-  <td>
-    System temperature
-  </td>
-  <td>
-    {{node.temp_status.temp}}
-  </td>
-</tr>
 </table>
 {%else%}
 Node is down
