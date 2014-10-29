@@ -42,11 +42,6 @@ def _validate_cmd_output(output_tuple = None):
 
 def disk_status():
 
-  # Initialize a grain dictionary
-  grains = {}
-
-  # Some code for logic that sets grains like..
-
   # To get information about Hard Disk and ..
   # the list containing the info is abbreviated as "dl"
   cmd_dl = "/usr/sbin/smartctl --scan"
@@ -70,6 +65,7 @@ def disk_status():
 
   disk_status = {}
   for disk_name in dl:
+    #print salt.modules.status.diskusage(disk_name)
     d = {}
     cmd = "/usr/sbin/smartctl -H -i %s"%disk_name
     output_tuple_dl, rc = _execute_command(cmd)
@@ -134,8 +130,8 @@ def status():
   return d
       
 if __name__ == '__main__':
-  print status()
-  #print disk_status()
+  #print status()
+  print disk_status()
   #print interface_status()
   #print status()
   #print load_avg()
