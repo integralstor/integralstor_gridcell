@@ -1,6 +1,5 @@
 from django.conf.urls import patterns, include, url
 from integral_view.views.iscsi import iscsi_display_global_config, iscsi_display_initiators, iscsi_display_targets, iscsi_view_initiator, iscsi_edit_initiator, iscsi_create_initiator, iscsi_delete_initiator, iscsi_display_auth_access_group_list, iscsi_create_auth_access_group, iscsi_view_auth_access_group, iscsi_delete_auth_access_group, iscsi_edit_auth_access_user, iscsi_edit_target_global_config, iscsi_view_target_global_config, iscsi_create_target,iscsi_view_target , iscsi_edit_target, iscsi_delete_target, iscsi_delete_auth_access_user, iscsi_create_auth_access_user
-from django.views.generic.simple import direct_to_template
 from integral_view.views.admin_auth  import login, logout, change_admin_password, configure_email_settings 
 from integral_view.views.trusted_pool_setup  import add_nodes, remove_node
 from integral_view.views.volume_creation import volume_creation_wizard, create_volume, create_volume_conf
@@ -27,6 +26,7 @@ urlpatterns = patterns('',
     # Uncomment the next line to enable the admin:
     url(r'^admin/', include(admin.site.urls)),
     url(r'^login/', login),
+    url(r'^$', login),
     url(r'^raise_alert/', raise_alert),
     url(r'^flag_node/', flag_node),
     url(r'^del_email_settings/', require_login(del_email_settings)),
