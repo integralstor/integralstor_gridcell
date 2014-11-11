@@ -6,8 +6,10 @@ from django.conf import settings
 
 import integral_view
 from integral_view.forms import volume_management_forms
-from integral_view.utils import command, volume_info, system_info, audit, gluster_commands
+from integral_view.utils import command, volume_info, system_info, audit, gluster_commands, iv_logging
 from integral_view.iscsi import iscsi
+
+import logging
 
 def volume_specific_op(request, operation, vol_name=None):
   """ Used to carry out various volume related operations which is specified in the operation parameter. 
@@ -169,6 +171,7 @@ def volume_specific_op(request, operation, vol_name=None):
 
         #d = volume_info.get_expandable_node_list(si, vol, replicated, replica_count) 
         d = gluster_commands.build_expand_volume_command(vol, si)
+        iv_logging.debug("Expand volume node list %s for volume %s"%(d['node_list'], vol["name"]))
         if "error" in d:
           return_dict["error"] = "Error creating the volume : %s"%d["error"]
           return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
@@ -464,6 +467,7 @@ def expand_volume(request):
     vol_name = request.POST['vol_name']
     count = request.POST['count']
 
+    iv_logging.info("Running volume expand : %s"%cmd)
     d = gluster_commands.run_gluster_command(cmd, "%s/add_brick.xml"%settings.BASE_FILE_PATH, "Volume expansion")
 
     if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:

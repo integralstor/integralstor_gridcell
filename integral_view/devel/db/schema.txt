@@ -95,6 +95,12 @@ grp bool NOT NULL,
 name VARCHAR(40) NOT NULL
 );
 
+CREATE TABLE "global_params" (
+id INTEGER NOT NULL PRIMARY KEY,
+logging_level INTEGER NOT NULL
+);
+
+
 
 
 

@@ -5,11 +5,32 @@ from  django.contrib import auth
 from django.conf import settings
 
 import integral_view
+import logging
 from integral_view.forms import volume_management_forms, log_management_forms
-from integral_view.utils import volume_info, system_info, download, audit, alerts, command
+from integral_view.utils import volume_info, system_info, download, audit, alerts, command, iv_logging
 
 #from integral_view.utils import logs
 
+def edit_integral_view_log_level(request):
+
+  return_dict = {}
+  if request.method == 'POST':
+    iv_logging.debug("Trying to change Integral View Log settings")
+    form = log_management_forms.IntegralViewLoggingForm(request.POST)
+    if form.is_valid():
+      iv_logging.debug("Trying to change Integral View Log settings - form valid")
+      cd = form.cleaned_data
+      log_level = int(cd['log_level'])
+      iv_logging.debug("Trying to change Integral View Log settings - log level is %d"%log_level)
+      iv_logging.set_log_level(log_level)
+      iv_logging.debug("Trying to change Integral View Log settings - changed log level")
+      return django.http.HttpResponseRedirect("/show/integral_view_log_level?saved=1")
+  else:
+    init = {}
+    init['log_level'] = iv_logging.get_log_level()
+    form = log_management_forms.IntegralViewLoggingForm(initial=init)
+    return_dict['form'] = form
+    return django.shortcuts.render_to_response('edit_integral_view_log_level.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
 def download_vol_log(request):
   """ Used to download the volume log of a particular volume whose name is in the vol_name post parameter"""
@@ -24,7 +45,6 @@ def download_vol_log(request):
   if request.method == 'POST':
     form = volume_management_forms.VolumeNameForm(request.POST, vol_list = l)
     if form.is_valid():
-
       cd = form.cleaned_data
       try:
         vol_name = cd['vol_name']
@@ -32,6 +52,7 @@ def download_vol_log(request):
         return_dict["error"] = "Volume name not specified"
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
+      iv_logging.debug("Got volume log download request for %s"%vol_name)
       file_name = None
       if settings.PRODUCTION:
         file_name = '/var/log/glusterfs/bricks/data-%s.log'%vol_name
@@ -96,6 +117,8 @@ def download_sys_log(request):
       except Exception as e:
         return_dict["error"] = "Insufficient information. Node or log type not specified: %s"%str(e)
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+
+      iv_logging.debug("Got sys log download request for type %s hostname %s"%(sys_log_type, hostname))
 
       fn = {'boot':'/var/log/boot.log', 'dmesg':'/var/log/dmesg', 'message':'/var/log/messages'}
       dn = {'boot':'boot.log', 'dmesg':'dmesg', 'message':'messages'}

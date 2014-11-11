@@ -8,7 +8,9 @@ import json
 
 import integral_view
 from integral_view.forms import admin_forms
-from integral_view.utils import audit, mail
+from integral_view.utils import audit, mail, iv_logging
+
+import logging
 
 def login(request):
   """ Used to login a user into the management utility"""
@@ -17,6 +19,7 @@ def login(request):
   authSucceeded = False
 
   if request.method == 'POST':
+    iv_logging.info("Login request posted")
     # Someone is submitting info so check it
     form = admin_forms.LoginForm(request.POST)
     if form.is_valid():
@@ -31,9 +34,14 @@ def login(request):
       if user is not None and user.is_active:
         # authentication succeeded! Login and send to home screen
         django.contrib.auth.login(request, user)
+        iv_logging.info("Login request from user '%s' succeeded"%username)
         authSucceeded = True
       else:
+        iv_logging.info("Login request from user '%s' failed"%username)
         return_dict['invalidUser'] = True
+    else:
+      #Invalid form
+      iv_logging.debug("Invalid login information posted")
   else:
     # GET request so create a new form and send back to user
     form = admin_forms.LoginForm()
@@ -50,6 +58,7 @@ def login(request):
 
 def logout(request):
   """ Used to logout a user into the management utility"""
+  iv_logging.info("User '%s' logged out"%request.user)
   django.contrib.auth.logout(request)
   return django.http.HttpResponseRedirect('/login/')
 
@@ -60,6 +69,7 @@ def change_admin_password(request):
 
   if request.user and request.user.is_authenticated():
     if request.method == 'POST':
+      iv_logging.debug("Admin password change posted")
       #user has submitted the password info
       form = admin_forms.ChangeAdminPasswordForm(request.POST)
       if form.is_valid():
@@ -74,6 +84,7 @@ def change_admin_password(request):
             request.user.set_password(newPasswd1);
             request.user.save()
             return_dict['success'] = True
+            iv_logging.info("Admin password change request successful.")
             audit_str = "Changed admin password"
             audit.audit("modify_admin_password", audit_str, request.META["REMOTE_ADDR"])
           else:
@@ -82,6 +93,7 @@ def change_admin_password(request):
       # fall through to redisplay the form
       if 'success' not in return_dict:
         return_dict['form'] = form
+        iv_logging.info("Admin password change request failed.")
     else:
       form = admin_forms.ChangeAdminPasswordForm()
       return_dict['form'] = form
@@ -94,6 +106,7 @@ def change_admin_password(request):
 def remove_email_settings(request):
 
   response = django.http.HttpResponse()
+  iv_logging.info("Email settings deleted")
   try:
     mail.delete_email_settings()
     response.write("Deleted email settings")
@@ -172,6 +185,7 @@ def configure_email_settings(request):
       try:
         mail.save_email_settings(d)
       except Exception, e:
+        iv_logging.debug("Exception when trying to save email settings : %s"%str(e))
         return django.http.HttpResponseRedirect("/show/email_settings?not_saved=1&err=%s"%str(e))
 
       '''
