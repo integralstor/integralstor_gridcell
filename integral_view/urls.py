@@ -6,7 +6,7 @@ from integral_view.views.volume_creation import volume_creation_wizard, create_v
 from integral_view.views.volume_management import volume_specific_op , expand_volume, replace_node, set_volume_options, set_volume_quota, delete_volume
 from integral_view.views import perform_op
 from integral_view.views.common import require_login, show, refresh_alerts, raise_alert, internal_audit, configure_ntp_settings, del_email_settings, reset_to_factory_defaults, flag_node, hardware_scan, accept_manifest
-from integral_view.views.log_management import download_vol_log, download_sys_log, rotate_log, view_rotated_log_list, view_rotated_log_file
+from integral_view.views.log_management import download_vol_log, download_sys_log, rotate_log, view_rotated_log_list, view_rotated_log_file, edit_integral_view_log_level
 #from integral_view.views.node_management import pull_node_status, node_status
 #from integral_view.views.share_management import samba_server_settings_basic, save_samba_server_settings_basic, samba_server_settings_security, save_samba_server_settings_security, display_shares, create_share, view_samba_share, edit_samba_share, display_users, edit_samba_user, create_user, create_unix_user, samba_server_settings, save_samba_server_settings, samba_server_settings, view_share, edit_share
 from integral_view.views.share_management import display_shares, create_share, samba_server_settings, save_samba_server_settings, view_share, edit_share, delete_share, edit_auth_method, view_local_users, create_local_user, change_local_user_password, delete_local_user
@@ -69,6 +69,7 @@ urlpatterns = patterns('',
     url(r'^auth_server_settings/', require_login(samba_server_settings)),
     url(r'^save_samba_server_settings/', require_login(save_samba_server_settings)),
     url(r'^replace_node/', require_login(replace_node)),
+    url(r'^edit_integral_view_log_level/', require_login(edit_integral_view_log_level)),
     url(r'^set_volume_options/', require_login(set_volume_options)),
     url(r'^set_volume_quota/', require_login(set_volume_quota)),
     url(r'^remove_node/', require_login(remove_node)),

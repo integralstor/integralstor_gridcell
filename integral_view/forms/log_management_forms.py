@@ -1,4 +1,5 @@
 from django import forms
+import logging
 
 class SystemLogsForm(forms.Form):
   """ Form to get the info about which system log to download"""
@@ -22,5 +23,7 @@ class SystemLogsForm(forms.Form):
         ch.append(tup)
     self.fields['hostname'] = forms.ChoiceField(choices = ch)
 
+class IntegralViewLoggingForm(forms.Form):
 
-
+  ch = [(logging.DEBUG, 'Debug'), (logging.INFO, 'Information'), (logging.WARNING, 'Errors')]
+  log_level = forms.ChoiceField(choices=ch)

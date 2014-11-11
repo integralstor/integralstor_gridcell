@@ -3,10 +3,11 @@ from django.conf import settings
 from django.contrib import auth
 
 import random
+import logging
 
 import integral_view
 from integral_view.forms import volume_creation_forms
-from integral_view.utils import command, volume_info, system_info, audit, gluster_commands
+from integral_view.utils import command, volume_info, system_info, audit, gluster_commands, iv_logging
 from integral_view.iscsi import iscsi
 
 def volume_creation_wizard(request, action):
@@ -119,6 +120,7 @@ def create_volume_conf(request):
       return_dict["error"] = "Required information not provided : %s"%str(e)
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
+    iv_logging.info("create volume initiated for vol_type %s, vol_name %s, ondisk_storage %s, vol_access %s"%(vol_type, vol_name, ondisk_storage, vol_access))
     d = gluster_commands.build_create_volume_command(vol_name, vol_type, ondisk_storage, repl_count, transport, scl)
     if "error" in d:
       return_dict["error"] = "Error creating the volume : %s"%d["error"]
@@ -133,6 +135,7 @@ def create_volume_conf(request):
       node_list_str += '</li>'
     node_list_str += '</ul>'
   
+    iv_logging.debug("create vol node list %s"%node_list_str)
     return_dict['cmd'] = d['cmd']
     return_dict['node_list_str'] = node_list_str
     return_dict['vol_type'] = vol_type
@@ -166,6 +169,7 @@ def create_volume(request):
   if not settings.PRODUCTION:
     cmd = 'ls -al'
 
+  iv_logging.info("create volume command %s"%cmd)
   d = gluster_commands.run_gluster_command(cmd, "%s/create_volume.xml"%settings.BASE_FILE_PATH, "Volume creation")
 
   if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:

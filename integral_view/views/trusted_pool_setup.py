@@ -7,7 +7,7 @@ import django, django.template
 
 import integral_view
 from integral_view.forms import trusted_pool_setup_forms
-from integral_view.utils import volume_info, system_info, host_info, audit, gluster_commands
+from integral_view.utils import volume_info, system_info, host_info, audit, gluster_commands, iv_logging
 
 
 '''
@@ -90,6 +90,7 @@ def remove_node(request):
     if si[hostname]["in_cluster"] and (not si[hostname]["volume_list"]):
       nl.append(hostname)
   return_dict['node_list'] = nl
+  iv_logging.debug("Remove node node list %s"%' '.join(nl))
 
   if request.method == "GET":
     form = trusted_pool_setup_forms.RemoveNodeForm(node_list = nl)
@@ -101,6 +102,7 @@ def remove_node(request):
       if form.is_valid():
         cd = form.cleaned_data
         node = cd["node"]
+        iv_logging.info("Removing node '%s'"%node)
         ol = gluster_commands.remove_node(si, node)
         audit_str = ""
         for d in ol:
@@ -139,7 +141,6 @@ def add_nodes(request):
 
   si = system_info.load_system_config()
   return_dict['system_info'] = si
-  return_dict['colour_dict'] = settings.DISPLAY_COLOURS
 
   # Get list of possible nodes that are available
   nl = system_info.get_available_node_list(si)
@@ -192,10 +193,10 @@ def add_nodes(request):
       cd = form.cleaned_data
     else:
       return_dict['form'] = form
-      return_dict['colour_dict'] = settings.DISPLAY_COLOURS
       return django.shortcuts.render_to_response('add_servers_form.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
     # Actual command processing begins
+    iv_logging.debug("Initiating add nodes for %s"%' '.join(nl))
     ol = gluster_commands.add_servers(nl)
     audit_str = ""
     for d in ol:

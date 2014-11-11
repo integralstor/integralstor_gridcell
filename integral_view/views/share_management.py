@@ -3,6 +3,7 @@ import django, django.template
 from django.conf import settings
 
 import integral_view
+import logging
 from integral_view.forms import samba_shares_forms
 from integral_view.samba import samba_settings, local_users
 from integral_view.utils import volume_info, system_info, audit
@@ -160,6 +161,7 @@ def edit_share(request):
         else:
           groups = None
         vol = cd["vol"]
+        logger.debug("Save share request, name %s path %s, comment %s, read_only %s, browseable %s, guest_ok %s, users %s, groups %s, vol %s"%(name, path, comment, read_only, browseable, guest_ok, users, groups))
         samba_settings.save_share(share_id, name, comment, guest_ok, read_only, path, browseable, users, groups, vol)
         samba_settings.generate_smb_conf()
       except Exception, e:
@@ -188,6 +190,7 @@ def delete_share(request):
   else:
     share_id = request.POST["share_id"]
     name = request.POST["name"]
+    logger.debug("Delete share request for name %s"%name)
     try :
       samba_settings.delete_share(share_id)
       samba_settings.generate_smb_conf()
@@ -247,6 +250,7 @@ def create_share(request):
       else:
         groups = None
       vol = cd["vol"]
+      logger.debug("Create share request, name %s path %s, comment %s, read_only %s, browseable %s, guest_ok %s, users %s, groups %s, vol %s"%(name, path, comment, read_only, browseable, guest_ok, users, groups))
       #path = "/%s%s"%(vol, display_path)
       try :
         samba_settings.create_share(name, comment, guest_ok, read_only, path, display_path, browseable, users, groups, vol)
@@ -361,8 +365,7 @@ def save_samba_server_settings(request):
         return_dict["error"] = "Error generating kerberos ticket - %s" %str(e)
     if not "error" in return_dict and cd["security"] == "ads":
       try :
-        #samba_settings.net_ads_join("administrator", cd["password"], cd["password_server"])
-        pass
+        samba_settings.net_ads_join("administrator", cd["password"], cd["password_server"])
       except Exception, e:
         return_dict["error"] = "Error joining Active Directory - %s" %str(e)
     if not "error" in return_dict and cd["security"] == "ads":

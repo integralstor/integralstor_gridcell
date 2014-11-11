@@ -190,10 +190,15 @@ INSTALLED_APPS = (
 # more details on how to customize your logging configuration.
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': False,
+    'disable_existing_loggers': True,
     'filters': {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
+        }
+    },
+    'formatters': {
+        'standard': {
+            'format': '%(asctime)s [%(levelname)s] %(message)s',
         }
     },
     'handlers': {
@@ -201,13 +206,26 @@ LOGGING = {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'
+        },
+        'file': {
+          'level': 'DEBUG',
+          'class': 'logging.handlers.RotatingFileHandler',
+          'filename': '/var/log/fractalio/integral_view.log',
+          'maxBytes': 1024*1024*5,
+          'backupCount': 5,
+          'formatter': 'standard'
         }
     },
     'loggers': {
-        'django.request': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
+        '': {
+            'handlers': ['file'],
+            'level': 'INFO',
             'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': False,
         },
     }
 }

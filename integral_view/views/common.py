@@ -7,8 +7,9 @@ from django.conf import settings
 
 
 import integral_view
-from integral_view.utils import audit, batch, alerts, ntp, mail, gluster_commands, command, host_info
+from integral_view.utils import audit, batch, alerts, ntp, mail, gluster_commands, command, host_info, iv_logging
 from integral_view.utils import volume_info, system_info
+import logging
 from integral_view.iscsi import iscsi
 from integral_view.forms import common_forms
 from integral_view.samba import samba_settings
@@ -82,42 +83,38 @@ def show(request, page, info = None):
         #if full_path: 
         full_path="%s/%s"%(path_base, dir_name)
         full_path=os.path.abspath(full_path)
-        print full_path
+        iv_logging.debug("Full path %s"%full_path)
         if dir_name: 
           try:
             #print "walking %s. In reality will walk /%s"%(full_path, vol_name)
             #dl = gluster_commands.list_dir(vol_name, full_path)
             dl = os.walk(full_path).next()[1]
           except Exception, e:
-            print "Exception 1"  
-            print e
+            iv_logging.debug("Error walking path : %s"%str(e))
             raise Exception ("Error walking path : %s"%str(e))
         if dl:
           for l in dl:
             children = False
             try:
-              #print "walking %s. In reality will walk /%s"%(full_path, vol_name)
               if len(os.walk("%s/%s"%(full_path, l)).next()[1]) > 0:
-              #if len(gluster_commands.list_dir(vol_name, "%s/%s"%(full_path, l))) > 0:
                 children = True
               else:
                 children = False
             except Exception, e:
-              print "Exception 2"  
-              print e
+              iv_logging.debug("Error walking path : %s"%str(e))
               raise Exception ("Error walking path : %s"%str(e))
             #d = {"text":l, "children":children, 'data':{'full_path':"%s/%s"%(full_path, l), 'dir':"%s/%s"%(dir_name, l)}}
             print "dir_name is %s"%dir_name
+            iv_logging.debug("Dir name is %s"%dir_name)
             if dir_name == "/":
               send_path = "%s"%(l)
             else:
               send_path = "%s/%s"%(dir_name, l)
-            print "sendpath = %s"%send_path
+            iv_logging.debug("Send path is %s"%send_path)
             d = {"text":l, "children":children, 'data':{'dir':send_path}}
             dir_list.append(d)
       except Exception as e:
-        print "Exception 3"  
-        print e
+        iv_logging.debug("Exception while getting dir listing : "%str(e))
         d = { "text":"_error_", "children":False}
         dir_list.append(d)
       dlist = django.utils.simplejson.dumps(dir_list)
@@ -132,6 +129,18 @@ def show(request, page, info = None):
         return_dict["error"] = str(e)
       else:
         return_dict["ntp_servers"] = ntp_servers
+      if "saved" in request.REQUEST:
+        return_dict["saved"] = request.REQUEST["saved"]
+
+    elif page == "integral_view_log_level":
+
+      template = "view_integral_view_log_level.html"
+      try:
+        log_level = iv_logging.get_log_level_str()
+      except Exception, e:
+        return_dict["error"] = str(e)
+      else:
+        return_dict["log_level_str"] = log_level
       if "saved" in request.REQUEST:
         return_dict["saved"] = request.REQUEST["saved"]
 
@@ -160,6 +169,7 @@ def show(request, page, info = None):
           return_dict["err"] = request.REQUEST["err"]
         template = "view_email_settings.html"
       except Exception, e:
+        iv_logging.debug("error loading email settings %s"%str(e))
         return_dict["error"] = str(e)
 
     elif page == "audit_trail":
@@ -269,6 +279,9 @@ def show(request, page, info = None):
         return_dict['error'] = 'Invalid request. No status file specified'
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
       file_name = request.REQUEST["file_name"]
+      if not os.path.isfile("%s/status/%s"%(settings.BASE_FILE_PATH, file_name)):
+        return_dict['error'] = 'The requested status file does not exist'
+        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
       o = ""
       with open("%s/status/%s"%(settings.BASE_FILE_PATH, file_name), "r") as f:
         l = f.readline()
@@ -456,7 +469,7 @@ def raise_alert(request):
       alerts.raise_alert(msg)
     except Exception, e:
       return_dict["error"] = "Error logging alert : %s"%e
-      print "Error logging alert : %s"%e
+      iv_logging.info("Error logging alert %s"%str(e))
     else:
       return django.http.HttpResponse("Raised alert")
 
@@ -468,6 +481,7 @@ def del_email_settings(request):
     mail.delete_email_settings()
     return django.http.HttpResponse("Successfully cleared email settings.")
   except Exception, e:
+    iv_logging.debug("Error clearing email settings %s"%str(e))
     return django.http.HttpResponse("Problem clearing email settings %s"%str(e))
     
 
@@ -484,6 +498,7 @@ def configure_ntp_settings(request):
   else:
     form = common_forms.ConfigureNTPForm(request.POST)
     if form.is_valid():
+      iv_logging.debug("Got valid request to change NTP settings")
       cd = form.cleaned_data
       si = system_info.load_system_config()
       server_list = cd["server_list"]
@@ -531,6 +546,7 @@ def configure_ntp_settings(request):
         return django.http.HttpResponseRedirect("/show/ntp_settings?saved=1")
     else:
       #invalid form
+      iv_logging.debug("Got invalid request to change NTP settings")
       url = "edit_ntp_settings.html"
   return_dict["form"] = form
   return django.shortcuts.render_to_response(url, return_dict, context_instance = django.template.context.RequestContext(request))
@@ -544,6 +560,7 @@ def flag_node(request):
 
   node_name = request.GET["node"]
   print "/opt/fractal/bin/client %s ipmitool chassis identify 255"%node_name
+  iv_logging.debug("Flagging node %s"%node_name)
   r, rc = command.execute_with_rc("/opt/fractal/bin/client %s ipmitool chassis identify 255"%node_name)
   err = ""
   if rc == 0:
@@ -567,6 +584,7 @@ def reset_to_factory_defaults(request):
     #Send a confirmation screen
     return django.shortcuts.render_to_response('reset_factory_defaults_conf.html', return_dict, context_instance = django.template.context.RequestContext(request))
   else:
+    iv_logging.info("Got a request to reset to factory defaults")
     #Post request so from conf screen
 
     #Reset the ntp config file
@@ -616,7 +634,6 @@ def reset_to_factory_defaults(request):
     try:
       samba_settings.delete_auth_settings()
     except Exception, e:
-      print str(e)
       return_dict["error"] = "Error deleting share authentication settings : %s."%str(e)
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
@@ -666,9 +683,9 @@ def hardware_scan(request):
   url = 'add_nodes_form.html'
   local = salt.client.LocalClient()
   opts = salt.config.master_config(settings.SALT_MASTER_CONFIG)
+  iv_logging.info("Hardware scan initiated")
   wheel = salt.wheel.Wheel(opts)
   keys = wheel.call_func('key.list_all')
-  print keys
   pending_minions = keys['minions_pre']
   if request.method == 'GET':
     # Return a list of new nodes available to be pulled into the grid
