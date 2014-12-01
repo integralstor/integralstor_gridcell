@@ -11,7 +11,7 @@
 <p id="p-instruction-text"> This page will autorefresh every 30 seconds to display updates.</p>
 
 {% if node.node_status != -1 %}
-<table class="table table-bordered table-striped table-hover" style="width:800px">
+<table class="table table-bordered table-hover" style="width:800px">
 <tr>
   <th>
     Component Type
@@ -24,8 +24,13 @@
   </th>
 </tr>
 <tr>
+  <td colspan=3>
+   <b>CPU</b>
+  </td>
+</tr>
+<tr>
   <td>
-    CPU 
+    &nbsp; 
   </td>
   <td>
     Status
@@ -36,7 +41,7 @@
 </tr>
 <tr>
   <td>
-    CPU 
+    &nbsp; 
   </td>
   <td>
     Temperature
@@ -47,7 +52,7 @@
 </tr>
 <tr>
   <td>
-  CPU 
+    &nbsp; 
   </td>
   <td>
     Load averages
@@ -57,8 +62,13 @@
   </td>
 </tr>
 <tr>
+  <td colspan=3>
+   <b>System</b>
+  </td>
+</tr>
+<tr>
   <td>
-    System 
+    &nbsp; 
   </td>
   <td>
     Temperature
@@ -67,26 +77,36 @@
     {{node.temp_status.temp}}
   </td>
 </tr>
-{% for disk in  node.disks%}
+<tr>
+  <td colspan=3>
+   <b>Disks</b>
+  </td>
+</tr>
+{% for disk_id, disk in  node.disks.items%}
 <tr>
   <td>
-  Disk
+  &nbsp;
   </td>
   <td>
-    Serial number : {{disk.serial_number}}, Name : {{disk.disk_name}}
+    Serial number : {{disk_id}}, Name : {{disk.name}}
   </td>
   <td>
   {{disk.status}}
   </td>
 </tr>
 {%endfor%}
-{% for interface in  node.interfaces%}
+<tr>
+  <td colspan=3>
+   <b>Interfaces</b>
+  </td>
+</tr>
+{% for if_name, interface in  node.interfaces.items%}
 <tr>
   <td>
-   Interface
+  &nbsp;
   </td>
   <td>
-  Interface name : {{interface.if_name}}
+  Interface name : {{if_name}}
   <td>
   {{interface.status}}
   </td>

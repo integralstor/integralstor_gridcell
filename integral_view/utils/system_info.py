@@ -1,26 +1,19 @@
-import os, re, socket, json, sys
+import os, re, socket, json, sys, types
 
 from django.conf import settings
 
-#BASEPATH = "/opt/fractal/batch/"
-'''
-if len(sys.argv) < 2:
-  raise Exception("No settings.py path provided!")
-sys.path.insert(0, sys.argv[1])
-'''
+#Our components
+#import integral_view
+#import integral_view.utils
+#import integral_view.utils.volume_info
+import xml_parse, volume_info
+import types
 
 path = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, '%s/../..'%path)
 os.environ['DJANGO_SETTINGS_MODULE']='integral_view.settings'
 BASEPATH = settings.BATCH_COMMANDS_DIR
-
 production = settings.PRODUCTION
-
-
-
-#Our components
-import xml_parse, volume_info
-
 
 def get_chassis_components_status():
 
@@ -108,37 +101,81 @@ def load_system_config():
 
   with open(msfn, "r") as f:
     ms_nodes = json.load(f)
-  '''
   with open(mmfn, "r") as f:
     mm_nodes = json.load(f)
   
   d = {}
-  for k in ms_nodes.keys():
+  # First load it with the master node keys
+  for k in mm_nodes.keys():
     d[k] = mm_nodes[k]
-
+  '''
   for k in ms_nodes.keys():
-    if k in d:
-      for k1 in ms_nodes[k].keys():
-        d[k][k1] = ms_nodes[k][k1]
+    if k in mm_nodes:
+      d[k] = mm_nodes[k]
   '''
 
-  peer_list = xml_parse.get_peer_list()
-  #if peer_list:
-  #  # Need to add the localhost because it is never returned as part of the peer list
-  #  localhost = socket.gethostname().strip()
-  #  peer_list.append(localhost)
+  for k in d.keys():
+    status_node = ms_nodes[k]
+    for sk in status_node.keys():
+      if sk not in d[k]:
+        d[k][sk] = status_node[sk]
+      elif sk == "disks":
+        for disk in status_node["disks"]:
+          if disk in d[k]["disks"]:
+            d[k]["disks"][disk].update(status_node["disks"][disk])
+          else:
+            d[k]["disks"][disk] = status_node["disks"][disk]
+      elif sk == "interfaces":
+        for interface in status_node["interfaces"]:
+          if interface in d[k]["interfaces"]:
+            d[k]["interfaces"][interface].update(status_node["interfaces"][interface])
+          else:
+            d[k]["interfaces"][interface] = status_node["interfaces"][interface]
+    '''
+    if k in d:
+      #only update for those nodes that are in the manifest
+      for k1 in ms_nodes[k].keys():
+        if k1 in d[k] and type(d[k][k1]) is types.DictType:
+          
+          print d[k][k1]
+          print ms_nodes[k][k1]
+          d[k][k1].update(ms_nodes[k][k1])
+        else:
+          d[k][k1] = ms_nodes[k][k1]
+    '''
 
-  for k in ms_nodes.keys():
-    ms_nodes[k]["in_cluster"] = False
+  peer_list = xml_parse.get_peer_list()
+  #Need to add the localhost because it is never returned as part of the peer list
+  localhost = socket.gethostname().strip()
+  tmpd = {}
+  tmpd["hostname"] = localhost
+  tmpd["status"] = 1
+  peer_list.append(tmpd)
+
+  #assert False
+  for k in d.keys():
+    d[k]["in_cluster"] = False
     if peer_list:
       for peer in peer_list:
         if k == peer["hostname"]:
-          ms_nodes[k]["in_cluster"] = True
-          ms_nodes[k]["cluster_status"] = int(peer["status"])
+          d[k]["in_cluster"] = True
+          d[k]["cluster_status"] = int(peer["status"])
       #if k in peer_list:
       #  d[k]["in_cluster"] = True
-    ms_nodes[k]["volume_list"] = volume_info.get_volumes_on_node(k, None)
-  return ms_nodes
+    d[k]["volume_list"] = volume_info.get_volumes_on_node(k, None)
+  '''
+  for k in d.keys():
+    d[k]["in_cluster"] = False
+    if peer_list:
+      for peer in peer_list:
+        if k == peer["hostname"]:
+          d[k]["in_cluster"] = True
+          d[k]["cluster_status"] = int(peer["status"])
+      #if k in peer_list:
+      #  d[k]["in_cluster"] = True
+    d[k]["volume_list"] = integral_view.utils.volume_info.get_volumes_on_node(k, None)
+  '''
+  return d
 
 '''
 def get_node(hostname, scl):
@@ -149,6 +186,10 @@ def get_node(hostname, scl):
       break
   return node
 '''
+
+def raid_enabled():
+  #Enabled by default now. We need to change this to read from the config db which in turn will be updated at the time of first config
+  return True
 
 def generate_display_node_list(scl):
 

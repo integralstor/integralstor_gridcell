@@ -1,8 +1,12 @@
 import re
 
 import django.http, django
+import salt.client
+
 from  django.contrib import auth
 from django.conf import settings
+import fractalio
+from fractalio import command 
 
 import integral_view
 from integral_view.forms import volume_management_forms
@@ -384,6 +388,193 @@ def replace_node(request):
       else:
         return_dict["form"] = form
         return django.shortcuts.render_to_response('replace_node_choose_node.html', return_dict, context_instance=django.template.context.RequestContext(request))
+
+
+def replace_disk(request):
+
+  return_dict = {}
+
+  form = None
+
+  vil = volume_info.get_volume_info_all()
+  si = system_info.load_system_config()
+  return_dict['system_config_list'] = si
+  
+  template = 'logged_in_error.html'
+
+  if request.method == "GET":
+    return_dict["error"] = "Incorrect access method. Please use the menus"
+  else:
+    node = request.POST["node"]
+    serial_number = request.POST["serial_number"]
+
+    if "error" in return_dict:
+      return django.shortcuts.render_to_response(template, return_dict, context_instance = django.template.context.RequestContext(request))
+
+    if "conf" in request.POST:
+      if "node" not in request.POST or  "serial_number" not in request.POST:
+        return_dict["error"] = "Incorrect access method. Please use the menus"
+      elif request.POST["node"] not in si:
+        return_dict["error"] = "Unknown node. Please use the menus"
+      elif "step" not in request.POST :
+        return_dict["error"] = "Incomplete request. Please use the menus"
+      elif request.POST["step"] not in ["offline_disk", "scan_for_new_disk", "online_new_disk"]:
+        return_dict["error"] = "Incomplete request. Please use the menus"
+      else:
+        step = request.POST["step"]
+
+        # Which step of the replace disk are we in?
+
+        if step == "offline_disk":
+
+          #get the pool corresponding to the disk
+          #zpool offline pool disk
+          #send a screen asking them to replace the disk
+
+          pool = None
+          if serial_number in si[node]["disks"]:
+            disk = si[node]["disks"][serial_number]
+            if "pool" in disk:
+              pool = disk["pool"]
+            disk_id = disk["id"]
+          if not pool:
+            return_dict["error"] = "Could not find the storage pool on that disk. Please use the menus"
+          else:
+            '''
+            pid = -1
+            #Got the pool so now find the brick pid corresponding to the pool.
+            for vol in vil:
+              if "brick_status" not in vol:
+                continue
+              bs = vol["brick_status"]
+              for brick_name, brick_status_dict in bs.items():
+                if node in brick_name: 
+                  path = brick_status_dict["path"]
+                  r = re.search('/%s/[\S]+'%pool, path)
+                  if r:
+                    pid = brick_status_dict['pid']
+                    break
+              if pid != -1:
+                break
+            if pid != -1:
+            #issue the kill to the process here, using salt
+            '''
+
+            #issue a zpool offline pool disk-id using salt
+            client = salt.client.LocalClient()
+            cmd_to_run = 'zpool offline %s %s'%(pool, disk_id)
+            print 'Running %s'%cmd_to_run
+            #assert False
+            rc = client.cmd(node, 'cmd.run', [cmd_to_run])
+            print rc
+            #if disk_status == "Disk Missing":
+            #  #Issue a reboot now, wait for a couple of seconds for it to shutdown and then redirect to the template to wait for reboot..
+            #  pass
+            return_dict["serial_number"] = serial_number
+            return_dict["node"] = node
+            return_dict["pool"] = pool
+            return_dict["old_id"] = disk_id
+            template = "replace_disk_prompt.html"
+
+        elif step == "scan_for_new_disk":
+
+          #they have replaced the disk so scan for the new disk
+          # and prompt for a confirmation of the new disk serial number
+
+          pool = request.POST["pool"]
+          old_id = request.POST["old_id"]
+          return_dict["node"] = node
+          return_dict["serial_number"] = serial_number
+          return_dict["pool"] = pool
+          return_dict["old_id"] = old_id
+          old_disks = si[node]["disks"].keys()
+          ret, rc = fractalio.command.execute_with_rc('/opt/fractalio/generate_manifest.py /opt/fractalio/integral_view/integral_view/production/config')
+          #print ret
+          if rc != 0:
+            return_dict["error"] = "Could not regenrate the new hardware configuration. Error generating manifest. Return code %d"%rc
+            print ret
+          else:
+            ret, rc = fractalio.command.execute_with_rc('/opt/fractalio/generate_status.py /opt/fractalio/integral_view/integral_view/production/config')
+            if rc != 0:
+              return_dict["error"] = "Could not regenrate the new hardware configuration. Error generating status. Return code %d"%rc
+              print ret
+            else:
+              si = system_info.load_system_config()
+              return_dict['system_config_list'] = si
+              new_disks = si[node]["disks"].keys()
+              for disk in new_disks:
+                if disk not in old_disks:
+                  return_dict["inserted_disk_serial_number"] = disk
+                  return_dict["new_id"] = si[node]["disks"][disk]["id"]
+                  break
+              if "inserted_disk_serial_number" not in return_dict:
+                return_dict["error"] = "Could not detect any new disk."
+              else:
+                template = "replace_disk_confirm_new_disk.html"
+
+        elif step == "online_new_disk":
+
+          #they have confirmed the new disk serial number
+          #get the id of the disk and
+          #zpool replace poolname old disk new disk
+          #zpool clear poolname to clear old errors
+          #return a result screen
+          pool = request.POST["pool"]
+          old_id = request.POST["old_id"]
+          new_id = request.POST["new_id"]
+          new_serial_number = request.POST["new_serial_number"]
+          cmd_to_run = "zpool replace -f %s %s %s"%(pool, old_id, new_id)
+          print 'Running %s'%cmd_to_run
+          client = salt.client.LocalClient()
+          rc = client.cmd(node, 'cmd.run', [cmd_to_run])
+          print rc
+          cmd_to_run = "zpool set autoexpand=on %s"%pool
+          print 'Running %s'%cmd_to_run
+          rc = client.cmd(node, 'cmd.run', [cmd_to_run])
+          print rc
+          disk_id = None
+          if new_serial_number in si[node]["disks"]:
+            disk = si[node]["disks"][new_serial_number]
+            disk_id = disk["id"]
+          if disk_id:
+            cmd_to_run = 'zpool online %s %s'%(pool, disk_id)
+            print 'Running %s'%cmd_to_run
+            rc = client.cmd(node, 'cmd.run', [cmd_to_run])
+            print rc
+            return_dict["node"] = node
+            return_dict["old_serial_number"] = serial_number
+            return_dict["new_serial_number"] = new_serial_number
+            template = "replace_disk_success.html"
+          else:
+            return_dict["error"] = "Could not locate the new disk ID."
+
+        return django.shortcuts.render_to_response(template, return_dict, context_instance = django.template.context.RequestContext(request))
+        
+      '''
+      form = volume_management_forms.ReplaceNodeConfForm(request.POST)
+      if form.is_valid():
+        cd = form.cleaned_data
+
+        src_node = cd["src_node"]
+        dest_node = cd["dest_node"]
+
+        d = gluster_commands.create_replace_command_file(si, vil, src_node, dest_node)
+        if "error" in d:
+          return_dict["error"] = "Error initiating replace : %s"%d["error"]
+          return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+        else:
+          audit.audit("replace_node", "Scheduled replacement of node %s with node %s"%(src_node, dest_node), request.META["REMOTE_ADDR"])
+          return django.http.HttpResponseRedirect('/show/batch_start_conf/%s'%d["file_name"])
+      '''
+      pass
+    else:
+      if "node" not in request.POST or  "serial_number" not in request.POST:
+        return_dict["error"] = "Incorrect access method. Please use the menus"
+      else:
+        return_dict["node"] = request.POST["node"]
+        return_dict["serial_number"] = request.POST["serial_number"]
+        template = "replace_disk_conf.html"
+  return django.shortcuts.render_to_response(template, return_dict, context_instance=django.template.context.RequestContext(request))
 
 ''' 
 def replace_sled(request):

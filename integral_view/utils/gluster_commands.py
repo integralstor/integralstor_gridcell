@@ -11,6 +11,8 @@ from django.conf import settings
 import volume_info, system_info
 import xml_parse, command
 
+import fractalio
+
 def remove_node(si, node):
   ol = []
   
@@ -76,52 +78,53 @@ def build_create_or_expand_volume_command(command, si, anl, vol_type, ondisk_sto
   d = {}
   node_list = []
   num_nodes = len(anl)
-  num_disks = len(si[anl[0]]["disk_info"])
+  #num_disks = len(si[anl[0]]["disks"])
+  num_pools = len(si[anl[0]]["pools"])
   cmd = command
 
   count = 0
   if vol_type == "distributed":
     for hostname in anl:
-      for i, disk in enumerate(si[hostname]["disk_info"]):
-        node_list.append(["%s %s"%(hostname, disk["pool_name"])])
-        brick = "%s:/%s/%s/%s"%(hostname, disk["pool_name"], ondisk_storage, vol_name)
+      for i, pool in enumerate(si[hostname]["pools"]):
+        node_list.append(["%s %s"%(hostname, pool["name"])])
+        brick = "%s:/%s/%s/%s"%(hostname, pool["name"], ondisk_storage, vol_name)
         count += 1
         cmd = cmd + brick + " "
   else:
-
+    #Replicated 
     if num_nodes < repl_count:
       d["error"] = "Insufficient number of nodes to make the replica pairs"
       return d
-
-    disk_num = 1
+    pool_num = 1
     first_node = 1
     second_node = first_node + 1
     init_node = 1
 
     if num_nodes %2 == 0:
+      #Even number of nodes
       while True:
-        disk_num = 1
+        pool_num = 1
         nl = []
-        while disk_num <= num_disks:
+        while pool_num <= num_pools:
           node_name = anl[first_node-1]
           node = si[anl[first_node-1]]
           nl = []
-          a = "node %s %s"%(node_name, node["disk_info"][disk_num-1]["pool_name"])
+          a = "node %s %s"%(node_name, node["pools"][pool_num-1]["name"])
           print a
           nl.append(a)
-          brick = "%s:/%s/%s/%s"%(node_name, node["disk_info"][disk_num-1]["pool_name"], ondisk_storage, vol_name)
+          brick = "%s:/%s/%s/%s"%(node_name, node["pools"][pool_num-1]["name"], ondisk_storage, vol_name)
           cmd = cmd + brick + " "
           count += 1
 
           node_name = anl[second_node-1]
           node = si[anl[second_node-1]]
-          brick = "%s:/%s/%s/%s"%(node_name, node["disk_info"][disk_num-1]["pool_name"], ondisk_storage, vol_name)
+          brick = "%s:/%s/%s/%s"%(node_name, node["pools"][pool_num-1]["name"], ondisk_storage, vol_name)
           cmd = cmd + brick + " "
-          a = "node %s disk %s"%(node_name, node["disk_info"][disk_num-1]["pool_name"])
+          a = "node %s disk %s"%(node_name, node["pools"][pool_num-1]["name"])
           print a
           nl.append(a)
           count += 1
-          disk_num += 1
+          pool_num += 1
 
           print "------------"
 
@@ -133,13 +136,14 @@ def build_create_or_expand_volume_command(command, si, anl, vol_type, ondisk_sto
         if second_node == 1:
           break
     else:
+      #Odd number of nodes
       tl = []
       while True:
         nl = []
         node_name = anl[first_node-1]
         node = si[anl[first_node-1]]
-        brick = "%s:/%s/%s/%s"%(node_name, node["disk_info"][disk_num-1]["pool_name"], ondisk_storage, vol_name)
-        a = "node %s disk %s"%(node_name, node["disk_info"][disk_num-1]["pool_name"])
+        brick = "%s:/%s/%s/%s"%(node_name, node["pools"][pool_num-1]["name"], ondisk_storage, vol_name)
+        a = "node %s disk %s"%(node_name, node["pools"][pool_num-1]["name"])
         if a in tl:
           break
         cmd = cmd + brick + " "
@@ -152,15 +156,15 @@ def build_create_or_expand_volume_command(command, si, anl, vol_type, ondisk_sto
         disk_num = 1 if disk_num == num_disks else disk_num + 1
         node_name = anl[second_node-1]
         node = si[anl[second_node-1]]
-        brick = "%s:/%s/%s/%s"%(node_name, node["disk_info"][disk_num-1]["pool_name"], ondisk_storage, vol_name)
+        brick = "%s:/%s/%s/%s"%(node_name, node["pools"][pool_num-1]["name"], ondisk_storage, vol_name)
         cmd = cmd + brick + " "
-        a = "node %s disk %s"%(node_name, node["disk_info"][disk_num-1]["pool_name"])
+        a = "node %s disk %s"%(node_name, node["pools"][pool_num-1]["name"])
         print a
         count += 1
         tl.append(a)
         nl.append(a)
         node_list.append(nl)
-        disk_num = 1 if disk_num == num_disks else disk_num + 1
+        pool_num = 1 if pool_num == num_pools else pool_num + 1
         print "------------"
 
         if second_node + 1 > num_nodes:
@@ -169,6 +173,163 @@ def build_create_or_expand_volume_command(command, si, anl, vol_type, ondisk_sto
         else:
           first_node = second_node
           second_node = second_node + 1
+
+
+
+
+
+
+
+
+
+
+
+  '''
+  if vol_type == "distributed":
+    if raid:
+      #One pool per NODE so apportion accordingly
+      for hostname in anl:
+        node_list.append(["%s %s"%(hostname, si[hostname]["raid_pool_name"])])
+        brick = "%s:/%s/%s/%s"%(hostname, si[hostname]["raid_pool_name"], ondisk_storage, vol_name)
+        count += 1
+        cmd = cmd + brick + " "
+    else:
+      #One pool per DISK so apportion accordingly
+      for hostname in anl:
+        for i, disk in enumerate(si[hostname]["disks"]):
+          node_list.append(["%s %s"%(hostname, disk["pool"])])
+          brick = "%s:/%s/%s/%s"%(hostname, disk["pool"], ondisk_storage, vol_name)
+          count += 1
+          cmd = cmd + brick + " "
+  else:
+    #Replicated volume
+
+    if num_nodes < repl_count:
+      d["error"] = "Insufficient number of nodes to make the replica pairs"
+      return d
+
+    if raid:
+      #One pool per NODE so apportion accordingly
+      if num_nodes % 2 != 0:
+        d["error"] = "Insufficient number of nodes to make the replica pairs. Nodes can only be added in pairs."
+        return d
+      disk_num = 1
+      first_node = 1
+      second_node = first_node + 1
+      init_node = 1
+
+      while True:
+        nl = []
+        node_name = anl[first_node-1]
+        node = si[anl[first_node-1]]
+        nl = []
+        a = "node %s %s"%(node_name, node["raid_pool_name"])
+        print a
+        nl.append(a)
+        brick = "%s:/%s/%s/%s"%(node_name, node["raid_pool_name"], ondisk_storage, vol_name)
+        cmd = cmd + brick + " "
+        count += 1
+
+        node_name = anl[second_node-1]
+        node = si[anl[second_node-1]]
+        brick = "%s:/%s/%s/%s"%(node_name, node["rai_pool_name"], ondisk_storage, vol_name)
+        cmd = cmd + brick + " "
+        brick = "%s:/%s/%s/%s"%(node_name, node["raid_pool_name"], ondisk_storage, vol_name)
+        print a
+        nl.append(a)
+        count += 1
+  
+        node_list.append(nl)
+  
+        first_node = 1 if first_node == num_nodes else first_node + 2
+        second_node = 1 if second_node == num_nodes else second_node + 2
+
+        if second_node == 1:
+          break
+    else:
+      #One pool per DISK so apportion accordingly
+
+      disk_num = 1
+      first_node = 1
+      second_node = first_node + 1
+      init_node = 1
+  
+      if num_nodes %2 == 0:
+        while True:
+          disk_num = 1
+          nl = []
+          while disk_num <= num_disks:
+            node_name = anl[first_node-1]
+            node = si[anl[first_node-1]]
+            nl = []
+            a = "node %s %s"%(node_name, node["disk"][disk_num-1]["pool"])
+            print a
+            nl.append(a)
+            brick = "%s:/%s/%s/%s"%(node_name, node["disks"][disk_num-1]["pool"], ondisk_storage, vol_name)
+            cmd = cmd + brick + " "
+            count += 1
+  
+            node_name = anl[second_node-1]
+            node = si[anl[second_node-1]]
+            brick = "%s:/%s/%s/%s"%(node_name, node["disks"][disk_num-1]["pool"], ondisk_storage, vol_name)
+            cmd = cmd + brick + " "
+            a = "node %s disk %s"%(node_name, node["disks"][disk_num-1]["pool"])
+            print a
+            nl.append(a)
+            count += 1
+            disk_num += 1
+  
+            print "------------"
+  
+          node_list.append(nl)
+  
+          first_node = 1 if first_node == num_nodes else first_node + 2
+          second_node = 1 if second_node == num_nodes else second_node + 2
+  
+          if second_node == 1:
+            break
+      else:
+        tl = []
+        while True:
+          nl = []
+          node_name = anl[first_node-1]
+          node = si[anl[first_node-1]]
+          brick = "%s:/%s/%s/%s"%(node_name, node["disks"][disk_num-1]["pool"], ondisk_storage, vol_name)
+          a = "node %s disk %s"%(node_name, node["disks"][disk_num-1]["pool"])
+          if a in tl:
+            break
+          cmd = cmd + brick + " "
+          count += 1
+          tl.append(a)
+          print a
+  
+          nl.append(a)
+      
+          disk_num = 1 if disk_num == num_disks else disk_num + 1
+          node_name = anl[second_node-1]
+          node = si[anl[second_node-1]]
+          brick = "%s:/%s/%s/%s"%(node_name, node["disks"][disk_num-1]["pool"], ondisk_storage, vol_name)
+          cmd = cmd + brick + " "
+          a = "node %s disk %s"%(node_name, node["disks"][disk_num-1]["pool"])
+          print a
+          count += 1
+          tl.append(a)
+          nl.append(a)
+          node_list.append(nl)
+          disk_num = 1 if disk_num == num_disks else disk_num + 1
+          print "------------"
+  
+          if second_node + 1 > num_nodes:
+            first_node = second_node
+            second_node = init_node
+          else:
+            first_node = second_node
+            second_node = second_node + 1
+  '''
+
+
+
+
   d["cmd"] = cmd
   d["count"] = count
   d["node_list"] = node_list

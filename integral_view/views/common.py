@@ -38,6 +38,7 @@ def show(request, page, info = None):
     vil = volume_info.get_volume_info_all()
     si = system_info.load_system_config()
 
+    #assert False
     return_dict = {}
     return_dict['system_info'] = si
     return_dict['volume_info_list'] = vil
@@ -365,6 +366,11 @@ def show(request, page, info = None):
     elif page == "system_status":
 
       template = "view_system_status.html"
+
+    elif page == "disk_status":
+
+      #assert False
+      template = "view_disk_status.html"
 
     elif page == "pool_status":
 
@@ -714,7 +720,7 @@ def hardware_scan(request):
       nodes["success"] = success
       nodes["failed"] = failed
       url = 'add_nodes_result.html'
-      return django.http.HttpResponseRedirect('/show/dashboard/')
+      #return django.http.HttpResponseRedirect('/show/dashboard/')
   return django.shortcuts.render_to_response(url, return_dict, context_instance = django.template.context.RequestContext(request))
 '''
   return_dict = {}
@@ -740,7 +746,7 @@ def hardware_scan(request):
   if localhost not in si:
     return_dict["error"] = "Error retrieving local IP address info"
     return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
-  eth_list = si[localhost]["interface_info"]
+  eth_list = si[localhost]["interfaces"]
   local_ip = None
   mask = None
   for k, v in eth_list.items():

@@ -41,13 +41,13 @@
     Capacity
   </th>
 </tr>
-{% for d in  node.disks%}
+{% for serial_number, d in  node.disks.items%}
 <tr>
   <td>
-  {{d.disk_name}}
+  {{d.name}}
   </td>
   <td>
-  {{d.serial_number}}
+  {{serial_number}}
   </td>
   <td>
   {{d.capacity}}
@@ -73,13 +73,13 @@
     IP configuration
   </th>
 </tr>
-{% for inter in  node.interfaces%}
+{% for if_name, inter in  node.interfaces.items%}
 <tr>
   <td>
-  {{inter.if_name}}
+  {{if_name}}
   </td>
   <td>
-  {{inter.hwaddr}}
+  {{inter.mac_addr}}
   </td>
   <td>
   {% for inet in inter.inet %}
