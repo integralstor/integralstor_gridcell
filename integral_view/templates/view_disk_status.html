@@ -1,0 +1,191 @@
+{% extends 'logged_in_base.html' %}
+
+<script type="text/javascript" src="static/js/bootstrap-confirmation.js"></script>
+{%block autorefresh%}
+<meta http-equiv="refresh" content="30" >
+{%endblock%}
+</script>
+
+{%block contents%}
+<script type="text/javascript" >
+function toggleTable(tid, bid) {
+    
+  var show = 0;
+  if (document.getElementById(tid).style.display == "none")
+    show = 1;
+  else
+    show = 0;
+  var tables = document.getElementsByTagName("TABLE");
+  for (var i=tables.length-1; i>=0;i-=1)
+    if (tables[i].id.indexOf("table_") > -1)
+      document.getElementById(tables[i].id).style.display = "none";
+  if (show == 1) {
+    document.getElementById(tid).style.display = "table";
+    document.getElementById(bid).innerHTML = "Hide details";
+  }
+  else {
+    document.getElementById(tid).style.display = "none";
+    document.getElementById(bid).innerHTML = "Show details";
+  }
+  
+    
+}
+</script>
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+      </div>
+      <div class="modal-body" id="myModalBody">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<span id="topic-text"> Disk status </span><br>
+
+<p id="p-instruction-text"> This page will autorefresh every 30 seconds to display updates.</p>
+
+
+{% for hostname, d in system_info.items %}
+<table class=table table-bordered table-hover" >
+<tr>
+  <td>{{hostname}}</td>
+  <td><button id="button_{{forloop.counter}}" onClick="toggleTable('table_{{forloop.counter}}', 'button_{{forloop.counter}}');">Show storage details</button></td>
+</tr>
+</table>
+
+<table id="table_{{forloop.counter}}" class="table table-bordered table-condensed table-hover" style="width:800px;display:none">
+  <tr>
+    <th colspan=7>
+      Node name : {{hostname}}
+    </td>
+  </tr>
+  {% for pool in d.pools %}
+  <tr>
+    <td colspan=7>
+      ZFS Pool name : {{pool.config.pool_status.name}}
+    </td>
+  </tr>
+  <tr>
+    <td colspan=7>
+      ZFS Pool type : {%if pool.config.type == 'normal' %} Non-RAID {%elif pool.config.type == 'raidz1'%} RAID-5 {%endif%}
+    </td>
+  </tr>
+  <tr>
+    <td colspan=7>
+      ZFS Pool status : {{pool.state}} ({{pool.config.pool_status.read}} read errors, {{pool.config.pool_status.write}} write errors, {{pool.config.pool_status.cksum}} checksum errors)
+    </td>
+  </tr>
+  {% if 'zil_status' in pool.config %}
+  <tr>
+    <td colspan=7>
+      ZFS Write cache status : {{pool.config.zil_status.state}} ({{pool.config.zil_status.read}} read errors, {{pool.config.zil_status.write}} write errors, {{pool.config.zil_status.cksum}} checksum errors)
+    </td>
+  </tr>
+  {%endif%}
+  {% if pool.type == 'raidz1' %}
+  <tr>
+    <td colspan=7>
+      ZFS Pool RAID status : {{pool.raid_or_mirror_status.state}} ({{pool.raid_or_mirror_status.read}} read errors, {{pool.raid_or_mirror_status.write}} write errors, {{pool.raid_or_mirror_status.cksum}} checksum errors)
+    </td>
+  </tr>
+  {%endif%}
+  <tr>
+    <td colspan=7>
+      ZFS Pool scan status : {%for scan in pool.scan %}{{scan}}{%endfor%}
+    </td>
+  </tr>
+  <tr>
+    <td colspan=7>
+      ZFS Pool errors : {%for error in pool.errors %}{{error}}{%endfor%}
+    </td>
+  </tr>
+  <tr>
+    <th>
+      Disk serial number
+    </th>
+    <th>
+      Disk state
+    </th>
+    <th>
+      Disk Read errors
+    </th>
+    <th>
+      Disk write errors
+    </th>
+    <th>
+      Disk checksum errors
+    </th>
+    <th>
+      Action
+    </th>
+    <th>
+      S.M.A.R.T status
+    </th>
+  </tr>
+  {% for component in pool.config.components %}
+  <tr>
+    <td>
+      {{component.name}}
+    </td>
+    <td>
+      {{component.state}}
+    </td>
+    <td>
+      {{component.read}}
+    </td>
+    <td>
+      {{component.write}}
+    </td>
+    <td>
+      {{component.cksum}}
+    </td>
+        <td>
+        <form method="POST" action="/replace_disk/">
+        <input type="hidden" name="node" value="{{hostname}}">
+        <input type="hidden" name="serial_number" value="{{serial_number}}">
+        <input type="hidden" name="step" value="offline_disk">
+        {% if disk.status != 'PASSED' %}
+        <button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');"> Replace (swap out) this disk </button>
+        {%else%}
+        <button type="submit" class="btn " onClick ="$('#processing').modal('show');"> Replace (swap out) this disk </button>
+      {%endif%}
+        </form>
+        </td>
+    {% for serial_number, disk in d.disks.items %}
+      {%if disk.id == component.name%}
+        <td>
+          {{disk.status|title}}
+        </td>
+      {%endif%}
+    {%endfor%}
+  </tr>
+  {%endfor%}
+  {% if 'replacements' in pool.config %}
+  <tr>
+    <td colspan=7>
+      Disk with id {{pool.config.replacements.0.name}} is being replaced by a disk with id {{pool.config.replacements.1.name}}
+    </td>
+  </tr>
+  {%endif%}
+  {%endfor%}
+</table>
+{%endfor%}
+{%endblock%}
+{%block help_header%}
+Disk status help
+{%endblock%}
+{%block help_body%}
+<p>Help about disk status…</p>
+{%endblock%}
+
