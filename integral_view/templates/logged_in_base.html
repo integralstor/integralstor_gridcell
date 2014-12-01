@@ -9,7 +9,7 @@
   <link rel="stylesheet" type="text/css" href="/static/css/modify_bootstrap.css">
   <link rel="stylesheet" type="text/css" href="/static/css/a.css">
 
-  <title> {%block title%}fractal view administration console{%endblock%}</title>
+  <title> {%block title%}IntegralView administration console{%endblock%}</title>
   {%block autorefresh %}{%endblock%}
 <script type="text/javascript">
 var auto_refresh = setInterval(
@@ -66,6 +66,8 @@ function ()
               <li><span>Configuration</span></li>
               -->
               <li><a href="/show/system_config/">Platform configuration</a></li>
+              <li class="divider"></li>
+              <li style="letter-spacing:1px"><a href="/show/disk_status" data-toggle="tooltip" title="View current status of all disks" style="letter-spacing:1px">Disk status</a></li>
             </ul>
           </li>
           <li class="dropdown">

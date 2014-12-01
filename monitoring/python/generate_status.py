@@ -8,8 +8,9 @@ def _gen_status_info(path):
 
   # First load the status from all nodes
   local = salt.client.LocalClient()
-  sd = local.cmd('*', 'fractalio.status')
+  sd = local.cmd('*', 'fractalio_status.status')
   if not sd:
+    print 'Did not get a response from salt'
     return -1, None
   #print "Salt returned status"
   #print sd
@@ -38,29 +39,28 @@ def _gen_status_info(path):
     else:
 
       # Process disk information
-      disks = []
-      for disk in d["disk_info"]:
+      disks = {}
+      for disk_sn, disk in d["disks"].items():
         dd = {} 
-        disk_sn = disk["serial_number"]
-        dd["serial_number"] = disk_sn
-        dd["capacity"] = disk["capacity"]
-        if disk_sn in sd[hostname]["disk_status"]:
-          dd["status"] = sd[hostname]["disk_status"][disk_sn]["status"] 
+        #disk_sn = disk["serial_number"]
+        #dd["serial_number"] = disk_sn
+        #dd["capacity"] = disk["capacity"]
+        if disk_sn in sd[hostname]["disks"]:
+          dd["status"] = sd[hostname]["disks"][disk_sn]["status"] 
           if dd["status"] != 'PASSED':
-            node_status = "Degraded"
+            node_status = 1
             temp_d["errors"].append("Disk with serial number %s on node %s is reporting SMART errors."%(disk_sn, hostname))
-          dd["disk_name"] = sd[hostname]["disk_status"][disk_sn]["disk_name"] 
+          dd["name"] = sd[hostname]["disks"][disk_sn]["name"] 
         else:
           dd["status"] = "Disk Missing"
-          node_status = "Degraded"
+          node_status = 1
           temp_d["errors"].append("Disk with serial number %s on node %s seems to be missing."%(disk_sn, hostname))
-        disks.append(dd)
-      for td in sd[hostname]["disk_status"].keys():
+        disks[disk_sn] = dd
+      for td in sd[hostname]["disks"].keys():
         new_disk = True
-        for ad in d["disk_info"]:
-          if ad["serial_number"] == td:
-            new_disk = False
-            break
+        if td in d["disks"]:
+          new_disk = False
+          break
         if new_disk:
           temp_d["errors"].append("New disk detected. Disk with serial number %s on node %s seems to be new."%(td, hostname))
           node_status = 2
@@ -68,27 +68,28 @@ def _gen_status_info(path):
 
 
       # Process interface information
-      interfaces = []
-      for ifname, ifdict in d["interface_info"].items():
+      interfaces = {}
+      for ifname, ifdict in d["interfaces"].items():
         id = {}
-        if ifname in sd[hostname]["interface_status"]:
-          if sd[hostname]["interface_status"][ifname]["up"]:
+        if ifname in sd[hostname]["interfaces"]:
+          if sd[hostname]["interfaces"][ifname]["up"]:
             id["status"] = "up"
           else:
             id["status"] = "down"
-          if not sd[hostname]["interface_status"][ifname]["up"] :
-            node_status = "Degraded"
+          if not sd[hostname]["interfaces"][ifname]["up"] :
+            node_status = 1
             temp_d["errors"].append("Interface %s on node %s is not up."%(ifname, hostname))
-          id["if_name"] = ifname
-          if "inet" in sd[hostname]["interface_status"][ifname]:
-            id["inet"] = sd[hostname]["interface_status"][ifname]["inet"]
-          id["hwaddr"] = sd[hostname]["interface_status"][ifname]["hwaddr"]
+          #id["if_name"] = ifname
+          if "inet" in sd[hostname]["interfaces"][ifname]:
+            id["inet"] = sd[hostname]["interfaces"][ifname]["inet"]
+          #id["hwaddr"] = sd[hostname]["interfaces"][ifname]["hwaddr"]
           
         else:
           id["status"] = "Interface Missing"
-          node_status = "Degraded"
+          node_status = 1
           temp_d["errors"].append("Interface with number %s on node %s seems to be missing."%(ifname, hostname))
-        interfaces.append(id)
+        interfaces[ifname] = id
+        #interfaces.append(id)
       temp_d["interfaces"] = interfaces
 
     temp_d["node_status"] = node_status
@@ -110,6 +111,8 @@ def _gen_status_info(path):
       temp_d["memory"] = sd[hostname]["mem_info"]
     if "disk_usage" in sd[hostname]:
       temp_d["disk_usage"] = sd[hostname]["disk_usage"]
+    if "pools" in sd[hostname]:
+      temp_d["pools"] = sd[hostname]["pools"]
     if "load_avg" in sd[hostname]:
       # To get around a django quirk of not recognising hyphens in dicts
       sd[hostname]["load_avg"]["15_min"] = sd[hostname]["load_avg"]["15-min"]
@@ -130,6 +133,7 @@ def _gen_status_info(path):
       temp_d["fqdn"] = d["fqdn"]
     status_dict[hostname]  = temp_d
 
+  #print status_dict
   return 0, status_dict
 
 def gen_status(path):
@@ -166,7 +170,8 @@ def main():
     rc = gen_status(os.path.normpath(sys.argv[1]))
     print rc
   else:
-    rc = gen_status('/home/bkrram/fractal/integral_view/integral_view/devel/config')
+    #rc = gen_status('/home/bkrram/fractal/integral_view/integral_view/devel/config')
+    rc = gen_status('/tmp')
     print rc
 
 if __name__ == "__main__":

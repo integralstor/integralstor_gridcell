@@ -3,7 +3,7 @@ from integral_view.views.iscsi import iscsi_display_global_config, iscsi_display
 from integral_view.views.admin_auth  import login, logout, change_admin_password, configure_email_settings 
 from integral_view.views.trusted_pool_setup  import add_nodes, remove_node
 from integral_view.views.volume_creation import volume_creation_wizard, create_volume, create_volume_conf
-from integral_view.views.volume_management import volume_specific_op , expand_volume, replace_node, set_volume_options, set_volume_quota, delete_volume
+from integral_view.views.volume_management import volume_specific_op , expand_volume, replace_node, set_volume_options, set_volume_quota, delete_volume, replace_disk
 from integral_view.views import perform_op
 from integral_view.views.common import require_login, show, refresh_alerts, raise_alert, internal_audit, configure_ntp_settings, del_email_settings, reset_to_factory_defaults, flag_node, hardware_scan, accept_manifest
 from integral_view.views.log_management import download_vol_log, download_sys_log, rotate_log, view_rotated_log_list, view_rotated_log_file, edit_integral_view_log_level
@@ -69,6 +69,7 @@ urlpatterns = patterns('',
     url(r'^auth_server_settings/', require_login(samba_server_settings)),
     url(r'^save_samba_server_settings/', require_login(save_samba_server_settings)),
     url(r'^replace_node/', require_login(replace_node)),
+    url(r'^replace_disk/', require_login(replace_disk)),
     url(r'^edit_integral_view_log_level/', require_login(edit_integral_view_log_level)),
     url(r'^set_volume_options/', require_login(set_volume_options)),
     url(r'^set_volume_quota/', require_login(set_volume_quota)),

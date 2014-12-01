@@ -21,7 +21,7 @@ Node name : {{node_name}}
 Disk information
 </th>
 <td>
-{%for disk in node.disk_info %}
+{%for disk in node.disks %}
 Disk {{forloop.counter1}} : {{disk.capacity}}<br>
 {%endfor%}
 </td>
@@ -31,7 +31,7 @@ Disk {{forloop.counter1}} : {{disk.capacity}}<br>
 Network interface information
 </th>
 <td>
-{% for nic_name, nic in node.interface_info.items %}
+{% for nic_name, nic in node.interfaces.items %}
 Interface {{forloop.counter1}} IP addr: {{nic.ip}}<br>
 {%endfor%}
 </td>

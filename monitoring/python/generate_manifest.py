@@ -3,16 +3,27 @@
 import salt.client
 import json, os, datetime, shutil, sys
 import lock
+import pprint
 
 def _gen_manifest_info():
   local = salt.client.LocalClient()
-  data = local.cmd('*', 'grains.item', ['disk_info', 'hwaddr_interfaces', 'mem_total', 'fqdn', 'cpu_model'])
+  data = local.cmd('*', 'grains.item', ['hwaddr_interfaces', 'mem_total', 'fqdn', 'cpu_model'])
+  dd = local.cmd('*', 'fractalio_status.disk_info')
+  for node, diskinfo in dd.items():
+    data[node]["disks"] = diskinfo
+  #print data
+  #print "disk info"
+  #print dd
+  pp = pprint.PrettyPrinter(indent=4)
+  #pp.pprint(data)
   #print data
   if not data:
+    print "Error getting grains"
     return -1, None
   ret = {}
   for k, v in data.items():
-    v['interface_info'] = {}
+    #print k
+    v['interfaces'] = {}
     #Tweak the key names
     if v and 'hwaddr_interfaces' in v and v['hwaddr_interfaces'] :
       for int_name, mac_addr in v['hwaddr_interfaces'].items():
@@ -24,12 +35,13 @@ def _gen_manifest_info():
         else:
           d['ip_addr'] = []
         '''
-        v['interface_info'][int_name] = d 
+        v['interfaces'][int_name] = d 
 
       v.pop('hwaddr_interfaces', None)
       #v.pop('ip_interfaces', None)
     ret[k] = v
-    return 0, ret
+    #print ret
+  return 0, ret
 
 def gen_manifest(path):
   if not lock.get_lock('generate_manifest'):
@@ -67,9 +79,12 @@ def main():
   if num_args > 1:
     rc = gen_manifest(os.path.normpath(sys.argv[1]))
   else:
-    rc = gen_manifest('/home/bkrram/fractal/integral_view/integral_view/devel/config')
+    #rc = gen_manifest('/home/bkrram/fractal/integral_view/integral_view/devel/config')
+    rc = gen_manifest('/tmp')
   #print rc
-  print rc
+  #print rc
+  return rc
 
 if __name__ == "__main__":
-  main()
+  ret = main()
+  sys.exit(ret)

@@ -5,18 +5,9 @@ import xml_parse, gluster_commands
 import re, random, sys, os
 
 from django.conf import settings
-from django.conf import settings
-
-'''
-sys.path.insert(0, '/opt/fractal/gluster_admin')
-sys.path.insert(0, '/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin')
-'''
 path = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, '%s/../..'%path)
-
 os.environ['DJANGO_SETTINGS_MODULE'] = 'integral_view.settings'
-
-
 
 def get_volume_info_all():
 

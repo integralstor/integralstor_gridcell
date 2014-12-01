@@ -1,7 +1,6 @@
 
 import socket
 
-from django.contrib import auth
 from django.conf import settings
 import django, django.template
 
@@ -196,7 +195,10 @@ def add_nodes(request):
       return django.shortcuts.render_to_response('add_servers_form.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
     # Actual command processing begins
-    iv_logging.debug("Initiating add nodes for %s"%' '.join(nl))
+    dbg_node_list = []
+    for n in nl:
+      dbg_node_list.append(n.keys()[0])
+    iv_logging.debug("Initiating add nodes for %s"%' '.join(dbg_node_list))
     ol = gluster_commands.add_servers(nl)
     audit_str = ""
     for d in ol:

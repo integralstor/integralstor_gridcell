@@ -5,17 +5,6 @@ import tempfile, sys, os
 from django.conf import settings
 import command, host_info, networking, filesize
 
-'''
-if len(sys.argv) < 2:
-  raise Exception("No settings.py path provided!")
-sys.path.insert(0, sys.argv[1])
-'''
-path = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, '%s/../..'%path)
-os.environ['DJANGO_SETTINGS_MODULE']='integral_view.settings'
-BASEPATH = settings.BATCH_COMMANDS_DIR
-
-production = settings.PRODUCTION
 
 
 def get_text(node, subnode):
@@ -151,7 +140,7 @@ def get_volume_list():
   else:
     temp = tempfile.TemporaryFile()
     try:
-      cmd = "/usr/sbin/gluster volume info all --xml"
+      cmd = "/usr/local/sbin/gluster volume info all --xml"
       r = command.execute(cmd)
       if r:
         #print "cmd out is "
@@ -210,7 +199,7 @@ def get_volume_list():
     else:
       temp = tempfile.TemporaryFile()
       try:
-        cmd = "/usr/sbin/gluster volume status %s detail --xml"%vol["name"]
+        cmd = "/usr/local/sbin/gluster volume status %s detail --xml"%vol["name"]
         print cmd
         r = command.execute(cmd)
         if r:
@@ -253,6 +242,7 @@ def get_volume_list():
       d["size_free"] = int(node.find('./sizeFree').text)
       d["hostname"] = node.find('./hostname').text
       d["path"] = node.find('./path').text
+      d["pid"] = node.find('./pid').text
       brick_name = "%s:%s"%(d["hostname"], d["path"])
       bd[brick_name] = d
       if d["status"] == 1:
@@ -329,7 +319,7 @@ def get_volume_list():
     else:
       temp = tempfile.TemporaryFile()
       try:
-        cmd = "/usr/sbin/gluster volume status %s --xml"%vol["name"]
+        cmd = "/usr/local/sbin/gluster volume status %s --xml"%vol["name"]
         r = command.execute(cmd)
         if r:
           #print "cmd out is "
@@ -399,7 +389,7 @@ def get_peer_list():
   else:
     #temp = tempfile.TemporaryFile()
     try:
-      cmd = "/usr/sbin/gluster peer status --xml"
+      cmd = "/usr/local/sbin/gluster peer status --xml"
       print "executing %s"%cmd
       r = command.execute(cmd)
       if r:
@@ -447,6 +437,11 @@ def get_vol_quotas(root):
   return ret_dict
 
 def main():
+  path = os.path.dirname(os.path.abspath(__file__))
+  sys.path.insert(0, '%s/../..'%path)
+  os.environ['DJANGO_SETTINGS_MODULE']='integral_view.settings'
+  BASEPATH = settings.BATCH_COMMANDS_DIR
+  production = settings.PRODUCTION
   get_volume_list()
 
 if __name__ == "__main__":
