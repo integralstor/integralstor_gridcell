@@ -22,6 +22,8 @@
 <span id="topic-text">Volumes -> Delete a volume</span><br>
 {% elif op == 'expand_volume' %}
 <span id="topic-text">Volumes -> Expand a volume</span><br>
+{% elif op == 'view_snapshots' %}
+<span id="topic-text">Snapshots -> View snapshots</span><br>
 {% elif op == 'vol_quota' %}
 <span id="topic-text">Volumes -> Set volume quota</span><br>
 {% elif op == 'vol_stop' %}
@@ -84,6 +86,8 @@ No volumes detected
         <button type="submit" class="btn btn-primary">Check rebalance >></button>
 {% elif op == 'vol_options' %}
         <button type="submit" class="btn btn-primary">Set options >></button>
+{% elif op == 'view_snapshots' %}
+        <button type="submit" class="btn btn-primary">View snapshots >></button>
 {% elif op == 'rotate_log' %}
         <button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Rotate log>></button>
 {% else  %}

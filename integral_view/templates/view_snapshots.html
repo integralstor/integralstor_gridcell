@@ -1,0 +1,64 @@
+{% extends 'logged_in_base.html' %}
+
+{%block contents%}
+
+
+<span id="topic-text">Snapshots -> View Snapshots </span><br>
+
+{% if conf %}
+<i>{{conf}}</i>
+{%endif%}
+
+{% if not snapshots %}
+No snapshots appear to have been created. Click <a href="/create_snapshot/"> here</a> to create a new snapshot.
+{%else %}
+<div style="width:95%;position: relative; margin: 5px 0px; padding: 9px 9px 4px; background-color: rgb(255, 255, 255); border: 1px solid rgb(221, 221, 221); border-radius: 4px 4px 4px 4px;">
+<table class="table table-striped">
+<thead>
+<tr>
+<th>
+Snapshot name
+</th>
+<th>
+Snapshot date
+</th>
+<th>
+Status
+</th>
+</thead>
+{%for d in snapshots %}
+<tr>
+  <td>
+    {{d.name}}
+  </td>
+  <td>
+    {{d.create_time}}
+  </td>
+  <td>
+    {% if d.status == "Started" %}
+      Activated
+    {%else%}
+      Deactivated
+    {%endif%}
+
+  </td>
+  <td>
+    {% if d.status == "Started" %}
+    <a href="/deactivate_snapshot?name={{d.name}}" role="button" class="btn btn-default"> Deactivate snapshot</a>
+    {%else%}
+    <a href="/activate_snapshot?name={{d.name}}" role="button" class="btn btn-default"> Activate snapshot</a>
+    {%endif%}
+  </td>
+</tr>
+{%endfor%}
+</table>
+</div>
+{%endif%}
+
+{%endblock%}
+{%block help_header%}
+Snapshots list help
+{%endblock%}
+{%block help_body%}
+  <p>Help about snapshots list…</p>
+{%endblock%}
