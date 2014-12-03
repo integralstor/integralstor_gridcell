@@ -26,20 +26,9 @@ function ()
 <body>
   <table id="header_table"  width="100%" border=0>
     <tr>
-<!--      <td align="left" style="padding:10px"> <img src="/static/images/logo.jpg" style="padding:10px;border:solid 0px;width:140px;height:80px;float:left;"></td>-->
       <td align="left" style="padding:10px"> <img src="/static/images/integralview.png" style="border:solid 0px;width:80px;height:40px;"></td>
-<!--      <td style="text-align:center"> <span id="header-text">{%block heading%}fractal-view<sup>&copy;</sup> administration console{%endblock%}</span></td>-->
       <td align="right">
         <img src="/static/images/logo.jpg" style="border:solid 0px;width:140px;height:80px;float:right;">
-<!--
-        <div id="alerts" style="margin:5px;position:relative;float:right;text-align:right;border:solid 0px"> 
-        <a  href="/show/alerts/" role="button" class="btn btn-default"> View alerts</a> 
-        </div>
-        <div style="margin:5px;position:relative;float:right;text-align:right;border:solid 0px">
-        <a href="#help" role="button" class="btn btn-default " data-toggle="modal">Help!</a>
-        <a  href="/logout/" role="button" class="btn btn-default"> Logout</a> 
-        </div>
--->
       </td>
     </tr>
   </table>
@@ -120,6 +109,13 @@ function ()
           </li>
           <li class="divider-vertical"></li>
           <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Snapshots<b class="caret"></b></a>
+            <ul class="dropdown-menu">
+              <li><a href="/volume_specific_op/view_snapshots/">View snapshots</a></li>
+            </ul>
+          </li>
+          <li class="divider-vertical"></li>
+          <li class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">ISCSI access <b class="caret"></b></a>
             <ul class="dropdown-menu">
               <li><a href="/iscsi_view_target_global_config">Global configuration for targets</a></li>
@@ -182,109 +178,6 @@ function ()
       </div> <!-- container-fluid -->
     </nav>
   </div>
-<!--        
-      <div class="navbar-inner" >
-        <ul class="nav">
-          <li class="dropdown">
-            <a class="dropdown-toggle"  data-toggle="dropdown" href="#">View</a>
-            <ul class="dropdown-menu">
-              <li><a href="/show/system_status" data-toggle="tooltip" title="View current system status">System status</a></li>
-              <li class="dropdown-submenu"><a href="#">Configuration</a>
-                <ul class="dropdown-menu">
-                  <li><a href="/show/system_config/">System configuration</a></li>
-                  <li><a href="/show/volume_info_all/">Volume information</a></li>
-                </ul>
-              </li>
-            </ul>
-          </li>
-          <li class="divider-vertical"></li>
-          <li class="dropdown">
-            <a class="dropdown-toggle"  data-toggle="dropdown" href="#">Storage pool</a>
-            <ul class="dropdown-menu">
-              <li><a href="/add_servers" data-toggle="tooltip" title="Add storage to the pool">Add storage</a></li>
-              <li><a href="/server_op/remove_sled" date-toggle="tooltip" title="Remove storage from the pool">Remove storage</a></li>
-            </ul>
-          </li>
-          <li class="divider-vertical"></li>
-          <li class="dropdown">
-            <a class="dropdown-toggle"  data-toggle="dropdown" href="#">Volumes</a>
-            <ul class="dropdown-menu">
-              <li><a href="/volume_creation_wizard/select_vol_name" date-toggle="tooltip" title="Create a storage volume">Create a volume</a></li>
-              <li><a href="/volume_specific_op/vol_start/">Start a volume</a></li>
-              <li><a href="/volume_specific_op/vol_stop/">Stop a volume</a></li>
-              <li><a href="/volume_specific_op/vol_delete/">Delete a volume</a></li>
-              <li><a href="/volume_specific_op/expand_volume/">Expand a volume</a></li>
-              <li><a href="/volume_specific_op/vol_options/">Set volume options</a></li>
-              <li class="divider"></li>
-              <li class="dropdown-submenu"><a href="#">Background operations </a>
-                <ul class="dropdown-menu">
-                  <li><a href="/replace_sled/">Replace a sled</a></li>
-                  <li><a href="/volume_specific_op/start_rebalance/">Start volume rebalance</a></li>
-                  <li class="divider"></li>
-                  <li><a href="/show/batch_status">View status of background processes</a></li>
-                </ul>
-            </ul>
-          </li>
-          <li class="divider-vertical"></li>
-          <li class="dropdown">
-            <a class="dropdown-toggle"  data-toggle="dropdown" href="#">Other services</a>
-            <ul class="dropdown-menu">
-              <li><a href="/show/ntp_settings/">Configure NTP</a></li>
-              <li><a href="/show/email_settings/">Email settings</a></li>
-            </ul>
-          </li>
-          <li class="divider-vertical"></li>
-          <li class="dropdown">
-            <a class="dropdown-toggle"  data-toggle="dropdown" href="#">Shares</a>
-            <ul class="dropdown-menu">
-              <li><a href="/samba_server_settings">Authentication settings</a></li>
-              <li><a href="/display_shares">View shares</a></li>
-              <li><a href="/create_share">Create a share</a></li>
-            </ul>
-          </li>
-          <li class="divider-vertical"></li>
-          <li class="dropdown">
-            <a class="dropdown-toggle"  data-toggle="dropdown" href="#">Logging</a>
-            <ul class="dropdown-menu">
-              <li class="dropdown-submenu"><a href="#">Volume logs</a>
-                <ul class="dropdown-menu">
-                  <li><a href="/volume_specific_op/rotate_log">Rotate volume log</a></li>
-                  <li><a href="/download_vol_log">Download volume logs</a></li>
-                </ul>
-              </li>
-              <li class="dropdown-submenu"><a href="#">System logs</a>
-                <ul class="dropdown-menu">
-                  <li><a href="/download_sys_log">Download system logs</a></li>
-                </ul>
-              </li>
-              <li class="dropdown-submenu"><a href="#">Alerts</a>
-                <ul class="dropdown-menu">
-                  <li><a href="/show/alerts">View current alerts</a></li>
-                  <li><a href="/rotate_log/alerts">Rotate alerts log</a></li>
-                  <li><a href="/view_rotated_log_list/alerts">View older alerts</a></li>
-                </ul>
-              </li>
-              <li class="dropdown-submenu"><a href="#">Audit trail</a>
-                <ul class="dropdown-menu">
-                  <li><a href="/show/audit_trail/">View current audit trail</a></li>
-                  <li><a href="/rotate_log/audit_trail">Rotate audit trail</a></li>
-                  <li><a href="/view_rotated_log_list/audit_trail">View older audit trails</a></li>
-                </ul>
-              </li>
-            </ul>
-          </li>
-          <li class="divider-vertical"></li>
-          <li class="dropdown">
-            <a class="dropdown-toggle"  data-toggle="dropdown" href="#">Admin</a>
-            <ul class="dropdown-menu">
-              <li><a href="/change_admin_password/">Change admin password</a></li>
-              <li><a href="/reset_to_factory_defaults/">Reset to factory defaults</a></li>
-            </ul>
-          </li>
-        </ul>
-    </div>
-  </div>
--->
 
 
 

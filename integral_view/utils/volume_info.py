@@ -8,6 +8,8 @@ from django.conf import settings
 path = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, '%s/../..'%path)
 os.environ['DJANGO_SETTINGS_MODULE'] = 'integral_view.settings'
+production = settings.PRODUCTION
+
 
 def get_volume_info_all():
 
@@ -68,6 +70,17 @@ def get_volumes_on_node(hostname, vil):
     if hostname in bl:
       vol_list.append(vol["name"])
   return vol_list
+
+def get_snapshots(vol_name):
+
+  prod_command = 'gluster snapshot info volume %s  --xml'%vol_name
+  dummy_command = "%s/view_snapshots.xml"%settings.BASE_FILE_PATH
+  d = gluster_commands.run_gluster_command(prod_command, dummy_command, "Starting volume %s"%vol_name)
+  l = None
+  if d:
+    if d["op_status"]["op_ret"] == 0:
+      l = xml_parse.get_snapshots(d["root"])
+  return l
 
 def get_removable_sled_list(scl, vil):
   #Return a list of sleds that can be chosen to be removed - a sled can be removed if both its nodes are in the cluster and no volumes have bricks on either node

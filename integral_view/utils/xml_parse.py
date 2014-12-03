@@ -375,6 +375,21 @@ def get_volume_list():
   #assert False
   return vl
 
+def get_snapshots(root):
+  l = []
+  t = root.findall('.//snapshots/snapshot')
+  if t:
+    for node in t:
+      d = {}
+      d["name"] = get_text(node, "name")
+      d["create_time"] = get_text(node, "createTime")
+      x = node.find('./snapVolume')
+      if x:
+        d["status"] = get_text(x, "status")
+      l.append(d)
+  return l
+    
+
 def get_peer_list():
   production = True
   try:

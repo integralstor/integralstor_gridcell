@@ -121,6 +121,10 @@ def volume_specific_op(request, operation, vol_name=None):
         form = volume_management_forms.VolumeQuotaForm(initial=init)
         return_dict["form"] = form
         return django.shortcuts.render_to_response('edit_volume_quota.html', return_dict, context_instance=django.template.context.RequestContext(request))
+      elif operation == 'view_snapshots':
+        l = volume_info.get_snapshots(vol_name)
+        return_dict["snapshots"] = l
+        return django.shortcuts.render_to_response('view_snapshots.html', return_dict, context_instance=django.template.context.RequestContext(request))
       elif operation == "vol_options":
         vol_dict = volume_info.get_volume_info(vil, vol_name)
         d = {}
