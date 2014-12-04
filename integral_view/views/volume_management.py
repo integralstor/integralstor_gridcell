@@ -622,6 +622,43 @@ def deactivate_snapshot(request):
           return_dict["error"] = "Could not detect the status of the snapshot deactivation. Please try again."
 
   return django.shortcuts.render_to_response(template, return_dict, context_instance = django.template.context.RequestContext(request))
+
+def activate_snapshot(request):
+
+  return_dict = {}
+  form = None
+  template = "logged_in_error.html"
+
+  if request.method == "GET":
+    # Disallowed GET method so return error.
+    return_dict["error"] = "Invalid request. Please use the menu options."
+  else:
+    # POST method processing
+    if "snapshot_name" not in request.POST:
+      return_dict["error"] = "Snapshot name not specified. Please use the menu options."
+    else:
+      snapshot_name = request.POST["snapshot_name"]
+      d = gluster_commands.activate_snapshot(snapshot_name)
+      if d:
+        #assert False
+        if "op_status" in d:
+          if d["op_status"]["op_errno"] == 0:
+            return_dict["conf"] = "Successfully activated snapshot - %s"%snapshot_name
+            return_dict["op"] = "Activate snapshot"
+            audit_str = "Activated snapshot %s."%snapshot_name
+            audit.audit("activate_snapshot", audit_str, request.META["REMOTE_ADDR"])
+            template = "snapshot_op_result.html"
+          else:
+            err = "Error activating the snapshot :"
+            if "opErrstr" in d:
+              err += d["opErrstr"]
+            if "error_list" in d:
+              err += " ".join(d["error_list"])
+            return_dict["error"] = err
+        else:
+          return_dict["error"] = "Could not detect the status of the snapshot activation. Please try again."
+
+  return django.shortcuts.render_to_response(template, return_dict, context_instance = django.template.context.RequestContext(request))
   
 def expand_volume(request):
 
