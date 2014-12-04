@@ -18,7 +18,7 @@
         <volCount>1</volCount>
         <snapVolume>
           <name>88324dc2cdd94f7e9d5b2010ab1578eb</name>
-          <status>Started</status>
+          <status>Stopped</status>
         </snapVolume>
       </snapshot>
     </snapshots>
