@@ -580,64 +580,49 @@ def replace_disk(request):
         template = "replace_disk_conf.html"
   return django.shortcuts.render_to_response(template, return_dict, context_instance=django.template.context.RequestContext(request))
 
-''' 
-def replace_sled(request):
+
+def deactivate_snapshot(request):
 
   return_dict = {}
-
   form = None
-
-  vil = volume_info.get_volume_info_all()
-  scl = system_info.load_system_config()
-  return_dict['system_config_list'] = scl
-
-  display_node_list = system_info.generate_display_node_list(scl)
-  return_dict["display_node_list"] = display_node_list
-  return_dict['colour_dict'] = settings.DISPLAY_COLOURS
-  
-  d = volume_info.get_replacement_sled_info(scl, vil)
-  return_dict["src_sled_list"] = d["src_sled_list"]
-  return_dict["dest_sled_list"] = d["dest_sled_list"]
+  template = "logged_in_error.html"
 
   if request.method == "GET":
-    form = volume_management_forms.ReplaceSledForm(d["src_sled_list"], d["dest_sled_list"])
-    return_dict["form"] = form
-    return_dict["supress_error_messages"] = True
-    #print "form errors ----->"
-    #print form.errors
-    return django.shortcuts.render_to_response('replace_sled_choose_sled.html', return_dict, context_instance=django.template.context.RequestContext(request))
+    # Disallowed GET method so return error.
+    return_dict["error"] = "Invalid request. Please use the menu options."
   else:
-    if "conf" in request.POST:
-      form = volume_management_forms.ReplaceSledConfForm(request.POST)
-      if form.is_valid():
-        cd = form.cleaned_data
-
-        src_sled = cd["src_sled"]
-        dest_sled = cd["dest_sled"]
-
-        d = gluster_commands.create_replace_command_file(scl, vil, int(src_sled), int(dest_sled))
-        if "error" in d:
-          return_dict["error"] = "Error initiating replace : %s"%d["error"]
-          return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
-        else:
-          audit.audit("replace_sled", "Scheduled replacement of sled %d with sled %d"%(src_sled, dest_sled), request.META["REMOTE_ADDR"])
-          return django.http.HttpResponseRedirect('/show/batch_start_conf/%s'%d["file_name"])
+    # POST method processing
+    if "snapshot_name" not in request.POST:
+      return_dict["error"] = "Snapshot name not specified. Please use the menu options."
+    elif "conf" not in request.POST:
+      #Get a conf from the user before we proceed
+      return_dict["snapshot_name"] = request.POST["snapshot_name"]
+      template = "deactivate_snapshot_conf.html"
     else:
-      form = volume_management_forms.ReplaceSledForm(request.POST, src_sled_list = d["src_sled_list"], dest_sled_list = d["dest_sled_list"])
-      if form.is_valid():
-        cd = form.cleaned_data
-        src_sled = cd["src_sled"]
-        dest_sled = cd["dest_sled"]
-        return_dict["src_sled"] = src_sled
-        return_dict["dest_sled"] = dest_sled
-        return django.shortcuts.render_to_response('replace_sled_conf.html', return_dict, context_instance=django.template.context.RequestContext(request))
-      else:
-        return_dict["form"] = form
-        return django.shortcuts.render_to_response('replace_sled_choose_sled.html', return_dict, context_instance=django.template.context.RequestContext(request))
+      #Got a conf from the user so proceed
+      snapshot_name = request.POST["snapshot_name"]
+      d = gluster_commands.deactivate_snapshot(snapshot_name)
+      if d:
+        #assert False
+        if "op_status" in d:
+          if d["op_status"]["op_errno"] == 0:
+            return_dict["conf"] = "Successfully deactivated snapshot - %s"%snapshot_name
+            return_dict["op"] = "Deactivate snapshot"
+            audit_str = "Deactivated snapshot %s."%snapshot_name
+            audit.audit("deactivate_snapshot", audit_str, request.META["REMOTE_ADDR"])
+            template = "snapshot_op_result.html"
+          else:
+            err = "Error deactivating the snapshot :"
+            if "opErrstr" in d:
+              err += d["opErrstr"]
+            if "error_list" in d:
+              err += " ".join(d["error_list"])
+            return_dict["error"] = err
+        else:
+          return_dict["error"] = "Could not detect the status of the snapshot deactivation. Please try again."
 
-''' 
-
-
+  return django.shortcuts.render_to_response(template, return_dict, context_instance = django.template.context.RequestContext(request))
+  
 def expand_volume(request):
 
   return_dict = {}

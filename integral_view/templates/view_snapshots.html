@@ -44,10 +44,15 @@ Status
   </td>
   <td>
     {% if d.status == "Started" %}
-    <a href="/deactivate_snapshot?name={{d.name}}" role="button" class="btn btn-default"> Deactivate snapshot</a>
+    <form  role="form" action="/deactivate_snapshot/" method="post">
+    <input type="hidden" name="snapshot_name" value="{{d.name}}">
+    <input class="btn btn-primary" type="submit" value="Deactivate this snapshot >>">
     {%else%}
-    <a href="/activate_snapshot?name={{d.name}}" role="button" class="btn btn-default"> Activate snapshot</a>
+    <form  role="form" action="/activate_snapshot/" method="post">
+    <input type="hidden" name="snapshot_name" value="{{d.name}}">
+    <input class="btn btn-primary" type="submit" value="Activate this snapshot >>">
     {%endif%}
+    </form>
   </td>
 </tr>
 {%endfor%}
