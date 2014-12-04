@@ -13,6 +13,14 @@ import xml_parse, command
 
 import fractalio
 
+def deactivate_snapshot(snapshot_name):
+
+  prod_command = 'gluster --mode=script snapshot deactivate  %s --xml'%snapshot_name
+  dummy_command = "%s/deactivate_snapshot.xml"%settings.BASE_FILE_PATH
+  #assert False
+  d = run_gluster_command(prod_command, dummy_command, "Deactivating snapshot %s"%snapshot_name)
+  return d
+
 def remove_node(si, node):
   ol = []
   
