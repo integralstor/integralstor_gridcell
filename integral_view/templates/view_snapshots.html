@@ -25,6 +25,12 @@ Snapshot date
 <th>
 Status
 </th>
+<th>
+Change Status
+</th>
+<th>
+Delete
+</th>
 </thead>
 {%for d in snapshots %}
 <tr>
@@ -46,12 +52,18 @@ Status
     {% if d.status == "Started" %}
     <form  role="form" action="/deactivate_snapshot/" method="post">
     <input type="hidden" name="snapshot_name" value="{{d.name}}">
-    <input class="btn btn-primary" type="submit" value="Deactivate this snapshot >>">
+    <input class="btn btn-primary" type="submit" value="Deactivate >>">
     {%else%}
     <form  role="form" action="/activate_snapshot/" method="post">
     <input type="hidden" name="snapshot_name" value="{{d.name}}">
-    <input class="btn btn-primary" type="submit" value="Activate this snapshot >>">
+    <input class="btn btn-primary" type="submit" value="Activate >>">
     {%endif%}
+    </form>
+  </td>
+  <td>
+    <form  role="form" action="/delete_snapshot/" method="post">
+    <input type="hidden" name="snapshot_name" value="{{d.name}}">
+    <input class="btn btn-primary" type="submit" value="Delete >>">
     </form>
   </td>
 </tr>
