@@ -29,6 +29,19 @@ def activate_snapshot(snapshot_name):
   d = run_gluster_command(prod_command, dummy_command, "Activating snapshot %s"%snapshot_name)
   return d
 
+def create_snapshot(d):
+
+  vol_name = d["vol_name"]
+  snapshot_name = d["snapshot_name"]
+
+  prod_command = 'gluster snapshot create %s  %s --xml'%(snapshot_name, vol_name)
+  dummy_command = "%s/create_snapshot.xml"%settings.BASE_FILE_PATH
+  #assert False
+  d = run_gluster_command(prod_command, dummy_command, "Created a snapshot named %s for volume %s"%(snapshot_name, vol_name))
+  return d
+
+
+
 def remove_node(si, node):
   ol = []
   

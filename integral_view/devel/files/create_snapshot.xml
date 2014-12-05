@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>0</opErrno>
+  <opErrstr/>
+  <snapCreate>
+    <snapshot>
+      <name>zfs-snap-3</name>
+      <uuid>4bb9a50e-8525-43d8-b903-8f33be387791</uuid>
+    </snapshot>
+  </snapCreate>
+</cliOutput>
