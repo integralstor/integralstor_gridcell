@@ -253,6 +253,47 @@ def create_snapshot(request):
     return_dict["error"] = err
     return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
       
+def delete_snapshot(request):
+
+  return_dict = {}
+  form = None
+  template = "logged_in_error.html"
+
+  if request.method == "GET":
+    # Disallowed GET method so return error.
+    return_dict["error"] = "Invalid request. Please use the menu options."
+  else:
+    # POST method processing
+    if "snapshot_name" not in request.POST:
+      return_dict["error"] = "Snapshot name not specified. Please use the menu options."
+    elif "conf" not in request.POST:
+      #Get a conf from the user before we proceed
+      return_dict["snapshot_name"] = request.POST["snapshot_name"]
+      template = "delete_snapshot_conf.html"
+    else:
+      #Got a conf from the user so proceed
+      snapshot_name = request.POST["snapshot_name"]
+      d = gluster_commands.delete_snapshot(snapshot_name)
+      if d:
+        #assert False
+        if "op_status" in d:
+          if d["op_status"]["op_errno"] == 0:
+            return_dict["conf"] = "Successfully deleted snapshot - %s"%snapshot_name
+            return_dict["op"] = "Delete snapshot"
+            audit_str = "Deleted snapshot %s."%snapshot_name
+            audit.audit("delete_snapshot", audit_str, request.META["REMOTE_ADDR"])
+            template = "snapshot_op_result.html"
+          else:
+            err = "Error deleting the snapshot :"
+            if "op_status" in d and "op_errstr" in d["op_status"]:
+              err += d["op_status"]["op_errstr"]
+            if "error_list" in d:
+              err += " ".join(d["error_list"])
+            return_dict["error"] = err
+        else:
+          return_dict["error"] = "Could not detect the status of the snapshot deletion. Please try again."
+
+  return django.shortcuts.render_to_response(template, return_dict, context_instance = django.template.context.RequestContext(request))
           
 
 def set_volume_options(request):

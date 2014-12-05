@@ -21,6 +21,14 @@ def deactivate_snapshot(snapshot_name):
   d = run_gluster_command(prod_command, dummy_command, "Deactivating snapshot %s"%snapshot_name)
   return d
 
+def delete_snapshot(snapshot_name):
+
+  prod_command = 'gluster --mode=script snapshot delete  %s --xml'%snapshot_name
+  dummy_command = "%s/delete_snapshot.xml"%settings.BASE_FILE_PATH
+  #assert False
+  d = run_gluster_command(prod_command, dummy_command, "Deleting snapshot %s"%snapshot_name)
+  return d
+
 def activate_snapshot(snapshot_name):
 
   prod_command = 'gluster --mode=script snapshot activate  %s --xml'%snapshot_name
