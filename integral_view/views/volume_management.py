@@ -215,6 +215,46 @@ def volume_specific_op(request, operation, vol_name=None):
   else:
     return django.shortcuts.render_to_response('volume_specific_op_form.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
+def create_snapshot(request):
+
+  return_dict = {}
+  vil = volume_info.get_volume_info_all()
+  l = []
+  for v in vil:
+    l.append(v["name"])
+  if request.method == "GET":
+    form = integral_view.forms.volume_management_forms.CreateSnapshotForm(vol_list=l)
+    return_dict["form"] = form
+    return django.shortcuts.render_to_response('create_snapshot.html', return_dict, context_instance = django.template.context.RequestContext(request))
+  else:
+    form = integral_view.forms.volume_management_forms.CreateSnapshotForm(request.POST, vol_list=l)
+    if not form.is_valid():
+      return_dict["form"] = form
+      return django.shortcuts.render_to_response('create_snapshot.html', return_dict, context_instance = django.template.context.RequestContext(request))
+    cd = form.cleaned_data
+    d  = integral_view.utils.gluster_commands.create_snapshot(cd)
+    if d and  ("op_status" in d) and d["op_status"]["op_ret"] == 0:
+      #Success so audit the change
+      audit.audit("create_snapshot", d["display_command"], request.META["REMOTE_ADDR"])
+      return_dict["op"] = "Create snapshot"
+      return_dict["conf"] = d["display_command"]
+      return django.shortcuts.render_to_response('snapshot_op_result.html', return_dict, context_instance = django.template.context.RequestContext(request))
+    else:
+      err = "Error creating the snapshot : "
+      #assert False
+      if d:
+        if "error_list" in d:
+          err += " ".join(d["error_list"])
+        if "op_status" in d and "op_errstr" in d["op_status"]:
+          if d["op_status"]["op_errstr"]:
+            err += d["op_status"]["op_errstr"]
+      else:
+        err += "The snapshot command did not return a result. Please try again."
+    return_dict["error"] = err
+    return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      
+          
+
 def set_volume_options(request):
 
   return_dict = {}
@@ -613,8 +653,8 @@ def deactivate_snapshot(request):
             template = "snapshot_op_result.html"
           else:
             err = "Error deactivating the snapshot :"
-            if "opErrstr" in d:
-              err += d["opErrstr"]
+            if "op_status" in d and "op_errstr" in d["op_status"]:
+              err += d["op_status"]["op_errstr"]
             if "error_list" in d:
               err += " ".join(d["error_list"])
             return_dict["error"] = err
@@ -650,8 +690,8 @@ def activate_snapshot(request):
             template = "snapshot_op_result.html"
           else:
             err = "Error activating the snapshot :"
-            if "opErrstr" in d:
-              err += d["opErrstr"]
+            if "op_status" in d and "op_errstr" in d["op_status"]:
+              err += d["op_status"]["op_errstr"]
             if "error_list" in d:
               err += " ".join(d["error_list"])
             return_dict["error"] = err

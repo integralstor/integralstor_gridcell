@@ -1,0 +1,31 @@
+{% extends 'logged_in_base.html' %}
+
+{%block contents%}
+<span id="topic-text"> Snapshot -> Create a snapshot </span><br>
+
+<form role="form" action="/create_snapshot/" method="post">
+<div  style=" position:relative;border:0px solid #DDDDDD;width:600px; padding:15px 15px 15px;margin:0px 15px;border-radius:4px 4px 0px 0px">
+  <div class="form-group" >
+    <label for="id_volume_name" >Volume name :</label>
+    <select name="vol_name" class="form-control">
+    {% for choice in form.vol_name.field.choices %} 
+      <option value="{{choice.0}}">{{choice.1}}</option>
+    {%endfor%}
+    </select>
+    {{ form.volume_name.errors }}
+  </div>
+  <label for="id_snapshot_name">Snapshot name:</label>
+  <input type="text"  name="snapshot_name" class="form-control" id="id_comment" placeholder="Enter a name for this snapshot"> 
+    {{ form.snapshot_name.errors }}
+  <br>
+  <button type="submit" class="btn btn-primary">Next >></button>
+</div>
+</form>
+
+{%endblock%}
+{%block help_header%}
+Create snapshot help
+{%endblock%}
+{%block help_body%}
+<p>Help about creating snapshots…</p>
+{%endblock%}
