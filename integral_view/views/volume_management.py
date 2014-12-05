@@ -123,7 +123,13 @@ def volume_specific_op(request, operation, vol_name=None):
         return django.shortcuts.render_to_response('edit_volume_quota.html', return_dict, context_instance=django.template.context.RequestContext(request))
       elif operation == 'view_snapshots':
         l = volume_info.get_snapshots(vol_name)
+        vd = volume_info.get_vol_dict(vil, vol_name)
+        if vd["status"] == 1:
+          return_dict["vol_started"] = True
+        else:
+          return_dict["vol_started"] = False
         return_dict["snapshots"] = l
+        return_dict["vol_name"] = vol_name
         return django.shortcuts.render_to_response('view_snapshots.html', return_dict, context_instance=django.template.context.RequestContext(request))
       elif operation == "vol_options":
         vol_dict = volume_info.get_volume_info(vil, vol_name)
@@ -292,6 +298,50 @@ def delete_snapshot(request):
             return_dict["error"] = err
         else:
           return_dict["error"] = "Could not detect the status of the snapshot deletion. Please try again."
+
+  return django.shortcuts.render_to_response(template, return_dict, context_instance = django.template.context.RequestContext(request))
+
+def restore_snapshot(request):
+
+  return_dict = {}
+  form = None
+  template = "logged_in_error.html"
+
+  if request.method == "GET":
+    # Disallowed GET method so return error.
+    return_dict["error"] = "Invalid request. Please use the menu options."
+  else:
+    # POST method processing
+    if "snapshot_name" not in request.POST:
+      return_dict["error"] = "Snapshot name not specified. Please use the menu options."
+    elif "conf" not in request.POST:
+      #Get a conf from the user before we proceed
+      return_dict["snapshot_name"] = request.POST["snapshot_name"]
+      return_dict["vol_name"] = request.POST["vol_name"]
+      template = "restore_snapshot_conf.html"
+    else:
+      #Got a conf from the user so proceed
+      snapshot_name = request.POST["snapshot_name"]
+      vol_name = request.POST["vol_name"]
+      d = gluster_commands.restore_snapshot(snapshot_name)
+      if d:
+        #assert False
+        if "op_status" in d:
+          if d["op_status"]["op_errno"] == 0:
+            return_dict["conf"] = "Successfully restored snapshot %s onto volume %s"%(snapshot_name, vol_name)
+            return_dict["op"] = "Restore snapshot"
+            audit_str = "Restored snapshot %s onto volume %s."%(snapshot_name, vol_name)
+            audit.audit("restore_snapshot", audit_str, request.META["REMOTE_ADDR"])
+            template = "snapshot_op_result.html"
+          else:
+            err = "Error restoring the snapshot :"
+            if "op_status" in d and "op_errstr" in d["op_status"]:
+              err += d["op_status"]["op_errstr"]
+            if "error_list" in d:
+              err += " ".join(d["error_list"])
+            return_dict["error"] = err
+        else:
+          return_dict["error"] = "Could not detect the status of the snapshot restoration. Please try again."
 
   return django.shortcuts.render_to_response(template, return_dict, context_instance = django.template.context.RequestContext(request))
           
