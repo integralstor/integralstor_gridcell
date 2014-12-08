@@ -5,7 +5,7 @@ from integral_view.views.trusted_pool_setup  import add_nodes, remove_node
 from integral_view.views.volume_creation import volume_creation_wizard, create_volume, create_volume_conf
 from integral_view.views.volume_management import volume_specific_op , expand_volume, replace_node, set_volume_options, set_volume_quota, delete_volume, replace_disk, deactivate_snapshot, activate_snapshot, create_snapshot, delete_snapshot, restore_snapshot
 from integral_view.views import perform_op
-from integral_view.views.common import require_login, show, refresh_alerts, raise_alert, internal_audit, configure_ntp_settings, del_email_settings, reset_to_factory_defaults, flag_node, hardware_scan, accept_manifest
+from integral_view.views.common import require_login, show, refresh_alerts, raise_alert, internal_audit, configure_ntp_settings, reset_to_factory_defaults, flag_node, hardware_scan 
 from integral_view.views.log_management import download_vol_log, download_sys_log, rotate_log, view_rotated_log_list, view_rotated_log_file, edit_integral_view_log_level
 #from integral_view.views.node_management import pull_node_status, node_status
 #from integral_view.views.share_management import samba_server_settings_basic, save_samba_server_settings_basic, samba_server_settings_security, save_samba_server_settings_security, display_shares, create_share, view_samba_share, edit_samba_share, display_users, edit_samba_user, create_user, create_unix_user, samba_server_settings, save_samba_server_settings, samba_server_settings, view_share, edit_share
@@ -29,7 +29,6 @@ urlpatterns = patterns('',
     url(r'^$', login),
     url(r'^raise_alert/', raise_alert),
     url(r'^flag_node/', flag_node),
-    url(r'^del_email_settings/', require_login(del_email_settings)),
     url(r'^internal_audit/', internal_audit),
     url(r'^change_admin_password/', require_login(change_admin_password)),
     url(r'^create_snapshot/', require_login(create_snapshot)),
@@ -38,7 +37,6 @@ urlpatterns = patterns('',
     url(r'^deactivate_snapshot/', require_login(deactivate_snapshot)),
     url(r'^activate_snapshot/', require_login(activate_snapshot)),
     url(r'^hardware_scan/', require_login(hardware_scan)),
-    url(r'^accept_manifest/', require_login(accept_manifest)),
     url(r'^configure_email_settings/', require_login(configure_email_settings)),
     url(r'^reset_to_factory_defaults/', require_login(reset_to_factory_defaults)),
     url(r'^configure_ntp_settings/', require_login(configure_ntp_settings)),

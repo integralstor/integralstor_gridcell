@@ -12,6 +12,22 @@ def get_host_name():
   """ Returns the Hostname of the local box"""
   return os.uname()[1]
 
+  
+
+def main():
+
+  print "Hostname = " + get_host_name()
+  print get_processor_type()
+  print get_total_memory()
+  print get_uptime_result()
+  print get_system_time()
+  #print get_ip_info()
+
+
+if __name__ == "__main__":
+  main()
+
+'''
 def get_ip_info():
   """ Returns the IP addr, bcast and mask of the local box. Not currently used"""
 
@@ -123,17 +139,4 @@ def get_uptime_result():
 def get_system_time():
   date = time.strftime('%a %b %d %H:%M %Z %Y')
   return date
-  
-
-def main():
-
-  print "Hostname = " + get_host_name()
-  print get_processor_type()
-  print get_total_memory()
-  print get_uptime_result()
-  print get_system_time()
-  print get_ip_info()
-
-
-if __name__ == "__main__":
-  main()
+'''

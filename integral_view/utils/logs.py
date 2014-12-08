@@ -2,7 +2,7 @@
 import time, os, tempfile, shutil, glob
 
 
-def get_rotate_file_name(dir, file_name):
+def _get_rotate_file_name(dir, file_name):
   #Returns to filename to which this one should be copied to
 
   try: 
@@ -32,7 +32,7 @@ def get_rotate_file_name(dir, file_name):
 def rotate_log(dir, file_name, initialize_list):
   #Given a directory and any file_name, copies out the current file to a rotated name and reinitialises the current file with the strings from initialize_list.
 
-  fn = get_rotate_file_name(dir, file_name)
+  fn = _get_rotate_file_name(dir, file_name)
 
   f = tempfile.NamedTemporaryFile(dir=dir)
   if initialize_list:

@@ -30,16 +30,11 @@ class VolumeNameForm(forms.Form):
     return name
 
 
-class CreateVolumeForm(forms.Form) :
-  """ Form to create a volume"""
 
-  vol_name = forms.CharField(widget=forms.HiddenInput)
-  vol_type = forms.CharField(widget=forms.HiddenInput)
-  vol_access = forms.CharField(widget=forms.HiddenInput)
-
+'''
 
 class ReplicationCountForm(forms.Form):
-  ''' Not used for now as we are enforcing a count of 2 but keep for later '''
+  """ Not used for now as we are enforcing a count of 2 but keep for later """
   ch = [('2', r'2 - Will use TWICE the space required by each file'), ('3', r'3 - Will use 3 TIMES the space required by each file')]
   #repl_count = forms.ChoiceField(choices=ch, widget=forms.RadioSelect())
   repl_count = forms.ChoiceField(choices=ch)
@@ -55,3 +50,11 @@ class ReplicationCountForm(forms.Form):
     super(ReplicationCountForm, self).__init__(*args, **kwargs)
     self.fields['vol_type'].initial = vol_type
     self.fields['vol_name'].initial = vol_name
+
+class CreateVolumeForm(forms.Form) :
+  """ Form to create a volume"""
+
+  vol_name = forms.CharField(widget=forms.HiddenInput)
+  vol_type = forms.CharField(widget=forms.HiddenInput)
+  vol_access = forms.CharField(widget=forms.HiddenInput)
+'''

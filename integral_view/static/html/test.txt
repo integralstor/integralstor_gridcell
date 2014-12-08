@@ -1,3 +1,0 @@
-{
-  "Progress": "Step1<br>Step2<br>Step3"
-}

@@ -2,11 +2,6 @@ from django.conf import settings
 
 import sys, os, pwd, crypt
 
-'''
-sys.path.insert(0, '/opt/fractal/gluster_admin')
-sys.path.insert(0, '/home/bkrram/fractal/gluster_admin')
-os.environ['DJANGO_SETTINGS_MODULE'] = 'gluster_admin.settings'
-'''
 path = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, '%s/../..'%path)
 os.environ['DJANGO_SETTINGS_MODULE']='integral_view.settings'
@@ -16,9 +11,11 @@ from integral_view.utils import command
 def create_local_user(userid, name, pswd):
 
   #First check if samba user exists. if so kick out
-  ul = get_samba_users()
-  if userid in ul:
-    raise Exception("Error creating user. The user \"%s\" already exists. "%userid)
+  ul = get_local_users()
+  if ul:
+    for ud in ul:
+      if ud["userid"] == userid:
+        raise Exception("Error creating user. The user \"%s\" already exists. "%userid)
 
   # Now check if system user exists. If not create..
   create_system_user = False
@@ -39,14 +36,19 @@ def create_local_user(userid, name, pswd):
     #print command.get_error_list(ret)
     raise Exception("Error creating user. Return code : %d. "%rc)
   ul = command.get_output_list(ret)
-  print ul
+  #print ul
 
 
 def delete_local_user(userid):
 
   #First check if samba user exists. if so kick out
-  ul = get_samba_users()
-  if userid not in ul:
+  ul = get_local_users()
+  found = False
+  if ul:
+    for ud in ul:
+      if ud["userid"] == userid:
+        found = True
+  if not found:
     raise Exception("Error deleting user. The user \"%s\" does not exist. "%userid)
 
   # Now check if system user exists. If so and is created by fractal then delete..
@@ -60,31 +62,19 @@ def delete_local_user(userid):
     pass
 
   if delete_system_user:
-    print "Deleting user %s from the system"%userid
+    #print "Deleting user %s from the system"%userid
     ret, rc = command.execute_with_rc(r'userdel %s'%userid)
     if rc != 0:
       raise Exception("Error deleting user from the underlying system. Return code : %d. "%rc)
-    print "Deleted user %s from the system"%userid
+    #print "Deleted user %s from the system"%userid
 
-  print "Deleting user %s from the storage system"%userid
+  #print "Deleting user %s from the storage system"%userid
   ret, rc = command.execute_with_rc(r'/usr/local/samba/bin/pdbedit -d 1 -x %s'%userid)
   if rc != 0:
     raise Exception("Error deleting user from the storage system. Return code : %d. "%rc)
-  print "Deleted user %s from the storage system"%userid
+  #print "Deleted user %s from the storage system"%userid
 
 
-def get_samba_users():
-  ret, rc = command.execute_with_rc(r'/usr/local/samba/bin/pdbedit  -d 1 -L ')
-  if rc != 0:
-    print ret
-    #print command.get_error_list(ret)
-    raise Exception("Error reading current users. Return code : %d. "%rc)
-  l = command.get_output_list(ret)
-  ul = []
-  for u in l:
-    user = u.split(':')[0]
-    ul.append(user)
-  return ul
 
 def change_password(userid, pswd):
   ret, rc = command.execute_with_conf_and_rc(r'smbpasswd -s %s'%(userid), "%s\n%s"%(pswd, pswd))
@@ -93,7 +83,7 @@ def change_password(userid, pswd):
     #print command.get_error_list(ret)
     raise Exception("Error changing password. Return code : %d. "%rc)
   ul = command.get_output_list(ret)
-  print ul
+  #print ul
 
 def get_local_users():
 
@@ -117,7 +107,8 @@ def get_local_users():
 def main():
   #change_password("bkrram", "ram1")
   delete_local_user("ram2")
-  print get_samba_users()
+  #print get_samba_users()
 
 if __name__ == "__main__":
   main()
+

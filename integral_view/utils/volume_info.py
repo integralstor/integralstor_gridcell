@@ -21,15 +21,7 @@ def get_volume_info_all():
           if o["value"]  == "on":
             v["quotas"] = gluster_commands.get_volume_quotas(v["name"]) 
   return vl
-#  return [{'name': 'testvol1', 'bricks': [{'path': '/data/test', 'host': '192.168.0.11'}, {'path': '/data/test', 'host': '192.168.0.12'}], 'distCount': '1', 'replicaCount': '2', 'brickCount': '2', 'stripeCount': '1', 'type': 'Replicate', 'statusStr': 'Started'}, {'name': 'testvol2', 'bricks': [{'path': '/data/test2', 'host': '192.168.0.2'}, {'path': '/data/test2', 'host': '192.168.0.1'}], 'distCount': '2', 'replicaCount': '1', 'brickCount': '2', 'stripeCount': '1', 'type': 'Distribute', 'statusStr': 'Started'}]
 
-def get_vol_dict(vil, vol_name):
-  if not vil:
-    vil = get_volume_info_all()
-  for v in vil:
-    if v["name"] == vol_name:
-      return v
-  return None
 
 def volume_exists(vil, vol_name):
 
@@ -46,10 +38,11 @@ def get_volume_info(vil, vol_name):
   if not vil:
     vil = get_volume_info_all()
   vol = None
-  for v in vil:
-    if v["name"] == vol_name:
-      vol = v
-      break
+  if vil:
+    for v in vil:
+      if v["name"] == vol_name:
+        vol = v
+        break
   return vol
 
 def get_volumes_on_node(hostname, vil):
@@ -82,18 +75,6 @@ def get_snapshots(vol_name):
       l = xml_parse.get_snapshots(d["root"])
   return l
 
-def get_removable_sled_list(scl, vil):
-  #Return a list of sleds that can be chosen to be removed - a sled can be removed if both its nodes are in the cluster and no volumes have bricks on either node
-  i = 0
-  sl = []
-  while i < len(scl):
-    free_sled = True
-    if len(get_volumes_on_node(scl[i], vil))>0 or len(get_volumes_on_node(scl[i+1], vil))>0:
-      free_sled = False
-    if free_sled and ((scl[i]["in_cluster"]) or (scl[i+1]["in_cluster"])):
-      sl.append((i/2) +1)
-    i = i+2
-  return sl
 
 def get_brick_hostname_list(vol_dict):
 
@@ -106,20 +87,56 @@ def get_brick_hostname_list(vol_dict):
 
   return l
 
-'''
-def get_human_readable_data_locations(vol_dict, scl):
-  hrl = []
-  bhl = get_brick_hostname_list(vol_dict)
-  return bhl
-  for i, node in enumerate(scl):
-    if "hostname" in node and node["hostname"] in bhl:
-      if i%2 == 0:
-        hrl.append("Sled %d Node 1"%node["sled"])
-      else:
-        hrl.append("Sled %d Node 2"%node["sled"])
-  return hrl
-'''
 
+
+def get_replacement_node_info(si, vil):
+
+  #Fill src_node_list and dest_node_list
+  i = 0
+  src_node_list = []
+  dest_node_list = []
+  sil = si.items()
+  for hostname in si.keys():
+    if si[hostname]["node_status"] != 0 :
+      continue
+    if not si[hostname]["in_cluster"] :
+      continue
+    if si[hostname]["volume_list"]:
+      src_node_list.append(hostname)
+    else:
+      dest_node_list.append(hostname)
+  d = {}
+  d["src_node_list"] = src_node_list
+  d["dest_node_list"] = dest_node_list
+  return d
+
+def main():
+
+  #vl = get_volume_list()
+  #print "Volume list :"
+  #print vl
+  #get_volume_status("test")
+  #get_volume_info()
+  print get_volume_info_all()
+
+
+if __name__ == "__main__":
+  main()
+
+
+'''
+def get_removable_sled_list(scl, vil):
+  #Return a list of sleds that can be chosen to be removed - a sled can be removed if both its nodes are in the cluster and no volumes have bricks on either node
+  i = 0
+  sl = []
+  while i < len(scl):
+    free_sled = True
+    if len(get_volumes_on_node(scl[i], vil))>0 or len(get_volumes_on_node(scl[i+1], vil))>0:
+      free_sled = False
+    if free_sled and ((scl[i]["in_cluster"]) or (scl[i+1]["in_cluster"])):
+      sl.append((i/2) +1)
+    i = i+2
+  return sl
 def get_expandable_node_list(si, vol, replicated, replica_count):
 
   # If distributed then return all nodes where volume is not present
@@ -140,7 +157,6 @@ def get_expandable_node_list(si, vol, replicated, replica_count):
   d["node_list"]
   return nl
   
-'''
 def get_expandable_lists(scl, vol, count):
   #Returns a list of nodes and sleds that qualify for expansion of a volume
 
@@ -232,37 +248,3 @@ def get_replacement_sled_info(scl, vil):
   d["dest_sled_list"] = dest_sled_list
   return d
 '''
-
-def get_replacement_node_info(si, vil):
-
-  #Fill src_node_list and dest_node_list
-  i = 0
-  src_node_list = []
-  dest_node_list = []
-  sil = si.items()
-  for hostname in si.keys():
-    if si[hostname]["node_status"] != 0 :
-      continue
-    if not si[hostname]["in_cluster"] :
-      continue
-    if si[hostname]["volume_list"]:
-      src_node_list.append(hostname)
-    else:
-      dest_node_list.append(hostname)
-  d = {}
-  d["src_node_list"] = src_node_list
-  d["dest_node_list"] = dest_node_list
-  return d
-
-def main():
-
-  #vl = get_volume_list()
-  #print "Volume list :"
-  #print vl
-  #get_volume_status("test")
-  #get_volume_info()
-  print get_volume_info_all()
-
-
-if __name__ == "__main__":
-  main()

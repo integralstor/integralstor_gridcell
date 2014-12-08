@@ -14,21 +14,6 @@ from integral_view.iscsi import iscsi
 from integral_view.forms import common_forms
 from integral_view.samba import samba_settings
 
-def internal_audit(request):
-
-  response = django.http.HttpResponse()
-  if request.method == "GET":
-    response.write("Error!")
-  else:
-    if not "who" in request.POST or request.POST["who"] != "batch":
-      response.write("Unknown requester")
-      return response
-    if (not "audit_action" in request.POST) or (not "audit_str" in request.POST):
-      response.write("Insufficient information!")
-    else:
-      audit.audit(request.POST["audit_action"], request.POST["audit_str"], "0.0.0.0")
-    response.write("Success")
-  return response
 
     
 def show(request, page, info = None):
@@ -47,16 +32,7 @@ def show(request, page, info = None):
     #By default show error page
     template = "logged_in_error.html"
 
-    if page == "home":
-      template = "home.html"
-
-    elif page == "refresh_json":
-      with open(request.GET["fname"], "r") as f:
-        d = json.load(f)
-      dlist = django.utils.simplejson.dumps(d)
-      return django.http.HttpResponse(dlist,mimetype='application/json')
-
-    elif page == "dir_contents":
+    if page == "dir_contents":
       dir_name = None
       error = False
       path_base = None
@@ -147,7 +123,7 @@ def show(request, page, info = None):
 
     elif page == "email_settings":
 
-      print "here"
+      #print "here"
       try:
         d = mail.load_email_settings()
         if not d:
@@ -222,7 +198,7 @@ def show(request, page, info = None):
         template = "view_volume_info.html"
         return_dict["vol"] = vol
         data_locations_list = volume_info.get_brick_hostname_list(vol)
-        print data_locations_list
+        #print data_locations_list
         return_dict["data_locations_list"] = data_locations_list
 
         ivl = iscsi.load_iscsi_volumes_list(vil)
@@ -301,14 +277,6 @@ def show(request, page, info = None):
             o += "<br>"
           l = f.readline()
       return django.http.HttpResponse(o)
-
-    elif page=="view_hs_status":
-      return_dict = {}
-      if "extn" not in request.REQUEST:
-        return_dict['error'] = 'Invalid request. No status file extension specified'
-        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
-      return_dict["extn"] = request.REQUEST["extn"]
-      return django.shortcuts.render_to_response('view_hs_status.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
     elif page=="manifest":
       #Basically read a generated manifest file and display the results.
@@ -481,14 +449,6 @@ def raise_alert(request):
 
     return django.shortcuts.render_to_response(template, return_dict, context_instance=django.template.context.RequestContext(request))
 
-def del_email_settings(request):
-
-  try:
-    mail.delete_email_settings()
-    return django.http.HttpResponse("Successfully cleared email settings.")
-  except Exception, e:
-    iv_logging.debug("Error clearing email settings %s"%str(e))
-    return django.http.HttpResponse("Problem clearing email settings %s"%str(e))
     
 
 def configure_ntp_settings(request):
@@ -565,8 +525,8 @@ def flag_node(request):
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance = django.template.context.RequestContext(request))
 
   node_name = request.GET["node"]
-  print "/opt/fractal/bin/client %s ipmitool chassis identify 255"%node_name
-  iv_logging.debug("Flagging node %s"%node_name)
+  str = "/opt/fractal/bin/client %s ipmitool chassis identify 255"%node_name
+  iv_logging.debug("Flagging node %s using %s"%(node_name,str))
   r, rc = command.execute_with_rc("/opt/fractal/bin/client %s ipmitool chassis identify 255"%node_name)
   err = ""
   if rc == 0:
@@ -634,13 +594,6 @@ def reset_to_factory_defaults(request):
       request.user.save()
     except Exception, e:
       return_dict["error"] = "Error resetting admin password: %s."%str(e)
-      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
-
-    #Remove samba auth settings
-    try:
-      samba_settings.delete_auth_settings()
-    except Exception, e:
-      return_dict["error"] = "Error deleting share authentication settings : %s."%str(e)
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
 
@@ -722,60 +675,32 @@ def hardware_scan(request):
       url = 'add_nodes_result.html'
       #return django.http.HttpResponseRedirect('/show/dashboard/')
   return django.shortcuts.render_to_response(url, return_dict, context_instance = django.template.context.RequestContext(request))
+
+
+def internal_audit(request):
+
+  response = django.http.HttpResponse()
+  if request.method == "GET":
+    response.write("Error!")
+  else:
+    if not "who" in request.POST or request.POST["who"] != "batch":
+      response.write("Unknown requester")
+      return response
+    if (not "audit_action" in request.POST) or (not "audit_str" in request.POST):
+      response.write("Insufficient information!")
+    else:
+      audit.audit(request.POST["audit_action"], request.POST["audit_str"], "0.0.0.0")
+    response.write("Success")
+  return response
+
+
+
+
+
+
+
+
 '''
-  return_dict = {}
-  t = time.localtime()
-  try:
-    dir = settings.BATCH_COMMANDS_DIR
-  except:
-    dir = "."
-  data = {}
-  data["initiate_time"] = time.strftime("%a %b %d %H:%M:%S %Y", t)
-  it = int(time.time())
-  extn = "%s_%d"%(time.strftime("%b_%d_%Y_%H_%M_%S", t) , int(time.time()))
-  file_name = "hs_%s"%extn
-  full_file_name = "%s/in_process/%s"%(dir, file_name)
-  data["status_url"] = "/show/batch_status_details/%s"%file_name
-  data["title"] = "Scanning for new hardware"
-  data["process"] = "hardware_scan"
-  data["status"] = "Not yet started"
-
-  si = system_info.load_system_config()
-
-  localhost = host_info.get_host_name()
-  if localhost not in si:
-    return_dict["error"] = "Error retrieving local IP address info"
-    return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
-  eth_list = si[localhost]["interfaces"]
-  local_ip = None
-  mask = None
-  for k, v in eth_list.items():
-    if ("active_ip" not in v) or (not v["active_ip"]):
-      continue
-    local_ip = v["ip"]
-    mask = v["mask"]
-    break
-  if (not local_ip) or (not mask):
-    return_dict["error"] = "Error retrieving local IP address info"
-    return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
-  with open("%s/status/hs_output_%s"%(settings.BASE_FILE_PATH, extn), "w") as hsf:
-    hsf.write("Initiating hardware scan \n")
-  hsf.close()
-  data["command"] = "/opt/fractal/bin/discover_manifest.py -M %s %s %s/status/hs_output_%s %s/manifest/manifest_%s 1 1"%(local_ip, mask, settings.BASE_FILE_PATH, extn, settings.BASE_FILE_PATH, extn)
-  data["progress_url"] = "/show/view_hs_status?extn=%s"%extn
-  d = {}
-  try :
-    with open(full_file_name, "w+") as f:
-      json.dump(data, f, indent=2)
-  except Exception, e:
-    return_dict["error"] = "Error initiating hardware scan : %s"%str(e)
-    return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
-
-  return_dict["file_name"] = file_name
-  audit.audit("hardware_scan_start", "Scheduled a scan for new hardware", request.META["REMOTE_ADDR"])
-  return django.http.HttpResponseRedirect('/show/batch_start_conf/%s'%file_name)
-'''
-
 def accept_manifest(request):
   if request.method == "GET":
     return_dict["error"] = "Invalid access. Please use the GUI."
@@ -796,3 +721,16 @@ def accept_manifest(request):
     return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
   return django.shortcuts.render_to_response('accept_manifest_conf.html', return_dict, context_instance=django.template.context.RequestContext(request))
+
+
+
+def del_email_settings(request):
+
+  try:
+    mail.delete_email_settings()
+    return django.http.HttpResponse("Successfully cleared email settings.")
+  except Exception, e:
+    iv_logging.debug("Error clearing email settings %s"%str(e))
+    return django.http.HttpResponse("Problem clearing email settings %s"%str(e))
+
+'''

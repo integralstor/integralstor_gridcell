@@ -73,7 +73,7 @@ def send_mail(server, port, username, pswd, tls, rcpt_list, header, body):
   else:
     emails = rcpt_list.split(' ')
   to = ','.join(emails)
-  msg['From'] = email.utils.formataddr(('Fractal-view alerting system', "%s@%s"%(username, server)))
+  msg['From'] = email.utils.formataddr(('IntegralView alerting system', "%s@%s"%(username, server)))
   msg['Subject'] = header
   print "Sending msg with header \'%s\' and body\' %s\' to %s"%(header, body, emails)
 
