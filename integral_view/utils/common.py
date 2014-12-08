@@ -3,7 +3,7 @@ import os
 def reversed_lines(file):
     "Generate the lines of file in reverse order."
     part = ''
-    for block in reversed_blocks(file):
+    for block in _reversed_blocks(file):
         for c in reversed(block):
             if c == '\n' and part:
                 yield part[::-1]
@@ -11,7 +11,7 @@ def reversed_lines(file):
             part += c
     if part: yield part[::-1]
 
-def reversed_blocks(file, blocksize=4096):
+def _reversed_blocks(file, blocksize=4096):
     "Generate blocks of file's contents in reverse order."
     file.seek(0, os.SEEK_END)
     here = file.tell()

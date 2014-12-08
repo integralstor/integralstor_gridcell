@@ -177,38 +177,11 @@ def load_system_config():
   '''
   return d
 
-'''
-def get_node(hostname, scl):
-  node = None
-  for n in scl:
-    if "hostname" in n and n["hostname"] == hostname:
-      node = n
-      break
-  return node
-'''
 
 def raid_enabled():
   #Enabled by default now. We need to change this to read from the config db which in turn will be updated at the time of first config
   return True
 
-def generate_display_node_list(scl):
-
-  if not scl:
-    return None
-  x = 0
-  num_sled_rows = 3
-  num_sleds_per_row = 4
-  display_node_list = []
-  for i in xrange(num_sled_rows):
-    al = []
-    for j in xrange(num_sleds_per_row):
-      bl = []
-      for k in xrange(2):
-        bl.append(scl[x])
-        x = x + 1
-      al.append(bl)
-    display_node_list.append(al)
-  return display_node_list
 
 
 def get_available_node_list(si):
@@ -225,28 +198,22 @@ def get_available_node_list(si):
     nl.append(d)
   return nl
 
-def get_spare_sled(scl, nl):
-  # Returns the spare sled number from the available node list
-  sl = []
-  for node in nl:
-    if node["sled"] not in sl:
-      sl.append(node["sled"])
-  sl = sorted(sl)
-  i = len(sl) -1
-  spare_sled = -1
-  #Starting from the last sled, make sure thatboth the nodes are not in the cluster just to cover for partially added sleds
-  while i >= 0:
-    print "node 1" 
-    print scl[(sl[i]-1)*2]
-    print "node 2" 
-    print scl[(sl[i]-1)*2 + 1]
-    if not scl[(sl[i]-1)*2]["in_cluster"] and not scl[(sl[i]-1)*2 + 1]["in_cluster"] and scl[(sl[i]-1)*2]["up"] and scl[(sl[i]-1)*2 + 1]["up"] and scl[(sl[i]-1)*2]["active"] and scl[(sl[i]-1)*2 + 1]["active"]:
-      spare_sled = sl[i] 
-      break
-    else:
-      i = i-1
-  return spare_sled
 
+
+
+def main():
+
+  print get_chassis_components_status()
+  print load_system_config()["host1"]
+  #sl = load_system_config()
+  #print "System config :"
+  #print sl
+
+
+if __name__ == "__main__":
+  main()
+
+'''
 def get_addable_node_list(nl, spare_sled):
   # Returns the list of nodes that excludes the spare sled for purposes of form population
   anl = []
@@ -269,16 +236,44 @@ def prompt_for_spare(nl):
     return True
   else:
     return False
+def generate_display_node_list(scl):
 
+  if not scl:
+    return None
+  x = 0
+  num_sled_rows = 3
+  num_sleds_per_row = 4
+  display_node_list = []
+  for i in xrange(num_sled_rows):
+    al = []
+    for j in xrange(num_sleds_per_row):
+      bl = []
+      for k in xrange(2):
+        bl.append(scl[x])
+        x = x + 1
+      al.append(bl)
+    display_node_list.append(al)
+  return display_node_list
 
-def main():
-
-  print get_chassis_components_status()
-  print load_system_config()["host1"]
-  #sl = load_system_config()
-  #print "System config :"
-  #print sl
-
-
-if __name__ == "__main__":
-  main()
+def get_spare_sled(scl, nl):
+  # Returns the spare sled number from the available node list
+  sl = []
+  for node in nl:
+    if node["sled"] not in sl:
+      sl.append(node["sled"])
+  sl = sorted(sl)
+  i = len(sl) -1
+  spare_sled = -1
+  #Starting from the last sled, make sure thatboth the nodes are not in the cluster just to cover for partially added sleds
+  while i >= 0:
+    print "node 1" 
+    print scl[(sl[i]-1)*2]
+    print "node 2" 
+    print scl[(sl[i]-1)*2 + 1]
+    if not scl[(sl[i]-1)*2]["in_cluster"] and not scl[(sl[i]-1)*2 + 1]["in_cluster"] and scl[(sl[i]-1)*2]["up"] and scl[(sl[i]-1)*2 + 1]["up"] and scl[(sl[i]-1)*2]["active"] and scl[(sl[i]-1)*2 + 1]["active"]:
+      spare_sled = sl[i] 
+      break
+    else:
+      i = i-1
+  return spare_sled
+'''

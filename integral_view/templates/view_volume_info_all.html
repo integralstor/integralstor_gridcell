@@ -7,14 +7,6 @@ style="background-color:white;color:white;"
 
 
 {%block contents%}
-<script type="text/javascript">
-function load_volume_info(name) {
-  url='/show/volume_info/' + encodeURIComponent(name);
-  document.getElementById('myModalLabel').innerHTML = "Volume information for " + name ;
-  $('#myModalBody').load(url);
-  $('#myModal').modal();
-}
-</script>
 
 <!-- Modal -->
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">

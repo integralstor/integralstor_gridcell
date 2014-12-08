@@ -103,6 +103,8 @@ class ReplaceNodeForm(forms.Form):
     return cleaned_data
 
 
+'''
+
 class ExpandVolumeForm(forms.Form):
   """ Form to prompt for the info to expand a volume"""
 
@@ -140,3 +142,4 @@ class ExpandVolumeForm(forms.Form):
       if len(hosts)%count != 0:
         raise forms.ValidationError("Please choose the a multiple of %d disks"%count)
     return self.cleaned_data['hosts']
+'''

@@ -108,11 +108,10 @@ def edit_share(request):
       initial["read_only"] = False
     initial["comment"] = share_dict["comment"]
 
-    valid_user_list = samba_settings.load_valid_users_list(share_dict["share_id"])
-    if valid_user_list:
+    if valid_users_list:
       vgl = []
       vul = []
-      for u in valid_user_list:
+      for u in valid_users_list:
         if u["grp"]:
           vgl.append(u["name"])
         else:
@@ -487,4 +486,4 @@ def change_local_user_password(request):
       return django.http.HttpResponseRedirect('/view_local_users?action=changed_password')
     else:
       return_dict["form"] = form
-      return django.shortcuts.render_to_response("create_local_user.html", return_dict, context_instance = django.template.context.RequestContext(request))
+      return django.shortcuts.render_to_response("change_local_user_password.html", return_dict, context_instance = django.template.context.RequestContext(request))

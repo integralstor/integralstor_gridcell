@@ -103,31 +103,6 @@ def change_admin_password(request):
     #User not authenticated so return a login screen
     return django.http.HttpResponseRedirect('/login/')
 
-def remove_email_settings(request):
-
-  response = django.http.HttpResponse()
-  iv_logging.info("Email settings deleted")
-  try:
-    mail.delete_email_settings()
-    response.write("Deleted email settings")
-  except Exception, e:
-    response.write("Error deleteing email settings : %s"%str(e))
-  return response
-  ''' 
-  co = None
-  ecl = EmailConfig.objects.all()
-  if ecl:
-    co = EmailConfig.objects.filter(id=1)[0]
-  if co:
-    co.delete()
-    response.write("Deleted object")
-    response.write("Email configs in db = ")
-    response.write(EmailConfig.objects.all())
-    return response
-  else:
-    response.write("No Email config objects to remove")
-  ''' 
-
   
 def configure_email_settings(request):
 
@@ -138,21 +113,6 @@ def configure_email_settings(request):
     if not d:
       form = admin_forms.ConfigureEmailForm()
     else:
-      '''
-    ecl = EmailConfig.objects.all()
-    if not ecl:
-      form = admin_forms.ConfigureEmailForm()
-    else:
-      co = EmailConfig.objects.filter(id=1)[0]
-      d = {}
-      d["email_server"] = co.server
-      d["email_server_port"] = co.port
-      d["username"] = co.username
-      d["email_alerts"] = co.email_alerts
-      d["tls"] = co.tls
-      d["rcpt_list"] = co.rcpt_list
-    '''
-
       if d["tls"]:
         d["tls"] = True
       else:
@@ -188,29 +148,27 @@ def configure_email_settings(request):
         iv_logging.debug("Exception when trying to save email settings : %s"%str(e))
         return django.http.HttpResponseRedirect("/show/email_settings?not_saved=1&err=%s"%str(e))
 
-      '''
-      ecl = EmailConfig.objects.all()
-      if not ecl:
-        ec = EmailConfig(server = cd["email_server"], port = cd["email_server_port"], username=cd["username"], pswd = cd["pswd"], email_alerts = cd["email_alerts"], tls = cd["tls"], rcpt_list = cd["rcpt_list"])
-        ec.save()
-      else:
-        co = EmailConfig.objects.filter(id=1)[0]
-        co.server = cd["email_server"]
-        co.port = cd["email_server_port"]
-        co.username = cd["username"]
-        co.pswd = cd["pswd"]
-        co.email_alerts = cd["email_alerts"]
-        co.tls = cd["tls"]
-        co.rcpt_list = cd["rcpt_list"]
-        co.save()
-      '''
-
       ret = mail.send_mail(cd["email_server"], cd["email_server_port"], cd["username"], cd["pswd"], cd["tls"], cd["rcpt_list"], "Test email from FractalView", "This is a test email sent by the Fractal View system in order to confirm that your email settings are working correctly.")
       if ret:
         return django.http.HttpResponseRedirect("/show/email_settings?saved=1&err=%s"%ret)
       else:
         return django.http.HttpResponseRedirect("/show/email_settings?saved=1")
-      #url = "edit_email_settings.html"
   return_dict["form"] = form
   return django.shortcuts.render_to_response(url, return_dict, context_instance = django.template.context.RequestContext(request))
 
+
+'''
+
+def remove_email_settings(request):
+
+  response = django.http.HttpResponse()
+  iv_logging.info("Email settings deleted")
+  try:
+    mail.delete_email_settings()
+    response.write("Deleted email settings")
+  except Exception, e:
+    response.write("Error deleteing email settings : %s"%str(e))
+  return response
+
+
+'''

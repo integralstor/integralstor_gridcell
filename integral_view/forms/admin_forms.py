@@ -3,7 +3,7 @@ from django import forms
 import re
 from email.utils import parseaddr
 
-class MultipleEmailField(forms.CharField):
+class _MultipleEmailField(forms.CharField):
 
   def _is_valid_email(self, email):
     email = email.strip()
@@ -50,7 +50,7 @@ class ConfigureEmailForm(forms.Form):
   username = forms.CharField()
   pswd = forms.CharField(widget=forms.PasswordInput())
   tls = forms.BooleanField(required=False)
-  rcpt_list = MultipleEmailField()
+  rcpt_list = _MultipleEmailField()
 
   email_alerts = forms.BooleanField(required=False)
 

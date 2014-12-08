@@ -38,7 +38,7 @@ def get_op_status(root):
       #print "output = %s"%e.text
   return d
 
-def get_bricks(volume, type_str, replica_count):
+def _get_bricks(volume, type_str, replica_count):
   '''
   bricks = []
   n = volume.findall(".//bricks/brick")
@@ -77,7 +77,7 @@ def get_bricks(volume, type_str, replica_count):
       bl.append(tl)
   return bl
 
-def get_options(volume):
+def _get_options(volume):
   options = []
   n = volume.findall(".//options/option")
   for node in n:
@@ -172,8 +172,8 @@ def get_volume_list():
     v["stripe_count"] = int(get_text(volume, "stripeCount"))
     v["replica_count"] = int(get_text(volume, "replicaCount"))
     v["opt_count"] = get_text(volume, "optCount")
-    v["bricks"] = get_bricks(volume, v["type"], v["replica_count"])
-    v["options"] = get_options(volume)
+    v["bricks"] = _get_bricks(volume, v["type"], v["replica_count"])
+    v["options"] = _get_options(volume)
 
     protocols = {}
     # Set enabled unless turned off with options

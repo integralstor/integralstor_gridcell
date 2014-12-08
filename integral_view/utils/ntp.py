@@ -20,19 +20,8 @@ def get_ntp_servers():
     pass
   return list
 
-def get_non_server_lines():
-  list = []
-  try:
-    with open("%s/ntp.conf"%settings.NTP_CONF_PATH, "r") as f:
-      lines = f.readlines()
-      for line in lines:
-        r1 = re.match("[\s]*server[\s]*([\S]+)", line)
-        if not r1:
-          list.append(line)
-    return list
-  except Exception, e:
-    return None
 
+'''
 def restart_ntp_service():
 
   r, rc = command.execute_with_rc("service ntpd restart")
@@ -45,3 +34,17 @@ def restart_ntp_service():
     if l:
       str += ",".join(l)
     raise Exception("Error restarting NTP services : %s"%str)
+
+def get_non_server_lines():
+  list = []
+  try:
+    with open("%s/ntp.conf"%settings.NTP_CONF_PATH, "r") as f:
+      lines = f.readlines()
+      for line in lines:
+        r1 = re.match("[\s]*server[\s]*([\S]+)", line)
+        if not r1:
+          list.append(line)
+    return list
+  except Exception, e:
+    return None
+'''
