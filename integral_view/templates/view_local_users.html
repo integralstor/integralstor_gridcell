@@ -1,12 +1,22 @@
 {% extends 'logged_in_base.html' %}
 
+{%block page-header%}
+  File Access
+  <small>
+      File Access 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Authentication 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Local Users
+
+  </small>
+{%endblock%}
+
 {%block contents%}
 
 
-<span id="topic-text">File access -> Local users</span><br>
-
 {% if conf %}
-<i>{{conf}}</i><br><br>
+  <i>{{conf}}</i><br><br>
 {%endif%}
 
 {% if not user_list %}

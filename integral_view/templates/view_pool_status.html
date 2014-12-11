@@ -3,6 +3,16 @@
 <meta http-equiv="refresh" content="30" >
 {%endblock%}
 
+{%block page-header%}
+  Storage Pool STatus
+  <small>
+      Storage Pool 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      View Integral Stor Storage Nodes
+  </small>
+{%endblock%}
+
+
 {%block contents%}
 <script type="text/javascript">
 
@@ -33,86 +43,99 @@ function load_node_info(hostname, str) {
 </div>
 
 
-
-<span id="topic-text"> Storage pool status </span><br>
-
 <p id="p-instruction-text"> This page will autorefresh every 30 seconds to display updates.</p>
 
 <b> Storage nodes in use </b>
-<table class="table table-bordered table-condensed table-hover" style="width:800px">
-  <tr>
-    <th>
-      Node name
-    </th>
-    <th>
-      <b>Status </b>
-    </th>
-    <th>
-      Node details
-    </th>
-{% for hostname, d in system_info.items %}
-  {% if d.node_status >= 0 %}
-    {% if d.in_cluster %}
-      {% if d.cluster_status != 1 %}
-        <tr class="warning">
-      {%else %}
-        <tr>
+<table class="table table-bordered table-condensed table-hover datatable" style="width:800px">
+  <thead>
+    <tr>
+      <th>
+        Node name
+      </th>
+      <th>
+        <b>Status </b>
+      </th>
+      <th>
+        Node details
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for hostname, d in system_info.items %}
+      {% if d.node_status >= 0 %}
+        {% if d.in_cluster %}
+          {% if d.cluster_status != 1 %}
+            <tr class="warning">
+          {%else %}
+            <tr>
+          {%endif%}
+              <td>
+                {{hostname}}
+              </td>
+              <td>
+                {% if d.cluster_status == 1 %}
+                online
+                {%else%}
+                Offline
+                {%endif%}
+              </td>
+              <td>
+                {% if d.cluster_status == 1 %}
+                <a href="/show/node_status/{{hostname}}/?from=pool_status" role="button" class="btn btn-default">Node info.. </a>
+                {%else%}
+                <a href="/show/node_status/{{hostname}}/?from=pool_status" role="button" class="btn btn-warning">Node info.. </a>
+                {%endif%}
+              </td>
+            </tr>
+        {%endif%}
       {%endif%}
-          <td>
-            {{hostname}}
-          </td>
-          <td>
-            {% if d.cluster_status == 1 %}
-            online
-            {%else%}
-            Offline
-            {%endif%}
-          </td>
-          <td>
-            {% if d.cluster_status == 1 %}
-            <a href="/show/node_status/{{hostname}}/?from=pool_status" role="button" class="btn btn-default">Node info.. </a>
-            {%else%}
-            <a href="/show/node_status/{{hostname}}/?from=pool_status" role="button" class="btn btn-warning">Node info.. </a>
-            {%endif%}
-          </td>
-        </tr>
-    {%endif%}
-  {%endif%}
-{%endfor%}
+    {%endfor%}
+  </tbody>
 </table>
+
 {%if num_free_nodes > 0 %}
-<b> Storage nodes not currently in use </b>
-<table class="table table-bordered table-condensed table-hover" style="width:800px">
-  <tr>
-    <th>
-      Node name
-    </th>
-    <th>
-      Node details
-    </th>
-{% for hostname, d in system_info.items %}
-  {% if d.node_status >= 0 %}
-    {% if not d.in_cluster %}
-        <tr>
-          <td>
-            {{hostname}}
-          </td>
-          <td>
-            <a href="/show/node_status/{{hostname}}/?from=pool_status" role="button" class="btn btn-default">Node info.. </a>
-          </td>
-        </tr>
-    {%endif%}
-  {%endif%}
-{%endfor%}
-</table>
+  <b> Storage nodes not currently in use </b>
+
+
+  <table class="table table-bordered table-condensed table-hover datatable" style="width:800px">
+    <thead>
+      <tr>
+        <th>
+          Node name
+        </th>
+        <th>
+          Node details
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for hostname, d in system_info.items %}
+        {% if d.node_status >= 0 %}
+          {% if not d.in_cluster %}
+              <tr>
+                <td>
+                  {{hostname}}
+                </td>
+                <td>
+                  <a href="/show/node_status/{{hostname}}/?from=pool_status" role="button" class="btn btn-default">Node info.. </a>
+                </td>
+              </tr>
+          {%endif%}
+        {%endif%}
+      {%endfor%}
+    </tbody>
+  </table>
 {%else%}
-<b> All storage nodes are currently in use. No free storage nodes available. </b>
+  <b> All storage nodes are currently in use. No free storage nodes available. </b>
 {%endif%}
+
 {%endblock%}
+
 {%block help_header%}
-System status help
+  System status help
 {%endblock%}
+
 {%block help_body%}
-<p>Help about system status…</p>
+  <p>Help about system status…</p>
 {%endblock%}
 

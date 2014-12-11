@@ -28,13 +28,21 @@ function select_guest_ok() {
 }
 </script>
 
+{%block page-header%}
+  File Access
+  <small>
+      File Access 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Shares 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Create Share
+  </small>
+{%endblock%}
+
 
 {%block contents%}
-<span id="topic-text">Shares -> Create a share</span><br>
-
 
 {{conf_message}}
-
 
 <form class="form-horizontal" role="form"name="create_form" action="" method="post">
 <input type="hidden" name="display_path">

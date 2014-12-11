@@ -1,6 +1,16 @@
 {% extends 'logged_in_base.html' %}
 
 
+
+{%block page-header%}
+  Volume Creation Wizard
+  <small>
+      Volumes 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Create a Volume - Volume Type (Success)
+  </small>
+{%endblock%}
+
 {%block contents%}
 <!-- Modal -->
 <div class="modal fade" id="processing" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -8,7 +18,7 @@
     <div class="modal-content">
       <div class="modal-body" id="myModalBody">
         <br><br><br>
-        <img src="/static/images/4.gif" >
+        <i class="fa fa-spinner fa-spin bigger-250"></i>
         <br><br><br>
         <p id="p-node-text">Processing.. Please wait.
         <br><br><br>
@@ -35,7 +45,7 @@ You have chosen to create a volume with the following parameters. <br>
 The disk choices are automatically determined by the system and are displayed for information only.
 <br><br>
         <div class="field">
-            <table class="table table-bordered" style="width:40%">
+            <table class="table table-bordered table-condensed table-stripped" style="width:40%">
             <tr>
               <td>
               Volume Name
@@ -91,7 +101,6 @@ The disk choices are automatically determined by the system and are displayed fo
             </table>
         </div>
 </form>
-
 
 {%endblock%}
 {%block help_header%}

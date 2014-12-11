@@ -7,7 +7,7 @@ from django.conf import settings
 
 
 import integral_view
-from integral_view.utils import audit, batch, alerts, ntp, mail, gluster_commands, command, host_info, iv_logging
+from integral_view.utils import audit, batch, alerts, ntp, mail, gluster_commands, command, host_info, iv_logging,db
 from integral_view.utils import volume_info, system_info
 import logging
 from integral_view.iscsi import iscsi
@@ -454,14 +454,22 @@ def require_admin_login(view):
   return new_view
 
 def refresh_alerts(request, random=None):
-  if alerts.new_alerts():
-    clss = "btn btn-warning btn-sm"
-    message = "New alerts!"
-  else:
-    clss = "btn btn-default btn-sm"
-    message = "View alerts"
-  return django.http.HttpResponse("<a href='/show/alerts/' role='button' class='%s'>%s</a>"%(clss, message))
-  #return django.http.HttpResponse("HI!")
+    from datetime import datetime
+    read_time = db.read_single_row("select * from admin_alerts where user='administrator'")
+    print read_time
+    cmd_list = []
+    #this command will insert or update the row value if the row with the user exists.
+    cmd = ["INSERT OR REPLACE INTO admin_alerts (user, last_refresh_time) values (?,?);", (request.user.username, datetime.now())]
+    cmd_list.append(cmd)
+    test = db.execute_iud(cmd_list)
+    if alerts.new_alerts():
+      import json
+      new_alerts = json.dumps([dict(alert=pn) for pn in alerts.load_alerts()])
+      return django.http.HttpResponse(new_alerts, mimetype='application/json')
+    else:
+      clss = "btn btn-default btn-sm"
+      message = "View alerts"
+      return django.http.HttpResponse("No New Alerts")
 
 def raise_alert(request):
 

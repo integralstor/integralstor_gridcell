@@ -1,6 +1,16 @@
 {% extends 'logged_in_base.html' %}
 
 
+{%block page-header%}
+  Volumes
+  <small>
+      Volumes 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Background operations -> Replace a node 
+
+  </small>
+{%endblock%}
+
 
 {%block contents%}
 <script type="text/javascript">
@@ -32,9 +42,6 @@ function load_node_info(hostname, str) {
     </div>
   </div>
 </div>
-
-<span id="topic-text"> Volumes -> Background operations -> Replace a node </span>
-<br>
 
 {% if not supress_error_messages %}
 {% if form.src_node.errors %}

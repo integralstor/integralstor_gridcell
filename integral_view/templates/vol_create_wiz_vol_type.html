@@ -25,9 +25,16 @@ function subm() {
 </script>
 
 
-{%block contents%}
-<span id="topic-text"> Volumes -> Create a volume - Volume Type (Data storage model)</span><br>
+{%block page-header%}
+  Volume Creation Wizard
+  <small>
+      Volumes 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Create a Volume - Volume Type (Data Storage model)
+  </small>
+{%endblock%}
 
+{%block contents%}
 <p style="color:red;"> {{error}}</p>
 
 <form  role="form" action="/volume_creation_wizard/select_ondisk_storage_type" method="post">

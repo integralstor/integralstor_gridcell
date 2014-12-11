@@ -1,23 +1,33 @@
 {% extends 'logged_in_base.html' %}
 
+{%block page-header%}
+  Volume Creation Wizard
+  <small>
+      Volumes 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Create a Volume - Volume Name
+  </small>
+{%endblock%}
+
 {%block contents%}
-<span id="topic-text"> Volumes -> Create a volume - Volume name</span><br>
 
-<form role="form" action="/volume_creation_wizard/select_vol_access" method="post">
-<div  style=" position:relative;border:0px solid #DDDDDD;width:600px; padding:15px 15px 15px;margin:0px 15px;border-radius:4px 4px 0px 0px">
-  <div class="form-group" >
-    <label for="id_volume_name" >Volume name :</label>
-    <input type="text"  name="volume_name" class="form-control" id="id_volume_name" placeholder="Enter volume name"> 
-    {{ form.volume_name.errors }}
-  </div>
-  <button type="submit" class="btn btn-primary">Next >></button>
-</div>
-</form>
+	<form role="form" action="/volume_creation_wizard/select_vol_access" method="post">
+	<div  style=" position:relative;border:0px solid #DDDDDD;width:600px; padding:15px 15px 15px;margin:0px 15px;border-radius:4px 4px 0px 0px">
+	  <div class="form-group" >
+	    <label for="id_volume_name" >Volume name :</label>
+	    <input type="text"  name="volume_name" class="form-control" id="id_volume_name" placeholder="Enter volume name"> 
+	    {{ form.volume_name.errors }}
+	  </div>
+	  <button type="submit" class="btn btn-primary">Next >></button>
+	</div>
+	</form>
 
 {%endblock%}
+
 {%block help_header%}
-Create volume help
+	Create volume help
 {%endblock%}
+
 {%block help_body%}
-<p>Help about creating volumes…</p>
+	<p>Help about creating volumes…</p>
 {%endblock%}

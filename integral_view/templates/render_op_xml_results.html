@@ -1,5 +1,21 @@
 {% extends 'logged_in_base.html' %}
 
+{%block page-header%}
+  Volumes
+  <small>
+      Volumes 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      {%if op == "vol_stop"%}
+		Stop a volume - results
+		{%elif op == "vol_start"%}
+		Start a volume - results
+		{%elif op == "vol_start"%}
+		Expand a volume - results
+	{%endif%}
+
+  </small>
+{%endblock%}
+
 {%block contents%}
 {%if op == "vol_stop"%}
 <span id="topic-text"> Volumes -> Stop a volume - results</span><br>

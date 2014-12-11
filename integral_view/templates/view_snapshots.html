@@ -1,9 +1,15 @@
 {% extends 'logged_in_base.html' %}
 
+{%block page-header%}
+  Snapshots
+  <small>
+      Snapshots
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      View Snapshots
+  </small>
+{%endblock%}
+
 {%block contents%}
-
-
-<span id="topic-text">Snapshots -> View Snapshots </span><br>
 
 {% if conf %}
 <i>{{conf}}</i>

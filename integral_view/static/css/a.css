@@ -209,8 +209,219 @@ input {
  border:1px solid;
  border-color: #696 #363 #363 #696;
 }
-
+69aa46
 .nav > li > a {
   padding-left:10px;
   padding-right:10px;
 }
+
+/* Customization of AdminLTE css */
+
+/*Transform the sub headings with uppercase*/
+.treeview-header span{
+  margin-left: 45px;
+  text-transform: uppercase;
+}
+
+/*Background color for the logo*/
+.skin-blue .logo{
+  background-color: #FF9966;
+}
+.skin-blue .logo:hover{
+  background-color: #FF9966;
+}
+
+/*Extra Utilities*/
+.blue {
+  color: rgb(71, 143, 202) !important;
+}
+.orange{
+  color:#FFC545;
+}
+.green {
+  color: #69aa46 !important;
+}
+
+.red {
+  color: #dd5a43 !important;
+}
+
+.pink {
+  color : #c6699f !important ;
+}
+
+.lighter {
+  font-weight: lighter;
+}
+
+.middle {
+  vertical-align: middle;
+}
+.uppercase{
+  text-transform: uppercase;
+}
+
+.bigger-110 {
+  font-size: 110%;
+}
+
+.bigger-120 {
+  font-size: 120%;
+}
+
+.bigger-130 {
+  font-size: 130%;
+}
+
+.bigger-140 {
+  font-size: 140%;
+}
+
+.bigger-150 {
+  font-size: 150%;
+}
+
+.bigger-160 {
+  font-size: 160%;
+}
+
+.bigger-170 {
+  font-size: 170%;
+}
+
+.bigger-180 {
+  font-size: 180%;
+}
+
+.bigger-190 {
+  font-size: 190%;
+}
+
+.bigger-200 {
+  font-size: 200%;
+}
+
+.bigger-210 {
+  font-size: 210%;
+}
+
+.bigger-220 {
+  font-size: 220%;
+}
+
+.bigger-230 {
+  font-size: 230%;
+}
+
+.bigger-240 {
+  font-size: 240%;
+}
+
+.bigger-250 {
+  font-size: 250%;
+}
+
+.bigger-260 {
+  font-size: 260%;
+}
+
+.bigger-270 {
+  font-size: 270%;
+}
+
+.bigger-280 {
+  font-size: 280%;
+}
+
+.bigger-290 {
+  font-size: 290%;
+}
+
+.bigger-300 {
+  font-size: 300%;
+}
+.bigger-600 {
+  font-size: 600%;
+}
+.bigger-125 {
+  font-size: 125%;
+}
+
+.bigger-175 {
+  font-size: 175%;
+}
+
+.bigger-225 {
+  font-size: 225%;
+}
+
+.bigger-275 {
+  font-size: 275%;
+}
+
+.bigger-300 {
+  font-size: 300%;
+}
+
+.bigger-400 {
+  font-size: 400%;
+}
+.bigger-600 {
+  font-size: 600%;
+}
+.smaller-90 {
+  font-size: 90%;
+}
+
+.smaller-80 {
+  font-size: 80%;
+}
+
+.smaller-70 {
+  font-size: 70%;
+}
+
+.smaller-60 {
+  font-size: 60%;
+}
+
+.smaller-50 {
+  font-size: 50%;
+}
+
+.smaller-40 {
+  font-size: 40%;
+}
+
+.smaller-30 {
+  font-size: 30%;
+}
+
+.smaller-20 {
+  font-size: 20%;
+}
+
+.smaller-75 {
+  font-size: 75%;
+}
+/*End of Utilities*/
+
+/*Font Awesome Utilities*/
+
+.fa-2 {
+  font-size: 2em;
+}
+.fa-3 {
+  font-size: 4em;
+}
+.fa-4 {
+  font-size: 7em;
+}
+.fa-5 {
+  font-size: 12em;
+}
+.fa-6 {
+  font-size: 20em;
+}
+
+/*End of font awesome utilities*/

@@ -1,5 +1,41 @@
 {% extends 'logged_in_base.html' %}
 
+{%block page-header%}
+  Volumes
+  <small>
+      Volumes 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      {% if op == 'vol_delete' %}
+        Delete a volume
+        {% elif op == 'expand_volume' %}
+        Expand a volume
+        {% elif op == 'view_snapshots' %}
+        View snapshots
+        {% elif op == 'vol_quota' %}
+        Set volume quota
+        {% elif op == 'vol_stop' %}
+        Stop a volume
+        {% elif op == 'vol_start' %}
+        Start a volume
+        {% elif op == 'start_rebalance' %}
+        Start volume rebalance
+        {% elif op == 'check_rebalance' %}
+        Check volume rebalance status
+        {% elif op == 'stop_rebalance' %}
+        Stop volume rebalance
+        {% elif op == 'enable_quota' %}
+        Enable volume quota
+        {% elif op == 'vol_options' %}
+        Set volume options
+        {% elif op == 'disable_quota' %}
+        Disable volume quota
+        {% elif op == 'display_disk_level_quota' %}
+        Display disk level quota
+        {% elif op == 'rotate_log' %}
+        Rotate volume log
+        {% endif %}
+  </small>
+{%endblock%}
 
 {%block contents%}
 
@@ -17,37 +53,6 @@
     </div>
   </div>
 </div>
-
-{% if op == 'vol_delete' %}
-<span id="topic-text">Volumes -> Delete a volume</span><br>
-{% elif op == 'expand_volume' %}
-<span id="topic-text">Volumes -> Expand a volume</span><br>
-{% elif op == 'view_snapshots' %}
-<span id="topic-text">Snapshots -> View snapshots</span><br>
-{% elif op == 'vol_quota' %}
-<span id="topic-text">Volumes -> Set volume quota</span><br>
-{% elif op == 'vol_stop' %}
-<span id="topic-text">Volumes -> Stop a volume</span><br>
-{% elif op == 'vol_start' %}
-<span id="topic-text">Volumes -> Start a volume</span><br>
-{% elif op == 'start_rebalance' %}
-<span id="topic-text">Volumes -> Start volume rebalance</span><br>
-{% elif op == 'check_rebalance' %}
-<span id="topic-text">Volumes -> Check volume rebalance status</span><br>
-{% elif op == 'stop_rebalance' %}
-<span id="topic-text">Volumes -> Stop volume rebalance</span><br>
-{% elif op == 'enable_quota' %}
-<span id="topic-text">Volumes -> Enable volume quota</span><br>
-{% elif op == 'vol_options' %}
-<span id="topic-text">Volumes -> Set volume options</span><br>
-{% elif op == 'disable_quota' %}
-<span id="topic-text">Volumes -> Disable volume quota</span><br>
-{% elif op == 'display_disk_level_quota' %}
-<span id="topic-text">Volumes -> Display disk level quota</span><br>
-{% elif op == 'rotate_log' %}
-<span id="topic-text">Logging -> Rotate volume log</span><br>
-{% endif %}
-
 
 <p style="color:red;"> {{error}}</p>
 

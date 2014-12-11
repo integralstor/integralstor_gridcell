@@ -1,5 +1,15 @@
 {% extends 'logged_in_base.html' %}
 
+{%block page-header%}
+  ISCSI Access
+  <small>
+      ISCSI Access 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Global configuration for targets (edit)
+  </small>
+{%endblock%}
+
+
 {%block contents%}
 <script type="text/javascript">
 function display_access_info(select_id, div_id) {
