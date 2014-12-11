@@ -1,5 +1,16 @@
 {% extends 'logged_in_base.html' %}
 
+{%block page-header%}
+  Platform Configuration
+    <small>
+      Platform 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Platform Configuration
+  </small>
+
+{%endblock%}
+
+
 {%block contents%}
 <script type="text/javascript">
 
@@ -29,18 +40,19 @@ function load_node_info(hostname, str) {
   </div>
 </div>
 
-<span id="topic-text"> Platform configuration </span><br>
 
-
-<table class="table table-bordered table-condensed table-hover" style="width:500px">
-  <tr>
-    <th>
-      Node name
-    </th>
-    <th>
-      Details  
-    </th>
-
+<table class="table table-bordered table-condensed table-hover datatable" style="width:500px">
+  <thead>
+    <tr>
+      <th>
+        Node name
+      </th>
+      <th>
+        Details  
+      </th>
+    </tr>
+  </thead>
+<tbody>
 {% for hostname, v in system_info.items %}
   <tr>
     <td>
@@ -51,6 +63,7 @@ function load_node_info(hostname, str) {
     </td>
   </tr>
 {%endfor%}
+</tbody>
 </table>
 
 {%endblock%}

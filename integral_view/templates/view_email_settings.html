@@ -1,15 +1,24 @@
 {% extends 'logged_in_base.html' %}
 
-{%block contents%}
-<span id="topic-text"> Other services -> Email settings </span><br>
+{%block page-header%}
+  Other Services
+  <small>
+      Other Services 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Email Settings
 
+  </small>
+{%endblock%}
+
+
+{%block contents%}
 
 {% if not_saved %}
     <p id="p-error-text"> Error saving email settings. The following errors were reported : {{err}}</p><br>
 {% elif email_not_configured %}
 
 <p id="p-instructional-text"> Email settings have not been configured. </p><br>
-<a href="/configure_email_settings/" role="button" class="btn">Configure email settings</a>
+<a href="/configure_email_settings/" role="button" class="btn btn-primary">Configure email settings</a>
 
 {%else%}
 

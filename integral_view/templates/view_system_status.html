@@ -3,6 +3,16 @@
 <meta http-equiv="refresh" content="30" >
 {%endblock%}
 
+{%block page-header%}
+  Platform Status
+  <small>
+      Platform 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Platform Status
+  </small>
+
+{%endblock%}
+
 {%block contents%}
 <script type="text/javascript">
 
@@ -32,14 +42,11 @@ function load_node_status(hostname, str) {
   </div>
 </div>
 
-
-
-<span id="topic-text"> Platform status </span><br>
-
 <p id="p-instruction-text"> This page will autorefresh every 30 seconds to display updates.</p>
 
 
-<table class="table table-bordered table-condensed table-hover" style="width:800px">
+<table class="table table-bordered display datatable" style="width:100%">
+<thead>
   <tr>
     <th>
       Node name
@@ -53,36 +60,40 @@ function load_node_status(hostname, str) {
     <th>
       Click for details
     </th>
-{% for hostname, d in system_info.items %}
-  {% if d.node_status != 0 or  d.cluster_status != 1 %}
-  <tr class="warning">
-  {%else%}
-  <tr>
-  {%endif%}
-    <td>
-      {{hostname}}
-    </td>
-    <td>
-      {{d.node_status_str|title}}
-    </td>
-    <td>
-      {% if d.cluster_status == 1 %}
-      online
+    </tr>
+  </thead>
+  <tbody>
+    {% for hostname, d in system_info.items %}
+      {% if d.node_status != 0 or  d.cluster_status != 1 %}
+      <tr class="warning">
       {%else%}
-      Offline
+      <tr>
       {%endif%}
-    </td>
-    <td>
-      {% if d.node_status == 0 %}
-      <a href="/show/node_status/{{hostname}}/?from=system_status" role="button" class="btn btn-default">Details.. </a>
-      {%elif d.node_status > 0  %}
-      <a href="/show/node_status/{{hostname}}/?from=system_status" role="button" class="btn btn-warning">Details.. </a>
-      {%else%}
-      <a href="/show/node_status/{{hostname}}/?from=system_status" role="button" class="btn btn-warning" disabled >Details.. </a>
-      {%endif%}
-    </td>
-  </tr>
-{%endfor%}
+        <td>
+          {{hostname}}
+        </td>
+        <td>
+          {{d.node_status_str|title}}
+        </td>
+        <td>
+          {% if d.cluster_status == 1 %}
+          online
+          {%else%}
+          Offline
+          {%endif%}
+        </td>
+        <td>
+          {% if d.node_status == 0 %}
+          <a href="/show/node_status/{{hostname}}/?from=system_status" role="button" class="btn btn-default">Details.. </a>
+          {%elif d.node_status > 0  %}
+          <a href="/show/node_status/{{hostname}}/?from=system_status" role="button" class="btn btn-warning">Details.. </a>
+          {%else%}
+          <a href="/show/node_status/{{hostname}}/?from=system_status" role="button" class="btn btn-warning" disabled >Details.. </a>
+          {%endif%}
+        </td>
+      </tr>
+    {%endfor%}
+    </tbody>
 </table>
 {%endblock%}
 {%block help_header%}

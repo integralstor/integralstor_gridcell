@@ -1,10 +1,16 @@
 {% extends 'logged_in_base.html' %}
 
+{%block page-header%}
+  Other Services
+  <small>
+      Other Services 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      NTP Settings (Edit)
+
+  </small>
+{%endblock%}
 
 {%block contents%}
-<span id="topic-text">Other services -> NTP settings (Edit)</span><br>
-
-
 
 <form action="/configure_ntp_settings/" method="post">
 <div  style=" position:relative;border:0px solid #DDDDDD;width:600px; padding:15px 15px 15px;margin:0px 15px;border-radius:4px 4px 0px 0px">
@@ -19,9 +25,11 @@
 </form>
 
 {%endblock%}
+
 {%block help_header%}
-NTP settings help
+	NTP settings help
 {%endblock%}
+
 {%block help_body%}
-<p>Help about NTP settings…</p>
+	<p>Help about NTP settings…</p>
 {%endblock%}

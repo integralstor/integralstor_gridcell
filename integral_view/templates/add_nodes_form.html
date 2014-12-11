@@ -18,9 +18,18 @@
   </div>
 </div>
 
+{%block page-header%}
+  Admin
+  <small>
+      Admin
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Scan New Nodes
+  </small>
+{%endblock%}
+
+
 {%block contents%}
-<span id="topic-text"> Scan for new hardware </span>
-<br>
+
 {% if no_new_nodes %}
 The hardware scan did not detect any new nodes.
 {%else%}

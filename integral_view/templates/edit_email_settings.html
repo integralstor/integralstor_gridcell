@@ -1,17 +1,25 @@
 {% extends 'logged_in_base.html' %}
 
-{%block contents%}
-<span id="topic-text">Other services -> Email settings (Edit)</span><br>
+{%block page-header%}
+  Other Services
+  <small>
+      Other Services 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Email Settings (Edit)
 
+  </small>
+{%endblock%}
+
+{%block contents%}
 
 {{conf_message}}
 
 <div id="processing" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 <div class="modal-body">
 <br><br><br>
-<img src="/static/images/4.gif" >
+<i class="fa fa-spinner fa-spin fa-4 blue"></i>
 <br><br><br>
-<p id="p-node-text">Saving settings and send a test mail.. Please wait.
+<p id="p-node-text">Saving settings and sending a test mail.. Please wait.
 <br><br><br>
 </div>
 </div>

@@ -3,6 +3,14 @@
 <meta http-equiv="refresh" content="30" >
 {%endblock%}
 
+{%block page-header%}
+  Dash Board
+  <small>
+      Home 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Dashboard
+  </small>
+{%endblock%}
 
 <!-- Modal -->
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -22,8 +30,6 @@
 </div>
 
 {%block contents%}
-<span id="topic-text"> Dashboard </span>
-<br>
 <p id="p-instruction-text"> This page will autorefresh every 30 seconds to display updates.</p>
 
 <div style="border:0px solid; height:100%;position:relative">

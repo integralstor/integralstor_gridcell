@@ -7,195 +7,390 @@
   <link rel="stylesheet" href="/static/bootstrap/css/bootstrap-responsive.min.css"/>
   <link rel="stylesheet" href="/static/jstree/dist/themes/default/style.min.css" />
   <link rel="stylesheet" type="text/css" href="/static/css/modify_bootstrap.css">
+  <link rel="stylesheet" type="text/css" href="/static/font-awesome-4.2.0/css/font-awesome.css">
+  <link rel="stylesheet" type="text/css" href="/static/css/AdminLTE.css">
   <link rel="stylesheet" type="text/css" href="/static/css/a.css">
-
+  <link rel="stylesheet" type="text/css" href="/static/datatables/css/jquery.dataTables.css">
+  <link rel="stylesheet" type="text/css" href="/static/datatables/css/dataTables.bootstrap.css">
+  <link rel="stylesheet" type="text/css" href="/static/datatables/css/dataTables.responsive.css">
   <title> {%block title%}IntegralView administration console{%endblock%}</title>
   {%block autorefresh %}{%endblock%}
+
 <script type="text/javascript">
 var auto_refresh = setInterval(
 function ()
 {
-  $('#alerts').load('/refresh_alerts/').fadeIn("slow");
-}, 5000); 
+  $.get('/refresh_alerts/',function(data){
+      $("#no-alerts").show();
+      $.each(data,function(){
+        var alerts = $.parseJSON(JSON.stringify(this));
+        $.each(alerts,function(key,value){
+          $("#alerts").append('<li><a href="/show/alerts/"><div class="pull-left middle"><i class="fa fa-exclamation-circle red bigger-140"></i></div><h4>'+value.message+'</h4><p>'+value.time+'</p></a></li>');
+        });
+      });
+  });
+}, 5000);
 </script>
+
 <script src="/static/jquery-ui-1.10.2.custom/js/jquery-1.9.1.js"></script>
 <script src="/static/bootstrap/js/bootstrap.min.js" ></script>
+<script src="/static/js/app.js"></script>
+<script src="/static/datatables/js/jquery.dataTables.js"></script>
+<script src="/static/datatables/js/dataTables.bootstrap.js"></script>
+<script src="/static/datatables/js/dataTables.responsive.js"></script>
 {%block header_scripts%}
 {%endblock%}
 </head>
-<body>
-  <table id="header_table"  width="100%" border=0>
-    <tr>
-      <td align="left" style="padding:10px"> <img src="/static/images/integralview.png" style="border:solid 0px;width:80px;height:40px;"></td>
-      <td align="right">
-        <img src="/static/images/logo.jpg" style="border:solid 0px;width:140px;height:80px;float:right;">
-      </td>
-    </tr>
-  </table>
-
-
-  <div id="container">
-    <nav class="navbar navbar-default" role="navigation" style="letter-spacing:1px">
-      <div class="container-fluid">
-        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-        <ul class="nav navbar-nav">
-          <li> <a  href="/show/dashboard/" > Dashboard</a> 
-          </li>
-          <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Platform <b class="caret"></b></a>
-            <ul class="dropdown-menu">
-              <!--
-              <li style="letter-spacing:1px"><a href="/show/dashboard" data-toggle="tooltip" title="View status of all components" style="letter-spacing:1px">Dashboard</a></li>
-              <li class="divider"></li>
-              <li><span>Status</span></li>
-              -->
-              <li style="letter-spacing:1px"><a href="/show/system_status" data-toggle="tooltip" title="View current system status" style="letter-spacing:1px">Platform status</a></li>
-              <!--
-              <li class="divider"></li>
-              <li><span>Configuration</span></li>
-              -->
-              <li><a href="/show/system_config/">Platform configuration</a></li>
-              <li class="divider"></li>
-              <li style="letter-spacing:1px"><a href="/show/disk_status" data-toggle="tooltip" title="View current status of all disks" style="letter-spacing:1px">Disk status</a></li>
-            </ul>
-          </li>
-          <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Storage pool <b class="caret"></b></a>
-            <ul class="dropdown-menu">
-              <li><a href="/show/pool_status" data-toggle="tooltip" title="View the currently available storagestorage">View IntegralStor storage nodes</a></li>
-              <li><a href="/add_nodes" data-toggle="tooltip" title="Add IntegralStor to the storgae pool">Add IntegralStor nodes</a></li>
-              <li><a href="/remove_node" date-toggle="tooltip" title="Remove storage from the pool">Remove an IntegralStor node</a></li>
-            </ul>
-          </li>
-          <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Volumes <b class="caret"></b></a>
-            <ul class="dropdown-menu">
-              <li><a href="/show/volume_info_all/">View volume configuration</a></li>
-              <li style="letter-spacing:1px"><a href="/show/volume_status_all" data-toggle="tooltip" title="View current volume status" style="letter-spacing:1px">View volume status</a></li>
-              <li class="divider"></li>
-              <li><a href="/volume_creation_wizard/select_vol_name" date-toggle="tooltip" title="Create a storage volume">Create a volume</a></li>
-              <li><a href="/volume_specific_op/vol_delete/">Delete a volume</a></li>
-              <li><a href="/volume_specific_op/vol_start/">Start a volume</a></li>
-              <li><a href="/volume_specific_op/vol_stop/">Stop a volume</a></li>
-              <li><a href="/volume_specific_op/expand_volume/">Expand a volume</a></li>
-              <li><a href="/volume_specific_op/vol_options/">Set volume options</a></li>
-              <li><a href="/volume_specific_op/vol_quota/">Set volume quota</a></li>
-              <li class="divider"></li>
-              <li><span>Background operations</span></li>
-              <li><a href="/replace_node/">Replace a node</a></li>
-              <li><a href="/volume_specific_op/start_rebalance/">Start volume rebalance</a></li>
-            </ul>
-          </li>
-          <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Other services <b class="caret"></b></a>
-            <ul class="dropdown-menu">
-              <li><a href="/show/ntp_settings/">Configure NTP</a></li>
-              <li><a href="/show/email_settings/">Email settings</a></li>
-              <li><a href="/show/batch_status">View status of background processes</a></li>
-            </ul>
-          </li>
-          <li class="divider-vertical"></li>
-          <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">File access <b class="caret"></b></a>
-            <ul class="dropdown-menu">
-              <li><span>Authentication</span></li>
-              <li><a href="/auth_server_settings">Authentication settings</a></li>
-              <li><a href="/edit_auth_method">Change authentication method</a></li>
-              <li><a href="/view_local_users">Local users</a></li>
-              <li><span>Shares</span></li>
-              <li><a href="/display_shares">View shares</a></li>
-              <li><a href="/create_share">Create a share</a></li>
-            </ul>
-          </li>
-          <li class="divider-vertical"></li>
-          <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Snapshots<b class="caret"></b></a>
-            <ul class="dropdown-menu">
-              <li><a href="/volume_specific_op/view_snapshots/">View snapshots</a></li>
-            </ul>
-          </li>
-          <li class="divider-vertical"></li>
-          <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">ISCSI access <b class="caret"></b></a>
-            <ul class="dropdown-menu">
-              <li><a href="/iscsi_view_target_global_config">Global configuration for targets</a></li>
-              <li><a href="/iscsi_display_targets">Targets</a></li>
-              <li><a href="/iscsi_display_initiators">Initiators</a></li>
-              <li><a href="/iscsi_display_auth_access_group_list">Authorized access groups</a></li>
-            </ul>
-          </li>
-          <li class="divider-vertical"></li>
-          <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Logging <b class="caret"></b></a>
-            <ul class="dropdown-menu">
-              <li><span>Volume logs</span></li>
-              <li><a href="/volume_specific_op/rotate_log">Rotate volume log</a></li>
-              <li><a href="/download_vol_log">Download volume logs</a></li>
-              <li><span>System logs</span></li>
-              <li><a href="/download_sys_log">Download system logs</a></li>
-              <li><span>Alerts</span></li>
-              <li><a href="/show/alerts">View current alerts</a></li>
-              <li><a href="/rotate_log/alerts">Rotate alerts log</a></li>
-              <li><a href="/view_rotated_log_list/alerts">View older alerts</a></li>
-              <li><span>Audit trail</span></li>
-              <li><a href="/show/audit_trail/">View current audit trail</a></li>
-              <li><a href="/rotate_log/audit_trail">Rotate audit trail</a></li>
-              <li><a href="/view_rotated_log_list/audit_trail">View older audit trails</a></li>
-              <li><span>Integral View Logging</span></li>
-              <li><a href="/show/integral_view_log_level/">View IntegralView log level</a></li>
-            </ul>
-          </li>
-          <li class="divider-vertical"></li>
-          <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Admin <b class="caret"></b></a>
-            <ul class="dropdown-menu">
-              <li><a href="/change_admin_password/">Change admin password</a></li>
-              <li><a href="/hardware_scan/">Scan for new nodes</a></li>
-              <li><a href="/reset_to_factory_defaults/">Reset to factory defaults</a></li>
-            </ul>
-          </li>
-        </ul>
-        <ul class="nav navbar-nav navbar-right">
-          <!--
-          <li> <a  href="/show/dashboard/" > Home</a> 
-          </li>
-          -->
-          <li>
-            <a href="#help" data-toggle="modal">Help!</a>
-          </li>
-          <li>
-            <a  href="/logout/" > Logout</a> 
-          </li>
-          <li>
-            <div id="alerts" style="padding-top:10px;padding-bottom:15px">
-            <a  href="/show/alerts/" role="button" class="btn btn-default btn-sm"> View alerts</a> 
-            </div>
-            <span id="alerts" style="padding:0px"> 
-            </span>
-          </li>
-        </ul>
-        </div> <!-- collapse -->
-      </div> <!-- container-fluid -->
-    </nav>
-  </div>
+<body class="skin-blue fixed">
 
 
 
+<!-- Top Menu-->
+<header class="header">
+            <a href="/show/dashboard/" class="logo">
+                <!-- Add the class icon to your logo image or logo icon to add the margining -->
+                <!-- <img src="/static/images/logo.jpg"  width="60" height="60"/> -->
 
+                 <img src="/static/images/integralview-white.png" height="45" width="100" />
+            </a>
+            <!-- Header Navbar: style can be found in header.less -->
+            <nav class="navbar navbar-static-top" role="navigation">
+                <!-- Sidebar toggle button-->
+                <a href="#" class="navbar-btn sidebar-toggle" data-toggle="offcanvas" role="button">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </a>
+                <div class="navbar-right">
+                    <ul class="nav navbar-nav">
+                        <!-- User Account: style can be found in dropdown.less -->
+                        <li class="dropdown messages-menu">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" id="alerts-dropdown">
+                                <span class="white bigger-140"><i class="fa fa-exclamation-triangle"></i></span>
+                                <span class="label label-danger" id="no-alerts">4</span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <!-- <li class="header">You have 4 Alerts</li> -->
+                                <li>
+                                    <!-- inner menu: contains the actual data -->
+                                    <div style="position: relative; overflow: hidden; width: auto; height: 200px;" class="slimScrollDiv">
+                                    <ul style="overflow: hidden; width: 100%; height: 200px;" class="menu" id="alerts">
+                                        
+                                    </ul><div style="background: none repeat scroll 0% 0% rgb(0, 0, 0); width: 3px; position: absolute; top: 0px; opacity: 0.4; display: none; border-radius: 0px; z-index: 99; right: 1px; height: 131.148px;" class="slimScrollBar"></div><div style="width: 3px; height: 100%; position: absolute; top: 0px; display: none; border-radius: 0px; background: none repeat scroll 0% 0% rgb(51, 51, 51); opacity: 0.2; z-index: 90; right: 1px;" class="slimScrollRail"></div></div>
+                                </li>
+                                <li class="footer"><a href="/show/alerts/">See All Messages</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown user user-menu">
+                            <a href="#" classstyle="min-height: 590px;"="dropdown-toggle" data-toggle="dropdown">
+                                <i class="glyphicon glyphicon-user"></i>
+                                <span>{{request.user.username|default:'admin'}} <i class="caret"></i></span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <!-- User image -->
+                                <li class="user-header bg-light-blue">
+                                    <img src="/static/images/LOGO-transparent.png" class="img-circle" alt="User Image">
+                                    <p>
+                                        {{request.user.username|default:'admin'}}
+                                        <!-- <small>Member since Nov. 2012</small> -->
+                                    </p>
+                                </li>
+                                <!-- Menu Body -->
+                                <!--
+                                 <li class="user-body">
+                                    <div class="col-xs-4 text-center">
+                                        <a href="#">Followers</a>
+                                    </div>
+                                    <div class="col-xs-4 text-center">
+                                        <a href="#">Sales</a>
+                                    </div>
+                                    <div class="col-xs-4 text-center">
+                                        <a href="#">Friends</a>
+                                    </div>
+                                </li> -->
+                                <!-- Menu Footer-->
+                                <li class="user-footer">
+                                    <div class="pull-left">
+                                        <a href="{%url 'change_admin_password'%}" class="btn btn-default btn-flat">Change Password</a>
+                                    </div>
+                                    <div class="pull-right">
+                                        <a href="{%url 'logout'%}" class="btn btn-default btn-flat">Sign out</a>
+                                    </div>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </header>
+<!-- end of top menu -->
 
-<div id="contents">
-   {%block contents%}
-  {%endblock%}
-</div>
+<!-- Side Menu -->
+        <div style="min-height: 590px;" class="wrapper row-offcanvas row-offcanvas-left">
+            <!-- Left side column. contains the logo and sidebar -->
+            <aside style="min-height: 590px;" class="left-side sidebar-offcanvas">
+                <!-- sidebar: style can be found in sidebar.less -->
+                <section class="sidebar">
 
-<div id="footer" >
-   {%block footer%}
-  {%endblock%}
-</div>
+                    <!-- sidebar menu: : style can be found in sidebar.less -->
+                    <ul class="sidebar-menu">
+                        <li class="active">
+                            <a href="/show/dashboard/">
+                                <i class="fa fa-dashboard"></i> <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="treeview">
+                            <a href="#">
+                                <i class="fa fa-th"></i>
+                                <span>Platform</span>
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </a>
+                            <ul class="treeview-menu">
+                                <li>
+                                  <a href="/show/system_status" data-toggle="tooltip" title="View current system status" style="letter-spacing:1px; margin-left: 10px;">
+                                      <i class="fa fa-angle-double-right"></i>Platform status
+                                  </a>
+                                </li>
+                                
+                                <li>
+                                  <a href="/show/system_config/" style="letter-spacing:1px; margin-left: 10px;" data-toggle="tooltip" title="View current system Configuration">
+                                    <i class="fa fa-angle-double-right"></i>Platform configuration
+                                  </a>
+                                </li>
+                                
+                                <li>
+                                  <a href="/show/disk_status" data-toggle="tooltip" title="View current status of all disks" style="letter-spacing:1px; margin-left: 10px;">
+                                    <i class="fa fa-angle-double-right"></i>Disk status
+                                  </a>
+                                </li>                              
+                            </ul>
+                        </li>
+                        <li class="treeview">
+                          <a href="#">
+                              <i class="fa fa-database"></i>
+                              <span>Storage Pool</span>
+                              <i class="fa fa-angle-left pull-right"></i>
+                          </a>
+                            <ul class="treeview-menu">
+                                <li>
+                                  <a href="/show/pool_status" data-toggle="tooltip" title="View the currently available storagestorage">
+                                     <i class="fa fa-angle-double-right"></i> View IntegralStor storage nodes
+                                  </a>
+                                </li>
+                                <li>
+                                  <a href="/add_nodes" data-toggle="tooltip" title="Add IntegralStor to the storgae pool">    <i class="fa fa-angle-double-right"></i> Add IntegralStor nodes
+                                  </a>
+                                </li>
+                                <li>
+                                  <a href="/remove_node" date-toggle="tooltip" title="Remove storage from the pool">
+                                    <i class="fa fa-angle-double-right"></i> Remove an IntegralStor node
+                                  </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="treeview">
+                            <a href="#">
+                              <i class="fa fa-gear"></i>
+                              <span>Volumes</span>
+                              <i class="fa fa-angle-left pull-right"></i>
+                            </a>
+                              <ul class="treeview-menu">
+                                <li>
+                                  <a href="/show/volume_info_all/">
+                                    <i class="fa fa-angle-double-right"></i>View volume configuration
+                                  </a>
+                                </li>
+                                <li style="letter-spacing:1px">
+                                  <a href="/show/volume_status_all" data-toggle="tooltip" title="View current volume status" style="letter-spacing:1px">
+                                    <i class="fa fa-angle-double-right"></i>View volume status
+                                  </a>
+                                </li>
+                                <li>
+                                  <a href="/volume_creation_wizard/select_vol_name" date-toggle="tooltip" title="Create a storage volume">
+                                    <i class="fa fa-angle-double-right"></i>Create a volume
+                                  </a>
+                                </li>
+                                <li>
+                                  <a href="/volume_specific_op/vol_delete/">
+                                    <i class="fa fa-angle-double-right"></i>Delete a volume
+                                  </a>
+                                </li>
+                                <li>
+                                  <a href="/volume_specific_op/vol_start/">
+                                    <i class="fa fa-angle-double-right"></i>Start a volume
+                                  </a>
+                                </li>
+                                <li>
+                                  <a href="/volume_specific_op/vol_stop/">
+                                    <i class="fa fa-angle-double-right"></i>Stop a volume
+                                  </a>
+                                </li>
+                                <li class="divider"></li>
+                                <li>
+                                  <a href="/volume_specific_op/expand_volume/">
+                                    <i class="fa fa-angle-double-right"></i>Expand a volume
+                                  </a>
+                                </li>
+                                <li>
+                                  <a href="/volume_specific_op/vol_options/">
+                                    <i class="fa fa-angle-double-right"></i>Set volume options
+                                  </a>
+                                </li>
+                                <li>
+                                  <a href="/volume_specific_op/vol_quota/">
+                                    <i class="fa fa-angle-double-right"></i>Set volume quota
+                                  </a>
+                                </li>
+                                <li class="divider"></li>
+                                <li class="treeview-header">
+                                  <span>Background operations</span>
+                                </li>
+                                <li>
+                                  <a href="/replace_node/">
+                                    <i class="fa fa-angle-double-right"></i>Replace a node
+                                  </a>
+                                </li>
+                                <li>
+                                  <a href="/volume_specific_op/start_rebalance/">
+                                    <i class="fa fa-angle-double-right"></i>Start volume rebalance
+                                  </a>
+                                </li>
+                              </ul>
+                        </li>
+                        <li class="treeview">
+                          <a href="#" class="treeview-toggle" data-toggle="treeview">
+                            <i class="fa fa-history"></i> Other services <i class="fa fa-angle-left pull-right"></i>
+                          </a>
+                          <ul class="treeview-menu">
+                            <li>
+                              <a href="/show/ntp_settings/">
+                                  <i class="fa fa-angle-double-right"></i>Configure NTP
+                              </a>
+                            </li>
+                            <li>
+                              <a href="/show/email_settings/">
+                                <i class="fa fa-angle-double-right"></i> Email settings
+                              </a>
+                            </li>
+                            <li>
+                              <a href="/show/batch_status">
+                                <i class="fa fa-angle-double-right"></i> View status of background processes
+                              </a>
+                            </li>
+                          </ul>
+                        </li>
+                        <li class="treeview">
+                          <a href="#" class="treeview-toggle" data-toggle="treeview">
+                            <i class="fa fa-files-o"></i> File access <i class="fa fa-angle-left pull-right"></i>
+                            </a>
+                          <ul class="treeview-menu">
+                            <li class="treeview-header"><span>Authentication</span></li>
+                            <li><a href="/auth_server_settings"> <i class="fa fa-angle-double-right"></i> Authentication settings</a></li>
+                            <li><a href="/edit_auth_method"><i class="fa fa-angle-double-right"></i> Change authentication method</a></li>
+                            <li><a href="/view_local_users"><i class="fa fa-angle-double-right"></i> Local users</a></li>
+                            <li class="treeview-header"><span>Shares</span></li>
+                            <li><a href="/display_shares"><i class="fa fa-angle-double-right"></i> View shares</a></li>
+                            <li><a href="/create_share"><i class="fa fa-angle-double-right"></i> Create a share</a></li>
+                          </ul>
+                        </li>
+                        <li class="treeview">
+                          <a href="#" class="treeview-toggle" data-toggle="treeview"> 
+                            <i class="fa fa-desktop"></i> Snapshots <i class="fa fa-angle-left pull-right"></i>
+                          </a>
+                          <ul class="treeview-menu">
+                            <li><a href="/volume_specific_op/view_snapshots/"><i class="fa fa-angle-double-right"></i> View snapshots</a></li>
+                          </ul>
+                        </li>
+                        <li class="treeview">
+                          <a href="#" class="treeview-toggle" data-toggle="treeview">
+                            <i class="fa fa-bar-chart-o"></i> ISCSI access <i class="fa fa-angle-left pull-right"></i>
+                          </a>
+                          <ul class="treeview-menu">
+                            <li><a href="/iscsi_view_target_global_config"><i class="fa fa-angle-double-right"></i> Global configuration for targets</a></li>
+                            <li><a href="/iscsi_display_targets"><i class="fa fa-angle-double-right"></i> Targets</a></li>
+                            <li><a href="/iscsi_display_initiators"><i class="fa fa-angle-double-right"></i> Initiators</a></li>
+                            <li><a href="/iscsi_display_auth_access_group_list"><i class="fa fa-angle-double-right"></i> Authorized access groups</a></li>
+                          </ul>
+                        </li>
+                        <li class="treeview">
+                          <a href="#" class="treeview-toggle" data-toggle="treeview">
+                            <i class="fa fa-file-code-o"></i> Logging <i class="fa fa-angle-left pull-right"></i>
+                          </a>
+                          <ul class="treeview-menu">
+                            <li class="treeview-header"><span>Volume logs</span></li>
+                            <li><a href="/volume_specific_op/rotate_log"><i class="fa fa-angle-double-right"></i> Rotate volume log</a></li>
+                            <li><a href="/download_vol_log"><i class="fa fa-angle-double-right"></i> Download volume logs</a></li>
+                            <li class="divider-vertical"></li>
+                            <li class="treeview-header"><span>System logs</span></li>
+                            <li><a href="/download_sys_log"> <i class="fa fa-angle-double-right"></i> Download system logs</a></li>
+                            <li class="divider-vertical"></li>
+                            <li class="treeview-header"><span>Alerts</span></li>
+                            <li><a href="/show/alerts"><i class="fa fa-angle-double-right"></i> View current alerts</a></li>
+                            <li><a href="/rotate_log/alerts"><i class="fa fa-angle-double-right"></i> Rotate alerts log</a></li>
+                            <li><a href="/view_rotated_log_list/alerts"><i class="fa fa-angle-double-right"></i> View older alerts</a></li>
+                            <li class="divider-vertical"></li>
+                            <li class="treeview-header"><span>Audit trail</span></li>
+                            <li><a href="/show/audit_trail/"><i class="fa fa-angle-double-right"></i> View current audit trail</a></li>
+                            <li><a href="/rotate_log/audit_trail"><i class="fa fa-angle-double-right"></i> Rotate audit trail</a></li>
+                            <li><a href="/view_rotated_log_list/audit_trail"><i class="fa fa-angle-double-right"></i> View older audit trails</a></li>
+                            <li class="divider-vertical"></li>
+
+                            <li class="treeview-header"><span>Integral View Logging</span></li>
+                            <li><a href="/show/integral_view_log_level/"><i class="fa fa-angle-double-right"></i> View IntegralView log level</a></li>
+                          </ul>
+                        </li>
+                        <li class="treeview">
+                          <a href="#" class="treeview-toggle" data-toggle="treeview">
+                            <i class="fa fa-cogs"></i> Admin <i class="fa fa-angle-left pull-right"></i>
+                          </a>
+                          <ul class="treeview-menu">
+                            <li><a href="/change_admin_password/"><i class="fa fa-angle-double-right"></i> Change admin password</a></li>
+                            <li><a href="/hardware_scan/"><i class="fa fa-angle-double-right"></i> Scan for new nodes</a></li>
+                            <li><a href="/reset_to_factory_defaults/"><i class="fa fa-angle-double-right"></i> Reset to factory defaults</a></li>
+                          </ul>
+                        </li>
+                    </ul>
+                </section>
+                <!-- /.sidebar -->
+            </aside>
+
+            <!-- Right side column. Contains the navbar and content of the page -->
+            <aside class="right-side">
+                <!-- Content Header (Page header) -->
+                <section class="content-header">
+                    <h1>
+                        {%block page-header%}
+                          DashBoard
+                          <small>
+                            Home
+                            <i class="fa fa-angle-double-right smaller-80"></i>
+                            Dashboard
+                          </small>
+                        {%endblock%}
+                        <a href="#help" data-toggle="modal" class="btn btn-primary btn-flat pull-right">Help!</a>
+
+                    </h1>
+                </section>
+
+                <!-- Main content -->
+                <section id="contents" class="content">
+                      {%block contents%}
+
+                      {%endblock%}                      
+                </section><!-- /.content -->
+            </aside><!-- /.right-side -->
+        </div>
+
+        <div id="footer" >
+           {%block footer%}
+          {%endblock%}
+        </div>
 
 <!-- Modal -->
 <div class="modal fade" id="help" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
+
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -206,7 +401,46 @@ function ()
       </div>
       <div class="modal-body" >
       {%block help_body%}
+
       {%endblock%}
+                            <button class="btn btn-primary">Primary</button>
+                      <button class="btn btn-info">Info</button>
+                      <button class="btn btn-success">Success</button>
+                      <button class="btn btn-warning">Warning</button>
+                      <button class="btn btn-danger">Danger</button>
+                      <button class="btn btn-default">Default</button>
+                      <button class="btn btn-inverse">Inverse</button>
+                      <br /> <br />
+                      <div class="alert alert-success" role="alert">...</div>
+                      <div class="alert alert-info" role="alert">...</div>
+                      <div class="alert alert-warning" role="alert">...</div>
+                      <div class="alert alert-danger" role="alert">...</div>
+
+                      <div class="progress">
+                        <div class="progress-bar progress-bar-primary" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 40%">
+                          <span class="sr-only">40% Complete (success)</span>
+                        </div>
+                      </div>
+                      <div class="progress">
+                        <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 40%">
+                          <span class="sr-only">40% Complete (success)</span>
+                        </div>
+                      </div>
+                      <div class="progress">
+                        <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100" style="width: 20%">
+                          <span class="sr-only">20% Complete</span>
+                        </div>
+                      </div>
+                      <div class="progress">
+                        <div class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 60%">
+                          <span class="sr-only">60% Complete (warning)</span>
+                        </div>
+                      </div>
+                      <div class="progress">
+                        <div class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" style="width: 80%">
+                          <span class="sr-only">80% Complete (danger)</span>
+                        </div>
+                      </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -216,5 +450,17 @@ function ()
 </div>
 
 </body>
+  <script>
+    $(document).ready(function(){
+      {%block datatables%}
+        $('.datatable').DataTable({
+          searching: false,
+          ordering: false,
+          paging: false,
+          responsive: true,
+        });
+      {%endblock%}
+    });
+  </script>
 </html>
 

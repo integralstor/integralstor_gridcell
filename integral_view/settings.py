@@ -4,7 +4,7 @@ DEBUG = True
 
 APP_DEBUG = True
 PRODUCTION = False
-DEVEL_APP_ROOT = '/home/bkrram/fractal/integral_view/'
+DEVEL_APP_ROOT = '/opt/integral_view/integral-view'
 PRODUCTION_APP_ROOT = '/opt/fractalio/integral_view'
 SALT_MASTER_CONFIG = '/etc/salt/master'
 APP_NAME = 'integral_view'
@@ -43,7 +43,7 @@ DB_LOCATION = '%s/db'%BASE_CONF_ROOT
 STATIC_DIR_PATH = '%s/static'%BASE_APP_PATH
 TEMPLATE_DIR_PATH = "%s/templates"%BASE_APP_PATH
 
-
+print DB_LOCATION
 
 DISPLAY_COLOURS = {
   "inactive" : "darkgray",
@@ -183,6 +183,16 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
 )
 
+TEMPLATE_CONTEXT_PROCESSORS = (
+  "django.contrib.auth.context_processors.auth",
+  "django.core.context_processors.debug",
+  "django.core.context_processors.i18n",
+  "django.core.context_processors.media",
+  "django.core.context_processors.static",
+  "django.core.context_processors.tz",
+  "django.contrib.messages.context_processors.messages",
+  'django.core.context_processors.request',
+  )
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
 # the site admins on every HTTP 500 error when DEBUG=False.

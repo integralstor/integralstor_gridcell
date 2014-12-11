@@ -1,8 +1,16 @@
 {% extends 'logged_in_base.html' %}
 
-{%block contents%}
-<span id="topic-text"> Other services -> NTP settings </span><br>
+{%block page-header%}
+  Other Services
+  <small>
+      Other Services 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      NTP Settings
 
+  </small>
+{%endblock%}
+
+{%block contents%}
 
 {% if error %}
 

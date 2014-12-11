@@ -1,14 +1,19 @@
 {% extends 'logged_in_base.html' %}
+{%block page-header%}
+  ISCSI Access
+  <small>
+      ISCSI Access 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Global configuration for targets 
+  </small>
+{%endblock%}
 
 
 {%block contents%}
-<span id="topic-text"> ISCSI Access -> Global configuration for targets</span><br>
-
-
 
 {{conf_message}}
 
-<table class="table table-bordered" style="width:60%">
+<table class="table table-bordered table-hover table-condensed" style="width:60%">
 <tr>
   <th>
     Base name:

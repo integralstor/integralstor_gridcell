@@ -1,4 +1,12 @@
 {% extends 'logged_in_base.html' %}
+{%block page-header%}
+  Add IntegralStor Nodes
+  <small>
+      Storage Pool
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Add IntegralStor Nodes
+  </small>
+{%endblock%}
 
 {%block contents%}
 <script type="text/javascript">
@@ -9,8 +17,6 @@ function load_node_info(hostname, str) {
   $('#myModal').modal();
 }
 </script>
-
-<span id="topic-text"> Add IntegralStor nodes</span><br>
 
 {%if no_available_nodes %}
 

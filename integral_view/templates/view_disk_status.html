@@ -6,6 +6,18 @@
 {%endblock%}
 </script>
 
+
+{%block page-header%}
+  Disk Status
+    <small>
+      Platform 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Disk Status
+  </small>
+
+ {%endblock%}
+
+
 {%block contents%}
 <script type="text/javascript" >
 function toggleTable(tid, bid) {
@@ -49,15 +61,11 @@ function toggleTable(tid, bid) {
   </div>
 </div>
 
-
-
-<span id="topic-text"> Disk status </span><br>
-
 <p id="p-instruction-text"> This page will autorefresh every 30 seconds to display updates.</p>
 
 
 {% for hostname, d in system_info.items %}
-<table class=table table-bordered table-hover" >
+<table class="table table-bordered table-hover">
 <tr>
   <td>{{hostname}}</td>
   <td><button id="button_{{forloop.counter}}" onClick="toggleTable('table_{{forloop.counter}}', 'button_{{forloop.counter}}');">Show storage details</button></td>

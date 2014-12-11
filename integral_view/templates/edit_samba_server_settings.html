@@ -1,8 +1,18 @@
 {% extends 'logged_in_base.html' %}
 
+{%block page-header%}
+  File Access
+  <small>
+      File Access 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Authentication 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Authentication Settings (Edit)
+
+  </small>
+{%endblock%}
 
 {%block contents%}
-<span id="topic-text">Shares -> Authentication settings (edit) </span><br>
 
 <p id="p-instruction-text">{{conf}}</p>
 
@@ -60,7 +70,7 @@
     <div class="modal-content">
       <div class="modal-body" id="myModalBody">
         <br><br><br>
-        <img src="/static/images/4.gif" >
+        <i class="fa fa-spinner fa-spin fa-4 blue"></i>
         <br><br><br>
         <p id="p-node-text">Processing.. Please wait.
         <br><br><br>
