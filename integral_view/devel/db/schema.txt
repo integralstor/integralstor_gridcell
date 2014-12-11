@@ -100,6 +100,11 @@ id INTEGER NOT NULL PRIMARY KEY,
 logging_level INTEGER NOT NULL
 );
 
+CREATE TABLE "admin_alerts" (
+user varchar(60) NOT NULL PRIMARY KEY,
+last_refresh_time DATETIME NOT NULL
+);
+
 
 
 
