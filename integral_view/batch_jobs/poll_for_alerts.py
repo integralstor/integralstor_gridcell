@@ -19,8 +19,13 @@ def raise_alert(alert_url, msg):
     print "Error raising alert : %s"%e
     pass
 
+import atexit
+atexit.register(lock.release_lock, 'poll_for_alerts')
+
 def main():
 
+  if not lock.get_lock('poll_for_alerts'):
+      print 'Generate Status : Could not acquire lock. Exiting.'
 
   alert_url = settings.ALERTS_URL
 
@@ -46,18 +51,20 @@ def main():
     print node
     if node["node_status"] != 0:
       if node["node_status"] == -1:
-        raise_alert(alert_url, 'Node %s seems to be down. View the \"Hardware status\" screen for more info.'%(name))
+        raise_alert(alert_url, 'Node %s seems to be down. View the \"System status\" screen for more info.'%(name))
       elif node["node_status"] > 0:
         raise_alert(alert_url, 'Node %s seems to be degraded with the following errors : %s.'%(name, ' '.join(node["errors"]))
     if node["cpu_status"]["status"] != "ok":
-      raise_alert(alert_url, 'The CPU on node %s has issues. View the \"Hardware status\" screen for more info.'%(name))
-    '''
-    for n, v in node["interface_status"].items():
-      if v["status"] != "up":
-        raise_alert(alert_url, 'Interface %s on node %s is down. View the \"Hardware status\" screen for more info.'%(n, name))
-    '''
+      raise_alert(alert_url, 'The CPU on node %s has issues. View the \"System status\" screen for more info.'%(name))
+    if "ipmi_status" in node:        
+      for status_dict in node["ipmi_status"]:
+        if status_dict["status"] != "ok":
+          raise_alert(alert_url, 'The %s on node %s has issues. The %s shows a value of %s. View the \"System status\" screen for more info.'%(status_dict["component_name"], status_dict["parameter_name"], status_dict["reading"]))
     for n, v in node["disk_status"].items():
       if v["status"] != "PASSED":
-        raise_alert(alert_url, 'Disk %s on node %s has issues. View the \"Hardware status\" screen for more info.'%(n, name))
+        raise_alert(alert_url, 'Disk %s on node %s has issues. View the \"System status\" screen for more info.'%(n, name))
+
+  lock.release_lock('poll_for_alerts')
+
 if __name__ == "__main__":
   main()

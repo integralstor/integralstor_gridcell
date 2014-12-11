@@ -16,7 +16,7 @@ Result
 {% for d in result_list %}
 <tr>
 <td>
-{{d.command}}
+{{d.display_command}}
 {% if app_debug %}
 <br>{{d.actual_command}}
 {%endif%}
@@ -31,24 +31,6 @@ Failed (Errno. {{d.op_status.op_errno}} - {{d.op_status.op_errstr}}, {{d.op_stat
 </tr>
 {%endfor%}
 </table>
-
-<!--
-{%if cmd_output %}
-{% for o in cmd_output%}
-{{o}}<br>
-{%endfor%}
-{% endif %}
--->
-
-
-{% if cmd_errors  %}
-<p style="color:red">Could not perform the requested action. Errors follow :</p>
-{% for err in cmd_errors%}
-{{err}}<br>
-{%endfor%}
-</p>
-{% endif %}
-
 
 
 {%endblock%}

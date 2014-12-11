@@ -53,6 +53,19 @@ class VolumeNameForm(forms.Form):
         ch.append(tup)
     self.fields['vol_name'] = forms.ChoiceField(choices=ch)
 
+class CreateSnapshotForm(VolumeNameForm):
+  """ Form to prompt for the volume name"""
+  
+  snapshot_name = forms.CharField()
+
+  def clean_snapshot_name(self):
+    snapshot_name = self.cleaned_data['snapshot_name']
+    if not snapshot_name[0].isalpha():
+      raise forms.ValidationError("The snapshot name should begin with an alphabet")
+    if (' ' in snapshot_name):
+      raise forms.ValidationError("The snapshot name cannot contain spaces")
+    return self.cleaned_data['snapshot_name']
+
 class ReplaceNodeConfForm(forms.Form):
 
   src_node = forms.CharField()
@@ -89,6 +102,8 @@ class ReplaceNodeForm(forms.Form):
       raise forms.ValidationError("Source and replacement nodes should be different")
     return cleaned_data
 
+
+'''
 
 class ExpandVolumeForm(forms.Form):
   """ Form to prompt for the info to expand a volume"""
@@ -127,3 +142,4 @@ class ExpandVolumeForm(forms.Form):
       if len(hosts)%count != 0:
         raise forms.ValidationError("Please choose the a multiple of %d disks"%count)
     return self.cleaned_data['hosts']
+'''

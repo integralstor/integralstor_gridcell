@@ -108,11 +108,10 @@ def edit_share(request):
       initial["read_only"] = False
     initial["comment"] = share_dict["comment"]
 
-    valid_user_list = samba_settings.load_valid_users_list(share_dict["share_id"])
-    if valid_user_list:
+    if valid_users_list:
       vgl = []
       vul = []
-      for u in valid_user_list:
+      for u in valid_users_list:
         if u["grp"]:
           vgl.append(u["name"])
         else:
@@ -359,8 +358,8 @@ def save_samba_server_settings(request):
         return_dict["error"] = "Error generating file share authentication config file- %s" %str(e)
     if not "error" in return_dict and cd["security"] == "ads":
       try :
-        #samba_settings.kinit("administrator", cd["password"], cd["realm"])
-        pass
+        samba_settings.kinit("administrator", cd["password"], cd["realm"])
+        #pass
       except Exception, e:
         return_dict["error"] = "Error generating kerberos ticket - %s" %str(e)
     if not "error" in return_dict and cd["security"] == "ads":
@@ -373,6 +372,7 @@ def save_samba_server_settings(request):
         samba_settings.generate_krb5_conf()
       except Exception, e:
         return_dict["error"] = "Error generating kerberos config file - %s" %str(e)
+    samba_settings.restart_samba_services()
     if "error" in return_dict:
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
   else:
@@ -405,6 +405,8 @@ def view_local_users(request):
     elif request.GET["action"] == "changed_password":
       conf = "Successfully update password"
     return_dict["conf"] = conf
+    if "warnings" in request.GET:
+      return_dict["warnings"] = request.GET["warnings"]
 
   return django.shortcuts.render_to_response('view_local_users.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
@@ -422,14 +424,17 @@ def create_local_user(request):
     if form.is_valid():
       cd = form.cleaned_data
       try :
-        local_users.create_local_user(cd["userid"], cd["name"], cd["password"])
+        ret = local_users.create_local_user(cd["userid"], cd["name"], cd["password"])
+        audit_str = "Created a local user %s"%cd["userid"]
+        audit.audit("create_local_user", audit_str, request.META["REMOTE_ADDR"])
+        url = '/view_local_users?action=created'
+        if ret:
+          warnings = ','.join(ret)
+          url = "%s&warnings=%s"%(url, warnings)
+        return django.http.HttpResponseRedirect(url)
       except Exception, e:
         return_dict["error"] = "Error creating the local user - %s" %str(e)
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
-
-      audit_str = "Created a local user %s"%cd["userid"]
-      audit.audit("create_local_user", audit_str, request.META["REMOTE_ADDR"])
-      return django.http.HttpResponseRedirect('/view_local_users?action=created')
     else:
       return_dict["form"] = form
       return django.shortcuts.render_to_response("create_local_user.html", return_dict, context_instance = django.template.context.RequestContext(request))
@@ -449,13 +454,17 @@ def delete_local_user(request):
     #Form submission so create
     return_dict = {}
     try :
-      local_users.delete_local_user(request.POST["userid"])
+      ret = local_users.delete_local_user(request.POST["userid"])
+      audit_str = "Deleted a local user %s"%request.POST["userid"]
+      audit.audit("delete_local_user", audit_str, request.META["REMOTE_ADDR"])
+      url = '/view_local_users?action=deleted'
+      if ret:
+        warnings = ','.join(ret)
+        url = "%s&warnings=%s"%(url, warnings)
+      return django.http.HttpResponseRedirect(url)
     except Exception, e:
       return_dict["error"] = "Error deleting the local user - %s" %str(e)
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
-    audit_str = "Deleted a local user %s"%request.POST["userid"]
-    audit.audit("delete_local_user", audit_str, request.META["REMOTE_ADDR"])
-    return django.http.HttpResponseRedirect('/view_local_users?action=deleted')
 
 def change_local_user_password(request):
 
@@ -487,4 +496,4 @@ def change_local_user_password(request):
       return django.http.HttpResponseRedirect('/view_local_users?action=changed_password')
     else:
       return_dict["form"] = form
-      return django.shortcuts.render_to_response("create_local_user.html", return_dict, context_instance = django.template.context.RequestContext(request))
+      return django.shortcuts.render_to_response("change_local_user_password.html", return_dict, context_instance = django.template.context.RequestContext(request))

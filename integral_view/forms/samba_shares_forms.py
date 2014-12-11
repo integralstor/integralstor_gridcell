@@ -90,9 +90,10 @@ class ShareForm(forms.Form):
       ch.append(tup)
     self.fields["vol"] = forms.ChoiceField(choices=ch)
     ch = []
-    for user in user_list:
-      tup = (user, user)
-      ch.append(tup)   
+    if user_list:
+      for user in user_list:
+        tup = (user, user)
+        ch.append(tup)   
     self.fields["users"] = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple(attrs={'onclick':'select_guest_ok();'}), choices=ch,required=False )
     ch = []
     if group_list:

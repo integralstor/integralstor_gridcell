@@ -2,6 +2,8 @@
 import time, os, os.path, re, urllib, urllib2
 
 from django.conf import settings
+import fractalio
+import fractalio.file_processing
 
 import common, logs
 
@@ -18,7 +20,6 @@ class AuditException(Exception):
 def batch_audit(audit_url, audit_action, audit_str):
   if not audit_url:
     raise Exception("No Audit URL provided")
-  #url = 'http://192.168.1.201:8000/internal_audit/'
   audit_url = "%s/internal_audit/"%audit_url
   data = urllib.urlencode({'who' : 'batch',
                           'audit_action':audit_action,
@@ -31,7 +32,7 @@ def batch_audit(audit_url, audit_action, audit_str):
 
 def audit(audit_action, audit_str, ip):
 
-  audit_file = get_audit_file_path()
+  audit_file = _get_audit_file_path()
   t = int(time.time())
   d = {}
   d["time"] = t
@@ -47,7 +48,7 @@ def get_lines(file_name = None):
   #Return all the lines from the audit file as a list of dictionaries
   al = []
   if not file_name:
-    fname = get_audit_file_path()
+    fname = _get_audit_file_path()
   else:
     try:
       dir = settings.AUDIT_TRAIL_DIR
@@ -63,14 +64,14 @@ def get_lines(file_name = None):
   if fname:
     try:
       with open(fname, "r") as f:
-        for line in common.reversed_lines(f):
-          d = parse_audit_line(line)
+        for line in file_processing.reversed_lines(f):
+          d = _parse_audit_line(line)
           al.append(d)
     except Exception, e:
       raise AuditException("Error processing audit file : %s"%str(e))
   return al
 
-def get_audit_file_path():
+def _get_audit_file_path():
 # Return the audit file path. Create the audit directory and file if it does not exist
   try:
     audit_dir = settings.AUDIT_TRAIL_DIR
@@ -95,7 +96,7 @@ def get_audit_file_path():
   return audit_file
 
 
-def parse_audit_line(str):
+def _parse_audit_line(str):
 
   action_dict = { "create_volume":"Volume creation",
                   "expand_volume":"Volume expansion", 
@@ -167,4 +168,4 @@ if __name__ == "__main__":
   print audit("cralkjlkjte_vlume", "ldkfladkjldakf Created volume test1", "192.2.34.123")
 #  with open("./audit_trail/audit.log") as f:
 #    for line in f:
-#      print parse_audit_line(line)
+#      print _parse_audit_line(line)

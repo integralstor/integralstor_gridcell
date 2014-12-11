@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>0</opErrno>
+  <opErrstr/>
+  <snapRestore>
+    <volume>
+      <name>quota</name>
+      <uuid>6dc538d0-3724-47b6-8e5e-0355f66935ae</uuid>
+    </volume>
+    <snapshot>
+      <name>zfs-snap-3</name>
+      <uuid>4bb9a50e-8525-43d8-b903-8f33be387791</uuid>
+    </snapshot>
+  </snapRestore>
+</cliOutput>

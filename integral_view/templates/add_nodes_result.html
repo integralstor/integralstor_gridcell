@@ -1,0 +1,51 @@
+{% extends 'logged_in_base.html' %}
+
+{%block contents%}
+
+<span id="topic-text"> Scan for new hardware - Result </span>
+
+{% if errors %}
+<p id="p-warning-text">{{errors}}</p>
+{%endif%}
+
+<table style="width:60%" class="table table-condensed table-bordered" >
+<tr>
+<th>
+Node
+</th>
+<th>
+Result
+</th>
+</tr>
+{% for d in success %}
+<tr>
+<td>
+{d}
+</td>
+<td>
+Added successfully
+</td>
+</tr>
+{%endfor%}
+{% for d in failed %}
+<tr>
+<td>
+{d}
+</td>
+<td>
+Failed to add
+</td>
+</tr>
+{%endfor%}
+</table>
+
+
+
+
+{%endblock%}
+{%block help_header%}
+Add nodes results help
+{%endblock%}
+{%block help_body%}
+Help aboout adding nodes - update
+{%endblock%}

@@ -4,6 +4,9 @@ import time, os, sys, fcntl, os.path, re
 
 from django.conf import settings
 
+import fractalio
+import fractalio.file_processing
+
 import common, logs
 #Our alert mailer
 import mail
@@ -26,7 +29,7 @@ def load_alerts(fname = None):
   #Read the alerts file. If the last line does not havethe dash pattern then place it there so the alerts button can be updated accordingly
   alerts_list = []
   if not fname:
-    filename = get_alerts_file_path()
+    filename = _get_alerts_file_path()
   else:
     try:
       dir = settings.ALERTS_DIR
@@ -40,7 +43,7 @@ def load_alerts(fname = None):
   match = None
   with open(filename, "r") as f:
     last_line = None
-    for line in common.reversed_lines(f):
+    for line in file_processing.reversed_lines(f):
     #for line in f:
       if not last_line:
         last_line = line
@@ -65,7 +68,7 @@ def load_alerts(fname = None):
 
 def raise_alert(msg):
   t = int(time.time())
-  filename = get_alerts_file_path()
+  filename = _get_alerts_file_path()
   with open(filename, "a") as f:
     fcntl.flock(f, fcntl.LOCK_EX)
     f.write("\n%-13d %s\n"%(t, msg))
@@ -90,7 +93,7 @@ def raise_alert(msg):
       fcntl.flock(f, fcntl.LOCK_UN)
       f.close()
 
-def get_alerts_file_path():
+def _get_alerts_file_path():
 # Return the alerts file path. Create the alerts directory and file if it does not exist
   try:
     dir = settings.ALERTS_DIR
@@ -116,7 +119,7 @@ def get_alerts_file_path():
 
 def new_alerts():
 
-  filename = get_alerts_file_path()
+  filename = _get_alerts_file_path()
   last_line = None
   with open(filename) as f:
     for line in f:

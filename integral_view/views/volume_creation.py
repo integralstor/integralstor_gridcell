@@ -30,6 +30,21 @@ def volume_creation_wizard(request, action):
 
   if action == "select_vol_type":
     # Previous form to verify
+    form = integral_view.forms.volume_creation_forms.VolumeNameForm(request.POST)
+    if form.is_valid():
+      cd = form.cleaned_data
+      vol_name = cd["volume_name"]
+      vol_access = 'file'
+      return_dict['vol_name'] = vol_name
+      init = {}
+      init["vol_name"] = vol_name
+      init["vol_access"] = vol_access
+      form = integral_view.forms.volume_creation_forms.VolTypeForm(initial=init)
+      url = "vol_create_wiz_vol_type.html"
+    else:
+      url = "vol_create_wiz_vol_name.html"
+    '''
+    Currently disabling ISCSI so...
     form = integral_view.forms.volume_creation_forms.VolAccessMethodForm(request.POST)
     if form.is_valid():
       cd = form.cleaned_data
@@ -44,6 +59,7 @@ def volume_creation_wizard(request, action):
       url = "vol_create_wiz_vol_type.html"
     else:
       url = "vol_create_wiz_vol_access.html"
+    '''
   elif action == "select_ondisk_storage_type":
     # Previous form to verify
     form = integral_view.forms.volume_creation_forms.VolTypeForm(request.POST)
@@ -164,7 +180,10 @@ def create_volume(request):
 
   return_dict = {}
 
-  assert request.method == "POST"
+  if request.method != "POST":
+    return_dict["error"] = "Invalid access method. Please use the menus."
+    return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+
   cmd = request.POST['cmd']
   if not settings.PRODUCTION:
     cmd = 'ls -al'

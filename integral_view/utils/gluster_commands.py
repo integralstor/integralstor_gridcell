@@ -13,12 +13,28 @@ import xml_parse, command
 
 import fractalio
 
+def restore_snapshot(snapshot_name):
+
+  prod_command = 'gluster --mode=script snapshot restore  %s --xml'%snapshot_name
+  dummy_command = "%s/restore_snapshot.xml"%settings.BASE_FILE_PATH
+  #assert False
+  d = run_gluster_command(prod_command, dummy_command, "Restoring snapshot %s"%snapshot_name)
+  return d
+
 def deactivate_snapshot(snapshot_name):
 
   prod_command = 'gluster --mode=script snapshot deactivate  %s --xml'%snapshot_name
   dummy_command = "%s/deactivate_snapshot.xml"%settings.BASE_FILE_PATH
   #assert False
   d = run_gluster_command(prod_command, dummy_command, "Deactivating snapshot %s"%snapshot_name)
+  return d
+
+def delete_snapshot(snapshot_name):
+
+  prod_command = 'gluster --mode=script snapshot delete  %s --xml'%snapshot_name
+  dummy_command = "%s/delete_snapshot.xml"%settings.BASE_FILE_PATH
+  #assert False
+  d = run_gluster_command(prod_command, dummy_command, "Deleting snapshot %s"%snapshot_name)
   return d
 
 def activate_snapshot(snapshot_name):
@@ -29,11 +45,29 @@ def activate_snapshot(snapshot_name):
   d = run_gluster_command(prod_command, dummy_command, "Activating snapshot %s"%snapshot_name)
   return d
 
+def create_snapshot(d):
+
+  vol_name = d["vol_name"]
+  snapshot_name = d["snapshot_name"]
+
+  prod_command = 'gluster snapshot create %s  %s --xml'%(snapshot_name, vol_name)
+  dummy_command = "%s/create_snapshot.xml"%settings.BASE_FILE_PATH
+  #assert False
+  d = run_gluster_command(prod_command, dummy_command, "Created a snapshot named %s for volume %s"%(snapshot_name, vol_name))
+  return d
+
+
+
 def remove_node(si, node):
-  ol = []
-  
+  d = None
   localhost = socket.gethostname().strip()
   if si[node]["in_cluster"] and node != localhost: 
+    d = {}
+    prod_command = 'gluster peer detach %s --xml'%node
+    dummy_command = "%s/peer_detach.xml"%settings.BASE_FILE_PATH
+    d = run_gluster_command(prod_command, dummy_command, "Removing node %s from the storage pool"%node)
+
+    '''
     d = {}
     command = 'gluster peer detach %s --xml'%node
     d["actual_command"] = command
@@ -51,10 +85,12 @@ def remove_node(si, node):
       #Success so add audit info
       d["audit_str"] = "removed node %s"%node
     ol.append(d)
-  return ol
+    return ol
+    '''
+  return d
 
 
-def add_servers(anl):
+def add_nodes(anl):
 
   sled_dict = {}
   ol = []
@@ -68,6 +104,12 @@ def add_servers(anl):
     host = node["hostname"]
     status_dict = None
     if host != localhost:
+      
+      prod_command = "gluster peer probe %s --xml"%host
+      dummy_command = "%s/peer_probe.xml"%settings.BASE_FILE_PATH
+      d = run_gluster_command(prod_command, dummy_command, "Adding node %s to the pool"%host)
+      d["audit_str"] = "Added node %s to the storage pool"%host
+      '''
       d = {}
       d["command"] = "Adding node %s to the pool"%host
       cmd = "gluster peer probe %s --xml"%host
@@ -84,6 +126,7 @@ def add_servers(anl):
       if status_dict and status_dict["op_ret"] == 0:
         #Success so add audit info
         d["audit_str"] = "added node %s to the storage pool"%host
+      '''
       ol.append(d)
 
   return ol
@@ -635,33 +678,11 @@ def create_replace_command_file(si, vil, src_node, dest_node):
     d["file_name"] = file_name
   return d
 
-def expand_volume(vol_name, hosts):
-
-  d = {}
-  brick_name = None
-  for host in hosts:
-    if brick_name:
-      brick_name = brick_name+ " " + "%s:/data/%s"%(host, vol_name)
-    else:
-      brick_name = "%s:/data/%s"%(host, vol_name)
-  command = 'gluster volume add-brick %s %s --xml'%(vol_name, brick_name)
-  d['actual_command'] = command
-  #rd = xml_parse.run_command_get_xml_output_tree(command, "/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/utils/test/add_brick.xml")
-  rd = xml_parse.run_command_get_xml_output_tree(command, "%s/add_brick.xml"%settings.BASE_FILE_PATH)
-  if "error_list" in rd:
-    d["error_list"] = rd["error_list"]
-  status_dict = None
-  if "tree" in rd:
-    root = rd["tree"].getroot()
-    status_dict = xml_parse.get_op_status(root)
-    d["op_status"] = status_dict
-  return d
 
 
 def volume_stop_or_start(vol_name, op):
 
   prod_command = 'gluster --mode=script volume %s %s --xml'%(op, vol_name)
-  #dummy_command = "/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/utils/test/vol_stop.xml"
   dummy_command = "%s/vol_stop.xml"%settings.BASE_FILE_PATH
   d = run_gluster_command(prod_command, dummy_command, "Starting volume %s"%vol_name)
   return d
@@ -815,6 +836,14 @@ def set_volume_option(vol_name, option, value, display_command):
   d = run_gluster_command(prod_command, dummy_command, display_command)
   return d
 
+
+def main():
+
+  print list_dir("distvol", "/")
+
+if __name__ == "__main__":
+  main()
+
 '''
 def list_dir (vol_name, path):
   #mypath = path + ".dir"
@@ -844,14 +873,6 @@ def list_dir (vol_name, path):
     else:
       print "file"
   return files
-'''
-
-def main():
-
-  print list_dir("distvol", "/")
-
-if __name__ == "__main__":
-  main()
 
 def remove_sled(scl, sled):
 
@@ -945,7 +966,6 @@ def remove_sled(scl, sled):
 
   return ol
 
-'''
 def build_create_volume_command(vol_name, vol_type, repl_count, transport, scl):
 
   d = {}
@@ -998,8 +1018,6 @@ def build_create_volume_command(vol_name, vol_type, repl_count, transport, scl):
   d["cmd"] = command
   d["node_list"] = node_list
   return d
-'''
-'''
 def create_replace_command_file(scl, vil, src_sled, dest_sled):
 
   data = {}
@@ -1112,5 +1130,28 @@ def create_replace_command_file(scl, vil, src_sled, dest_sled):
     d["error"] = str(e)
   else:
     d["file_name"] = file_name
+  return d
+
+
+def expand_volume(vol_name, hosts):
+
+  d = {}
+  brick_name = None
+  for host in hosts:
+    if brick_name:
+      brick_name = brick_name+ " " + "%s:/data/%s"%(host, vol_name)
+    else:
+      brick_name = "%s:/data/%s"%(host, vol_name)
+  command = 'gluster volume add-brick %s %s --xml'%(vol_name, brick_name)
+  d['actual_command'] = command
+  #rd = xml_parse.run_command_get_xml_output_tree(command, "/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/utils/test/add_brick.xml")
+  rd = xml_parse.run_command_get_xml_output_tree(command, "%s/add_brick.xml"%settings.BASE_FILE_PATH)
+  if "error_list" in rd:
+    d["error_list"] = rd["error_list"]
+  status_dict = None
+  if "tree" in rd:
+    root = rd["tree"].getroot()
+    status_dict = xml_parse.get_op_status(root)
+    d["op_status"] = status_dict
   return d
 '''

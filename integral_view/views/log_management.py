@@ -7,7 +7,7 @@ from django.conf import settings
 import integral_view
 import logging
 from integral_view.forms import volume_management_forms, log_management_forms
-from integral_view.utils import volume_info, system_info, download, audit, alerts, command, iv_logging
+from integral_view.utils import volume_info, system_info, audit, alerts, command, iv_logging
 
 #from integral_view.utils import logs
 
@@ -254,6 +254,14 @@ def view_rotated_log_file(request, log_type):
       return_dict["error"] = str(e)
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
+
+
+
+
+
+
+
+
 '''
 def sys_log(request, log_type = None):
   """ Invoked by a node in order to deliver the sys log to the remote node.  Shd not normally be called from a browser """
@@ -292,9 +300,8 @@ def sys_log(request, log_type = None):
     return None
 
   return response
-'''
 
-'''
+
       url = "http://%s:8000/sys_log/%s"%(hostname, sys_log_type)
       d = download.url_download(url)
       if d["error"]:

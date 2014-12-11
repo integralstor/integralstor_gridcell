@@ -9,8 +9,6 @@
   </small>
 {%endblock%}
 
-{%block contents%}
-
 {% if conf %}
 <i>{{conf}}</i>
 {%endif%}
@@ -30,6 +28,15 @@ Snapshot date
 </th>
 <th>
 Status
+</th>
+<th>
+Change Status
+</th>
+<th>
+Delete
+</th>
+<th>
+Restore
 </th>
 </thead>
 {%for d in snapshots %}
@@ -52,11 +59,28 @@ Status
     {% if d.status == "Started" %}
     <form  role="form" action="/deactivate_snapshot/" method="post">
     <input type="hidden" name="snapshot_name" value="{{d.name}}">
-    <input class="btn btn-primary" type="submit" value="Deactivate this snapshot >>">
+    <input class="btn btn-primary" type="submit" value="Deactivate >>">
     {%else%}
     <form  role="form" action="/activate_snapshot/" method="post">
     <input type="hidden" name="snapshot_name" value="{{d.name}}">
-    <input class="btn btn-primary" type="submit" value="Activate this snapshot >>">
+    <input class="btn btn-primary" type="submit" value="Activate >>">
+    {%endif%}
+    </form>
+  </td>
+  <td>
+    <form  role="form" action="/delete_snapshot/" method="post">
+    <input type="hidden" name="snapshot_name" value="{{d.name}}">
+    <input class="btn btn-primary" type="submit" value="Delete >>">
+    </form>
+  </td>
+  <td>
+    <form  role="form" action="/restore_snapshot/" method="post">
+    <input type="hidden" name="snapshot_name" value="{{d.name}}">
+    <input type="hidden" name="vol_name" value="{{vol_name}}">
+    {% if vol_started %}
+    <input class="btn btn-primary" type="submit" value="Restore >>">
+    {%else%}
+    <input class="btn btn-disabled" disabled type="submit" value="Restore >>">
     {%endif%}
     </form>
   </td>
@@ -64,6 +88,7 @@ Status
 {%endfor%}
 </table>
 </div>
+<p id="warning-text"> Snapshots can only be restored if the volume is stopped. </p>
 {%endif%}
 
 {%endblock%}

@@ -12,16 +12,6 @@
 
 
 {%block contents%}
-<script type="text/javascript">
-
-function load_node_info(hostname, str) {
-  url='/show/node_info/' + encodeURIComponent(hostname);
-  //document.getElementById('myModalLabel').innerHTML = "Node information for " + str + "&nbsp; (" + hostname + ")";
-  document.getElementById('myModalLabel').innerHTML = "Node information for " + str ;
-  $('#myModalBody').load(url);
-  $('#myModal').modal();
-}
-</script>
 
 <!-- Modal -->
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">

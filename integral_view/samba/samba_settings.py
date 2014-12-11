@@ -6,6 +6,13 @@ import local_users
 
 from django.conf import settings
 
+def change_auth_method(security):
+
+  cl = []
+  cl.append(["update samba_global_common set security='%s' where id=1"%security])
+  cl.append(["delete from samba_valid_users"])
+  db.execute_iud(cl)
+
 def load_auth_settings():
   d = None
   conn = None
@@ -17,6 +24,36 @@ def load_auth_settings():
         d.update(d1)
   finally:
     return d
+
+def save_auth_settings(d):
+
+  cmd_list = []
+  cmd = ["update samba_global_common set workgroup=?, netbios_name=?, security=?, include_homes_section=? where id = ?", (d["workgroup"], d["netbios_name"], d["security"], True, 1,)]
+  cmd_list.append(cmd)
+  if d["security"] == "ads":
+    d1 = db.read_single_row("select * from samba_global_ad")
+    if d1:
+      cmd = ["update samba_global_ad set realm=?, password_server=?, ad_schema_mode=?, id_map_min=?, id_map_max=?,  where id = ?", (d["realm"], d["password_server"], d["ad_schema_mode"], d["id_map_min"], d["id_map_max"], 1,)]
+      cmd_list.append(cmd)
+    else:
+      print "in 2"
+      cmd = ["insert into samba_global_ad (realm, password_server, ad_schema_mode, id_map_min, id_map_max, id) values(?,?,?,?,?,?)", (d["realm"], d["password_server"], d["ad_schema_mode"], d["id_map_min"], d["id_map_max"], 1,)]
+      cmd_list.append(cmd)
+  #print "updating "
+  db.execute_iud(cmd_list)
+  #print "updated "
+
+def delete_auth_settings():
+  conn = None
+  try :
+    conn = sqlite3.connect("%s/integral_view_config.db"%settings.DB_LOCATION)
+    cur = conn.cursor()
+    cur.execute("delete from samba_auth ")
+    cur.close()
+    conn.commit()
+  finally:
+    if conn:
+      conn.close()
 
 def load_shares_list():
   l = []
@@ -65,92 +102,8 @@ def load_share_info(mode, index):
 
 
 
-def load_valid_users_list(share_id):
-  l = []
-  conn = None
-  try :
-    conn = sqlite3.connect("%s/integral_view_config.db"%settings.DB_LOCATION)
-    #conn = sqlite3.connect("/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/devel/db/integral_view_config.db")
-    conn.row_factory = sqlite3.Row
-    cur = conn.cursor()
-    cur.execute("select * from samba_valid_users where share_id = %s"%share_id)
-    rows = cur.fetchall()
-    if not rows:
-      return None
-    for row in rows:
-      d = {}
-      for key in row.keys():
-        d[key] = row[key]
-      l.append(d)
-    return l
-  finally:
-    if conn:
-      conn.close()
-  '''
-  d = None
-  with open("%s/samba_valid_users_db"%settings.DB_LOCATION, "r") as f:
-    d = json.load(f)
-  f.close()
-  if d and share_name in d:
-    return d[share_name]
-  else:
-    return None
-  '''
-
-def save_auth_settings(d):
-
-  cmd_list = []
-  cmd = ["update samba_global_common set workgroup=?, netbios_name=?, security=?, include_homes_section=? where id = ?", (d["workgroup"], d["netbios_name"], d["security"], True, 1,)]
-  cmd_list.append(cmd)
-  if d["security"] == "ads":
-    d1 = db.read_single_row("select * from samba_global_ad")
-    if d1:
-      cmd = ["update samba_global_ad set realm=?, password_server=?, ad_schema_mode=?, id_map_min=?, id_map_max=?,  where id = ?", (d["realm"], d["password_server"], d["ad_schema_mode"], d["id_map_min"], d["id_map_max"], 1,)]
-      cmd_list.append(cmd)
-    else:
-      print "in 2"
-      cmd = ["insert into samba_global_ad (realm, password_server, ad_schema_mode, id_map_min, id_map_max, id) values(?,?,?,?,?,?)", (d["realm"], d["password_server"], d["ad_schema_mode"], d["id_map_min"], d["id_map_max"], 1,)]
-      cmd_list.append(cmd)
-  print "updating "
-  db.execute_iud(cmd_list)
-  print "updated "
 
 
-
-  '''
-    conn = sqlite3.connect("%s/integral_view_config.db"%settings.DB_LOCATION)
-    #conn = sqlite3.connect("/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/devel/db/integral_view_config.db")
-    cur = conn.cursor()
-    cur.execute("select * from samba_auth")
-    d1 = cur.fetchone()
-    if d1:
-      #Config exists so update
-      cur.execute("update samba_auth set realm=?, workgroup=?, password_server=?, ad_schema_mode=?, netbios_name=?, security=?, id_map_min=?, id_map_max=?, include_homes_section=?  where id = ?", (d["realm"], d["workgroup"], d["password_server"], d["ad_schema_mode"], d["netbios_name"], d["security"], d["id_map_min"], d["id_map_max"], True, 1,))
-    else:
-      #No config exists so insert
-      cur.execute("insert into samba_auth (realm, workgroup, password_server, ad_schema_mode, netbios_name, security, id_map_min, id_map_max, include_homes_section, id) values (?,?,?,?,?,?,?,?,?, 1)", (d["realm"], d["workgroup"], d["password_server"], d["ad_schema_mode"], d["netbios_name"], d["security"], d["id_map_min"], d["id_map_max"], False,))
-      cur.close()
-    conn.commit()
-  finally:
-    if conn:
-      conn.close()
-  '''
-  '''
-  if not d:
-    raise Exception("Nothing to save!")
-  ld = {}
-  ld["security"] = d["security"]
-  ld["workgroup"] = d["workgroup"]
-  ld["password_server"] = d["password_server"]
-  ld["ad_schema_mode"] = d["ad_schema_mode"]
-  ld["id_map_min"] = d["id_map_min"]
-  ld["id_map_max"] = d["id_map_max"]
-  ld["netbios_name"] = d["netbios_name"]
-  with open("%s/samba_auth_db"%settings.DB_LOCATION, "w") as f:
-    d = json.dump(d, f, indent=2)
-  f.close()
-  return
-  '''
 
 def delete_share(share_id):
 
@@ -181,32 +134,13 @@ def delete_all_shares():
     if conn:
       conn.close()
 
-def delete_auth_settings():
-  conn = None
-  try :
-    conn = sqlite3.connect("%s/integral_view_config.db"%settings.DB_LOCATION)
-    #conn = sqlite3.connect("/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/devel/db/integral_view_config.db")
-    cur = conn.cursor()
-    cur.execute("delete from samba_auth ")
-    cur.close()
-    conn.commit()
-  finally:
-    if conn:
-      conn.close()
 
-def change_auth_method(security):
-
-  cl = []
-  cl.append(["update samba_global_common set security='%s' where id=1"%security])
-  cl.append(["delete from samba_valid_users"])
-  db.execute_iud(cl)
 
 def save_share(share_id, name, comment, guest_ok, read_only, path, browseable, users, groups, vol):
 
   conn = None
   try :
     conn = sqlite3.connect("%s/integral_view_config.db"%settings.DB_LOCATION)
-    #conn = sqlite3.connect("/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/devel/db/integral_view_config.db")
     cur = conn.cursor()
     cur.execute("update samba_shares set comment=?, read_only=?, guest_ok=?, browseable=? where share_id=?", (comment, read_only, guest_ok, browseable,share_id, ))
     cur.execute("delete from samba_valid_users where share_id=?", (share_id, ))
@@ -223,54 +157,6 @@ def save_share(share_id, name, comment, guest_ok, read_only, path, browseable, u
   finally:
     if conn:
       conn.close()
-
-  '''
-  vud = None
-  with open("%s/samba_valid_users_db"%settings.DB_LOCATION, "r") as f:
-    vud = json.load(f)
-  f.close()
-  l = []
-  if not guest_ok:
-    if users:
-      for user in users:
-        d = {}
-        d["name"] = user
-        d["group"] = False
-        l.append(d)
-    if groups:
-      for group in groups:
-        d = {}
-        d["name"] = group
-        d["group"] = True
-        l.append(d)
-    vud[name] = l
-  else:
-    if name in vud:
-      vud.pop(name)
-  with open("%s/samba_valid_users_db"%settings.DB_LOCATION, "w") as f:
-    d = json.dump(vud, f, indent=2)
-  f.close()
-
-  d = {}
-  d["name"] = name
-  d["comment"] = comment
-  d["guest_ok"] = guest_ok
-  d["read_only"] = read_only
-  d["path"] = path
-  d["browseable"] = browseable
-  d["vol"] = vol
-  nl = []
-  l = load_shares_list()
-  for s in l:
-    if s["name"] != name:
-      nl.append(s)
-    else:
-      nl.append(d)
-  with open("%s/samba_shares_db"%settings.DB_LOCATION, "w") as f:
-    json.dump(nl, f, indent=2)
-  f.close()
-  '''
-
 
 
 def create_share(name, comment, guest_ok, read_only, path, display_path, browseable, users, groups, vol):
@@ -305,7 +191,7 @@ def create_share(name, comment, guest_ok, read_only, path, display_path, browsea
       conn.close()
 
 
-def generate_global_section(f, d):
+def _generate_global_section(f, d):
   f.write("; This file has been programatically generated by the fractal view system. Do not modify it manually!\n\n")
   f.write("[global]\n")
   f.write("  server string = Fractal-io File server\n")
@@ -342,7 +228,7 @@ def generate_global_section(f, d):
   return
 
 
-def generate_share_section(f, share_name, vol_name, workgroup, path, read_only, browseable, guest_ok, user_list, group_list, comment, auth_method):
+def _generate_share_section(f, share_name, vol_name, workgroup, path, read_only, browseable, guest_ok, user_list, group_list, comment, auth_method):
   f.write("\n[%s]\n"%share_name)
   if comment:
     f.write("  comment = %s\n"%comment)
@@ -386,7 +272,7 @@ def generate_share_section(f, share_name, vol_name, workgroup, path, read_only, 
 def generate_smb_conf():
   d = load_auth_settings()
   with open("%s/smb.conf"%settings.SMB_CONF_PATH, "w+") as f:
-    generate_global_section(f, d)
+    _generate_global_section(f, d)
     shl = load_shares_list()
     if shl:
       for share in shl:
@@ -400,7 +286,7 @@ def generate_smb_conf():
                 gl.append(vu["name"])
               else:
                 ul.append(vu["name"])
-        generate_share_section(f, share["name"], share["vol"], d["workgroup"], share["path"], share["read_only"], share["browseable"], share["guest_ok"], ul, gl, share["comment"], d["security"])
+        _generate_share_section(f, share["name"], share["vol"], d["workgroup"], share["path"], share["read_only"], share["browseable"], share["guest_ok"], ul, gl, share["comment"], d["security"])
   f.close()
 
 
@@ -427,6 +313,7 @@ def generate_krb5_conf():
   f.close()
 
 def kinit(user, pswd, realm):
+  '''
   c = command.execute_with_conf_and_rc("kinit %s@%s"%(user, realm), pswd+"\n")
   o = command.get_output_list(c[0])
   print "output = "
@@ -442,11 +329,21 @@ def kinit(user, pswd, realm):
     if e:
       err += " ".join(e)
     raise Exception("kinit failed : %s"%err)
+
   print "return code"
   print c[1]
+  '''
+  client = salt.client.LocalClient()
+  cmd_to_run = 'echo "%s\n" | kinit %s@%s'%(pswd, user, realm)
+  print 'Running %s'%cmd_to_run
+  #assert False
+  rc = client.cmd('*', 'cmd.run', [cmd_to_run])
+  print rc
+
   return
 
 def net_ads_join(user, pswd, password_server):
+  '''
   c = command.execute_with_rc("net ads join -S %s  -U %s%%%s"%(password_server, user, pswd))
   o = command.get_output_list(c[0])
   print "output = "
@@ -462,9 +359,24 @@ def net_ads_join(user, pswd, password_server):
     if e:
       err += " ".join(e)
     raise Exception("net ads join failed : %s."%err)
+  '''
+  client = salt.client.LocalClient()
+  cmd_to_run = "net ads join -S %s  -U %s%%%s"%(password_server, user, pswd)
+  print 'Running %s'%cmd_to_run
+  #assert False
+  rc = client.cmd('*', 'cmd.run', [cmd_to_run])
+  print rc
   return
 
-def get_user_or_group_list(type):
+def restart_samba_services():
+  client = salt.client.LocalClient()
+  rc = client.cmd('*', 'service.restart', ['smbd'] )
+  print rc
+  rc = client.cmd('*', 'service.restart', ['nmbd'] )
+  print rc
+  return
+
+def _get_user_or_group_list(type):
   d = load_auth_settings()
   if not d:
     raise Exception("Unspecified authentication method. Could not retrieve users")
@@ -482,21 +394,42 @@ def get_user_or_group_list(type):
       return None
   elif d["security"] == "ads":
     if type and type == "users":
-      return get_ad_users_or_groups("users")
+      return _get_ad_users_or_groups("users")
     elif type and type == "groups":
-      return get_ad_users_or_groups("groups")
+      return _get_ad_users_or_groups("groups")
   else:
     raise Exception("Unsupported authentication method. Could not retrieve users")
 
 def get_user_list():
-  return get_user_or_group_list("users")
+  return _get_user_or_group_list("users")
 
 def get_group_list():
-  return get_user_or_group_list("groups")
+  return _get_user_or_group_list("groups")
+
+def load_valid_users_list(share_id):
+  l = []
+  conn = None
+  try :
+    conn = sqlite3.connect("%s/integral_view_config.db"%settings.DB_LOCATION)
+    #conn = sqlite3.connect("/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/devel/db/integral_view_config.db")
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    cur.execute("select * from samba_valid_users where share_id = %s"%share_id)
+    rows = cur.fetchall()
+    if not rows:
+      return None
+    for row in rows:
+      d = {}
+      for key in row.keys():
+        d[key] = row[key]
+      l.append(d)
+    return l
+  finally:
+    if conn:
+      conn.close()
 
 
-
-def get_ad_users_or_groups(type):
+def _get_ad_users_or_groups(type):
   if type and type=="users":
     c = command.execute_with_rc("/usr/local/samba/bin/wbinfo -u ")
   elif type and type=="groups":
@@ -505,8 +438,8 @@ def get_ad_users_or_groups(type):
     raise Exception("Unknown type specified to retrieve AD users or groups.")
 
   o = command.get_output_list(c[0])
-  print "wbinfo output = "
-  print o
+  #print "wbinfo output = "
+  #print o
   e = command.get_error_list(c[0])
   #print "error = "
   #print e

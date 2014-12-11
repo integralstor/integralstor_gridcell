@@ -18,6 +18,9 @@
 {% if conf %}
   <i>{{conf}}</i><br><br>
 {%endif%}
+{% if warnings %}
+<i>The following problems occurred during the process : {{warnings}}</i><br><br>
+{%endif%}
 
 {% if not user_list %}
 No local users appear to have been created. Click <a href="/create_local_user/"> here</a> to create a new local user. 
