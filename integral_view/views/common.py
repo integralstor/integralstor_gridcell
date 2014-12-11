@@ -7,7 +7,7 @@ from django.conf import settings
 
 
 import integral_view
-from integral_view.utils import audit, batch, alerts, ntp, mail, gluster_commands, command, host_info, iv_logging,db
+from integral_view.utils import audit, batch, alerts, ntp, mail, gluster_commands, command, iv_logging,db
 from integral_view.utils import volume_info, system_info
 import logging
 from integral_view.iscsi import iscsi

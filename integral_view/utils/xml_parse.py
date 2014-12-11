@@ -3,8 +3,8 @@ from xml.etree import ElementTree
 import tempfile, sys, os
 
 import fractalio
-import fractalio.filesize
-import fractalio.networking
+from fractalio import filesize
+from fractalio import networking
 from django.conf import settings
 import command
 

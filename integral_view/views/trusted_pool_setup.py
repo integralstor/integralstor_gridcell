@@ -6,7 +6,7 @@ import django, django.template
 
 import integral_view
 from integral_view.forms import trusted_pool_setup_forms
-from integral_view.utils import volume_info, system_info, host_info, audit, gluster_commands, iv_logging
+from integral_view.utils import volume_info, system_info, audit, gluster_commands, iv_logging
 
 def add_nodes(request):
   """ Used to add servers to the trusted pool"""
