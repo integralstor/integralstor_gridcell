@@ -180,7 +180,10 @@ def create_volume(request):
 
   return_dict = {}
 
-  assert request.method == "POST"
+  if request.method != "POST":
+    return_dict["error"] = "Invalid access method. Please use the menus."
+    return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+
   cmd = request.POST['cmd']
   if not settings.PRODUCTION:
     cmd = 'ls -al'

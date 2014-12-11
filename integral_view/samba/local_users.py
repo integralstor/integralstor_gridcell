@@ -1,5 +1,5 @@
 from django.conf import settings
-
+import salt.client
 import sys, os, pwd, crypt
 
 path = os.path.dirname(os.path.abspath(__file__))
@@ -10,6 +10,7 @@ from integral_view.utils import command
 
 def create_local_user(userid, name, pswd):
 
+  error_list = []
   #First check if samba user exists. if so kick out
   ul = get_local_users()
   if ul:
@@ -25,10 +26,27 @@ def create_local_user(userid, name, pswd):
     create_system_user = True
 
   if create_system_user:
-    enc_pswd = crypt.crypt(pswd, "28")
+    #enc_pswd = crypt.crypt(pswd, "28")
+    #Set a standard system password - not the one given by the user as the user should not have access to the system
+    enc_pswd = crypt.crypt("fractal_pswd_%s"%userid, "28")
+    client = salt.client.LocalClient()
+    rc = client.cmd('*', 'user.add', [userid])
+    for hostname, status in rc.items()
+      if not status:
+        error_list.append("Error creating the userid on node %s"%hostname
+    rc = client.cmd('*', 'shadow.set_password', [userid, enc_pswd] )
+    for hostname, status in rc.items()
+      if not status:
+        error_list.append("Error setting the password for userid on node %s"%hostname
+    rc = client.cmd('*', 'user.chfullname', [userid, name] )
+    for hostname, status in rc.items()
+      if not status:
+        error_list.append("Error setting the name for userid on node %s"%hostname
+    '''
     ret, rc = command.execute_with_rc(r'useradd -p %s -c fractal_user_%s %s'%(enc_pswd, name, userid))
     if rc != 0:
       raise Exception("Error creating system user. Return code : %d. "%rc)
+    '''
 
   # Now all set to create samba user
   ret, rc = command.execute_with_conf_and_rc(r'/usr/local/samba/bin/pdbedit  -d 1 -t -a  -u %s -f %s'%(userid, name), "%s\n%s"%(pswd, pswd))
@@ -37,10 +55,12 @@ def create_local_user(userid, name, pswd):
     raise Exception("Error creating user. Return code : %d. "%rc)
   ul = command.get_output_list(ret)
   #print ul
+  return error_list
 
 
 def delete_local_user(userid):
 
+  error_list = []
   #First check if samba user exists. if so kick out
   ul = get_local_users()
   found = False
@@ -62,17 +82,25 @@ def delete_local_user(userid):
     pass
 
   if delete_system_user:
+    '''
     #print "Deleting user %s from the system"%userid
     ret, rc = command.execute_with_rc(r'userdel %s'%userid)
     if rc != 0:
       raise Exception("Error deleting user from the underlying system. Return code : %d. "%rc)
     #print "Deleted user %s from the system"%userid
+    '''
+    client = salt.client.LocalClient()
+    rc = client.cmd('*', 'user.delete', [userid] )
+    for hostname, status in rc.items()
+      if not status:
+        error_list.append("Error deleting the userid on node %s"%hostname
 
   #print "Deleting user %s from the storage system"%userid
   ret, rc = command.execute_with_rc(r'/usr/local/samba/bin/pdbedit -d 1 -x %s'%userid)
   if rc != 0:
     raise Exception("Error deleting user from the storage system. Return code : %d. "%rc)
   #print "Deleted user %s from the storage system"%userid
+  return error_list
 
 
 

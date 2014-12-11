@@ -44,13 +44,10 @@ def add_nodes(request):
     for n in nl:
       dbg_node_list.append(n.keys()[0])
     iv_logging.debug("Initiating add nodes for %s"%' '.join(dbg_node_list))
-    ol = gluster_commands.add_servers(nl)
-    audit_str = ""
+    ol = gluster_commands.add_nodes(nl)
     for d in ol:
-      if "audit_str" in d:
-        audit_str = audit_str + d["audit_str"] + ", "
-    if audit:
-      audit.audit("add_storage", audit_str, request.META["REMOTE_ADDR"])
+      if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
+        audit.audit("add_storage", d["audit_str"], request.META["REMOTE_ADDR"])
 
     return_dict['result_list'] = ol
 
@@ -90,16 +87,12 @@ def remove_node(request):
         cd = form.cleaned_data
         node = cd["node"]
         iv_logging.info("Removing node '%s'"%node)
-        ol = gluster_commands.remove_node(si, node)
-        audit_str = ""
-        for d in ol:
-          if "audit_str" in d:
-            audit_str = audit_str + d["audit_str"] + ", "
-        audit.audit("remove_storage", audit_str, request.META["REMOTE_ADDR"])
-        return_dict["result_list"] = ol
-
+        d = gluster_commands.remove_node(si, node)
+        if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
+          audit_str =  "Removed node %s"%node
+          audit.audit("remove_storage", audit_str, request.META["REMOTE_ADDR"])
+        return_dict["result_dict"] = d
         url = 'remove_node_result.html'
-
     else:
       #send for conf if form ok
       form = trusted_pool_setup_forms.RemoveNodeForm(request.POST, node_list = nl)

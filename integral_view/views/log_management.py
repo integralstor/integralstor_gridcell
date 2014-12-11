@@ -7,7 +7,7 @@ from django.conf import settings
 import integral_view
 import logging
 from integral_view.forms import volume_management_forms, log_management_forms
-from integral_view.utils import volume_info, system_info, download, audit, alerts, command, iv_logging
+from integral_view.utils import volume_info, system_info, audit, alerts, command, iv_logging
 
 #from integral_view.utils import logs
 

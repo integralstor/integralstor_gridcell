@@ -1,4 +1,13 @@
-import re
+import socket
+
+def can_connect(hostname, port, timeout=0.05):
+
+  s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  s.settimeout(timeout)
+
+  connected = True if s.connect_ex((hostname,port)) == 0 else False
+
+  return connected
 
 def is_ip(addr):
   test = re.compile('\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}')
@@ -42,23 +51,3 @@ def is_valid_ip_or_hostname(addr):
       ret = True
 
   return ret
-
-def main():
-
-  print is_ip("a.b.c")
-  print is_ip("1.2.c")
-  print is_ip("11.12.14.13")
-
-  print is_valid_ip("1.2.3.4")
-  print is_valid_ip("1.2.3.400")
-
-  print is_valid_hostname("jkj&.hh.com")
-  print is_valid_hostname("a.hh.com")
-
-  print is_valid_ip_or_hostname("1.2.3.4")
-  print is_valid_ip_or_hostname("a.b.c")
-  print is_valid_ip_or_hostname("1111.2.1.2")
-  print is_valid_hostname("1111.2.1.2")
-
-if __name__ == "__main__":
-  main()

@@ -57,7 +57,13 @@ def get_heal_count(cmd, type):
   #print rl
   return rl
 
+import atexit
+atexit.register(lock.release_lock, 'batch_process')
+
 def main():
+  if not lock.get_lock('batch_process'):
+      print 'Generate Status : Could not acquire lock. Exiting.'
+
   fl = os.listdir(os.path.normpath("%s/in_process"%BASEPATH))
   for file in fl:
     if not file.startswith("bp_"):
@@ -73,6 +79,7 @@ def main():
           continue
         finally:
           f.close()
+  lock.release_lock('batch_process')
 
 def process_batch(d, fname):
   #Process each batch file
@@ -340,3 +347,5 @@ def process_batch(d, fname):
     f1.flush()
     f1.close()
   shutil.move(os.path.normpath("%s/in_process/tmp_%s"%(BASEPATH, file)), os.path.normpath("%s/in_process/%s"%(BASEPATH, file)))
+
+  

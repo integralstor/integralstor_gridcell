@@ -4,6 +4,9 @@ import time, os, sys, fcntl, os.path, re
 
 from django.conf import settings
 
+import fractalio
+import fractalio.file_processing
+
 import common, logs
 #Our alert mailer
 import mail
@@ -40,7 +43,7 @@ def load_alerts(fname = None):
   match = None
   with open(filename, "r") as f:
     last_line = None
-    for line in common.reversed_lines(f):
+    for line in file_processing.reversed_lines(f):
     #for line in f:
       if not last_line:
         last_line = line
