@@ -313,6 +313,7 @@ def generate_krb5_conf():
   f.close()
 
 def kinit(user, pswd, realm):
+  '''
   c = command.execute_with_conf_and_rc("kinit %s@%s"%(user, realm), pswd+"\n")
   o = command.get_output_list(c[0])
   print "output = "
@@ -328,11 +329,21 @@ def kinit(user, pswd, realm):
     if e:
       err += " ".join(e)
     raise Exception("kinit failed : %s"%err)
+
   print "return code"
   print c[1]
+  '''
+  client = salt.client.LocalClient()
+  cmd_to_run = 'echo "%s\n" | kinit %s@%s'%(pswd, user, realm)
+  print 'Running %s'%cmd_to_run
+  #assert False
+  rc = client.cmd('*', 'cmd.run', [cmd_to_run])
+  print rc
+
   return
 
 def net_ads_join(user, pswd, password_server):
+  '''
   c = command.execute_with_rc("net ads join -S %s  -U %s%%%s"%(password_server, user, pswd))
   o = command.get_output_list(c[0])
   print "output = "
@@ -348,6 +359,21 @@ def net_ads_join(user, pswd, password_server):
     if e:
       err += " ".join(e)
     raise Exception("net ads join failed : %s."%err)
+  '''
+  client = salt.client.LocalClient()
+  cmd_to_run = "net ads join -S %s  -U %s%%%s"%(password_server, user, pswd)
+  print 'Running %s'%cmd_to_run
+  #assert False
+  rc = client.cmd('*', 'cmd.run', [cmd_to_run])
+  print rc
+  return
+
+def restart_samba_services():
+  client = salt.client.LocalClient()
+  rc = client.cmd('*', 'service.restart', ['smbd'] )
+  print rc
+  rc = client.cmd('*', 'service.restart', ['nmbd'] )
+  print rc
   return
 
 def _get_user_or_group_list(type):

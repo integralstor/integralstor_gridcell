@@ -27,7 +27,6 @@ def show(request, page, info = None):
     return_dict = {}
     return_dict['system_info'] = si
     return_dict['volume_info_list'] = vil
-    return_dict['colour_dict'] = settings.DISPLAY_COLOURS
 
     #By default show error page
     template = "logged_in_error.html"
@@ -473,10 +472,10 @@ def configure_ntp_settings(request):
       else:
         slist = server_list.split(' ')
       try:
-        primary_server = "10.0.0.1"
-        secondary_server = "10.0.0.2"
+        primary_server = "fractalio-primary"
+        secondary_server = "fractalio-secondary"
         #First create the ntp.conf file for the primary and secondary nodes
-        temp = tempfile.NamedTemporaryFile(mode="w")
+        temp = tempfile.NamedTemporaryFile(mode="w", dir="/srv/salt/tmp")
         temp.write("driftfile /var/lib/ntp/drift\n")
         temp.write("restrict default kod nomodify notrap nopeer noquery\n")
         temp.write("restrict -6 default kod nomodify notrap nopeer noquery\n")
@@ -486,7 +485,10 @@ def configure_ntp_settings(request):
         for server in slist:
           temp.write("server %s iburst\n"%server)
         temp.flush()
-        shutil.copyfile(temp.name, '%s/ntp.conf'%settings.NTP_CONF_PATH)
+        client = salt.client.LocalClient()
+        client.cmd('role:master', 'cp.get_file', ["salt://tmp/%s"%os.path.basename(temp.name), '%s/ntp.conf'%settings.NTP_CONF_PATH])
+        client.cmd('role:master', 'service.restart', ["ntpd"])
+        #shutil.copyfile(temp.name, '%s/ntp.conf'%settings.NTP_CONF_PATH)
         temp.close()
         temp = tempfile.NamedTemporaryFile(mode="w")
         temp.write("server %s iburst\n"%primary_server)
@@ -496,7 +498,9 @@ def configure_ntp_settings(request):
         temp.write("server 127.127.1.0\n")
         temp.write("fudge 127.127.1.0 stratum 10\n")
         temp.flush()
-        shutil.copyfile(temp.name, '/tmp/ntp.conf')
+        client.cmd('role:secondary', 'cp.get_file', ["salt://tmp/%s"%os.path.basename(temp.name), '%s/ntp.conf'%settings.NTP_CONF_PATH])
+        client.cmd('role:secondary', 'service.restart', ["ntpd"])
+        #shutil.copyfile(temp.name, '/tmp/ntp.conf')
 
         '''
         lines = ntp.get_non_server_lines()
@@ -673,9 +677,18 @@ def hardware_scan(request):
       nodes["success"] = success
       nodes["failed"] = failed
       url = 'add_nodes_result.html'
-      #return django.http.HttpResponseRedirect('/show/dashboard/')
+      ret, rc = _regenrate_manifest()
+      if rc != 0:
+        errors = "Error regenerating the new configuration : "
+        errors += ",".join(command.get_output_list(ret))
+        errors += ",".join(command.get_error_list(ret))
+        return_dict["errors"] = errors
+        
   return django.shortcuts.render_to_response(url, return_dict, context_instance = django.template.context.RequestContext(request))
 
+def _regenerate_manifest():
+  cmd_to_execute = "/etc/generate_manifest.py %s"%settings.CONFIG_DIR
+  return (command.execute_with_rc(cmd_to_execute))
 
 def internal_audit(request):
 

@@ -59,10 +59,15 @@ def create_snapshot(d):
 
 
 def remove_node(si, node):
-  ol = []
-  
+  d = None
   localhost = socket.gethostname().strip()
   if si[node]["in_cluster"] and node != localhost: 
+    d = {}
+    prod_command = 'gluster peer detach %s --xml'%node
+    dummy_command = "%s/peer_detach.xml"%settings.BASE_FILE_PATH
+    d = run_gluster_command(prod_command, dummy_command, "Removing node %s from the storage pool"%node)
+
+    '''
     d = {}
     command = 'gluster peer detach %s --xml'%node
     d["actual_command"] = command
@@ -80,10 +85,12 @@ def remove_node(si, node):
       #Success so add audit info
       d["audit_str"] = "removed node %s"%node
     ol.append(d)
-  return ol
+    return ol
+    '''
+  return d
 
 
-def add_servers(anl):
+def add_nodes(anl):
 
   sled_dict = {}
   ol = []
@@ -97,6 +104,12 @@ def add_servers(anl):
     host = node["hostname"]
     status_dict = None
     if host != localhost:
+      
+      prod_command = "gluster peer probe %s --xml"%host
+      dummy_command = "%s/peer_probe.xml"%settings.BASE_FILE_PATH
+      d = run_gluster_command(prod_command, dummy_command, "Adding node %s to the pool"%host)
+      d["audit_str"] = "Added node %s to the storage pool"%host
+      '''
       d = {}
       d["command"] = "Adding node %s to the pool"%host
       cmd = "gluster peer probe %s --xml"%host
@@ -113,6 +126,7 @@ def add_servers(anl):
       if status_dict and status_dict["op_ret"] == 0:
         #Success so add audit info
         d["audit_str"] = "added node %s to the storage pool"%host
+      '''
       ol.append(d)
 
   return ol

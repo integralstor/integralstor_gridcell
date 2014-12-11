@@ -513,6 +513,20 @@ def delete_volume(request):
             l = b.split(':')
             d["command"] = "Deleting volume storage on node %s"%l[0]
             print "executing command"
+            client = salt.client.LocalClient()
+            cmd_to_run = 'rm -rf %s'%l[1]
+            print 'Running %s'%cmd_to_run
+            #assert False
+            rc = client.cmd(l[0], 'cmd.run', [cmd_to_run])
+            #print rc
+            for hostname, res in rc.items():
+              if not res:
+                d["result"] = "Success"
+              else:
+                d["result"] = "Failed with error : %s"%res
+              result_list.append(d)
+
+            '''
             print "/opt/fractal/bin/client %s rcmd rm -rf %s"%(l[0], l[1])
             d["actual_command"] = "/opt/fractal/bin/client %s rcmd rm -rf %s"%(l[0], l[1])
             (r, rc) = command.execute_with_rc("/opt/fractal/bin/client %s rcmd rm -rf %s"%(l[0], l[1]))
@@ -530,6 +544,8 @@ def delete_volume(request):
                 estr += " , ".join(ol)
               d["result"] = "Failed with error : %s"%estr
               result_list.append(d)
+            '''
+
       else:
         el = command.get_error_list(r)
         ol = command.get_output_list(r)
@@ -561,6 +577,13 @@ def replace_node(request):
   return_dict['colour_dict'] = settings.DISPLAY_COLOURS
   
   d = volume_info.get_replacement_node_info(si, vil)
+  if not d["src_node_list"]:
+    return_dict["error"] = "There are no nodes eligible to be replaced."
+    return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+  if not d["dest_node_list"]:
+    return_dict["error"] = "There are no eligible replacement nodes."
+    return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+
   return_dict["src_node_list"] = d["src_node_list"]
   return_dict["dest_node_list"] = d["dest_node_list"]
   #assert False

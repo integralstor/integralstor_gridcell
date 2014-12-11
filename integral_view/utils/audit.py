@@ -2,6 +2,8 @@
 import time, os, os.path, re, urllib, urllib2
 
 from django.conf import settings
+import fractalio
+import fractalio.file_processing
 
 import common, logs
 
@@ -62,7 +64,7 @@ def get_lines(file_name = None):
   if fname:
     try:
       with open(fname, "r") as f:
-        for line in common.reversed_lines(f):
+        for line in file_processing.reversed_lines(f):
           d = _parse_audit_line(line)
           al.append(d)
     except Exception, e:

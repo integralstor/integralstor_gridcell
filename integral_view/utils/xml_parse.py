@@ -2,8 +2,11 @@
 from xml.etree import ElementTree
 import tempfile, sys, os
 
+import fractalio
+import fractalio.filesize
+import fractalio.networking
 from django.conf import settings
-import command, host_info, networking, filesize
+import command
 
 
 
@@ -348,7 +351,7 @@ def get_volume_list():
         continue
       path = node.find('./path').text
       if path == "localhost":
-        path = host_info.get_host_name()
+        path = os.uname()[1]
       status = int(node.find('./status').text)
       found = False
       for br in vol["brick_status"].keys():
@@ -431,7 +434,7 @@ def get_peer_list():
   tree = None
   if peerlist:
     d = {}
-    d["hostname"] = host_info.get_host_name()
+    d["hostname"] = os.uname()[1]
     if networking.can_connect("localhost", 24007):
       d["status"] = '1'
     else:
