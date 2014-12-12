@@ -3,7 +3,7 @@ import time, os, os.path, re, urllib, urllib2
 
 from django.conf import settings
 import fractalio
-import fractalio.file_processing
+from fractalio import file_processing
 
 import common, logs
 

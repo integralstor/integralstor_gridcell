@@ -183,10 +183,10 @@ def volume_specific_op(request, operation, vol_name=None):
           replicated = True
 
         d = gluster_commands.build_expand_volume_command(vol, si)
-        iv_logging.debug("Expand volume node list %s for volume %s"%(d['node_list'], vol["name"]))
         if "error" in d:
           return_dict["error"] = "Error creating the volume : %s"%d["error"]
           return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+        iv_logging.debug("Expand volume node list %s for volume %s"%(d['node_list'], vol["name"]))
 
         return_dict['cmd'] = d['cmd']
         return_dict['node_list'] = d['node_list']
@@ -557,7 +557,7 @@ def delete_volume(request):
         d["result"] = "Failed with error : %s"%estr
         result_list.append(d)
     except Exception, e:
-      return_dict["error"] = "Error deleting volume %s."%(str(e))
+      return_dict["error"] = "Error deleting volume %s."%e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
     return_dict["result_list"] = result_list

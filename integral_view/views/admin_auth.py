@@ -145,7 +145,7 @@ def configure_email_settings(request):
       try:
         mail.save_email_settings(d)
       except Exception, e:
-        iv_logging.debug("Exception when trying to save email settings : %s"%str(e))
+        iv_logging.debug("Exception when trying to save email settings : %s"%e)
         return django.http.HttpResponseRedirect("/show/email_settings?not_saved=1&err=%s"%str(e))
 
       ret = mail.send_mail(cd["email_server"], cd["email_server_port"], cd["username"], cd["pswd"], cd["tls"], cd["rcpt_list"], "Test email from FractalView", "This is a test email sent by the Fractal View system in order to confirm that your email settings are working correctly.")
@@ -167,7 +167,7 @@ def remove_email_settings(request):
     mail.delete_email_settings()
     response.write("Deleted email settings")
   except Exception, e:
-    response.write("Error deleteing email settings : %s"%str(e))
+    response.write("Error deleteing email settings : %s"%e)
   return response
 
 

@@ -66,8 +66,8 @@ def show(request, page, info = None):
             #dl = gluster_commands.list_dir(vol_name, full_path)
             dl = os.walk(full_path).next()[1]
           except Exception, e:
-            iv_logging.debug("Error walking path : %s"%str(e))
-            raise Exception ("Error walking path : %s"%str(e))
+            iv_logging.debug("Error walking path : %s"%e)
+            raise Exception ("Error walking path : %s"%e)
         if dl:
           for l in dl:
             children = False
@@ -77,8 +77,8 @@ def show(request, page, info = None):
               else:
                 children = False
             except Exception, e:
-              iv_logging.debug("Error walking path : %s"%str(e))
-              raise Exception ("Error walking path : %s"%str(e))
+              iv_logging.debug("Error walking path : %s"%e)
+              raise Exception ("Error walking path : %s"%e)
             #d = {"text":l, "children":children, 'data':{'full_path':"%s/%s"%(full_path, l), 'dir':"%s/%s"%(dir_name, l)}}
             print "dir_name is %s"%dir_name
             iv_logging.debug("Dir name is %s"%dir_name)
@@ -90,7 +90,7 @@ def show(request, page, info = None):
             d = {"text":l, "children":children, 'data':{'dir':send_path}}
             dir_list.append(d)
       except Exception as e:
-        iv_logging.debug("Exception while getting dir listing : "%str(e))
+        iv_logging.debug("Exception while getting dir listing : "%e)
         d = { "text":"_error_", "children":False}
         dir_list.append(d)
       dlist = django.utils.simplejson.dumps(dir_list)
@@ -145,7 +145,7 @@ def show(request, page, info = None):
           return_dict["err"] = request.REQUEST["err"]
         template = "view_email_settings.html"
       except Exception, e:
-        iv_logging.debug("error loading email settings %s"%str(e))
+        iv_logging.debug("error loading email settings %s"%e)
         return_dict["error"] = str(e)
 
     elif page == "audit_trail":
@@ -171,7 +171,7 @@ def show(request, page, info = None):
       try :
         file_list = batch.load_all_files("in_process")
       except Exception, e:
-        return_dict["error"] = "Error loading batch files: %s"%str(e)
+        return_dict["error"] = "Error loading batch files: %s"%e
       else:
         return_dict["file_list"] = file_list
         template = "view_batch_process_list.html"
@@ -181,7 +181,7 @@ def show(request, page, info = None):
       try:
         d = batch.load_specific_file(info)
       except Exception, e:
-        return_dict["error"] = "Error reading batch file: %s"%str(e)
+        return_dict["error"] = "Error reading batch file: %s"%e
       else:
         if not d:
           return_dict["error"] = "Unknown process specified"
@@ -287,7 +287,7 @@ def show(request, page, info = None):
         with open("%s/manifest/%s"%(settings.BASE_FILE_PATH, manifest), "r") as f:
           nodes = json.load(f)
       except Exception, e:
-        return_dict['error'] = 'Error loading the new configuratio : %s'%(str(e))
+        return_dict['error'] = 'Error loading the new configuratio : %s'%e
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
       
       return_dict["manifest"] = nodes
@@ -518,7 +518,7 @@ def configure_ntp_settings(request):
         '''
         #ntp.restart_ntp_service()
       except Exception, e:
-        return_dict["error"] = "Error updating NTP information : %s"%str(e)
+        return_dict["error"] = "Error updating NTP information : %s"%e
         return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance = django.template.context.RequestContext(request))
       else:
         return django.http.HttpResponseRedirect("/show/ntp_settings?saved=1")
@@ -570,42 +570,42 @@ def reset_to_factory_defaults(request):
       shutil.copyfile("%s/factory_defaults/ntp.conf"%settings.BASE_CONF_PATH, '%s/ntp.conf'%settings.NTP_CONF_PATH)
       pass
     except Exception, e:
-      return_dict["error"] = "Error reseting NTP configuration."
+      return_dict["error"] = "Error reseting NTP configuration : %s"%e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
     #Remove email settings
     try:
       mail.delete_email_settings()
     except Exception, e:
-      print str(e)
-      return_dict["error"] = "Error reseting mail configuration : %s."%str(e)
+      #print str(e)
+      return_dict["error"] = "Error reseting mail configuration : %s."%e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
     try:
       audit.rotate_audit_trail()
     except Exception, e:
-      print str(e)
-      return_dict["error"] = "Error rotating the audit trail : %s."%str(e)
+      #print str(e)
+      return_dict["error"] = "Error rotating the audit trail : %s."%e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
     #Remove all shares 
     try:
       samba_settings.delete_all_shares()
     except Exception, e:
-      print str(e)
-      return_dict["error"] = "Error deleting shares : %s."%str(e)
+      #print str(e)
+      return_dict["error"] = "Error deleting shares : %s."%e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
     try:
       samba_settings.delete_auth_settings()
     except Exception, e:
-      return_dict["error"] = "Error deleting CIFS authentication settings : %s."%str(e)
+      return_dict["error"] = "Error deleting CIFS authentication settings : %s."%e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
     try:
       request.user.set_password("admin");
       request.user.save()
     except Exception, e:
-      return_dict["error"] = "Error resetting admin password: %s."%str(e)
+      return_dict["error"] = "Error resetting admin password: %s."%e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
 
@@ -613,7 +613,7 @@ def reset_to_factory_defaults(request):
     try :
       shutil.copyfile("%s/factory_defaults/alerts.log"%settings.BASE_CONF_PATH, '%s/alerts.log'%settings.ALERTS_DIR)
     except Exception, e:
-      return_dict["error"] = "Error reseting alerts : %s."%str(e)
+      return_dict["error"] = "Error reseting alerts : %s."%e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
     #Reset all batch jobs
@@ -622,7 +622,7 @@ def reset_to_factory_defaults(request):
       for fname in l:
         os.remove("%s/in_process/%s"%(settings.BATCH_COMMANDS_DIR, fname))
     except Exception, e:
-      return_dict["error"] = "Error removing scheduled batch jobs : %s."%str(e)
+      return_dict["error"] = "Error removing scheduled batch jobs : %s."%e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
     try:
@@ -632,7 +632,7 @@ def reset_to_factory_defaults(request):
       iscsi.delete_all_auth_access_groups()
       iscsi.delete_all_auth_access_users()
     except Exception, e:
-      return_dict["error"] = "Error resetting ISCSI configuration : %s."%str(e)
+      return_dict["error"] = "Error resetting ISCSI configuration : %s."%e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
     try:
@@ -645,7 +645,7 @@ def reset_to_factory_defaults(request):
         return_dict["error"] = "Error initiating a reset to system factory defaults : %s"%d["error"]
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
     except Exception, e:
-      return_dict["error"] = "Error creating factory defaults reset batch file : %s."%str(e)
+      return_dict["error"] = "Error creating factory defaults reset batch file : %s."%e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
 def hardware_scan(request):
@@ -738,7 +738,7 @@ def accept_manifest(request):
   try :
     shutil.move("%s/manifest/%s"%(settings.BASE_FILE_PATH, manifest), "%s/master.manifest"%settings.SYSTEM_INFO_DIR)
   except Exception, e:
-    return_dict['error'] = 'Error updating to the new configuratio : %s'%str(e)
+    return_dict['error'] = 'Error updating to the new configuratio : %s'%e
     return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
   return django.shortcuts.render_to_response('accept_manifest_conf.html', return_dict, context_instance=django.template.context.RequestContext(request))
@@ -751,7 +751,7 @@ def del_email_settings(request):
     mail.delete_email_settings()
     return django.http.HttpResponse("Successfully cleared email settings.")
   except Exception, e:
-    iv_logging.debug("Error clearing email settings %s"%str(e))
+    iv_logging.debug("Error clearing email settings %s"%e)
     return django.http.HttpResponse("Problem clearing email settings %s"%str(e))
 
 '''

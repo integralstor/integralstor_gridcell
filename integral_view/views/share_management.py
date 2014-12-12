@@ -15,7 +15,7 @@ def display_shares(request):
   try :
     shares_list = samba_settings.load_shares_list()
   except Exception, e:
-    return_dict["error"] = "Error loading share information - %s" %str(e)
+    return_dict["error"] = "Error loading share information - %s" %e
 
   if not "error" in return_dict:
     if "action" in request.GET:
@@ -55,7 +55,7 @@ def view_share(request):
       share = samba_settings.load_share_info(access_mode, index)
       valid_users_list = samba_settings.load_valid_users_list(share["share_id"])
     except Exception, e:
-      return_dict["error"] = "Error retrieving share information - %s" %str(e)
+      return_dict["error"] = "Error retrieving share information - %s" %e
     else:
       if not share:
         return_dict["error"] = "Error retrieving share information for  %s" %share_name
@@ -84,7 +84,7 @@ def edit_share(request):
       share_dict = samba_settings.load_share_info("by_id", share_id)
       valid_users_list = samba_settings.load_valid_users_list(share_dict["share_id"])
     except Exception, e:
-      return_dict["error"] = "Error loading share information - %s" %str(e)
+      return_dict["error"] = "Error loading share information - %s" %e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
     # Set initial form values
@@ -164,7 +164,7 @@ def edit_share(request):
         samba_settings.save_share(share_id, name, comment, guest_ok, read_only, path, browseable, users, groups, vol)
         samba_settings.generate_smb_conf()
       except Exception, e:
-        return_dict["error"] = "Error saving share information - %s" %str(e)
+        return_dict["error"] = "Error saving share information - %s" %e
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
       audit_str = "Modified share %s"%cd["name"]
@@ -194,7 +194,7 @@ def delete_share(request):
       samba_settings.delete_share(share_id)
       samba_settings.generate_smb_conf()
     except Exception, e:
-      return_dict["error"] = "Error deleting share - %s" %str(e)
+      return_dict["error"] = "Error deleting share - %s" %e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
     audit_str = "Deleted Samba share %s"%name
@@ -255,7 +255,7 @@ def create_share(request):
         samba_settings.create_share(name, comment, guest_ok, read_only, path, display_path, browseable, users, groups, vol)
         samba_settings.generate_smb_conf()
       except Exception, e:
-        return_dict["error"] = "Error creating share - %s" %str(e)
+        return_dict["error"] = "Error creating share - %s" %e
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
       audit_str = "Created Samba share %s"%name
@@ -270,7 +270,7 @@ def samba_server_settings(request):
   try :
     d = samba_settings.load_auth_settings()
   except Exception, e:
-    return_dict["error"] = "Error loading authentication configuration - %s" %str(e)
+    return_dict["error"] = "Error loading authentication configuration - %s" %e
     return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
   if "action" in request.REQUEST and request.REQUEST["action"] == "edit":
@@ -297,7 +297,7 @@ def edit_auth_method(request):
   try :
     d = samba_settings.load_auth_settings()
   except Exception, e:
-    return_dict["error"] = "Error loading authentication configuration - %s" %str(e)
+    return_dict["error"] = "Error loading authentication configuration - %s" %e
     return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
   return_dict["samba_global_dict"] = d
 
@@ -316,7 +316,7 @@ def edit_auth_method(request):
     try:
       samba_settings.change_auth_method(security)
     except Exception, e:
-      return_dict["error"] = "Error updating authentication method - %s" %str(e)
+      return_dict["error"] = "Error updating authentication method - %s" %e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
   return django.http.HttpResponseRedirect('/auth_server_settings/')
@@ -350,28 +350,28 @@ def save_samba_server_settings(request):
     try :
       samba_settings.save_auth_settings(cd)
     except Exception, e:
-      return_dict["error"] = "Error saving authentication settings - %s" %str(e)
+      return_dict["error"] = "Error saving authentication settings - %s" %e
     if not "error" in return_dict:
       try :
         samba_settings.generate_smb_conf()
       except Exception, e:
-        return_dict["error"] = "Error generating file share authentication config file- %s" %str(e)
+        return_dict["error"] = "Error generating file share authentication config file- %s" %e
     if not "error" in return_dict and cd["security"] == "ads":
       try :
         samba_settings.kinit("administrator", cd["password"], cd["realm"])
         #pass
       except Exception, e:
-        return_dict["error"] = "Error generating kerberos ticket - %s" %str(e)
+        return_dict["error"] = "Error generating kerberos ticket - %s" %e
     if not "error" in return_dict and cd["security"] == "ads":
       try :
         samba_settings.net_ads_join("administrator", cd["password"], cd["password_server"])
       except Exception, e:
-        return_dict["error"] = "Error joining Active Directory - %s" %str(e)
+        return_dict["error"] = "Error joining Active Directory - %s" %e
     if not "error" in return_dict and cd["security"] == "ads":
       try :
         samba_settings.generate_krb5_conf()
       except Exception, e:
-        return_dict["error"] = "Error generating kerberos config file - %s" %str(e)
+        return_dict["error"] = "Error generating kerberos config file - %s" %e
     samba_settings.restart_samba_services()
     if "error" in return_dict:
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
@@ -390,7 +390,7 @@ def view_local_users(request):
   try:
     user_list = local_users.get_local_users()
   except Exception, e:
-    return_dict["error"] = "Error retrieving local users - %s" %str(e)
+    return_dict["error"] = "Error retrieving local users - %s" %e
     return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
   return_dict["user_list"] = user_list
@@ -433,7 +433,7 @@ def create_local_user(request):
           url = "%s&warnings=%s"%(url, warnings)
         return django.http.HttpResponseRedirect(url)
       except Exception, e:
-        return_dict["error"] = "Error creating the local user - %s" %str(e)
+        return_dict["error"] = "Error creating the local user - %s" %e
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
     else:
       return_dict["form"] = form
@@ -463,7 +463,7 @@ def delete_local_user(request):
         url = "%s&warnings=%s"%(url, warnings)
       return django.http.HttpResponseRedirect(url)
     except Exception, e:
-      return_dict["error"] = "Error deleting the local user - %s" %str(e)
+      return_dict["error"] = "Error deleting the local user - %s" %e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
 def change_local_user_password(request):
@@ -488,7 +488,7 @@ def change_local_user_password(request):
       try :
         local_users.change_password(cd["userid"], cd["password"])
       except Exception, e:
-        return_dict["error"] = "Error creating the local user - %s" %str(e)
+        return_dict["error"] = "Error creating the local user - %s" %e
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
       audit_str = "Changed password for local user %s"%cd["userid"]

@@ -138,6 +138,10 @@ def build_create_or_expand_volume_command(command, si, anl, vol_type, ondisk_sto
   node_list = []
   num_nodes = len(anl)
   #num_disks = len(si[anl[0]]["disks"])
+  for n in anl:
+    if "pools" not in si[n]:
+      d["error"] = "There are no storage pools on some nodes so volume creation cannot proceeded."
+      return d
   num_pools = len(si[anl[0]]["pools"])
   cmd = command
 

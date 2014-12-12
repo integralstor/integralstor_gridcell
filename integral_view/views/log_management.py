@@ -136,7 +136,7 @@ def download_sys_log(request):
       try :
         ret, rc = command.execute_with_rc(cmd)
       except Exception, e:
-        return_dict["error"] = "Error retrieving remote log file : %s"%str(e)
+        return_dict["error"] = "Error retrieving remote log file : %s"%e
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
       if rc != 0 :
@@ -184,7 +184,7 @@ def rotate_log(request, log_type):
     try:
       alerts.rotate_alerts()
     except Exception, e:
-      return_dict["error"] = "Error rotating alerts log: %s"%str(e)
+      return_dict["error"] = "Error rotating alerts log: %s"%e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
     return_dict["topic"] = "Logging -> Rotate alerts log"
     return_dict["message"] = "Alerts log successfully rotated."
@@ -192,7 +192,7 @@ def rotate_log(request, log_type):
     try:
       audit.rotate_audit_trail()
     except Exception, e:
-      return_dict["error"] = "Error rotating audit trail : %s"%str(e)
+      return_dict["error"] = "Error rotating audit trail : %s"%e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
     return_dict["topic"] = "Logging -> Rotate audit trail"
     return_dict["message"] = "Audit trail successfully rotated."

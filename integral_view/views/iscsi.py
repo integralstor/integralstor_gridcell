@@ -14,7 +14,7 @@ def iscsi_display_initiators(request):
   try :
     initiators_list = iscsi.load_initiators_list()
   except Exception, e:
-    return_dict["error"] = "Error loading initiators - %s" %str(e)
+    return_dict["error"] = "Error loading initiators - %s" %e
 
   if not "error" in return_dict:
     if "action" in request.GET:
@@ -52,7 +52,7 @@ def iscsi_view_initiator(request):
     try:
       initiator = iscsi.load_initiator_info(int(id))
     except Exception, e:
-      return_dict["error"] = "Error retrieving initiator information - %s" %str(e)
+      return_dict["error"] = "Error retrieving initiator information - %s" %e
     else:
       if not initiator:
         return_dict["error"] = "Error retrieving initiator information for  %s" %id
@@ -75,7 +75,7 @@ def iscsi_edit_initiator(request):
     try :
       initiator = iscsi.load_initiator_info(int(id))
     except Exception, e:
-      return_dict["error"] = "Error loading initiator information - %s" %str(e)
+      return_dict["error"] = "Error loading initiator information - %s" %e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
     # Set initial form values
@@ -99,7 +99,7 @@ def iscsi_edit_initiator(request):
       try :
         iscsi.save_initiator(id, cd)
       except Exception, e:
-        return_dict["error"] = "Error saving initiator information - %s" %str(e)
+        return_dict["error"] = "Error saving initiator information - %s" %e
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
       audit_str = "Modified initiator %s"%id
@@ -133,7 +133,7 @@ def iscsi_create_initiator(request):
       try :
         iscsi.create_iscsi_initiator(cd["initiators"], cd["auth_network"], cd["comment"])
       except Exception, e:
-        return_dict["error"] = "Error creating the initiator - %s" %str(e)
+        return_dict["error"] = "Error creating the initiator - %s" %e
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
       audit_str = "Created an ISCSI initiator"
@@ -155,7 +155,7 @@ def iscsi_delete_initiator(request):
     try :
       iscsi.delete_initiator(int(id))
     except Exception, e:
-      return_dict["error"] = "Error deleting ISCSI initiator - %s" %str(e)
+      return_dict["error"] = "Error deleting ISCSI initiator - %s" %e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
     audit_str = "Deleted ISCSI initiator %s"%id
@@ -171,7 +171,7 @@ def iscsi_display_auth_access_group_list(request):
   try :
     auth_access_list = iscsi.load_auth_access_group_list()
   except Exception, e:
-    return_dict["error"] = "Error loading authorized accesses group - %s" %str(e)
+    return_dict["error"] = "Error loading authorized accesses group - %s" %e
 
   d = {}
   if auth_access_list:
@@ -220,7 +220,7 @@ def iscsi_create_auth_access_group(request):
         auth_access_group_id = iscsi.create_auth_access_group()
         iscsi.create_auth_access_user(auth_access_group_id, cd["user"], cd["secret"])
       except Exception, e:
-        return_dict["error"] = "Error creating the authorized access user within the group - %s" %str(e)
+        return_dict["error"] = "Error creating the authorized access user within the group - %s" %e
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
       audit_str = "Created an ISCSI authorized access group"
@@ -255,7 +255,7 @@ def iscsi_create_auth_access_user(request):
       try :
         iscsi.create_auth_access_user(cd["auth_access_group_id"], cd["user"], cd["secret"])
       except Exception, e:
-        return_dict["error"] = "Error creating the authorized access user within the group - %s" %str(e)
+        return_dict["error"] = "Error creating the authorized access user within the group - %s" %e
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
       audit_str = "Created an ISCSI authorized access user in group %s"%cd["auth_access_group_id"]
@@ -287,7 +287,7 @@ def iscsi_view_auth_access_group(request):
     try:
       aa = iscsi.load_auth_access_group_info(int(id))
     except Exception, e:
-      return_dict["error"] = "Error retrieving authorized access group information - %s" %str(e)
+      return_dict["error"] = "Error retrieving authorized access group information - %s" %e
     else:
       if not aa:
         return_dict["error"] = "Error retrieving authorized access group information for  %s" %id
@@ -310,7 +310,7 @@ def iscsi_delete_auth_access_group(request):
     try :
       iscsi.delete_auth_access_group(int(auth_access_group_id))
     except Exception, e:
-      return_dict["error"] = "Error deleting ISCSI authorized access group - %s" %str(e)
+      return_dict["error"] = "Error deleting ISCSI authorized access group - %s" %e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
     audit_str = "Deleted ISCSI authorized access group %s"%auth_access_group_id
@@ -335,7 +335,7 @@ def iscsi_delete_auth_access_user(request):
     try :
       iscsi.delete_auth_access_user(int(user_id))
     except Exception, e:
-      return_dict["error"] = "Error deleting ISCSI authorized access user - %s" %str(e)
+      return_dict["error"] = "Error deleting ISCSI authorized access user - %s" %e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
     audit_str = "Deleted ISCSI authorized access user %s"%user_id
@@ -359,7 +359,7 @@ def iscsi_edit_auth_access_user(request):
   try :
     auth_access = iscsi.load_auth_access_user_info(int(user_id))
   except Exception, e:
-    return_dict["error"] = "Error loading authorized access user information - %s" %str(e)
+    return_dict["error"] = "Error loading authorized access user information - %s" %e
     return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
   if request.method == "GET":
@@ -391,7 +391,7 @@ def iscsi_edit_auth_access_user(request):
         secret = cd["secret"]
         iscsi.save_auth_access_user(auth_access_group_id, user_id, user, secret)
       except Exception, e:
-        return_dict["error"] = "Error saving authorized access user information - %s" %str(e)
+        return_dict["error"] = "Error saving authorized access user information - %s" %e
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
       audit_str = "Modified authorized access user in auth group %s"%auth_access_group_id
@@ -416,7 +416,7 @@ def iscsi_view_target_global_config(request):
   try:
     igt = iscsi.load_global_target_conf()
   except Exception, e:
-    return_dict["error"] = "Error retrieving authorized access information - %s" %str(e)
+    return_dict["error"] = "Error retrieving authorized access information - %s" %e
     return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
   if igt:
@@ -451,7 +451,7 @@ def iscsi_edit_target_global_config(request):
       try :
         iscsi.save_global_target_conf(cd)
       except Exception, e:
-        return_dict["error"] = "Error saving ISCSI global target configuration- %s" %str(e)
+        return_dict["error"] = "Error saving ISCSI global target configuration- %s" %e
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
       audit_str = "Modified ISCSI global targets configuration%s"%id
@@ -471,7 +471,7 @@ def iscsi_display_targets(request):
   try :
     targets_list = iscsi.load_targets_list()
   except Exception, e:
-    return_dict["error"] = "Error loading targets - %s" %str(e)
+    return_dict["error"] = "Error loading targets - %s" %e
 
   if not "error" in return_dict:
     if "action" in request.GET:
@@ -520,7 +520,7 @@ def iscsi_create_target(request):
       try :
         iscsi.create_iscsi_target(cd["vol_name"],  cd["target_alias"], cd["lun_size"], cd["auth_method"], cd["queue_depth"], cd["auth_group_id"], cd["init_group_id"])
       except Exception, e:
-        return_dict["error"] = "Error creating the target - %s" %str(e)
+        return_dict["error"] = "Error creating the target - %s" %e
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
       audit_str = "Created an ISCSI target"
@@ -547,7 +547,7 @@ def iscsi_edit_target(request):
     try :
       target = iscsi.load_target_info(int(id))
     except Exception, e:
-      return_dict["error"] = "Error loading target information - %s" %str(e)
+      return_dict["error"] = "Error loading target information - %s" %e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
     # Set initial form values
@@ -577,12 +577,12 @@ def iscsi_edit_target(request):
       try :
         iscsi.save_target(id, cd)
       except Exception, e:
-        return_dict["error"] = "Error saving target information - %s" %str(e)
+        return_dict["error"] = "Error saving target information - %s" %e
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
       try :
         iscsi.generate_istgt_conf()
       except Exception, e:
-        return_dict["error"] = "Error generating ISCSI config file- %s" %str(e)
+        return_dict["error"] = "Error generating ISCSI config file- %s" %e
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
       audit_str = "Modified target %s"%id
@@ -616,7 +616,7 @@ def iscsi_view_target(request):
     try:
       target = iscsi.load_target_info(int(id))
     except Exception, e:
-      return_dict["error"] = "Error retrieving target information - %s" %str(e)
+      return_dict["error"] = "Error retrieving target information - %s" %e
     else:
       if not target:
         return_dict["error"] = "Error retrieving target information for  %s" %id
@@ -639,7 +639,7 @@ def iscsi_delete_target(request):
     try :
       iscsi.delete_target(int(id))
     except Exception, e:
-      return_dict["error"] = "Error deleting ISCSI target - %s" %str(e)
+      return_dict["error"] = "Error deleting ISCSI target - %s" %e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
     audit_str = "Deleted ISCSI target %s"%id

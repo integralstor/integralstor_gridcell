@@ -5,7 +5,7 @@ import time, os, sys, fcntl, os.path, re
 from django.conf import settings
 
 import fractalio
-import fractalio.file_processing
+from fractalio import file_processing
 
 import common, logs
 #Our alert mailer
