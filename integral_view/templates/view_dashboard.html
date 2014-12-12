@@ -32,10 +32,8 @@
 {%block contents%}
 <p id="p-instruction-text"> This page will autorefresh every 30 seconds to display updates.</p>
 
-<div style="border:0px solid; height:100%;position:relative">
-<div style="width:48%;border:0px solid rgb(221, 221, 221);padding-left:10px;position:absolute;top:5px;left:5px">
 <h4>Status</h4>
-<table class="table table-hover table-bordered" style="width:100%">
+<table class="table table-hover table-bordered">
 <tr>
   <th>
     Component
@@ -99,37 +97,33 @@
   </tr>
 {%endif%}
 </table>
-</div>
 
 
-<div style="padding-left:10px;width:48%;border:0px solid rgb(221, 221, 221);position:absolute;top:5px;right:5px">
-<h4>Space utilization</h4>
+      <h4>Space utilization</h4>
 
-<table class="table table-hover table-bordered" style="width:100%">
-<tr>
-  <th>
-    Volume
-  </th>
-  <th>
-    Usage
-  </th>
-</tr>
-{% for v in volume_info_list %}
-<tr>
-  <td>
-    {{v.name}}
-  <td>
-    <div class="progress">
-      <div class="progress-bar" role="progressbar" aria-valuenow="{{v.size_used_percent}}" aria-valuemin="0" aria-valuemax="100" style="width: {{v.size_used_percent}}%;">
-        {{v.size_used_percent}}% used.
-      </div>
-    </div>
-  </td>
-</tr>
-{%endfor%}
-</table>
-</div>
-</div>
+      <table class="table table-hover table-bordered">
+      <tr>
+        <th>
+          Volume
+        </th>
+        <th>
+          Usage
+        </th>
+      </tr>
+      {% for v in volume_info_list %}
+      <tr>
+        <td>
+          {{v.name}}
+        <td>
+          <div class="progress">
+            <div class="progress-bar" role="progressbar" aria-valuenow="{{v.size_used_percent}}" aria-valuemin="0" aria-valuemax="100" style="width: {{v.size_used_percent}}%;">
+              {{v.size_used_percent}}% used.
+            </div>
+          </div>
+        </td>
+      </tr>
+      {%endfor%}
+      </table>
 {%endblock%}
 {%block help_header%}
 System status help

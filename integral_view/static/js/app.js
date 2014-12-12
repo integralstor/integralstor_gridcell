@@ -100,22 +100,23 @@ $(function() {
         Logic : Iterate over all the treeview except the clicked element and remove the active class,  change the fa-angle-down classs to fa-angle-left, and then slideup.
         If it is the clicked element, then add class active, change icons from down to left and slideDown().
     */
-    $('.treeview').click(function(){
+
+/*    $('.treeview').click(function(){
          $('.treeview').not(this).each(function(){
              $(this).removeClass('active');
              $(this).children("a").first().children(".fa-angle-down").first().removeClass("fa-angle-down").addClass("fa-angle-left");
              $(this).children(".treeview-menu").slideUp();
          });
-/*         if( $(this).hasClass('active')){
+         if( $(this).hasClass('active')){
              $(this).removeClass('active');
              $(this).children("a").first().children(".fa-angle-down").first().removeClass("fa-angle-down").addClass("fa-angle-left");
              $(this).children(".treeview-menu").slideUp();
          }else{
-*/           $(this).addClass('active');
+           $(this).addClass('active');
              $(this).children(".fa-angle-left").first().removeClass("fa-angle-left").addClass("fa-angle-down");
              $(this).children(".treeview-menu").slideDown();
 //         }
-    })
+    })*/
 
     /* 
      * Make sure that the sidebar is streched full height

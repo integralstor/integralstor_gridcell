@@ -44,8 +44,6 @@ DB_LOCATION = '%s/db'%BASE_CONF_ROOT
 STATIC_DIR_PATH = '%s/static'%BASE_APP_PATH
 TEMPLATE_DIR_PATH = "%s/templates"%BASE_APP_PATH
 
-print DB_LOCATION
-
 DISPLAY_COLOURS = {
   "inactive" : "darkgray",
   "not_in_pool" : "orange",
