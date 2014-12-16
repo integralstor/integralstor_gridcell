@@ -2,65 +2,54 @@
 
 {%block content%}
 
+<div class="row margin-top-100">
+  <div class="col-md-offset-3 col-md-6 col-sm-offset-3 sol-sm-6 col-xs-12">
+    <form role="form" action="/login/" method="post">
+        <div class="box box-solid box-primary">
+          <div class="box-header">
+            <h3 class="box-title">Login Integral View</h3>
+          </div>
+          <div class="box-body">
+            {% csrf_token %}
+            <div class="form-group">
+              <label for="id_username" >Username:</label>
+              <div class="input-group">
+              <span class="input-group-addon"><i class="fa fa-user"></i></span>
+              <input type="text"  name="username" class="form-control" id="id_username" placeholder="Enter username" required> 
+              </div>
+              {{ form.username.errors }}
+            </div>
+            <label for="id_password">Password:</label>
+            <div class="input-group">
+              <span class="input-group-addon"><i class="fa fa-cog"></i></span>
+              <input type="password"  name="password" class="form-control" id="id_password" placeholder="Enter password" required>
+              {{ form.password.errors }}
+            </div>
+            <div class="box-footer">
+              <div class="form-group">
+                  <button type="submit" class="btn btn-primary"><strong>Submit</strong></button>
+                </div>
+            </div>
+          </div>
+        </div>
+      </form>
+  </div>
+</div>
+
+
 {% if invalidUser %}
-<p style="color:red;"> Invalid User or Password. Please try again</p>
+<div class="row">
+  <div class="col-md-offset-3 col-md-6 col-sm-offset-3 col-sm-6 col-xs-12">
+    <p class="alert alert-danger"><strong> Invalid User or Password. Please try again</strong></p>
+  </div>
+</div>
 {% endif %}
 
-<br><br>
-<div style="width:500px;margin:auto;border:solid 0px">
-<form role="form" action="/login/" method="post">
-{% csrf_token %}
-  <div class="form-group">
-    <label for="id_username" >Username:</label>
-    <input type="text"  name="username" class="form-control" id="id_username" placeholder="Enter username"> 
-    {{ form.username.errors }}
-  </div>
-  <div class="form-group">
-    <label for="id_password">Password:</label>
-    <input type="password"  name="password" class="form-control" id="id_password" placeholder="Enter password">
-    {{ form.password.errors }}
-  </div>
-  <button type="submit" class="btn btn-primary">Submit</button>
-</form>
-
-<!--
-        <div class="field">
-            <table class="table">
-            <tr>
-              <td>
-            <label for="id_username">Username:</label>
-              </td>
-              <td>
-            {{ form.username }}
-              </td>
-              <td>
-            {{ form.username.errors }}
-              </td>
-            </tr>
-            <tr>
-              <td>
-            <label for="id_password">Password:</label>
-              </td>
-              <td>
-            {{ form.password }}
-              </td>
-              <td>
-            {{ form.password.errors }}
-              </td>
-            </tr>
-            <tr>
-              <td colspan=3 style="text-align:center">
-                <button type="submit" class="btn btn-primary active">Login </button>
-              </td>
-            </tr>
-            </table>
-        </div>
--->
 <script src="/static/jquery-ui-1.10.2.custom/js/jquery-1.9.1.js"></script>
 <script type="text/javascript">
 $(function() {
   $("#id_username").focus();
   });
 </script>
-</div>
+
 {%endblock%}
