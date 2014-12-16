@@ -657,6 +657,7 @@ def hardware_scan(request):
   iv_logging.info("Hardware scan initiated")
   wheel = salt.wheel.Wheel(opts)
   keys = wheel.call_func('key.list_all')
+  client = salt.client.LocalClient()
   pending_minions = keys['minions_pre']
   if request.method == 'GET':
     # Return a list of new nodes available to be pulled into the grid
@@ -678,6 +679,16 @@ def hardware_scan(request):
         for m in pending_minions:
           #print "Accepting %s"%m
           if wheel.call_func('key.accept', match=('%s'%m,)):
+            r = client.cmd(m, 'grains.get')
+            if r:
+              if 'bond0' in r[m] and r[m]['bond0']:
+                ip = r[m]['bond0'][0]
+            if ip:
+              r1 = client.cmd('role:master', 'hosts.set_host', [ip, m])
+              if not r1:
+                errors = "Error adding the DNS information for %s"%m
+            else:
+                errors = "Error adding the DNS information for %s. No IP address information found."%m
             audit.audit("hardware_scan_node_added", "Added a new node %s to the grid"%m, request.META["REMOTE_ADDR"])
             success.append(m)
           else:
@@ -687,7 +698,10 @@ def hardware_scan(request):
       url = 'add_nodes_result.html'
       ret, rc = _regenrate_manifest()
       if rc != 0:
-        errors = "Error regenerating the new configuration : "
+        if errors:
+          errors += "Error regenerating the new configuration : "
+        else:
+          errors = "Error regenerating the new configuration : "
         errors += ",".join(command.get_output_list(ret))
         errors += ",".join(command.get_error_list(ret))
         return_dict["errors"] = errors
