@@ -209,7 +209,6 @@ input {
  border:1px solid;
  border-color: #696 #363 #363 #696;
 }
-69aa46
 .nav > li > a {
   padding-left:10px;
   padding-right:10px;
@@ -260,7 +259,14 @@ input {
 .uppercase{
   text-transform: uppercase;
 }
-
+.margin-top-100{
+  margin-top: 100px;
+}
+@media (min-height: 767px){
+  .margin-top-100{
+    margin-top: 10px;
+  }
+}
 .bigger-110 {
   font-size: 110%;
 }

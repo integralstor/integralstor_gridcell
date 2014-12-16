@@ -400,30 +400,17 @@ def show(request, page, info = None):
 
     return django.shortcuts.render_to_response(template, return_dict, context_instance=django.template.context.RequestContext(request))
 
-def require_login(view):
-
-  def new_view(request, *args, **kwargs):
-    if request.user.is_authenticated():
-      return view(request, *args, **kwargs)
-    else:
-      return django.http.HttpResponseRedirect('/login')
-
-  return new_view
-
-def require_admin_login(view):
-
-  def new_view(request, *args, **kwargs):
-    if request.user.is_authenticated() and request.user.username == 'dlcadmin':
-      return view(request, *args, **kwargs)
-    else:
-      return django.http.HttpResponseRedirect('/login')
-
-  return new_view
+#this function takes a user argument checks if the user has administrator rights and then returns True.
+#If he does not have the correct permissions, then then it returns a HTttpResponse stating No Permission to access this page.
+#Takes user object as a parameter: request.user
+def admin_login_required(user):
+  if user.is_superuser:
+    return True
+  else:
+    return False
 
 def refresh_alerts(request, random=None):
     from datetime import datetime
-    read_time = db.read_single_row("select * from admin_alerts where user='administrator'")
-    print read_time
     cmd_list = []
     #this command will insert or update the row value if the row with the user exists.
     cmd = ["INSERT OR REPLACE INTO admin_alerts (user, last_refresh_time) values (?,?);", (request.user.username, datetime.now())]
@@ -733,7 +720,8 @@ def internal_audit(request):
 
 
 
-
+###  THE CODES BELOW ARE MAINTAINED FOR EITER HISTORICAL PURPOSES OR AS A PART OF BACKUP PROCESS.
+###  PLEASE DO CONFIRM BELOW DELETING OR DELETE WHEN PUSHING THE DEVELOP TO MASTER AS A PROCESS OF CODE CLEANUP.
 
 '''
 def accept_manifest(request):
@@ -768,4 +756,23 @@ def del_email_settings(request):
     iv_logging.debug("Error clearing email settings %s"%e)
     return django.http.HttpResponse("Problem clearing email settings %s"%str(e))
 
+def require_login(view):
+
+  def new_view(request, *args, **kwargs):
+    if request.user.is_authenticated():
+      return view(request, *args, **kwargs)
+    else:
+      return django.http.HttpResponseRedirect('/login')
+
+  return new_view
+
+def require_admin_login(view):
+
+  def new_view(request, *args, **kwargs):
+    if request.user.is_authenticated() and request.user.username == 'dlcadmin':
+      return view(request, *args, **kwargs)
+    else:
+      return django.http.HttpResponseRedirect('/login')
+
+  return new_view
 '''
