@@ -3,7 +3,7 @@
 import salt.client
 import json, os, datetime, shutil, sys
 import fractalio
-import fractalio.lock
+from fractalio import lock
 import pprint
 
 def _gen_manifest_info():

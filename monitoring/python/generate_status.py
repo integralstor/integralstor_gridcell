@@ -1,9 +1,9 @@
 #!/usr/bin/python
 
 import salt.client
-import json, os, shutil, datetime, sys
+import json, os, shutil, datetime, sys, re
 import fractalio
-import fractalio.lock
+from fractalio import lock
 
 def _gen_status_info(path):
 
@@ -141,6 +141,8 @@ def _gen_status_info(path):
     ipmi_status = []
     for line in lines:
       l = line.rstrip()
+      if not l:
+        continue
       #print l
       comp_list = l.split('|')
       comp = comp_list[0].strip()
@@ -152,25 +154,25 @@ def _gen_status_info(path):
         if comp == "CPU Temp":
           td["parameter_name"] = "CPU Temperature"
           td["component_name"] = "CPU"
-        elif "comp" == "System Temp":
+        elif comp == "System Temp":
           td["parameter_name"] = "System Temperature"
           td["component_name"] = "System"
-        elif "comp" == "DIMMA1 Temp":
+        elif comp == "DIMMA1 Temp":
           td["parameter_name"] = "Memory card 1 temperature"
           td["component_name"] = "Memory card 1"
-        elif "comp" == "DIMMA2 Temp":
+        elif comp == "DIMMA2 Temp":
           td["parameter_name"] = "Memory card 2 temperature"
           td["component_name"] = "Memory card 2"
-        elif "comp" == "DIMMA3 Temp":
+        elif comp == "DIMMA3 Temp":
           td["parameter_name"] = "Memory card 3 temperature"
           td["component_name"] = "Memory card 3"
-        elif "comp" == "FAN1":
+        elif comp == "FAN1":
           td["parameter_name"] = "Fan 1 speed"
           td["component_name"] = "Fan 1"
-        elif "comp" == "FAN2":
+        elif comp == "FAN2":
           td["parameter_name"] = "Fan 2 speed"
           td["component_name"] = "Fan 2"
-        elif "comp" == "FAN3":
+        elif comp == "FAN3":
           td["parameter_name"] = "Fan 3 speed"
           td["component_name"] = "Fan 3"
         ipmi_status.append(td)
