@@ -1,7 +1,17 @@
 {% extends 'logged_in_base.html' %}
 
+
+{%block page-header%}
+  Volume Creation Wizard
+  <small>
+      Volumes 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Set volume quota - results
+  </small>
+{%endblock%}
+
+
 {%block contents%}
-<span id="topic-text"> Volume -> Set volume quota - results</span><br>
 
 {% if app_debug %}
 Debug info - begin <br>

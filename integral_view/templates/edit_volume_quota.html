@@ -1,8 +1,17 @@
 {% extends 'logged_in_base.html' %}
 
 
+{%block page-header%}
+  Volume Creation Wizard
+  <small>
+      Volumes 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Set volume quota (edit)
+  </small>
+{%endblock%}
+
+
 {%block contents%}
-<span id="topic-text">Volumes -> Set volume quota (edit) </span><br>
 
 {{conf_message}}
 <form id="edit_form" class="form-inline" name="edit_form" action="/set_volume_quota/" method="post">

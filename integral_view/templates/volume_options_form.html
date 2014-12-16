@@ -1,5 +1,15 @@
 {% extends 'logged_in_base.html' %}
 
+
+{%block page-header%}
+  Volume Creation Wizard
+  <small>
+      Volumes 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Set volume options
+  </small>
+{%endblock%}
+
 {%block contents%}
 <script type="text/javascript">
 function set_field_visibility() {
@@ -22,7 +32,6 @@ function set_field_visibility() {
   }
 }
 </script>
-<span id="topic-text"> Volumes -> Set volume options</span><br>
 <div  style=" position:relative;border:0px solid #DDDDDD;width:600px; padding:15px 15px 15px;margin:0px 15px;border-radius:4px 4px 0px 0px">
 <form  id="edit_form" action="/set_volume_options/" method="post">
 {{ form.vol_name }}
