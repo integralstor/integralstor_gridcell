@@ -57,7 +57,13 @@ def download_vol_log(request):
       if settings.PRODUCTION:
         file_name = '/var/log/glusterfs/bricks/data-%s.log'%vol_name
       else:
-        file_name = '/home/bkrram/Documents/software/Django-1.4.3/code/integral_view/integral_view/devel/files/logfile'
+        # this will return the same file that you are viewing now for download.
+        # doing this so as to remove the dependency of the absolute path problem.
+        # As this is also just for testing, any file that is rendered is just fine.Later the same can be changed as per requirement.
+        
+        import os
+        file_name = os.path.join(os.path.join(__file__))        
+        #file_name = '/home/bkrram/Documents/software/Django-1.4.3/code/integral_view/integral_view/devel/files/logfile'
 
       
       display_name = 'data-%s.log'%vol_name
@@ -126,28 +132,37 @@ def download_sys_log(request):
       file_name = fn[sys_log_type]
       display_name = dn[sys_log_type]
 
-      dt = datetime.datetime.now()
-      dt_str = dt.strftime("%d%m%Y%H%M%S")
+      import os
+      import salt.client
 
-      lfn = "/tmp/%s_%s"%(sys_log_type, dt_str)
-      cmd = "/opt/fractal/bin/client %s get_file %s %s"%(hostname, file_name, lfn)
-      print "command is "+cmd
+      client = salt.client.LocalClient()
 
-      try :
-        ret, rc = command.execute_with_rc(cmd)
-      except Exception, e:
-        return_dict["error"] = "Error retrieving remote log file : %s"%e
-        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      ret = client.cmd('%s'%(hostname),'cp.push',[file_name])
+      print ret
 
-      if rc != 0 :
-        return_dict["error"] = "Error retrieving remote log file. Retrieval returned an error code of %d"%rc
-        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      # This has been maintained for reference purposes.
+      # dt = datetime.datetime.now()
+      # dt_str = dt.strftime("%d%m%Y%H%M%S")
 
-      zf_name = '%s.zip'%lfn
+      # lfn = "/tmp/%s_%s"%(sys_log_type, dt_str)
+      # cmd = "/opt/fractal/bin/client %s get_file %s %s"%(hostname, file_name, lfn)
+      # print "command is "+cmd
+
+      # try :
+      #   ret, rc = command.execute_with_rc(cmd)
+      # except Exception, e:
+      #   return_dict["error"] = "Error retrieving remote log file : %s"%e
+      #   return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+
+      # if rc != 0 :
+      #   return_dict["error"] = "Error retrieving remote log file. Retrieval returned an error code of %d"%rc
+      #   return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+
+      zf_name = '%s.zip'%display_name
 
       try:
         zf = zipfile.ZipFile(zf_name, 'w')
-        zf.write(lfn, arcname = display_name)
+        zf.write("/var/cache/salt/master/minions/%s/files%s"%(hostname,file_name), arcname = display_name)
         zf.close()
       except Exception as e:
         return_dict["error"] = "Error compressing remote log file : %s"%str(e)
@@ -155,7 +170,7 @@ def download_sys_log(request):
 
       try:
         response = django.http.HttpResponse()
-        response['Content-disposition'] = 'attachment; filename=%s%s.zip'%(sys_log_type, dt_str)
+        response['Content-disposition'] = 'attachment; filename=%s.zip'%(display_name)
         response['Content-type'] = 'application/x-compressed'
         with open(zf_name, 'rb') as f:
           byte = f.read(1)
