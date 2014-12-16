@@ -1,8 +1,16 @@
 {% extends 'logged_in_base.html' %}
 
-{%block contents%}
-<span id="topic-text"> Logging -> IntegralView Log Level</span><br>
+{%block page-header%}
+  Logging
+    <small>
+      Logging
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      IntegralView Log Level
+  </small>
 
+{%endblock%}
+
+{%block contents%}
 
 {% if saved %}
 <p id="p-instructional-text"> The log level has been successfully updated to {{log_level_str}}. </p><br>

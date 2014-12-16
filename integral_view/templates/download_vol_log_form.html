@@ -1,7 +1,15 @@
 {% extends 'logged_in_base.html' %}
 
+{%block page-header%}
+  Logging
+    <small>
+      Logging
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Download volume logs
+  </small>
+{%endblock%}
+
 {%block contents%}
-<span id="topic-text">Logging ->  Download volume logs</span><br>
 
 <p id="p-instruction-text"> The requested log will be fetched as a zip file which you can save on your computer.</p>
 <form name="myform"  method="post">

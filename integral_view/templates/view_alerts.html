@@ -1,12 +1,20 @@
 {% extends 'logged_in_base.html' %}
 
-{%block contents%}
+{%block page-header%}
+  Logging
+    <small>
+      Logging
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      {% if historical %}
+		View historical alerts
+	  {%else %}
+		View alerts
+	  {%endif%}
+  </small>
 
-{% if historical %}
-<span id="topic-text"> Logging -> View historical alerts </span><br>
-{%else %}
-<span id="topic-text"> Logging -> View alerts </span><br>
-{%endif%}
+ {%endblock%}
+
+{%block contents%}
 
 <p id="p-instruction-text">The <a href="/show/system_status">System status</a> screen gives a visual picture of any failure.</a></p>
 {% if alerts_list %}
@@ -24,7 +32,7 @@
 </table>
 <br>
 {% if historical %}
-<a href="/view_rotated_log_list/alerts/" role="button" class="btn"> << Back to log list</a>
+<a href="/view_rotated_log_list/alerts/" role="button" class="btn btn-default"> << Back to log list</a>
 {%endif%}
 {%else %}
 No alerts to display

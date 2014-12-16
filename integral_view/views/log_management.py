@@ -201,7 +201,9 @@ def rotate_log(request, log_type):
     except Exception, e:
       return_dict["error"] = "Error rotating alerts log: %s"%e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
-    return_dict["topic"] = "Logging -> Rotate alerts log"
+    #return_dict["topic"] = "Logging -> Rotate alerts log"
+    return_dict["page_header"] = "Logging"
+    return_dict["page_sub_header"] = "Rotate alerts log"
     return_dict["message"] = "Alerts log successfully rotated."
   elif log_type == "audit_trail":
     try:
@@ -209,7 +211,9 @@ def rotate_log(request, log_type):
     except Exception, e:
       return_dict["error"] = "Error rotating audit trail : %s"%e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
-    return_dict["topic"] = "Logging -> Rotate audit trail"
+    #return_dict["topic"] = "Logging -> Rotate alerts log"
+    return_dict["page_header"] = "Logging"
+    return_dict["page_sub_header"] = "Rotate audit log"
     return_dict["message"] = "Audit trail successfully rotated."
   return django.shortcuts.render_to_response('logged_in_result.html', return_dict, context_instance = django.template.context.RequestContext(request))
     
@@ -222,10 +226,14 @@ def view_rotated_log_list(request, log_type):
 
   l = None
   if log_type == "alerts":
-    return_dict["topic"] = "Logging -> View historical alerts log"
+    #return_dict["topic"] = "Logging -> View historical alerts log"
+    return_dict["page_header"] = "Logging"
+    return_dict["page_sub_header"] = "View historical alerts log"
     l = alerts.get_log_file_list()
   elif log_type == "audit_trail":
-    return_dict["topic"] = "Logging -> View historical audit log"
+    #return_dict["topic"] = "Logging -> View historical audit log"
+    return_dict["page_header"] = "Logging"
+    return_dict["page_sub_header"] = "View historical audit log"
     l = audit.get_log_file_list()
 
   return_dict["type"] = log_type
