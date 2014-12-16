@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="/static/jstree/dist/themes/default/style.min.css" />
   <link rel="stylesheet" type="text/css" href="/static/css/modify_bootstrap.css">
   <link rel="stylesheet" type="text/css" href="/static/font-awesome-4.2.0/css/font-awesome.css">
+  <link rel="stylesheet" type="text/css" href="/static/font-awesome-4.2.0/css/font-awesome-animation.min.css">
   <link rel="stylesheet" type="text/css" href="/static/css/AdminLTE.css">
   <link rel="stylesheet" type="text/css" href="/static/datatables/css/jquery.dataTables.css">
   <link rel="stylesheet" type="text/css" href="/static/datatables/css/dataTables.bootstrap.css">
@@ -21,7 +22,7 @@ var auto_refresh = setInterval(
 function ()
 {
   $.get('/refresh_alerts/',function(data){
-      $("#no-alerts").show();
+      $("#alert_icon").removeClass("white").addClass("red faa-flash animated");
       $.each(data,function(){
         var alerts = $.parseJSON(JSON.stringify(this));
         $.each(alerts,function(key,value){
@@ -29,7 +30,7 @@ function ()
         });
       });
   });
-}, 5000);
+}, 20000);
 </script>
 
 {%block header_scripts%}
@@ -56,19 +57,21 @@ function ()
                 <div class="navbar-right">
                     <ul class="nav navbar-nav">
                         <!-- User Account: style can be found in dropdown.less -->
-                        <li class="dropdown messages-menu">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" id="alerts-dropdown">
-                                <span class="white bigger-140"><i class="fa fa-exclamation-triangle"></i></span>
-                                <span class="label label-danger" id="no-alerts">4</span>
+                        <li class="dropdown messages-menu" id="alerts-dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                <span>
+                                  <i class="fa fa-exclamation-triangle white bigger-140" id="alert_icon"></i>
+                                </span>
                             </a>
-                            <ul class="dropdown-menu">
+                            <ul class="dropdown-menu" id="alerts_dropdown">
                                 <!-- <li class="header">You have 4 Alerts</li> -->
                                 <li>
                                     <!-- inner menu: contains the actual data -->
                                     <div style="position: relative; overflow: hidden; width: auto; height: 200px;" class="slimScrollDiv">
-                                    <ul style="overflow: hidden; width: 100%; height: 200px;" class="menu" id="alerts">
-                                        
-                                    </ul><div style="background: none repeat scroll 0% 0% rgb(0, 0, 0); width: 3px; position: absolute; top: 0px; opacity: 0.4; display: none; border-radius: 0px; z-index: 99; right: 1px; height: 131.148px;" class="slimScrollBar"></div><div style="width: 3px; height: 100%; position: absolute; top: 0px; display: none; border-radius: 0px; background: none repeat scroll 0% 0% rgb(51, 51, 51); opacity: 0.2; z-index: 90; right: 1px;" class="slimScrollRail"></div></div>
+                                      <ul style="overflow: hidden; width: 100%; height: 200px;" class="menu" id="alerts">
+                                          
+                                      </ul>
+                                    <div style="background: none repeat scroll 0% 0% rgb(0, 0, 0); width: 3px; position: absolute; top: 0px; opacity: 0.4; display: none; border-radius: 0px; z-index: 99; right: 1px; height: 131.148px;" class="slimScrollBar"></div><div style="width: 3px; height: 100%; position: absolute; top: 0px; display: none; border-radius: 0px; background: none repeat scroll 0% 0% rgb(51, 51, 51); opacity: 0.2; z-index: 90; right: 1px;" class="slimScrollRail"></div></div>
                                 </li>
                                 <li class="footer"><a href="/show/alerts/">See All Messages</a></li>
                             </ul>
@@ -408,10 +411,11 @@ function ()
 </body>
 <script src="/static/jquery-ui-1.10.2.custom/js/jquery-1.9.1.js"></script>
 <script src="/static/bootstrap/js/bootstrap.min.js" ></script>
-<script src="/static/js/app.js"></script>
 <script src="/static/datatables/js/jquery.dataTables.js"></script>
 <script src="/static/datatables/js/dataTables.bootstrap.js"></script>
 <script src="/static/datatables/js/dataTables.responsive.js"></script>
+<script src="/static/js/app.js"></script>
+
   <script>
     $(document).ready(function(){
       {%block datatables%}
@@ -424,6 +428,10 @@ function ()
         });
       {%endblock%}
       $("table").css({'width':'90%'})
+    });
+    $("#alerts_dropdown").click(function(){
+      alert("clicked");
+      $("#alert_icon").removeClass("red faa-flash animated").addClass("white");
     });
   </script>
 </html>

@@ -61,7 +61,7 @@ def load_alerts(fname = None):
   if not match:
     with open(filename, "a") as f:
       fcntl.flock(f, fcntl.LOCK_EX)
-      f.write("----------")
+      f.write("\n----------")
       fcntl.flock(f, fcntl.LOCK_UN)
       f.close()
   return alerts_list

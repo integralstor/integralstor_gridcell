@@ -1075,3 +1075,10 @@ $(window).load(function() {
         })
     }
 })(window.jQuery || window.Zepto);
+
+
+// Custom Fractalio js configurations
+
+$("#alerts-dropdown").click(function(){
+    $("#alert_icon").removeClass("red faa-flash animated").addClass("white");
+});
