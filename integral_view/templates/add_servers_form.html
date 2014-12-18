@@ -48,14 +48,9 @@ function load_node_info(hostname, str) {
 {% if form.errors %}
 <p id="error-text"> {{form.errors}}</p>
 {%endif%}
-{% if warn_no_spare%}
-<p id="error-text"> Warning : There are no spare sleds!</p>
-{%elif prompt_for_spare %}
-<p id="error-text"> Warning : This action will add the spare sled!</p>
-{%endif%}
 
 {% if form.hosts.errors %}
-<p id="error-text"> Please select at least one disk</p>
+<p id="error-text"> Please select at least one node</p>
 {%endif %}
 
 
@@ -78,7 +73,7 @@ The following nodes will be added to the storage pool.
       {{d.hostname}}
     </td>
     <td>
-      <button class="btn btn-default " onClick="load_node_info('{{d.hostname}}', '{{d.hostname}}');"> Details.. </button>
+      <a href="/show/node_info/{{d.hostname}}/?from=add_nodes" role="button" class="btn btn-default">Details.. </a>
     </td>
   </tr>
 {%endfor%}
@@ -106,7 +101,7 @@ The following nodes will be added to the storage pool.
 {%endif%}
 <form id = 'add_servers_form' action="/add_nodes/"  method="post">
 {% for node, display in form.nodes.field.widget.choices %}
-<input type="checkbox"  value="{{ node }}" name="nodes" checked style="display:None">
+<input  value="{{ node }}" name="nodes" checked style="display:None" >
 {%endfor%}
 <button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Add nodes >></button>
 </form>
