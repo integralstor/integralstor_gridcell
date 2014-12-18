@@ -1,7 +1,5 @@
 {% extends 'logged_in_base.html' %}
-<style type="text/css">
-<link rel="stylesheet" href="/static/jstree/dist/themes/default/style.min.css" />
-</style>
+
 <script type="text/javascript">
 function set_field_visibility() {
   var guest_ok = document.forms["create_form"].elements["guest_ok"];
@@ -175,8 +173,6 @@ function set_select_field_disabled(f, val) {
     f[i].disabled = val
 }
 $("form input[name='guest_ok']").click(function () { 
-    // Handle the click event here
-    //alert("clicked");
     if (document.forms["create_form"].elements["guest_ok"].checked) {
       set_select_field_disabled(document.forms["create_form"].elements["users"], true);
       set_select_field_disabled(document.forms["create_form"].elements["groups"], true);
@@ -186,67 +182,83 @@ $("form input[name='guest_ok']").click(function () {
     }
     });
 $(window).load(function() {
-  // Handler for .load() called.
-    //alert("loaded");
-    //alert(document.forms["create_form"].elements["guest_ok"].checked);
     document.forms["create_form"].elements["guest_ok"].checked = false
     set_select_field_disabled(document.forms["create_form"].elements["users"], false);
     set_select_field_disabled(document.forms["create_form"].elements["groups"], false);
   });
 </script>
-  <script src="/static/jstree/dist/libs/jquery.js"></script>
-  <script src="/static/jstree/dist/jstree.min.js"></script>
-            <script>
-            function displayTree() {
-              document.getElementById("pathdiv").style.display = "block";
-              $('#pathdiv').jstree({ 'core' : {
-                  'multiple':false,
-                  'data' : {
-                    'full_path': 'dummy',
-                    'url' : function (node) {
-                      return node.id === '#' ? 
-                        '/show/dir_contents?first=1&dir=/' : 
-                        '/show/dir_contents'; 
-                    },
-                    'data' : function (node) {
-                      var e = document.getElementById("id_vol");
-                      if (node.data) {
-                        return {  'dir' : node.data['dir'] , 'id':node.id, "vol_name": e.options[e.selectedIndex].value};
-                      }
-                      else
-                        return { 'dir' : node.text , 'id':node.id, "vol_name": e.options[e.selectedIndex].value};
-                    }
-                  }
-              } });
-            $(function () {
-              $('#pathdiv').on('load_node.jstree', function (e, data) {
-                  var n = data.instance.get_node(data.node["id"]);
-                  var txt = data.instance.get_node(n["children_d"][0])["text"];
-                  if (txt == "_error_") {
-                    alert("Error parsing the volume directories.");
-                    document.getElementById("pathdiv").style.display = "none";
-                  }
-                return true;
-                })
-            });
-            $(function () {
-              $('#pathdiv').on('changed.jstree', function (e, data) {
-                  var i, j, r = [];
-                  r = data.instance.get_node(data.selected[0]).text;
-                  rfp = data.instance.get_node(data.selected[0]).data["dir"];
-                  document.forms["create_form"].elements["path"].value = rfp;
-                  document.forms["create_form"].elements["display_path"].value = rfp;
-                  document.getElementById("pathdiv").style.display = "none";
-                })
-                .jstree();
-            });
+  <script src="/static/jstree/dist/jstree.js"></script>
+  <script>
+  function displayTree() {
+      $('#pathdiv').jstree({ 'core' : {
+        'multiple':false,
+        'data' : {
+          'full_path': 'dummy',
+          'url' : function (node) {
+            return node.id === '#' ? 
+              '/show/dir_contents?first=1&dir=/' : 
+              '/show/dir_contents'; 
+          },
+          'data' : function (node) {
+            var e = document.getElementById("id_vol");
+            if (node.data) {
+              return {  'dir' : node.data['dir'] , 'id':node.id, "vol_name": e.options[e.selectedIndex].value};
+            }
+            else
+              return { 'dir' : node.text , 'id':node.id, "vol_name": e.options[e.selectedIndex].value};
           }
-            </script>
+        }
+      }
+    });
+ $(function () {
+    $('#pathdiv').on('changed.jstree', function (e, data) {
+        var i, j, r = [];
+        r = data.instance.get_node(data.selected[0]).text;
+        rfp = data.instance.get_node(data.selected[0]).data["dir"];
+        document.forms["create_form"].elements["path"].value = rfp;
+        document.forms["create_form"].elements["display_path"].value = rfp;
+        document.getElementById("pathdiv").style.display = "none";
+      })
+      .jstree();
+  });
+  }
+
+/*              
+document.getElementById("pathdiv").style.display = "block";
+
+  $(function () {
+    $('#pathdiv').on('load_node.jstree', function (e, data) {
+        var n = data.instance.get_node(data.node["id"]);
+        var txt = data.instance.get_node(n["children_d"][0])["text"];
+        if (txt == "_error_") {
+          alert("Error parsing the volume directories.");
+          document.getElementById("pathdiv").style.display = "none";
+        }
+      return true;
+      })
+  });
+  $(function () {
+    $('#pathdiv').on('changed.jstree', function (e, data) {
+        var i, j, r = [];
+        r = data.instance.get_node(data.selected[0]).text;
+        rfp = data.instance.get_node(data.selected[0]).data["dir"];
+        alert(rfp)
+        document.forms["create_form"].elements["path"].value = rfp;
+        document.forms["create_form"].elements["display_path"].value = rfp;
+        document.getElementById("pathdiv").style.display = "none";
+      })
+      .jstree();
+  });
+}
+*/         
+</script>
 
 {%endblock%}
+
 {%block help_header%}
-Create share help
+  Create share help
 {%endblock%}
+
 {%block help_body%}
-<p>Help about creating shares…</p>
+  <p>Help about creating shares…</p>
 {%endblock%}

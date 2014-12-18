@@ -5,26 +5,26 @@
   <link rel="stylesheet" href="/static/jquery-ui-1.10.2.custom/css/ui-lightness/jquery-ui-1.10.2.custom.css">
   <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.css" type="text/css" />
   <link rel="stylesheet" href="/static/bootstrap/css/bootstrap-responsive.min.css"/>
-  <link rel="stylesheet" href="/static/jstree/dist/themes/default/style.min.css" />
-  <link rel="stylesheet" type="text/css" href="/static/css/modify_bootstrap.css">
-  <link rel="stylesheet" type="text/css" href="/static/font-awesome-4.2.0/css/font-awesome.css">
-  <link rel="stylesheet" type="text/css" href="/static/font-awesome-4.2.0/css/font-awesome-animation.min.css">
   <link rel="stylesheet" type="text/css" href="/static/css/AdminLTE.css">
-  <link rel="stylesheet" type="text/css" href="/static/datatables/css/jquery.dataTables.css">
-  <link rel="stylesheet" type="text/css" href="/static/datatables/css/dataTables.bootstrap.css">
-  <link rel="stylesheet" type="text/css" href="/static/datatables/css/dataTables.responsive.css">
   <link rel="stylesheet" type="text/css" href="/static/css/fractalio.css">
-  <title> {%block title%}IntegralView administration console{%endblock%}</title>
+  <title> 
+		{%block title%}
+			IntegralView administration console
+		{%endblock%}
+</title>
   {%block autorefresh %}{%endblock%}
+
+<script src="/static/jquery-ui-1.10.2.custom/js/jquery-1.9.1.js"></script>
+<script src="/static/bootstrap/js/bootstrap.min.js" ></script>
 
 <script type="text/javascript">
 var auto_refresh = setInterval(
 function ()
 {
   $.get('/refresh_alerts/',function(data){
-      $("#alert_icon").removeClass("white").addClass("red faa-flash animated");
       $.each(data,function(){
         var alerts = $.parseJSON(JSON.stringify(this));
+        $("#alert_icon").removeClass("white").addClass("red faa-flash animated");
         $.each(alerts,function(key,value){
           $("#alerts").append('<li><a href="/show/alerts/"><div class="pull-left middle"><i class="fa fa-exclamation-circle red bigger-140"></i></div><h4>'+value.message+'</h4><p>'+value.time+'</p></a></li>');
         });
@@ -409,8 +409,12 @@ function ()
 </div>
 
 </body>
-<script src="/static/jquery-ui-1.10.2.custom/js/jquery-1.9.1.js"></script>
-<script src="/static/bootstrap/js/bootstrap.min.js" ></script>
+<link rel="stylesheet" type="text/css" href="/static/css/modify_bootstrap.css">
+<link rel="stylesheet" type="text/css" href="/static/font-awesome-4.2.0/css/font-awesome.css">
+<link rel="stylesheet" type="text/css" href="/static/font-awesome-4.2.0/css/font-awesome-animation.min.css">
+<link rel="stylesheet" type="text/css" href="/static/datatables/css/jquery.dataTables.css">
+<link rel="stylesheet" type="text/css" href="/static/datatables/css/dataTables.bootstrap.css">
+<link rel="stylesheet" type="text/css" href="/static/datatables/css/dataTables.responsive.css">
 <script src="/static/datatables/js/jquery.dataTables.js"></script>
 <script src="/static/datatables/js/dataTables.bootstrap.js"></script>
 <script src="/static/datatables/js/dataTables.responsive.js"></script>
