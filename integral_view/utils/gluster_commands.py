@@ -9,7 +9,9 @@ import tempfile, socket, time, random, json, sys, os
 from django.conf import settings
 
 import volume_info, system_info
-import xml_parse, command
+import xml_parse
+import fractalio
+from fractalio import command
 
 import fractalio
 

@@ -1,5 +1,4 @@
 
-from command import get_command_output 
 import xml_parse, gluster_commands
 
 import re, random, sys, os

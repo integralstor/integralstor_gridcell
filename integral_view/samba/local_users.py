@@ -6,7 +6,8 @@ path = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, '%s/../..'%path)
 os.environ['DJANGO_SETTINGS_MODULE']='integral_view.settings'
 
-from integral_view.utils import command
+import fractalio
+from fractalio import command
 
 def create_local_user(userid, name, pswd):
 

@@ -50,17 +50,17 @@ def execute_with_rc(cmd = None):
   else:
     return ret, None
 
-def execute_with_conf(command = None, response = 'y'):
+def execute_with_conf(cmd = None, response = 'y'):
   """ Given a command specified in the parameter, it spawns a subprocess to execute it and returns the output" and errors.
   The difference between this and execute() is that is used for commands that require a y/n confirmation."""
 
   output, err = '', ''
   ret = None
 
-  if not command:
+  if not cmd:
     return None
 
-  comm_list = command.split()
+  comm_list = cmd.split()
   response = "%s\n"%response
     
   try:
@@ -73,17 +73,17 @@ def execute_with_conf(command = None, response = 'y'):
 
   return ret
 
-def execute_with_conf_and_rc(command = None, response = 'y'):
+def execute_with_conf_and_rc(cmd = None, response = 'y'):
   """ Given a command specified in the parameter, it spawns a subprocess to execute it and returns the output" and errors.
   The difference between this and execute() is that is used for commands that require a y/n confirmation."""
 
   output, err = '', ''
   ret = None
 
-  if not command:
+  if not cmd:
     return None
 
-  comm_list = command.split()
+  comm_list = cmd.split()
   response = "%s\n"%response
 
   proc = None    
@@ -101,11 +101,11 @@ def execute_with_conf_and_rc(command = None, response = 'y'):
     return ret, None
 
 
-def get_command_output(command):
+def get_command_output(cmd):
   """ A wrapper around execute to return the output of a command only if there is no error."""
 
-  #print 'Executing : '+command
-  t1 = execute(command)
+  #print 'Executing : '+cmd
+  t1 = execute(cmd)
 
   el = get_error_list(t1)
   if el:

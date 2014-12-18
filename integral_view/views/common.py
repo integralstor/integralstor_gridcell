@@ -5,9 +5,11 @@ import salt.client, salt.wheel
 import django.template, django
 from django.conf import settings
 
+import fractalio
+from fractalio import command, db
 
 import integral_view
-from integral_view.utils import audit, batch, alerts, ntp, mail, gluster_commands, command, iv_logging,db
+from integral_view.utils import audit, batch, alerts, ntp, mail, gluster_commands, iv_logging
 from integral_view.utils import volume_info, system_info
 import logging
 from integral_view.iscsi import iscsi
@@ -415,7 +417,7 @@ def refresh_alerts(request, random=None):
     #this command will insert or update the row value if the row with the user exists.
     cmd = ["INSERT OR REPLACE INTO admin_alerts (user, last_refresh_time) values (?,?);", (request.user.username, datetime.now())]
     cmd_list.append(cmd)
-    test = db.execute_iud(cmd_list)
+    test = db.execute_iud("%s/integral_view_config.db"%settings.DB_LOCATION, cmd_list)
     if alerts.new_alerts():
       import json
       new_alerts = json.dumps([dict(alert=pn) for pn in alerts.load_alerts()])

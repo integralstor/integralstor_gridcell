@@ -1,7 +1,9 @@
 
 import json,sqlite3
 
-from integral_view.utils import command, db
+import fractalio
+from fractalio import command, db
+
 import local_users
 
 from django.conf import settings
@@ -11,15 +13,15 @@ def change_auth_method(security):
   cl = []
   cl.append(["update samba_global_common set security='%s' where id=1"%security])
   cl.append(["delete from samba_valid_users"])
-  db.execute_iud(cl)
+  db.execute_iud("%s/integral_view_config.db"%settings.DB_LOCATION, cl)
 
 def load_auth_settings():
   d = None
   conn = None
   try :
-    d = db.read_single_row("select * from samba_global_common where id=1")
+    d = db.read_single_row("%s/integral_view_config.db"%settings.DB_LOCATION, "select * from samba_global_common where id=1")
     if d and d["security"] == "ads":
-      d1 = db.read_single_row("select * from samba_global_ad where id=1")
+      d1 = db.read_single_row("%s/integral_view_config.db"%settings.DB_LOCATION, "select * from samba_global_ad where id=1")
       if d1:
         d.update(d1)
   finally:
@@ -31,7 +33,7 @@ def save_auth_settings(d):
   cmd = ["update samba_global_common set workgroup=?, netbios_name=?, security=?, include_homes_section=? where id = ?", (d["workgroup"], d["netbios_name"], d["security"], True, 1,)]
   cmd_list.append(cmd)
   if d["security"] == "ads":
-    d1 = db.read_single_row("select * from samba_global_ad")
+    d1 = db.read_single_row("%s/integral_view_config.db"%settings.DB_LOCATION, "select * from samba_global_ad")
     if d1:
       cmd = ["update samba_global_ad set realm=?, password_server=?, ad_schema_mode=?, id_map_min=?, id_map_max=?,  where id = ?", (d["realm"], d["password_server"], d["ad_schema_mode"], d["id_map_min"], d["id_map_max"], 1,)]
       cmd_list.append(cmd)
@@ -40,7 +42,7 @@ def save_auth_settings(d):
       cmd = ["insert into samba_global_ad (realm, password_server, ad_schema_mode, id_map_min, id_map_max, id) values(?,?,?,?,?,?)", (d["realm"], d["password_server"], d["ad_schema_mode"], d["id_map_min"], d["id_map_max"], 1,)]
       cmd_list.append(cmd)
   #print "updating "
-  db.execute_iud(cmd_list)
+  db.execute_iud("%s/integral_view_config.db"%settings.DB_LOCATION, cmd_list)
   #print "updated "
 
 def delete_auth_settings():

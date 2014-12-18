@@ -7,7 +7,7 @@ from django.conf import settings
 import fractalio
 from fractalio import file_processing
 
-import common, logs
+import logs
 #Our alert mailer
 import mail
 

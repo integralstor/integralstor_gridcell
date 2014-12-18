@@ -1,5 +1,6 @@
 
-from integral_view.utils import db
+import fractalio
+from fractalio import db
 import json
 from django.conf import settings
 
@@ -7,7 +8,7 @@ def load_iscsi_volumes_list(vil):
   #with open("%s/iscsi_volumes.json"%settings.SYSTEM_INFO_DIR, "r") as f:
   #  il = json.load(f)
 
-  il = db.read_multiple_rows("select * from iscsi_volumes")
+  il = db.read_multiple_rows("%s/integral_view_config.db"%settings.DB_LOCATION, "select * from iscsi_volumes")
   if not il:
     return None
 
@@ -24,11 +25,11 @@ def load_iscsi_volumes_list(vil):
 
 def add_iscsi_volume(vol_name):
 
-  d = db.read_single_row("select * from iscsi_volumes where vol_name=\'%s\'"%vol_name)
+  d = db.read_single_row("%s/integral_view_config.db"%settings.DB_LOCATION, "select * from iscsi_volumes where vol_name=\'%s\'"%vol_name)
   if d:
     return
   cl = [("insert into iscsi_volumes(id, vol_name) values (NULL, ?)",(vol_name,))]
-  db.execute_iud(cl)
+  db.execute_iud("%s/integral_view_config.db"%settings.DB_LOCATION, cl)
 
 
 '''
@@ -38,7 +39,7 @@ def save_iscsi_volumes_list(l):
 '''
 
 def load_targets_list():
-  iscsi_target_list = db.read_multiple_rows("select * from iscsi_targets")
+  iscsi_target_list = db.read_multiple_rows("%s/integral_view_config.db"%settings.DB_LOCATION, "select * from iscsi_targets")
   return iscsi_target_list
   
   '''
@@ -50,7 +51,7 @@ def load_targets_list():
 def save_target(id, cd):
 
   cl = [("update iscsi_targets set lun_size=?, target_alias=?, auth_method=?, queue_depth=?, auth_group_id=?, init_group_id = ?  where id=?",(cd["lun_size"], cd["target_alias"], cd["auth_method"], cd["queue_depth"], cd["auth_group_id"], cd["init_group_id"], id, ))]
-  db.execute_iud(cl)
+  db.execute_iud("%s/integral_view_config.db"%settings.DB_LOCATION, cl)
 
   '''
   l = load_targets_list()
@@ -76,7 +77,7 @@ def save_target(id, cd):
 
 def load_target_info(index):
 
-  d = db.read_single_row("select * from iscsi_targets where id=\'%d\'"%index)
+  d = db.read_single_row("%s/integral_view_config.db"%settings.DB_LOCATION, "select * from iscsi_targets where id=\'%d\'"%index)
   return d
 
   '''
@@ -91,7 +92,7 @@ def load_target_info(index):
 def create_iscsi_target(vol_name, target_alias, lun_size, auth_method, queue_depth, auth_group_id, init_group_id):
 
   cl = [("insert into iscsi_targets(id, vol_name, target_name, target_alias, lun_size, auth_method, queue_depth, auth_group_id, init_group_id) values (NULL, ?, ?, ?, ?, ?, ?, ?, ?)",(vol_name, vol_name, target_alias, lun_size, auth_method, queue_depth, auth_group_id, init_group_id, ))]
-  db.execute_iud(cl)
+  db.execute_iud("%s/integral_view_config.db"%settings.DB_LOCATION, cl)
 
   '''
   l = load_targets_list()
@@ -116,7 +117,7 @@ def create_iscsi_target(vol_name, target_alias, lun_size, auth_method, queue_dep
 
 def delete_target(id):
 
-  db.execute_iud([("delete from iscsi_targets where id = \'%d\'"%id,)])
+  db.execute_iud([("%s/integral_view_config.db"%settings.DB_LOCATION, "delete from iscsi_targets where id = \'%d\'"%id,)])
 
   '''
   l = load_targets_list()
@@ -128,14 +129,14 @@ def delete_target(id):
   '''
 
 def delete_all_targets():
-  db.execute_iud([("delete from iscsi_targets",)])
+  db.execute_iud("%s/integral_view_config.db"%settings.DB_LOCATION, [("delete from iscsi_targets",)])
 
 def save_target_list(l):
   with open("%s/iscsi_targets.json"%settings.SYSTEM_INFO_DIR, "w") as f:
     json.dump(l, f, indent=2)
 
 def load_initiators_list():
-  iscsi_initiator_list = db.read_multiple_rows("select * from iscsi_initiators")
+  iscsi_initiator_list = db.read_multiple_rows("%s/integral_view_config.db"%settings.DB_LOCATION, "select * from iscsi_initiators")
   return iscsi_initiator_list
   '''
   with open("%s/iscsi_initiators.json"%settings.SYSTEM_INFO_DIR, "r") as f:
@@ -146,7 +147,7 @@ def load_initiators_list():
 
 def load_initiator_info(index):
 
-  d = db.read_single_row("select * from iscsi_initiators where id=\'%d\'"%index)
+  d = db.read_single_row("%s/integral_view_config.db"%settings.DB_LOCATION, "select * from iscsi_initiators where id=\'%d\'"%index)
   return d
 
   '''
@@ -160,13 +161,13 @@ def load_initiator_info(index):
 
 def create_iscsi_initiator(initiators, auth_network, comment):
 
-  d = db.read_single_row("select * from iscsi_initiators where auth_network = \'%s\' and initiators=\'%s\'"%(initiators.lower(), auth_network.lower()))
+  d = db.read_single_row("%s/integral_view_config.db"%settings.DB_LOCATION, "select * from iscsi_initiators where auth_network = \'%s\' and initiators=\'%s\'"%(initiators.lower(), auth_network.lower()))
   if d:
     raise Exception("An initiator with the same parameters (with ID %d) already exists"%i["id"])
     return
 
   cl = [("insert into iscsi_initiators(id, initiators, auth_network, comment) values (NULL, ?, ?, ?)",(initiators.lower(), auth_network.lower(), comment, ))]
-  db.execute_iud(cl)
+  db.execute_iud("%s/integral_view_config.db"%settings.DB_LOCATION, cl)
 
   '''
   l = load_initiators_list()
@@ -187,7 +188,7 @@ def create_iscsi_initiator(initiators, auth_network, comment):
 
 def delete_initiator(id):
 
-  db.execute_iud([("delete from iscsi_initiators where id = \'%d\'"%id,)])
+  db.execute_iud([("%s/integral_view_config.db"%settings.DB_LOCATION, "delete from iscsi_initiators where id = \'%d\'"%id,)])
 
   '''
   l = load_initiators_list()
@@ -199,7 +200,7 @@ def delete_initiator(id):
   '''
 
 def delete_all_initiators():
-  db.execute_iud([("delete from iscsi_initiators",)])
+  db.execute_iud("%s/integral_view_config.db"%settings.DB_LOCATION, [("delete from iscsi_initiators",)])
 
 def save_initiator_list(l):
   with open("%s/iscsi_initiators.json"%settings.SYSTEM_INFO_DIR, "w") as f:
@@ -208,7 +209,7 @@ def save_initiator_list(l):
 def save_initiator(id, cd):
 
   cl = [("update iscsi_initiators set initiators=?, auth_network=?, comment=? where id=?",(cd["initiators"].lower(), cd["auth_network"].lower(), cd["comment"], id, ))]
-  db.execute_iud(cl)
+  db.execute_iud("%s/integral_view_config.db"%settings.DB_LOCATION, cl)
 
   '''
   l = load_initiators_list()
@@ -232,7 +233,7 @@ def save_auth_access_group_list(l):
 
 def load_auth_access_group_list():
 
-  iscsi_auth_access_group_list = db.read_multiple_rows("select * from iscsi_auth_access_groups")
+  iscsi_auth_access_group_list = db.read_multiple_rows("%s/integral_view_config.db"%settings.DB_LOCATION, "select * from iscsi_auth_access_groups")
   return iscsi_auth_access_group_list
 
   '''
@@ -247,7 +248,7 @@ def save_auth_access_users_list(l):
   generate_auth_conf()
 
 def load_auth_access_users_list():
-  iscsi_auth_access_users_list = db.read_multiple_rows("select * from iscsi_auth_access_users")
+  iscsi_auth_access_users_list = db.read_multiple_rows("%s/integral_view_config.db"%settings.DB_LOCATION, "select * from iscsi_auth_access_users")
   return iscsi_auth_access_users_list
   '''
   with open("%s/iscsi_auth_access_users.json"%settings.SYSTEM_INFO_DIR, "r") as f:
@@ -256,7 +257,7 @@ def load_auth_access_users_list():
 
 def load_auth_access_users_info(auth_access_group_id):
 
-  l = db.read_multiple_rows("select * from iscsi_auth_access_users where auth_access_group_id = \'%d\'"%auth_access_group_id)
+  l = db.read_multiple_rows("%s/integral_view_config.db"%settings.DB_LOCATION, "select * from iscsi_auth_access_users where auth_access_group_id = \'%d\'"%auth_access_group_id)
   return l
 
   '''
@@ -270,7 +271,7 @@ def load_auth_access_users_info(auth_access_group_id):
 
 def load_auth_access_user_info(user_id):
 
-  d = db.read_single_row("select * from iscsi_auth_access_users where id = \'%d\'"%user_id)
+  d = db.read_single_row("%s/integral_view_config.db"%settings.DB_LOCATION, "select * from iscsi_auth_access_users where id = \'%d\'"%user_id)
   return d
 
   '''
@@ -286,9 +287,9 @@ def load_auth_access_user_info(user_id):
 def create_auth_access_group():
 
   cl = [("insert into iscsi_auth_access_groups(id) values (NULL)",)]
-  rowid = db.execute_iud(cl, True)
+  rowid = db.execute_iud("%s/integral_view_config.db"%settings.DB_LOCATION, cl, True)
   cl = [("update iscsi_auth_access_groups set name=\'AuthGroup%d\' where rowid = \'%d\'"%(rowid, rowid),)]
-  db.execute_iud(cl)
+  db.execute_iud("%s/integral_view_config.db"%settings.DB_LOCATION, cl)
   return rowid
 
   '''
@@ -307,13 +308,13 @@ def create_auth_access_group():
 
 def create_auth_access_user(auth_access_group_id, user, secret):
 
-  d = db.read_single_row("select * from iscsi_auth_access_users where auth_access_group_id = \'%d\' and user = \'%s\'"%(auth_access_group_id, user))
+  d = db.read_single_row("%s/integral_view_config.db"%settings.DB_LOCATION, "select * from iscsi_auth_access_users where auth_access_group_id = \'%d\' and user = \'%s\'"%(auth_access_group_id, user))
   if d:
     raise Exception("A user set with the same username exists for this authorized access group")
     return
 
   cl = [("insert into iscsi_auth_access_users(id, auth_access_group_id, user, secret) values (NULL, \'%d\', \'%s\', \'%s\')"%(auth_access_group_id, user, secret),)]
-  rowid = db.execute_iud(cl, True)
+  rowid = db.execute_iud("%s/integral_view_config.db"%settings.DB_LOCATION, cl, True)
 
   '''
   l = load_auth_access_users_list()
@@ -339,7 +340,7 @@ def create_auth_access_user(auth_access_group_id, user, secret):
 def delete_auth_access_group(id):
 
   cl = [("delete from iscsi_auth_access_groups where id = \'%d\'"%id,), ("delete from iscsi_auth_access_users where auth_access_group_id = \'%d\'"%id,)]
-  db.execute_iud(cl)
+  db.execute_iud("%s/integral_view_config.db"%settings.DB_LOCATION, cl)
 
   '''
   l = load_auth_access_group_list()
@@ -357,12 +358,12 @@ def delete_auth_access_group(id):
   '''
 
 def delete_all_auth_access_groups():
-  db.execute_iud([("delete from iscsi_auth_access_groups",)])
+  db.execute_iud("%s/integral_view_config.db"%settings.DB_LOCATION, [("delete from iscsi_auth_access_groups",)])
 
 def delete_auth_access_user(user_id):
 
   cl = [("delete from iscsi_auth_access_users where id = \'%d\'"%user_id,)]
-  db.execute_iud(cl)
+  db.execute_iud("%s/integral_view_config.db"%settings.DB_LOCATION, cl)
 
   '''
   l = load_auth_access_users_list()
@@ -374,17 +375,17 @@ def delete_auth_access_user(user_id):
   '''
   
 def delete_all_auth_access_users():
-  db.execute_iud([("delete from iscsi_auth_access_users",)])
+  db.execute_iud("%s/integral_view_config.db"%settings.DB_LOCATION, [("delete from iscsi_auth_access_users",)])
 
 def save_auth_access_user(auth_access_group_id, user_id, user, secret):
 
-  d = db.read_single_row("select * from iscsi_auth_access_users where auth_access_group_id = \'%d\' and user = \'%s\'"%(auth_access_group_id, user))
+  d = db.read_single_row("%s/integral_view_config.db"%settings.DB_LOCATION, "select * from iscsi_auth_access_users where auth_access_group_id = \'%d\' and user = \'%s\'"%(auth_access_group_id, user))
   if d:
     raise Exception("A user set with the same username exists for this authorized access group")
     return
 
   cl = [("update iscsi_auth_access_users set user=\'%s\', secret=\'%s\' where id = \'%d\'"%(user, secret, user_id), )]
-  db.execute_iud(cl)
+  db.execute_iud("%s/integral_view_config.db"%settings.DB_LOCATION, cl)
 
   '''
   l = load_auth_access_users_list()
@@ -407,7 +408,7 @@ def save_auth_access_user(auth_access_group_id, user_id, user, secret):
   '''
   
 def load_global_target_conf():
-  igt  = db.read_single_row("select * from iscsi_global_target_conf where id = \'1\'")
+  igt  = db.read_single_row("%s/integral_view_config.db"%settings.DB_LOCATION, "select * from iscsi_global_target_conf where id = \'1\'")
   return igt
 
   '''
@@ -418,15 +419,15 @@ def load_global_target_conf():
 
 def reset_global_target_conf():
   cl = [("update iscsi_global_target_conf set discovery_auth_method=?, io_timeout=?, nop_in_interval=?, max_sessions=?, max_connections=?, max_presend_r2t=?, max_outstanding_r2t=?, first_burst_length=?, max_burst_length=?, max_receive_data_segment_length=?, default_time_to_wait=?, default_time_to_retain=? where id='1'",(None, 30, 20, 16, 8,32,16,65536,262144,262144,2,60,))]
-  db.execute_iud(cl)
+  db.execute_iud("%s/integral_view_config.db"%settings.DB_LOCATION, cl)
 
 def save_global_target_conf(cd):
-  igt  = db.read_single_row("select * from iscsi_global_target_conf where id = \'1\'")
+  igt  = db.read_single_row("%s/integral_view_config.db"%settings.DB_LOCATION, "select * from iscsi_global_target_conf where id = \'1\'")
   if not igt:
     cl = [("insert into iscsi_global_target_conf(id, base_name, discovery_auth_method, discovery_auth_group, io_timeout, nop_in_interval, max_sessions, max_connections, max_presend_r2t, max_outstanding_r2t, first_burst_length, max_burst_length, max_receive_data_segment_length, default_time_to_wait, default_time_to_retain) values (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",(cd["base_name"], cd["discovery_auth_method"], cd["discovery_auth_group"], cd["io_timeout"], cd["nop_in_interval"], cd["max_sessions"], cd["max_connections"],cd["max_presend_r2t"],cd["max_outstanding_r2t"],cd["first_burst_length"],cd["max_burst_length"],cd["max_receive_data_segment_length"],cd["default_time_to_wait"],cd["default_time_to_retain"],))]
   else:
     cl = [("update iscsi_global_target_conf set base_name=?, discovery_auth_method=?, discovery_auth_group=?, io_timeout=?, nop_in_interval=?, max_sessions=?, max_connections=?, max_presend_r2t=?, max_outstanding_r2t=?, first_burst_length=?, max_burst_length=?, max_receive_data_segment_length=?, default_time_to_wait=?, default_time_to_retain=? where id='1'",(cd["base_name"], cd["discovery_auth_method"], cd["discovery_auth_group"], cd["io_timeout"], cd["nop_in_interval"], cd["max_sessions"], cd["max_connections"],cd["max_presend_r2t"],cd["max_outstanding_r2t"],cd["first_burst_length"],cd["max_burst_length"],cd["max_receive_data_segment_length"],cd["default_time_to_wait"],cd["default_time_to_retain"],))]
-  db.execute_iud(cl)
+  db.execute_iud("%s/integral_view_config.db"%settings.DB_LOCATION, cl)
 
   '''
   d = {}

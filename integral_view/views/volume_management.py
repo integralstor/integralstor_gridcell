@@ -10,7 +10,7 @@ from fractalio import command
 
 import integral_view
 from integral_view.forms import volume_management_forms
-from integral_view.utils import command, volume_info, system_info, audit, gluster_commands, iv_logging
+from integral_view.utils import volume_info, system_info, audit, gluster_commands, iv_logging
 from integral_view.iscsi import iscsi
 
 import logging

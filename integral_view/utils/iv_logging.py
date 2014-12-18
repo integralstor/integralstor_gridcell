@@ -1,6 +1,8 @@
 #Integral View's internal logging module that is an extention to the python/django loggin module
 
-from integral_view.utils import db
+import fractalio
+from fractalio import db
+from django.conf import settings
 
 import logging
 logger = logging.getLogger(__name__)
@@ -10,14 +12,14 @@ def set_log_level(level):
     logger.setLevel(logging.INFO)
   else:
     try :
-      d1 = db.read_single_row("select * from samba_global_ad")
+      d1 = db.read_single_row("%s/integral_view_config.db"%settings.DB_LOCATION, "select * from samba_global_ad")
       cmd_list = []
       if d1:
         cmd = ["update global_params set logging_level=? where id = ?", (level, 1,)]
       else:
         cmd = ["insert into global_params (logging_level, id) values(?,?)", (level, 1,)]
       cmd_list.append(cmd)
-      db.execute_iud(cmd_list)
+      db.execute_iud("%s/integral_view_config.db"%settings.DB_LOCATION, cmd_list)
     except Exception, e:
       print "Error updating log level : %s"%str(e)
     finally:
@@ -40,7 +42,7 @@ def get_log_level():
   d = None
   conn = None
   try :
-    d = db.read_single_row("select * from global_params where id=1")
+    d = db.read_single_row("%s/integral_view_config.db"%settings.DB_LOCATION, "select * from global_params where id=1")
     if d  and "logging_level" in d:
       return d["logging_level"]
     else:
@@ -48,7 +50,7 @@ def get_log_level():
       cmd_list = []
       cmd = ["insert into global_params (logging_level, id) values(?,?)", (logging.INFO, 1,)]
       cmd_list.append(cmd)
-      db.execute_iud(cmd_list)
+      db.execute_iud("%s/integral_view_config.db"%settings.DB_LOCATION, cmd_list)
       return logging.INFO
   except Exception, e:
     print "Error inserting log level : %s"%str(e)

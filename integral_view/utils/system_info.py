@@ -108,7 +108,7 @@ def raid_enabled():
 
 
 def get_available_node_list(si):
-  #Return a list of nodes that can be pulled into the trusted pool. This does not have any spare sled logic. If a 
+  #Return a list of nodes that can be pulled into the trusted pool. 
   nl = []
   for hostname, node in si.iteritems():
     if node["node_status"] != 0:

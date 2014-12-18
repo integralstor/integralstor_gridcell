@@ -1,6 +1,7 @@
 import re
 from django.conf import settings
-import command
+import fractalio
+from fractalio import command
 
 def get_ntp_servers():
 

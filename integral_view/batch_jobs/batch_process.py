@@ -18,7 +18,9 @@ os.environ['DJANGO_SETTINGS_MODULE']='integral_view.settings'
 import settings
 BASEPATH = settings.BATCH_COMMANDS_DIR
 production = settings.PRODUCTION
-from integral_view.utils import command, xml_parse, audit
+import fractalio
+from fractalio import command
+from integral_view.utils import xml_parse, audit
 
 
 def get_heal_count(cmd, type):
