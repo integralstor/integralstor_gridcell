@@ -3184,6 +3184,8 @@
 				if(!dir) { dir = $.jstree.path + '/themes'; }
 				theme_url = dir + '/' + theme_name + '/style.css';
 			}
+			// Hardcoding the url so that jstree will pickup the static url as per django terms.
+			theme_url = "/static/jstree/dist/themes/default/style.css"
 			if(theme_url && $.inArray(theme_url, themes_loaded) === -1) {
 				$('head').append('<'+'link rel="stylesheet" href="' + theme_url + '" type="text/css" />');
 				themes_loaded.push(theme_url);

@@ -15,7 +15,26 @@ import logging
 from integral_view.iscsi import iscsi
 from integral_view.forms import common_forms
 from integral_view.samba import samba_settings
+from glusterfs import gfapi
 
+
+def get_gluster_dir_list(vol,path):
+  path = path
+  vol = vol
+  dir_dict_list = []
+  dirs = vol.listdir(path)
+  for d in dirs:
+    true = True
+    if vol.isdir(path+d+"/"):
+      if path == "/":
+        parent = "#"
+      else:
+        parent = path
+      d_dict = {'id':path+d+"/", 'text':d,'icon':'fa fa-angle-right','children':True,'data':{'dir':path+d+"/"},'parent':parent}
+      print d_dict
+      dir_dict_list.append(d_dict)
+      #get_dir_list(vol,path+d+"/")
+  return dir_dict_list
 
     
 def show(request, page, info = None):
@@ -40,63 +59,33 @@ def show(request, page, info = None):
       vol_name = ""
       dir_list = []
       try: 
-        if not "vol_name" in request.GET:
-          raise Exception ("No volume Specified")
-        else:
+        if ("vol_name" in request.GET) and ("dir" in request.GET):
           vol_name = request.GET["vol_name"]
+          dir_name = request.GET["dir"]
+        else:
+          raise Exception ("No volume or Directory Specified")
+
         if settings.PRODUCTION:
           path_base = "/tmp/vol/"
+          hostname = "127.0.0.1"
           #path_base = "/"
         else:
-          path_base = "/home/bkrram"
-        #if (not "dir" in request.GET) or (not "full_path" in request.GET):
-        #if  (not "full_path" in request.GET):
-        if  (not "dir" in request.GET):
-          raise Exception ("No dir in request")
+          path_base = "vol1"
+          hostname = "fractal-c92e.fractal.lan"
+
+        vol = gfapi.Volume(hostname, path_base)
+        vol_mnt = vol.mount()
+        if vol_mnt ==0:
+          dirs = get_gluster_dir_list(vol,dir_name)
         else:
-          dir_name = request.GET["dir"]
-          #full_path = request.GET["full_path"]
-          #print "walking %s. In reality will walk /%s"%(full_path, vol_name)
-        dl = None
-        #if full_path: 
-        full_path="%s/%s"%(path_base, dir_name)
-        full_path=os.path.abspath(full_path)
-        iv_logging.debug("Full path %s"%full_path)
-        if dir_name: 
-          try:
-            #print "walking %s. In reality will walk /%s"%(full_path, vol_name)
-            #dl = gluster_commands.list_dir(vol_name, full_path)
-            dl = os.walk(full_path).next()[1]
-          except Exception, e:
-            iv_logging.debug("Error walking path : %s"%e)
-            raise Exception ("Error walking path : %s"%e)
-        if dl:
-          for l in dl:
-            children = False
-            try:
-              if len(os.walk("%s/%s"%(full_path, l)).next()[1]) > 0:
-                children = True
-              else:
-                children = False
-            except Exception, e:
-              iv_logging.debug("Error walking path : %s"%e)
-              raise Exception ("Error walking path : %s"%e)
-            #d = {"text":l, "children":children, 'data':{'full_path':"%s/%s"%(full_path, l), 'dir':"%s/%s"%(dir_name, l)}}
-            print "dir_name is %s"%dir_name
-            iv_logging.debug("Dir name is %s"%dir_name)
-            if dir_name == "/":
-              send_path = "%s"%(l)
-            else:
-              send_path = "%s/%s"%(dir_name, l)
-            iv_logging.debug("Send path is %s"%send_path)
-            d = {"text":l, "children":children, 'data':{'dir':send_path}}
-            dir_list.append(d)
+          return django.http.HttpResponse("Unable to mount Gluster")
+        import json
+        dir_list = json.dumps(dirs)
+      
       except Exception as e:
-        iv_logging.debug("Exception while getting dir listing : "%e)
-        d = { "text":"_error_", "children":False}
-        dir_list.append(d)
-      dlist = django.utils.simplejson.dumps(dir_list)
-      return django.http.HttpResponse(dlist,mimetype='application/json')
+        return django.http.HttpResponse("Exception Occured")
+        #iv_logging.debug("Exception while getting dir listing : "%e)
+      return django.http.HttpResponse(dir_list,mimetype='application/json')
 
     elif page == "ntp_settings":
 
