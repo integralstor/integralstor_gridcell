@@ -5,9 +5,38 @@ import tempfile, sys, os
 import fractalio
 from fractalio import filesize, command, networking
 
-from django.conf import settings
-
-
+def run_command_get_xml_output_tree(cmd, file_name, use_cmd):
+  #If production, run the command else read from file_name, return the xml tree
+  d = {}
+  el = []
+  tree = None
+  if not use_cmd:
+    try :
+      with open(file_name, 'rt') as f:
+        tree = ElementTree.parse(f)
+    except Exception, e:
+      el.append(str(e))
+  else:
+    temp = tempfile.TemporaryFile()
+    try:
+      r = command.execute(cmd)
+      if r:
+        l = command.get_output_list(r)
+        el = command.get_error_list(r)
+        if l:
+          for line in l:
+            temp.write(line)
+      temp.seek(0)
+      tree = ElementTree.parse(temp)
+    except Exception, e:
+      el.append(str(e))
+    finally:
+      temp.close()
+  if tree:
+    d["tree"] = tree
+  if el:
+    d["error_list"] = el
+  return d
 
 def get_text(node, subnode):
   n = node.findall(subnode)
@@ -79,7 +108,7 @@ def _get_bricks(volume, type_str, replica_count):
       bl.append(tl)
   return bl
 
-def _get_options(volume):
+def _get_volume_options(volume):
   options = []
   n = volume.findall(".//options/option")
   for node in n:
@@ -93,39 +122,115 @@ def _get_options(volume):
     options.append(d) 
   return options
 
-def run_command_get_xml_output_tree(cmd, file_name):
-  #If production, run the command else read from file_name, return the xml tree
-  d = {}
-  el = []
-  tree = None
-  if not settings.PRODUCTION:
-    try :
-      with open(file_name, 'rt') as f:
-        tree = ElementTree.parse(f)
-    except Exception, e:
-      el.append(str(e))
-  else:
-    temp = tempfile.TemporaryFile()
-    try:
-      r = command.execute(cmd)
-      if r:
-        l = command.get_output_list(r)
-        el = command.get_error_list(r)
-        if l:
-          for line in l:
-            temp.write(line)
-      temp.seek(0)
-      tree = ElementTree.parse(temp)
-    except Exception, e:
-      el.append(str(e))
-    finally:
-      temp.close()
-  if tree:
-    d["tree"] = tree
-  if el:
-    d["error_list"] = el
-  return d
+def get_brick_status(tree):
+  root = tree.getroot()
+  nodes = root.findall('.//node')
+  size_total = 0
+  size_free = 0
+  bd = {}
+  num_up = 0
+  num_down = 0
+  for node in nodes:
+    #print "----"
+    #for a in iter(node):
+    #  print a.tag, a.text
+    #a = node.find('./node')
+    if node.find('./node'):
+      print "continuing"
+      continue
+    #a = node.find('./status')
+    if node.find('./status') == None:
+      print "continuing"
+      continue
+    #print "ok"
+    d = {}
+    d["status"] = int(node.find('./status').text)
+    d["size_total"] = int(node.find('./sizeTotal').text)
+    d["size_free"] = int(node.find('./sizeFree').text)
+    d["hostname"] = node.find('./hostname').text
+    d["path"] = node.find('./path').text
+    d["pid"] = node.find('./pid').text
+    brick_name = "%s:%s"%(d["hostname"], d["path"])
+    bd[brick_name] = d
+    if d["status"] == 1:
+      num_up +=1
+    else:
+      num_down += 1 
+  return (bd, num_up, num_down)
 
+def get_volume_process_status(tree, vol):
+  vol["processes_ok"] = True
+  root = tree.getroot()
+  nodes = root.findall('.//node')
+  for node in nodes:
+    if node.find('./node'):
+      print "continuing"
+      continue
+    hostname = node.find('./hostname').text
+    if hostname not in ["NFS Server", "Self-heal Daemon"]:
+      continue
+    path = node.find('./path').text
+    if path == "localhost":
+      path = os.uname()[1]
+    status = int(node.find('./status').text)
+    found = False
+    for br in vol["brick_status"].keys():
+      #print "splitting %s"%br
+      h, p = br.split(':')
+      #print h, hostname
+      if h == path:
+        #print "Found!"
+        found = True
+        break
+    if found:
+      #br now holds the brick for which we will update the nfs and self heal status
+      if hostname == "Self-heal Daemon":
+        vol["brick_status"][br]["self_heal_deamon_status"] = status
+        if "replicate" in vol["type"].lower() and status != 1:
+          vol["processes_ok"] = False
+      elif hostname == "NFS Server":
+        vol["brick_status"][br]["nfs_status"] = status
+        if vol["protocols"]["nfs"] and status != 1:
+          vol["processes_ok"] = False
+  return vol
+
+def get_volume_list(tree, admin_vol_name):
+
+  vl = []
+  for volume in tree.findall('.//volumes/volume'):
+    _vol_name = get_text(volume, "name")
+    if admin_vol_name:
+      if _vol_name == admin_vol_name:
+        continue
+    v = {}
+    v["name"] = _vol_name
+    v["type"] = get_text(volume, "typeStr")
+    v["status"] = int(get_text(volume, "status"))
+    v["status_str"] = get_text(volume, "statusStr")
+    v["brick_count"] = int(get_text(volume, "brickCount"))
+    v["dist_count"] = int(get_text(volume, "distCount"))
+    v["stripe_count"] = int(get_text(volume, "stripeCount"))
+    v["replica_count"] = int(get_text(volume, "replicaCount"))
+    v["opt_count"] = get_text(volume, "optCount")
+    v["bricks"] = _get_bricks(volume, v["type"], v["replica_count"])
+    v["options"] = _get_volume_options(volume)
+
+    protocols = {}
+    # Set enabled unless turned off with options
+    protocols["cifs"] = True
+    protocols["nfs"] = True
+    for option in v["options"]:
+      if option["name"] == "user.cifs":
+        if option["value"] in ['disable','off','false']:
+          protocols["cifs"] = False 
+        if option["name"] == "nfs.disable":
+          if option["value"] in ['on','true']:
+            protocols["nfs"] = False 
+    v["protocols"] = protocols
+    vl.append(v)
+  return vl
+
+'''
 def get_volume_list():
 
   production = True
@@ -175,7 +280,7 @@ def get_volume_list():
     v["replica_count"] = int(get_text(volume, "replicaCount"))
     v["opt_count"] = get_text(volume, "optCount")
     v["bricks"] = _get_bricks(volume, v["type"], v["replica_count"])
-    v["options"] = _get_options(volume)
+    v["options"] = _get_volume_options(volume)
 
     protocols = {}
     # Set enabled unless turned off with options
@@ -376,6 +481,7 @@ def get_volume_list():
   #print vl
   #assert False
   return vl
+'''
 
 def get_snapshots(root):
   l = []
@@ -392,38 +498,11 @@ def get_snapshots(root):
   return l
     
 
-def get_peer_list():
-  production = True
-  try:
-    production =  settings.PRODUCTION
-  except Exception, e:
-    production = True
-
-  if not production:
-    #with open('/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/utils/peer_status', 'rt') as f:
-    with open('%s/peer_status'%settings.BASE_FILE_PATH, 'rt') as f:
-      tree = ElementTree.parse(f)
-  else:
-    #temp = tempfile.TemporaryFile()
-    try:
-      cmd = "/usr/local/sbin/gluster peer status --xml"
-      print "executing %s"%cmd
-      r = command.execute(cmd)
-      if r:
-        peer_list = command.get_output_list(r)
-        xml_string = ''.join(peer_list)
-        tree = ElementTree.fromstring(xml_string)
-        #for line in l:
-        #  temp.write(line)
-        #temp.seek(0)
-        #tree = ElementTree.parse(temp)
-    finally:
-      pass
-    #  temp.close()
+def get_peer_list(root):
 
   peerlist = []
-  #t = tree.findall('.//peerStatus/peer')
-  t = tree.findall('.//peer')
+  #t = root.findall('.//peerStatus/peer')
+  t = root.findall('.//peer')
   for peer in t:
     d = {}
     d["hostname"] = get_text(peer, "hostname")
@@ -454,12 +533,7 @@ def get_vol_quotas(root):
   return ret_dict
 
 def main():
-  path = os.path.dirname(os.path.abspath(__file__))
-  sys.path.insert(0, '%s/../..'%path)
-  os.environ['DJANGO_SETTINGS_MODULE']='integral_view.settings'
-  BASEPATH = settings.BATCH_COMMANDS_DIR
-  production = settings.PRODUCTION
-  get_volume_list()
+  pass
 
 if __name__ == "__main__":
   main()

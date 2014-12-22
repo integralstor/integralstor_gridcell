@@ -6,7 +6,7 @@ from django.conf import settings
 #import integral_view
 #import integral_view.utils
 #import integral_view.utils.volume_info
-import xml_parse, volume_info
+import volume_info, gluster_commands
 import types
 
 path = os.path.dirname(os.path.abspath(__file__))
@@ -17,7 +17,6 @@ production = settings.PRODUCTION
 
 
 def load_system_config():
-
 
   msfn = "%s/master.status"%settings.CONFIG_DIR
   mmfn = "%s/master.manifest"%settings.CONFIG_DIR
@@ -67,7 +66,7 @@ def load_system_config():
           d[k][k1] = ms_nodes[k][k1]
     '''
 
-  peer_list = xml_parse.get_peer_list()
+  peer_list = gluster_commands.get_peer_list()
   #Need to add the localhost because it is never returned as part of the peer list
   localhost = socket.gethostname().strip()
   tmpd = {}

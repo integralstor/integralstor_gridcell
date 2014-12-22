@@ -19,8 +19,8 @@ import settings
 BASEPATH = settings.BATCH_COMMANDS_DIR
 production = settings.PRODUCTION
 import fractalio
-from fractalio import command
-from integral_view.utils import xml_parse, audit
+from fractalio import command, xml_parse
+from integral_view.utils import audit
 
 
 def get_heal_count(cmd, type):
