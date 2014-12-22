@@ -1,7 +1,9 @@
 
-import xml_parse, gluster_commands
+import gluster_commands
 
 import re, random, sys, os
+import fractalio
+from fractalio import filesize, command, networking, xml_parse
 
 from django.conf import settings
 path = os.path.dirname(os.path.abspath(__file__))
@@ -12,7 +14,13 @@ production = settings.PRODUCTION
 
 def get_volume_info_all():
 
-  vl = xml_parse.get_volume_list()
+  production = True
+  try:
+    production =  settings.PRODUCTION
+  except Exception, e:
+    production = False
+
+  vl = _get_volume_list(production)
   for v in vl:
     if "options" in v :
       for o in v["options"]:
@@ -20,6 +28,98 @@ def get_volume_info_all():
           if o["value"]  == "on":
             v["quotas"] = gluster_commands.get_volume_quotas(v["name"]) 
   return vl
+
+def _get_volume_list(production):
+
+  d = xml_parse.run_command_get_xml_output_tree("/usr/local/sbin/gluster volume info all --xml", "%s/b.xml"%settings.BASE_FILE_PATH, production)
+  if "error_list" in d:
+    raise Exception("Error getting volume info : %s"%(", ".join(error_list)))
+  via_tree = d["tree"]
+  admin_vol_name = None
+  if settings and settings.ADMIN_VOL_NAME:
+    admin_vol_name = settings.ADMIN_VOL_NAME
+  vl = xml_parse.get_volume_list(via_tree, admin_vol_name)
+
+  for vol in vl:
+    if vol["status"] != 1:
+      continue      
+    d = xml_parse.run_command_get_xml_output_tree("/usr/local/sbin/gluster volume status %s detail --xml"%vol["name"], "%s/volume_status_detail.xml"%settings.BASE_FILE_PATH, production)
+    if "error_list" in d:
+      raise Exception("Error getting volume status details : %s"%(", ".join(d["error_list"])))
+    vsd_tree = d["tree"]
+    bd, num_up, num_down = xml_parse.get_brick_status(vsd_tree)
+    vol["brick_status"] = bd
+
+    size_total = 0
+    size_free = 0
+    if vol["replica_count"] > 1:
+      replica_set_status = []
+      for br in vol["bricks"] :
+        counted = False
+        num_down = 0
+        num_up = 0
+        for  b in br:
+          if b not in bd:
+            #Could happen if a brick is down
+            return None
+          if bd[b]["status"] == 1:
+            num_up += 1
+            if not counted:
+              #Found one up replica so only consider size info for this. If all down then it does not count
+              size_free += bd[b]["size_free"]
+              size_total += bd[b]["size_total"]
+              counter = True
+          else:
+            num_down += 1
+          replica_set_status.append(num_down)
+      #print replica_set_status
+      if num_up == 0:
+        vol["data_access_status"] = "Volume down. No data accessible!"
+      else:
+        if max(replica_set_status) == vol["replica_count"]:
+          vol["data_access_status"] = "Some data inaccessible"
+          vol["data_access_status_code"] = -1
+        elif max(replica_set_status) > 0:
+          num_more = vol["replica_count"] - max(replica_set_status)
+          vol["data_access_status"] = "Data accessible but vulnerable. Loss of %d more data locations will cause data loss"%num_more
+          vol["data_access_status_code"] = 1
+        else:
+          vol["data_access_status"] = "Healthy"
+          vol["data_access_status_code"] = 0
+    else:
+      #Distributed so count em all
+      num_down = 0
+      for b in bd.keys():
+        if bd[b]["status"] == 1:
+          num_up += 1
+          size_free += bd[b]["size_free"]
+          size_total += bd[b]["size_total"]
+        else:
+          num_down += 1
+      if num_down > 0:
+        vol["data_access_status"] = "Some data inaccessible"
+        vol["data_access_status_code"] = 1
+      else:
+        vol["data_access_status"] = "Healthy"
+        vol["data_access_status_code"] = 0
+    vol["size_total"] = filesize.naturalsize(size_total)
+    vol["size_used"] = filesize.naturalsize(size_total-size_free)
+    vol["size_free"] = filesize.naturalsize(size_free)
+    #print size_total-size_free
+    #print (size_total-size_free)/float(size_total)
+    vol["size_used_percent"] = int(((size_total-size_free)/float(size_total)) * 100)
+    #print vol["size_used_percent"]
+
+
+    # Now get the status of the self heal and NFS servers for each node
+    d = xml_parse.run_command_get_xml_output_tree("/usr/local/sbin/gluster volume status %s --xml"%vol["name"], "%s/volume_status.xml"%settings.BASE_FILE_PATH, production)
+    if "error_list" in d:
+      raise Exception("Error getting volume status information : %s"%(", ".join(d["error_list"])))
+    vs_tree = d["tree"]
+    vol = xml_parse.get_volume_process_status(vs_tree, vol)
+
+  return vl
+
 
 
 def volume_exists(vil, vol_name):
@@ -86,6 +186,94 @@ def get_brick_hostname_list(vol_dict):
 
   return l
 
+def set_volume_options(cd):
+
+  vol_name = cd["vol_name"]
+  auth_allow = cd["auth_allow"]
+  auth_reject = cd["auth_reject"]
+  if "nfs_disable" in cd:
+    nfs_disable = cd["nfs_disable"]
+  else:
+    nfs_disable = False
+  if "enable_worm" in cd:
+    enable_worm = cd["enable_worm"]
+  else:
+    enable_worm = False
+  readonly = cd["readonly"]
+  nfs_volume_access = cd["nfs_volume_access"]
+
+  vol_dict = get_volume_info(None, vol_name)
+
+  #set defaults first
+  _auth_allow = "*"
+  _auth_reject = "NONE"
+  _readonly = "off"
+  _nfs_disable = False
+  _enable_worm = False
+  _nfs_volume_access = "read-write"
+
+  if "options" in vol_dict:
+    for option in vol_dict["options"]:
+      if option["name"] == "auth.allow": 
+        _auth_allow = option["value"]
+      if option["name"] == "auth.reject": 
+        _auth_reject = option["value"]
+      if option["name"] == "nfs.disable": 
+        if option["value"].lower() == "off":
+          _nfs_disable = False
+        else:
+          _nfs_disable = True
+      if option["name"] == "nfs.volume-access": 
+        _nfs_volume_access = option["value"]
+      if option["name"] == "features.read-only": 
+        _readonly = option["value"]
+      if option["name"] == "features.worm": 
+        if option["value"].lower() == "enable":
+          _enable_worm = True
+        else:
+          _enable_worm = False
+    
+  # Now, for each option that has changed, set the parameter
+  ret_list = []
+
+  if _auth_allow != auth_allow:
+    d = _set_volume_option(vol_name, "auth.allow", auth_allow, "Setting option for permitted access IP addresses for %s to \'%s\'"%(vol_name, auth_allow))
+    ret_list.append(d)
+  if _auth_reject != auth_reject:
+    d = _set_volume_option(vol_name, "auth.reject", auth_reject, "Setting option for denied access IP addresses for %s to \'%s\'"%(vol_name, auth_reject))
+    ret_list.append(d)
+  if _readonly != readonly:
+    d = _set_volume_option(vol_name, "features.read-only", readonly, "Setting readonly mount access(for all access methods) for %s to \'%s\'"%(vol_name, readonly))
+    ret_list.append(d)
+  if readonly == "off":
+    #All the rest applies only if volume access is read-write
+    if _nfs_disable != nfs_disable:
+      if nfs_disable:
+        p = "on"
+      else:
+        p = "off"
+      d = _set_volume_option(vol_name, "nfs.disable", p, "Setting NFS disable for %s to \'%s\'"%(vol_name, p))
+      ret_list.append(d)
+    if not nfs_disable:
+      print "in"
+      if nfs_volume_access and _nfs_volume_access != nfs_volume_access:
+        d = _set_volume_option(vol_name, "nfs.volume-access", nfs_volume_access, "Setting NFS access type for %s to \'%s\'"%(vol_name, nfs_volume_access))
+        ret_list.append(d)
+    if _enable_worm != enable_worm:
+      if enable_worm:
+        p = "enable"
+      else:
+        p = "disable"
+      d = _set_volume_option(vol_name, "features.worm", p, "Setting feature WORM for %s to \'%s\'"%(vol_name, p))
+      ret_list.append(d)
+  return ret_list
+
+def _set_volume_option(vol_name, option, value, display_command):
+  prod_command = 'gluster volume set %s %s %s --xml'%(vol_name, option, value)
+  #dummy_command = "/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/utils/test/set_vol_options.xml"
+  dummy_command = "%s/set_vol_options.xml"%settings.BASE_FILE_PATH
+  d = run_gluster_command(prod_command, dummy_command, display_command)
+  return d
 
 
 def get_replacement_node_info(si, vil):

@@ -615,7 +615,9 @@ def reset_to_factory_defaults(request):
 
     try:
       # Create commands to stop and delete volumes. Remove peers from cluster.
-      d = gluster_commands.create_factory_defaults_reset_file()
+      vil = volume_info.get_volume_info_all()
+      scl = system_info.load_system_config()
+      d = gluster_commands.create_factory_defaults_reset_file(scl, vil)
       if not "error" in d:
         audit.audit("factory_defaults_reset_start", "Scheduled reset of the system to factory defaults.",  request.META["REMOTE_ADDR"])
         return django.http.HttpResponseRedirect('/show/batch_start_conf/%s'%d["file_name"])

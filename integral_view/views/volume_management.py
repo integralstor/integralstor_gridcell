@@ -10,7 +10,7 @@ from fractalio import command
 
 import integral_view
 from integral_view.forms import volume_management_forms
-from integral_view.utils import volume_info, system_info, audit, gluster_commands, iv_logging
+from integral_view.utils import volume_info, system_info, audit, gluster_commands, iv_logging, batch
 from integral_view.iscsi import iscsi
 
 import logging
@@ -435,7 +435,7 @@ def set_volume_options(request):
     return_dict["form"] = form
     return django.shortcuts.render_to_response('volume_options_form.html', return_dict, context_instance = django.template.context.RequestContext(request))
   cd = form.cleaned_data
-  ol = integral_view.utils.gluster_commands.set_volume_options(cd)
+  ol = integral_view.utils.volume_info.set_volume_options(cd)
   for d in ol:
     if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
       #Success so audit the change
@@ -604,7 +604,7 @@ def replace_node(request):
         src_node = cd["src_node"]
         dest_node = cd["dest_node"]
 
-        d = gluster_commands.create_replace_command_file(si, vil, src_node, dest_node)
+        d = batch.create_replace_command_file(si, vil, src_node, dest_node)
         if "error" in d:
           return_dict["error"] = "Error initiating replace : %s"%d["error"]
           return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))

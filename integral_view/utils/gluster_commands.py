@@ -8,13 +8,26 @@ import tempfile, socket, time, random, json, sys, os
 
 from django.conf import settings
 
-import volume_info, system_info
-import xml_parse
 import fractalio
-from fractalio import command
+from fractalio import command, xml_parse
 
-import fractalio
 
+def get_peer_list():
+
+  prod_command = '/usr/local/sbin/gluster peer status --xml'
+  dummy_command = "%s/peer_status"%settings.BASE_FILE_PATH
+  d = run_gluster_command(prod_command, dummy_command, "Get peer list")
+  peer_list = None
+  if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
+    peer_list = xml_parse.get_peer_list(d["root"])
+  else:
+    err = "Error retrieving peer list : "
+    if "op_status" in d and "op_errstr" in d["op_status"]:
+      if d["op_status"]["op_errstr"]:
+        err += d["op_status"]["op_errstr"]
+    raise Exception(err)
+  return peer_list
+  
 def restore_snapshot(snapshot_name):
 
   prod_command = 'gluster --mode=script snapshot restore  %s --xml'%snapshot_name
@@ -514,7 +527,7 @@ def create_rebalance_command_file(vol_name):
     d["file_name"] = file_name
   return d
 
-def create_factory_defaults_reset_file():
+def create_factory_defaults_reset_file(scl, vil):
   try:
     dir = settings.BATCH_COMMANDS_DIR
   except:
@@ -536,8 +549,6 @@ def create_factory_defaults_reset_file():
   data["status"] = "Not yet started"
   data["command_list"] = []
 
-  vil = volume_info.get_volume_info_all()
-  scl = system_info.load_system_config()
   for v in vil:
     if v["status"] == 1:
       #Stop this volume
@@ -586,105 +597,6 @@ def create_factory_defaults_reset_file():
     d["file_name"] = file_name
   return d
 
-def create_replace_command_file(si, vil, src_node, dest_node):
-
-  data = {}
-  data["title"] = "Replacing node %s with node %s"%(src_node, dest_node)
-  data["process"] = "replace_node"
-  data["volume_list"] = []
-  data["command_list"] = []
-
-  vol_list = ""
-  command_list = []
-
-
-  tvl = si[src_node]["volume_list"]
-  for tv in tvl:
-    vd = volume_info.get_volume_info(vil, tv)
-    if vd["type"] == "Distribute":
-      d = {}
-      #c = "gluster volume replace-brick %s %s:/data/%s %s:/data/%s"%(tv, scl[n]["hostname"], tv, scl[dest_node]["hostname"], tv)
-      c = "gluster volume add-brick %s %s:/data/%s --xml"%(tv, dest_node, tv)
-      d["type"] = "add_brick"
-      d["desc"] = "Adding volume storage in node %s for volume %s"%(dest_node, tv)
-      d["command"] = c
-      d["status_code"] = 0
-      data["command_list"].append(d)
-      d = {}
-      c = "gluster --mode=script volume remove-brick %s %s:/data/%s start --xml"%(tv, src_node, tv)
-      d["type"] = "remove_brick_start"
-      d["desc"] = "Migrating volume storage from node %s for volume %s start"%(src_node, tv)
-      d["command"] = c
-      d["status_code"] = 0
-      data["command_list"].append(d)
-      d = {}
-      c = "gluster volume remove-brick %s %s:/data/%s status --xml"%(tv, src_node, tv)
-      d["type"] = "remove_brick_status"
-      d["desc"] = "Migrating volume storage from node %s for volume %s status"%(src_node, tv)
-      d["command"] = c
-      d["status_code"] = 0
-      data["command_list"].append(d)
-      d = {}
-      c = "gluster --mode=script volume remove-brick %s %s:/data/%s commit --xml"%(tv, src_node, tv)
-      d["type"] = "remove_brick_commit"
-      d["desc"] = "Migrating volume storage from node %s for volume %s commit"%(src_node, tv)
-      d["command"] = c
-      d["status_code"] = 0
-      data["command_list"].append(d)
-    else:
-      #Replicated vol so for now do a replace-brick
-      d = {}
-      c = "gluster volume replace-brick %s %s:/data/%s %s:/data/%s commit force --xml"%(tv, src_node, tv, dest_node, tv)
-      d["type"] = "replace_brick_commit"
-      d["desc"] = "Replacing storage location for volume %s from node %s to node %s"%(tv, src_node, dest_node)
-      d["command"] = c
-      d["status_code"] = 0
-      data["command_list"].append(d)
-      d = {}
-      c = "gluster volume heal %s full --xml"%tv
-      d["type"] = "volume_heal_full"
-      d["desc"] = "Migrating volume data from node %s for volume %s start"%(src_node, tv)
-      d["command"] = c
-      d["status_code"] = 0
-      data["command_list"].append(d)
-      d = {}
-      c = "gluster volume heal %s info --xml"%tv
-      d["type"] = "volume_heal_info"
-      d["desc"] = "Migrating volume data from node %s for volume %s info"%(src_node, tv)
-      d["command"] = c
-      d["status_code"] = 0
-      data["command_list"].append(d)
-
-    if not tv in data["volume_list"]:
-      data["volume_list"].append(tv)
-  try:
-    dir = settings.BATCH_COMMANDS_DIR
-  except:
-    dir = "."
-
-  if not os.path.exists(dir):
-    try:
-      os.mkdir(dir)
-    except OSError:
-      return None
-
-  t = time.localtime()
-  data["status"] = "Not yet started"
-  data["initiate_time"] = time.strftime("%a %b %d %H:%M:%S %Y", t)
-  file_name = "%s_%d"%(time.strftime("bp_replace_node_%b_%d_%Y_%H_%M_%S", t) , int(time.time()))
-  full_file_name = "%s/in_process/%s"%(dir, file_name)
-  data["status_url"] = "/show/batch_status_details/%s"%file_name
-  d = {}
-  try:
-    with open(full_file_name, "w+") as f:
-      json.dump(data, f, indent=2)
-  except Exception, e:
-    d["error"] = str(e)
-  else:
-    d["file_name"] = file_name
-  return d
-
-
 
 def volume_stop_or_start(vol_name, op):
 
@@ -698,11 +610,17 @@ def run_gluster_command(prod_command, dummy_command, display_command):
   #prod_command is the actual command, dummy_command is the file to use in its place for non production, display_command is the string to be
   #be used for display to the user to show what the command is doing
 
+  production = True
+  try:
+    production =  settings.PRODUCTION
+  except Exception, e:
+    production = True
+
   d = {}
   d['actual_command'] = prod_command
   d['display_command'] = display_command
 
-  rd = xml_parse.run_command_get_xml_output_tree(prod_command, dummy_command)
+  rd = xml_parse.run_command_get_xml_output_tree(prod_command, dummy_command, production)
   if "error_list" in rd:
     d["error_list"] = rd["error_list"]
   status_dict = None
@@ -753,94 +671,6 @@ def get_volume_quotas(vol_name):
   else:
     return None
 
-def set_volume_options(cd):
-
-  vol_name = cd["vol_name"]
-  auth_allow = cd["auth_allow"]
-  auth_reject = cd["auth_reject"]
-  if "nfs_disable" in cd:
-    nfs_disable = cd["nfs_disable"]
-  else:
-    nfs_disable = False
-  if "enable_worm" in cd:
-    enable_worm = cd["enable_worm"]
-  else:
-    enable_worm = False
-  readonly = cd["readonly"]
-  nfs_volume_access = cd["nfs_volume_access"]
-
-  vol_dict = volume_info.get_volume_info(None, vol_name)
-
-  #set defaults first
-  _auth_allow = "*"
-  _auth_reject = "NONE"
-  _readonly = "off"
-  _nfs_disable = False
-  _enable_worm = False
-  _nfs_volume_access = "read-write"
-
-  if "options" in vol_dict:
-    for option in vol_dict["options"]:
-      if option["name"] == "auth.allow": 
-        _auth_allow = option["value"]
-      if option["name"] == "auth.reject": 
-        _auth_reject = option["value"]
-      if option["name"] == "nfs.disable": 
-        if option["value"].lower() == "off":
-          _nfs_disable = False
-        else:
-          _nfs_disable = True
-      if option["name"] == "nfs.volume-access": 
-        _nfs_volume_access = option["value"]
-      if option["name"] == "features.read-only": 
-        _readonly = option["value"]
-      if option["name"] == "features.worm": 
-        if option["value"].lower() == "enable":
-          _enable_worm = True
-        else:
-          _enable_worm = False
-    
-  # Now, for each option that has changed, set the parameter
-  ret_list = []
-
-  if _auth_allow != auth_allow:
-    d = set_volume_option(vol_name, "auth.allow", auth_allow, "Setting option for permitted access IP addresses for %s to \'%s\'"%(vol_name, auth_allow))
-    ret_list.append(d)
-  if _auth_reject != auth_reject:
-    d = set_volume_option(vol_name, "auth.reject", auth_reject, "Setting option for denied access IP addresses for %s to \'%s\'"%(vol_name, auth_reject))
-    ret_list.append(d)
-  if _readonly != readonly:
-    d = set_volume_option(vol_name, "features.read-only", readonly, "Setting readonly mount access(for all access methods) for %s to \'%s\'"%(vol_name, readonly))
-    ret_list.append(d)
-  if readonly == "off":
-    #All the rest applies only if volume access is read-write
-    if _nfs_disable != nfs_disable:
-      if nfs_disable:
-        p = "on"
-      else:
-        p = "off"
-      d = set_volume_option(vol_name, "nfs.disable", p, "Setting NFS disable for %s to \'%s\'"%(vol_name, p))
-      ret_list.append(d)
-    if not nfs_disable:
-      print "in"
-      if nfs_volume_access and _nfs_volume_access != nfs_volume_access:
-        d = set_volume_option(vol_name, "nfs.volume-access", nfs_volume_access, "Setting NFS access type for %s to \'%s\'"%(vol_name, nfs_volume_access))
-        ret_list.append(d)
-    if _enable_worm != enable_worm:
-      if enable_worm:
-        p = "enable"
-      else:
-        p = "disable"
-      d = set_volume_option(vol_name, "features.worm", p, "Setting feature WORM for %s to \'%s\'"%(vol_name, p))
-      ret_list.append(d)
-  return ret_list
-
-def set_volume_option(vol_name, option, value, display_command):
-  prod_command = 'gluster volume set %s %s %s --xml'%(vol_name, option, value)
-  #dummy_command = "/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/utils/test/set_vol_options.xml"
-  dummy_command = "%s/set_vol_options.xml"%settings.BASE_FILE_PATH
-  d = run_gluster_command(prod_command, dummy_command, display_command)
-  return d
 
 
 def main():
