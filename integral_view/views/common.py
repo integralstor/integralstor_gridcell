@@ -394,11 +394,21 @@ def show(request, page, info = None):
 #this function takes a user argument checks if the user has administrator rights and then returns True.
 #If he does not have the correct permissions, then then it returns a HTttpResponse stating No Permission to access this page.
 #Takes user object as a parameter: request.user
-def admin_login_required(user):
-  if user.is_superuser:
-    return True
-  else:
-    return False
+# def is_superuser(user):
+#   if user.is_superuser:
+#     return True
+#   else:
+#     return False
+
+def admin_login_required(view):
+
+  def new_view(request, *args, **kwargs):
+    if request.user.is_superuser:
+      return view(request, *args, **kwargs)
+    else:
+      return django.http.HttpResponseRedirect('/login')
+
+  return new_view
 
 def refresh_alerts(request, random=None):
     from datetime import datetime
@@ -533,7 +543,7 @@ def flag_node(request):
   return_dict["error"] = err
   return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance = django.template.context.RequestContext(request))
     
-
+@admin_login_required
 def reset_to_factory_defaults(request):
   return_dict = {}
   if request.method == "GET":

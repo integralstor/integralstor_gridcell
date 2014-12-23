@@ -12,8 +12,6 @@
 			IntegralView administration console
 		{%endblock%}
 </title>
-  {%block autorefresh %}{%endblock%}
-
 <script src="/static/jquery-ui-1.10.2.custom/js/jquery-1.9.1.js"></script>
 <script src="/static/bootstrap/js/bootstrap.min.js" ></script>
 
@@ -344,7 +342,7 @@ function ()
                           <ul class="treeview-menu">
                             <li><a href="/change_admin_password/"><i class="fa fa-angle-double-right"></i> Change admin password</a></li>
                             <li><a href="/hardware_scan/"><i class="fa fa-angle-double-right"></i> Scan for new nodes</a></li>
-                            <li><a href="/reset_to_factory_defaults/"><i class="fa fa-angle-double-right"></i> Reset to factory defaults</a></li>
+                           {%if request.user.is_superuser%} <li><a href="/reset_to_factory_defaults/"><i class="fa fa-angle-double-right"></i> Reset to factory defaults</a></li>{%endif%}
                           </ul>
                         </li>
                     </ul>
@@ -366,7 +364,7 @@ function ()
                           </small>
                         {%endblock%}
                         <a href="#help" data-toggle="modal" class="btn btn-primary btn-flat pull-right">Help!</a>
-
+			<button id="refresh_page" class="btn btn-primary btn-flat pull-right" value="Refresh this page"> Refresh this page </button>
                     </h1>
                 </section>
 
@@ -436,6 +434,10 @@ function ()
     $("#alerts_dropdown").click(function(){
       $("#alert_icon").removeClass("red faa-flash animated").addClass("white");
     });
+    $(".p-instruction-text").hide();
+    $("#refresh_page").click(function(){
+      location.reload();
+    })
   </script>
 </html>
 

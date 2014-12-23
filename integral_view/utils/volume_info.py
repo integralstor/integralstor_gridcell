@@ -31,9 +31,9 @@ def get_volume_info_all():
 
 def _get_volume_list(production):
 
-  d = xml_parse.run_command_get_xml_output_tree("/usr/local/sbin/gluster volume info all --xml", "%s/b.xml"%settings.BASE_FILE_PATH, production)
+  d = xml_parse.run_command_get_xml_output_tree("/usr/sbin/gluster volume info all --xml", "%s/b.xml"%settings.BASE_FILE_PATH, production)
   if "error_list" in d:
-    raise Exception("Error getting volume info : %s"%(", ".join(error_list)))
+    raise Exception("Error getting volume info : %s"%(", ".join(d["error_list"])))
   via_tree = d["tree"]
   admin_vol_name = None
   if settings and settings.ADMIN_VOL_NAME:

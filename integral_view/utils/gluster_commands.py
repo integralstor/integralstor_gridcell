@@ -14,7 +14,7 @@ from fractalio import command, xml_parse
 
 def get_peer_list():
 
-  prod_command = '/usr/local/sbin/gluster peer status --xml'
+  prod_command = '/usr/sbin/gluster peer status --xml'
   dummy_command = "%s/peer_status"%settings.BASE_FILE_PATH
   d = run_gluster_command(prod_command, dummy_command, "Get peer list")
   peer_list = None
