@@ -23,7 +23,7 @@ def get_volume_info_all():
 def _get_volume_list(production):
 
   d = gluster_commands.run_gluster_command("/usr/sbin/gluster volume info all --xml", "%s/b.xml"%common.get_devel_files_path(), "Getting volume info")
-  if not d or  "op_status" not in d or ("op_status" in d) and d["op_status"]["op_ret"] != 0:
+  if not d or  "op_status" not in d or ("op_status" in d and d["op_status"]["op_ret"] != 0):
     err = "Error getting the volume infomation : "
     if d:
       if "error_list" in d:
@@ -40,7 +40,7 @@ def _get_volume_list(production):
     if vol["status"] != 1:
       continue      
     d = gluster_commands.run_gluster_command("/usr/sbin/gluster volume status %s detail --xml"%vol["name"], "%s/volume_status_detail.xml"%common.get_devel_files_path(), "Getting volume status details")
-    if not d or  "op_status" not in d or ("op_status" in d) and d["op_status"]["op_ret"] != 0:
+    if not d or  "op_status" not in d or ("op_status" in d and d["op_status"]["op_ret"] != 0):
       err = "Error getting the volume status details: "
       if d:
         if "error_list" in d:
@@ -110,13 +110,16 @@ def _get_volume_list(production):
     vol["size_free"] = filesize.naturalsize(size_free)
     #print size_total-size_free
     #print (size_total-size_free)/float(size_total)
-    vol["size_used_percent"] = int(((size_total-size_free)/float(size_total)) * 100)
+    if size_total > 0:
+      vol["size_used_percent"] = int(((size_total-size_free)/float(size_total)) * 100)
+    else
+      vol["size_used_percent"] = -1
     #print vol["size_used_percent"]
 
 
     # Now get the status of the self heal and NFS servers for each node
     d = gluster_commands.run_gluster_command("/usr/sbin/gluster volume status %s --xml"%vol["name"], "%s/volume_status.xml"%common.get_devel_files_path(), "Getting volume status")
-    if not d or  "op_status" not in d or ("op_status" in d) and d["op_status"]["op_ret"] != 0:
+    if not d or  "op_status" not in d or ("op_status" in d and d["op_status"]["op_ret"] != 0):
       err = "Error getting the volume status : "
       if d:
         if "error_list" in d:
