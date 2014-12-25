@@ -64,7 +64,8 @@ def _get_volume_list(production):
         for  b in br:
           if b not in bd:
             #Could happen if a brick is down
-            return None
+            #return None
+            continue
           if bd[b]["status"] == 1:
             num_up += 1
             if not counted:
