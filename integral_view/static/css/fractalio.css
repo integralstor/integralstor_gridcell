@@ -216,6 +216,62 @@ input {
 
 /* Customization of AdminLTE css */
 
+/*Get the small box disks*/
+.small-box .disk-icon {
+  position: absolute;
+  top: auto;
+  bottom: 40px;
+  right: 5px;
+  z-index: 0;
+  font-size: 30px;
+  color: rgba(0, 0, 0, 0.15);
+  display: inline;
+}
+.small-box:hover .disk-icon {
+  animation-name: tansformAnimation;
+  animation-duration: .5s;
+  animation-iteration-count: 1;
+  animation-timing-function: ease;
+  animation-fill-mode: forwards;
+  -webkit-animation-name: tansformAnimation;
+  -webkit-animation-duration: .5s;
+  -webkit-animation-iteration-count: 1;
+  -webkit-animation-timing-function: ease;
+  -webkit-animation-fill-mode: forwards;
+  -moz-animation-name: tansformAnimation;
+  -moz-animation-duration: .5s;
+  -moz-animation-iteration-count: 1;
+  -moz-animation-timing-function: ease;
+  -moz-animation-fill-mode: forwards;
+}
+@keyframes tansformAnimation {
+  from {
+    font-size: 30px;
+  }
+  to {
+    font-size: 35px;
+  }
+}
+@-webkit-keyframes tansformAnimation {
+  from {
+    font-size: 30px;
+  }
+  to {
+    font-size: 35px;
+  }
+}
+@media screen and (max-width: 480px) {
+  .small-box {
+    text-align: center;
+  }
+  .small-box .disk-icon {
+    display: none;
+  }
+  .small-box p {
+    font-size: 12px;
+  }
+}
+
 /*Transform the sub headings with uppercase*/
 .treeview-header span{
   margin-left: 45px;
@@ -231,6 +287,9 @@ input {
 }
 
 /*Extra Utilities*/
+.white {
+  color : #FFFFFF !important;
+}
 .blue {
   color: rgb(71, 143, 202) !important;
 }
@@ -265,6 +324,14 @@ input {
 @media (min-height: 767px){
   .margin-top-100{
     margin-top: 10px;
+  }
+}
+.margin-left-10 {
+  margin-left: 10px;
+}
+@media (min-height: 767px){
+  .margin-left-10{
+    margin-left: 1px;
   }
 }
 .bigger-110 {
@@ -410,6 +477,7 @@ input {
 .smaller-75 {
   font-size: 75%;
 }
+
 /*End of Utilities*/
 
 /*Font Awesome Utilities*/

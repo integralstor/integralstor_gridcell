@@ -14,11 +14,165 @@
       <i class="fa fa-angle-double-right smaller-80"></i>
       Disk Status
   </small>
-
  {%endblock%}
-
-
 {%block contents%}
+
+<div class="row margin-left-10">
+{%for hostname, d in disk_status.items%}
+
+<div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
+  <!-- small box -->
+  <div class="small-box {{d.background_color}}">
+      <div class="inner">
+          <h4>
+            {{hostname}}
+          </h4>
+          <p>
+            {{d.name}}
+          </p>  
+      </div>
+      <div class="disk-icon">
+          {%for disk in d.disks.items %}
+            {%if disk.1 == "PASSED" %}
+               <i class="fa fa-hdd-o white"></i>
+            {%else%}
+               <i class="fa fa-hdd-o faa-hdd-o animated red"></i>
+            {%endif%}
+          {%endfor%}
+      </div>
+      <a href="/show/disk_status/?node_id={{hostname}}" class="small-box-footer">
+          <strong>More info</strong> <i class="fa fa-arrow-circle-right"></i>
+      </a>
+  </div>
+</div>
+
+{%endfor%}
+{%for hostname, d in disk_status.items%}
+
+<div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
+  <!-- small box -->
+  <div class="small-box {{d.background_color}}">
+      <div class="inner">
+          <h4>
+            {{hostname}}
+          </h4>
+          <p>
+            {{d.name}}
+          </p>  
+      </div>
+      <div class="disk-icon">
+          {%for disk in d.disks.items %}
+            {%if disk.1 == "PASSED" %}
+               <i class="fa fa-hdd-o white"></i>
+            {%else%}
+               <i class="fa fa-hdd-o faa-hdd-o animated red"></i>
+            {%endif%}
+          {%endfor%}
+      </div>
+      <a href="/show/disk_status/?node_id={{hostname}}" class="small-box-footer">
+          <strong>More info</strong> <i class="fa fa-arrow-circle-right"></i>
+      </a>
+  </div>
+</div>
+
+{%endfor%}
+{%for hostname, d in disk_status.items%}
+
+<div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
+  <!-- small box -->
+  <div class="small-box {{d.background_color}}">
+      <div class="inner">
+          <h4>
+            {{hostname}}
+          </h4>
+          <p>
+            {{d.name}}
+          </p>  
+      </div>
+      <div class="disk-icon">
+          {%for disk in d.disks.items %}
+            {%if disk.1 == "PASSED" %}
+               <i class="fa fa-hdd-o white"></i>
+            {%else%}
+               <i class="fa fa-hdd-o faa-hdd-o animated red"></i>
+            {%endif%}
+          {%endfor%}
+      </div>
+      <a href="/show/disk_status/?node_id={{hostname}}" class="small-box-footer">
+          <strong>More info</strong> <i class="fa fa-arrow-circle-right"></i>
+      </a>
+  </div>
+</div>
+
+{%endfor%}
+{%for hostname, d in disk_status.items%}
+
+<div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
+  <!-- small box -->
+  <div class="small-box {{d.background_color}}">
+      <div class="inner">
+          <h4>
+            {{hostname}}
+          </h4>
+          <p>
+            {{d.name}}
+          </p>  
+      </div>
+      <div class="disk-icon">
+          {%for disk in d.disks.items %}
+            {%if disk.1 == "PASSED" %}
+               <i class="fa fa-hdd-o white"></i>
+            {%else%}
+               <i class="fa fa-hdd-o faa-hdd-o animated red"></i>
+            {%endif%}
+          {%endfor%}
+      </div>
+      <a href="/show/disk_status/?node_id={{hostname}}" class="small-box-footer">
+          <strong>More info</strong> <i class="fa fa-arrow-circle-right"></i>
+      </a>
+  </div>
+</div>
+
+{%endfor%}
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+      </div>
+      <div class="modal-body" id="myModalBody">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{%endblock%}
+{%block help_header%}
+Disk status help
+{%endblock%}
+{%block help_body%}
+<p>Help about disk status…</p>
+{%endblock%}
+
+
+
+
+
+
+
+
+
+
+
+{%comment%}
+<!-- {%block contents%}
 <script type="text/javascript" >
 function toggleTable(tid, bid) {
     
@@ -44,24 +198,7 @@ function toggleTable(tid, bid) {
 }
 </script>
 
-<!-- Modal -->
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
-      </div>
-      <div class="modal-body" id="myModalBody">
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
 
-<p id="p-instruction-text"> This page will autorefresh every 30 seconds to display updates.</p>
 
 
 {% for hostname, d in system_info.items %}
@@ -173,7 +310,7 @@ function toggleTable(tid, bid) {
     {% for serial_number, disk in d.disks.items %}
       {%if disk.id == component.name%}
         <td>
-          {{disk.status|title}}
+          {{disk.status|title}}---
         </td>
       {%endif%}
     {%endfor%}
@@ -189,11 +326,5 @@ function toggleTable(tid, bid) {
   {%endfor%}
 </table>
 {%endfor%}
-{%endblock%}
-{%block help_header%}
-Disk status help
-{%endblock%}
-{%block help_body%}
-<p>Help about disk status…</p>
-{%endblock%}
-
+{%endblock%} -->
+{%endcomment%}

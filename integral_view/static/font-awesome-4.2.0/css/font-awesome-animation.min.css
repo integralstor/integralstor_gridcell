@@ -439,6 +439,11 @@
 	animation:horizontal 2s ease infinite
 }
 
+.faa-hdd-o.animated,.faa-hdd-o.animated-hover:hover,.faa-parent.animated-hover:hover>.faa-hdd-o{
+	-webkit-animation:flash 2s ease infinite;
+	animation:flash 2s ease infinite
+}
+
 @-webkit-keyframes flash{
 	0%,100%,50%{
 		opacity:1

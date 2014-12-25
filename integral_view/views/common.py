@@ -298,8 +298,58 @@ def show(request, page, info = None):
 
     elif page == "disk_status":
 
-      #assert False
-      template = "view_disk_status.html"
+     #assert False
+
+      #Get the disk status
+      disk_status = {}
+
+      if request.GET.get("node_id") is not None:
+        disk_status = si[request.GET.get("node_id")]
+        return_dict["disk_status"] = {}
+        return_dict["disk_status"][request.GET.get("node_id")] = disk_status
+        template = "view_disk_status_details.html"
+
+      else:
+        #count the failures in case of Offline or degraded
+        disk_failures = 0
+        #Default background color
+        background_color = "bg-green"
+        """
+          Iterate the system information, and get the following data :
+            1. The status of every disk
+            2. The status of the pool
+            3. The name of the pool
+            4. Calcualte the background_color
+            Format : {'node_id':{'name':'pool_name','background_color':'background_color','disks':{disks_pool}}}
+
+        """
+        for key, value in si.iteritems():
+          #print key, value
+          disk_status[key] = {}
+          disk_status[key]["disks"] = {}
+          for disk_key, disk_value in si[key]["disks"].iteritems():
+            #print disk_key, disk_value
+            if disk_value["rotational"]:
+              disk_status[key]["disks"][disk_key] = disk_value["status"]
+            #print disk_value["status"]
+            if disk_value["status"] != "PASSED":
+              disk_failures += 1
+            if disk_failures > 2:
+              background_color = "bg-yellow"
+            if disk_failures >= 4:
+              background_color == "bg-red"
+          
+          #print type(si[key]["pools"][0]["state"])
+          if si[key]["pools"][0]["state"] == unicode("ONLINE"):
+            background_color == "bg-red"
+          disk_status[key]["background_color"] = background_color
+          disk_status[key]["name"] = si[key]["pools"][0]["name"]
+          #print disk_status
+          #disk_status[key]["info"] = pool_status
+        
+        template = "view_disk_status.html"
+        return_dict["disk_status"] = disk_status
+
 
     elif page == "pool_status":
 
