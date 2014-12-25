@@ -1,12 +1,12 @@
 
 import django, django.template
-from django.conf import settings
 
 import integral_view
-import logging
 from integral_view.forms import samba_shares_forms
 from integral_view.samba import samba_settings, local_users
-from integral_view.utils import volume_info, system_info, audit
+
+import fractalio
+from fractalio import volume_info, system_info, audit
 
 def display_shares(request):
 

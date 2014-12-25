@@ -2,26 +2,27 @@
 import json,sqlite3
 
 import fractalio
-from fractalio import command, db
+from fractalio import command, db, common
 
 import local_users
 
-from django.conf import settings
+
+db_path = common.get_db_path()
 
 def change_auth_method(security):
 
   cl = []
   cl.append(["update samba_global_common set security='%s' where id=1"%security])
   cl.append(["delete from samba_valid_users"])
-  db.execute_iud("%s/integral_view_config.db"%settings.DB_LOCATION, cl)
+  db.execute_iud("%s/integral_view_config.db"%db_path, cl)
 
 def load_auth_settings():
   d = None
   conn = None
   try :
-    d = db.read_single_row("%s/integral_view_config.db"%settings.DB_LOCATION, "select * from samba_global_common where id=1")
+    d = db.read_single_row("%s/integral_view_config.db"%db_path, "select * from samba_global_common where id=1")
     if d and d["security"] == "ads":
-      d1 = db.read_single_row("%s/integral_view_config.db"%settings.DB_LOCATION, "select * from samba_global_ad where id=1")
+      d1 = db.read_single_row("%s/integral_view_config.db"%db_path, "select * from samba_global_ad where id=1")
       if d1:
         d.update(d1)
   finally:
@@ -33,7 +34,7 @@ def save_auth_settings(d):
   cmd = ["update samba_global_common set workgroup=?, netbios_name=?, security=?, include_homes_section=? where id = ?", (d["workgroup"], d["netbios_name"], d["security"], True, 1,)]
   cmd_list.append(cmd)
   if d["security"] == "ads":
-    d1 = db.read_single_row("%s/integral_view_config.db"%settings.DB_LOCATION, "select * from samba_global_ad")
+    d1 = db.read_single_row("%s/integral_view_config.db"%db_path, "select * from samba_global_ad")
     if d1:
       cmd = ["update samba_global_ad set realm=?, password_server=?, ad_schema_mode=?, id_map_min=?, id_map_max=?,  where id = ?", (d["realm"], d["password_server"], d["ad_schema_mode"], d["id_map_min"], d["id_map_max"], 1,)]
       cmd_list.append(cmd)
@@ -42,13 +43,13 @@ def save_auth_settings(d):
       cmd = ["insert into samba_global_ad (realm, password_server, ad_schema_mode, id_map_min, id_map_max, id) values(?,?,?,?,?,?)", (d["realm"], d["password_server"], d["ad_schema_mode"], d["id_map_min"], d["id_map_max"], 1,)]
       cmd_list.append(cmd)
   #print "updating "
-  db.execute_iud("%s/integral_view_config.db"%settings.DB_LOCATION, cmd_list)
+  db.execute_iud("%s/integral_view_config.db"%db_path, cmd_list)
   #print "updated "
 
 def delete_auth_settings():
   conn = None
   try :
-    conn = sqlite3.connect("%s/integral_view_config.db"%settings.DB_LOCATION)
+    conn = sqlite3.connect("%s/integral_view_config.db"%db_path)
     cur = conn.cursor()
     cur.execute("delete from samba_auth ")
     cur.close()
@@ -61,7 +62,7 @@ def load_shares_list():
   l = []
   conn = None
   try :
-    conn = sqlite3.connect("%s/integral_view_config.db"%settings.DB_LOCATION)
+    conn = sqlite3.connect("%s/integral_view_config.db"%db_path)
     #conn = sqlite3.connect("/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/devel/db/integral_view_config.db")
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
@@ -83,7 +84,7 @@ def load_share_info(mode, index):
   d = None
   conn = None
   try :
-    conn = sqlite3.connect("%s/integral_view_config.db"%settings.DB_LOCATION)
+    conn = sqlite3.connect("%s/integral_view_config.db"%db_path)
     #conn = sqlite3.connect("/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/devel/db/integral_view_config.db")
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
@@ -111,7 +112,7 @@ def delete_share(share_id):
 
   conn = None
   try :
-    conn = sqlite3.connect("%s/integral_view_config.db"%settings.DB_LOCATION)
+    conn = sqlite3.connect("%s/integral_view_config.db"%db_path)
     #conn = sqlite3.connect("/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/devel/db/integral_view_config.db")
     cur = conn.cursor()
     cur.execute("delete from samba_shares where share_id=?", (share_id, ))
@@ -125,7 +126,7 @@ def delete_share(share_id):
 def delete_all_shares():
   conn = None
   try :
-    conn = sqlite3.connect("%s/integral_view_config.db"%settings.DB_LOCATION)
+    conn = sqlite3.connect("%s/integral_view_config.db"%db_path)
     #conn = sqlite3.connect("/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/devel/db/integral_view_config.db")
     cur = conn.cursor()
     cur.execute("delete from samba_shares ")
@@ -142,7 +143,7 @@ def save_share(share_id, name, comment, guest_ok, read_only, path, browseable, u
 
   conn = None
   try :
-    conn = sqlite3.connect("%s/integral_view_config.db"%settings.DB_LOCATION)
+    conn = sqlite3.connect("%s/integral_view_config.db"%db_path)
     cur = conn.cursor()
     cur.execute("update samba_shares set comment=?, read_only=?, guest_ok=?, browseable=? where share_id=?", (comment, read_only, guest_ok, browseable,share_id, ))
     cur.execute("delete from samba_valid_users where share_id=?", (share_id, ))
@@ -174,7 +175,7 @@ def create_share(name, comment, guest_ok, read_only, path, display_path, browsea
 
   conn = None
   try :
-    conn = sqlite3.connect("%s/integral_view_config.db"%settings.DB_LOCATION)
+    conn = sqlite3.connect("%s/integral_view_config.db"%db_path)
     #conn = sqlite3.connect("/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/devel/db/integral_view_config.db")
     cur = conn.cursor()
     cur.execute("insert into samba_shares (name, vol, path, display_path, comment, read_only, guest_ok, browseable, share_id) values (?,?, ?,?,?,?,?,?,NULL)", (name, vol, path, display_path, comment, read_only, guest_ok, browseable,))
@@ -273,7 +274,7 @@ def _generate_share_section(f, share_name, vol_name, workgroup, path, read_only,
 
 def generate_smb_conf():
   d = load_auth_settings()
-  with open("%s/smb.conf"%settings.SMB_CONF_PATH, "w+") as f:
+  with open("%s/smb.conf"%common.get_smb_conf_path(), "w+") as f:
     _generate_global_section(f, d)
     shl = load_shares_list()
     if shl:
@@ -294,7 +295,7 @@ def generate_smb_conf():
 
 def generate_krb5_conf():
   d = load_auth_settings()
-  with open("%s/krb5.conf"%settings.KRB5_PATH, "w") as f:
+  with open("%s/krb5.conf"%common.get_krb5_conf_path(), "w") as f:
     f.write("; This file has been programatically generated by the fractal view system. Do not modify it manually!\n\n")
     f.write("[logging]\n")
     f.write("  default = FILE:/var/log/krb5libs.log\n")
@@ -412,7 +413,7 @@ def load_valid_users_list(share_id):
   l = []
   conn = None
   try :
-    conn = sqlite3.connect("%s/integral_view_config.db"%settings.DB_LOCATION)
+    conn = sqlite3.connect("%s/integral_view_config.db"%db_path)
     #conn = sqlite3.connect("/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/devel/db/integral_view_config.db")
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()

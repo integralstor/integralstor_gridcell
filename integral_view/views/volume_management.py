@@ -6,14 +6,13 @@ import salt.client
 from  django.contrib import auth
 from django.conf import settings
 import fractalio
-from fractalio import command 
+from fractalio import command, volume_info, system_info, audit, gluster_commands, gluster_batch
 
 import integral_view
 from integral_view.forms import volume_management_forms
-from integral_view.utils import volume_info, system_info, audit, gluster_commands, iv_logging, batch
 from integral_view.iscsi import iscsi
+from integral_view.utils import iv_logging
 
-import logging
 
 def volume_specific_op(request, operation, vol_name=None):
   """ Used to carry out various volume related operations which is specified in the operation parameter. 
@@ -574,7 +573,6 @@ def replace_node(request):
   si = system_info.load_system_config()
   return_dict['system_config_list'] = si
 
-  return_dict['colour_dict'] = settings.DISPLAY_COLOURS
   
   d = volume_info.get_replacement_node_info(si, vil)
   if not d["src_node_list"]:
@@ -821,7 +819,7 @@ def expand_volume(request):
     count = request.POST['count']
 
     iv_logging.info("Running volume expand : %s"%cmd)
-    d = gluster_commands.run_gluster_command(cmd, "%s/add_brick.xml"%settings.BASE_FILE_PATH, "Volume expansion")
+    d = gluster_commands.run_gluster_command(cmd, "%s/add_brick.xml"%fractalio.common.get_devel_files_path(), "Volume expansion")
 
     if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
       #Success so audit the change

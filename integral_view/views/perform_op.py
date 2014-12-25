@@ -1,17 +1,15 @@
 
 import urllib
 
-
 import django, django.template
 from django.contrib import auth
 from django.conf import settings
 
 import fractalio
-from fractalio import command
+from fractalio import command, common, volume_info, system_info, audit, gluster_commands
 
 import integral_view
 from integral_view.forms import trusted_pool_setup_forms
-from integral_view.utils import volume_info, system_info, audit, gluster_commands
 
 def perform_op(request, op, name1=None, name2= None):
   """ Used to translate an operation name specified in the op param into an actual command and return the results
@@ -102,7 +100,7 @@ def perform_op(request, op, name1=None, name2= None):
 
 
       return_dict['cmd'] = command
-      if not settings.PRODUCTION:
+      if not fractalio.common.is_production():
         command = 'ls -al'
 
       if audit_code:
@@ -122,7 +120,7 @@ def perform_op(request, op, name1=None, name2= None):
     
       if op == 'view_volume_status_all':
         # Need to execute two commands for this case!
-        if settings.PRODUCTION:
+        if fractalio.common.is_production():
           command = 'gluster volume status all detail'
         else:
           command = 'ls -al'

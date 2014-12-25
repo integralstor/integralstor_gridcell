@@ -3,13 +3,13 @@ from django.conf import settings
 from django.contrib import auth
 
 import random
-import logging
+
 import fractalio
-from fractalio import command
+from fractalio import command, common, volume_info, system_info, audit, gluster_commands
+from integral_view.utils import iv_logging
 
 import integral_view
 from integral_view.forms import volume_creation_forms
-from integral_view.utils import volume_info, system_info, audit, gluster_commands, iv_logging
 from integral_view.iscsi import iscsi
 
 def volume_creation_wizard(request, action):
@@ -187,11 +187,11 @@ def create_volume(request):
     return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
   cmd = request.POST['cmd']
-  if not settings.PRODUCTION:
+  if not fractalio.common.is_production():
     cmd = 'ls -al'
 
   iv_logging.info("create volume command %s"%cmd)
-  d = gluster_commands.run_gluster_command(cmd, "%s/create_volume.xml"%settings.BASE_FILE_PATH, "Volume creation")
+  d = gluster_commands.run_gluster_command(cmd, "%s/create_volume.xml"%fractalio.common.get_devel_files_path(), "Volume creation")
 
   if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
     #Success so audit the change

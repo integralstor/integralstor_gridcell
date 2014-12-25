@@ -1,5 +1,6 @@
 from django import forms
-from integral_view.utils import volume_info
+import fractalio
+from fractalio import volume_info
 
 class VolTypeForm(forms.Form):
   ch = [('distributed', r'Distribute my files across disks(Higher performance, no reduncancy)'), ('replicated', r'Make copies of  my files across multiple disks (Redundancy with higher storage overhead)')]

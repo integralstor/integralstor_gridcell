@@ -1,21 +1,16 @@
 
-from xml.etree import ElementTree
 import tempfile, socket, time, random, json, sys, os
 
-#sys.path.append('/usr/lib/python2.6/site-packages/gfapi-0.0.1-py2.6.egg')
-#import gluster
-#from gluster import gfapi
-
-from django.conf import settings
-
 import fractalio
-from fractalio import command, xml_parse
+from fractalio import command, xml_parse, common
 
+devel_files_path = common.get_devel_files_path()
+production = common.is_production()
 
 def get_peer_list():
 
   prod_command = '/usr/sbin/gluster peer status --xml'
-  dummy_command = "%s/peer_status"%settings.BASE_FILE_PATH
+  dummy_command = "%s/peer_status"%devel_files_path
   d = run_gluster_command(prod_command, dummy_command, "Get peer list")
   peer_list = None
   if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
@@ -31,7 +26,7 @@ def get_peer_list():
 def restore_snapshot(snapshot_name):
 
   prod_command = 'gluster --mode=script snapshot restore  %s --xml'%snapshot_name
-  dummy_command = "%s/restore_snapshot.xml"%settings.BASE_FILE_PATH
+  dummy_command = "%s/restore_snapshot.xml"%devel_files_path
   #assert False
   d = run_gluster_command(prod_command, dummy_command, "Restoring snapshot %s"%snapshot_name)
   return d
@@ -39,7 +34,7 @@ def restore_snapshot(snapshot_name):
 def deactivate_snapshot(snapshot_name):
 
   prod_command = 'gluster --mode=script snapshot deactivate  %s --xml'%snapshot_name
-  dummy_command = "%s/deactivate_snapshot.xml"%settings.BASE_FILE_PATH
+  dummy_command = "%s/deactivate_snapshot.xml"%devel_files_path
   #assert False
   d = run_gluster_command(prod_command, dummy_command, "Deactivating snapshot %s"%snapshot_name)
   return d
@@ -47,7 +42,7 @@ def deactivate_snapshot(snapshot_name):
 def delete_snapshot(snapshot_name):
 
   prod_command = 'gluster --mode=script snapshot delete  %s --xml'%snapshot_name
-  dummy_command = "%s/delete_snapshot.xml"%settings.BASE_FILE_PATH
+  dummy_command = "%s/delete_snapshot.xml"%devel_files_path
   #assert False
   d = run_gluster_command(prod_command, dummy_command, "Deleting snapshot %s"%snapshot_name)
   return d
@@ -55,7 +50,7 @@ def delete_snapshot(snapshot_name):
 def activate_snapshot(snapshot_name):
 
   prod_command = 'gluster --mode=script snapshot activate  %s --xml'%snapshot_name
-  dummy_command = "%s/activate_snapshot.xml"%settings.BASE_FILE_PATH
+  dummy_command = "%s/activate_snapshot.xml"%devel_files_path
   #assert False
   d = run_gluster_command(prod_command, dummy_command, "Activating snapshot %s"%snapshot_name)
   return d
@@ -66,7 +61,7 @@ def create_snapshot(d):
   snapshot_name = d["snapshot_name"]
 
   prod_command = 'gluster snapshot create %s  %s --xml'%(snapshot_name, vol_name)
-  dummy_command = "%s/create_snapshot.xml"%settings.BASE_FILE_PATH
+  dummy_command = "%s/create_snapshot.xml"%devel_files_path
   #assert False
   d = run_gluster_command(prod_command, dummy_command, "Created a snapshot named %s for volume %s"%(snapshot_name, vol_name))
   return d
@@ -79,7 +74,7 @@ def remove_node(si, node):
   if si[node]["in_cluster"] and node != localhost: 
     d = {}
     prod_command = 'gluster peer detach %s --xml'%node
-    dummy_command = "%s/peer_detach.xml"%settings.BASE_FILE_PATH
+    dummy_command = "%s/peer_detach.xml"%devel_files_path
     d = run_gluster_command(prod_command, dummy_command, "Removing node %s from the storage pool"%node)
 
     '''
@@ -88,7 +83,7 @@ def remove_node(si, node):
     d["actual_command"] = command
     d["command"] = "Removing node %s from the storage pool"%node
     #rd = xml_parse.run_command_get_xml_output_tree(command, "/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/utils/test/peer_detach.xml")
-    rd = xml_parse.run_command_get_xml_output_tree(command, "%s/peer_detach.xml"%settings.BASE_FILE_PATH)
+    rd = xml_parse.run_command_get_xml_output_tree(command, "%s/peer_detach.xml"%devel_files_path)
     if "error_list" in rd:
       d["error_list"] = rd["error_list"]
     status_dict = None
@@ -121,7 +116,7 @@ def add_nodes(anl):
     if host != localhost:
       
       prod_command = "gluster peer probe %s --xml"%host
-      dummy_command = "%s/peer_probe.xml"%settings.BASE_FILE_PATH
+      dummy_command = "%s/peer_probe.xml"%devel_files_path
       d = run_gluster_command(prod_command, dummy_command, "Adding node %s to the pool"%host)
       d["audit_str"] = "Added node %s to the storage pool"%host
       '''
@@ -130,7 +125,7 @@ def add_nodes(anl):
       cmd = "gluster peer probe %s --xml"%host
       d["actual_command"] = cmd
       #rd = xml_parse.run_command_get_xml_output_tree(cmd, "/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/utils/test/peer_probe.xml")
-      rd = xml_parse.run_command_get_xml_output_tree(cmd, "%s/peer_probe.xml"%settings.BASE_FILE_PATH)
+      rd = xml_parse.run_command_get_xml_output_tree(cmd, "%s/peer_probe.xml"%devel_files_path)
       if "error_list" in rd:
         d["error_list"] = rd["error_list"]
       if "tree" in rd:
@@ -485,123 +480,10 @@ def build_create_volume_command(vol_name, vol_type, ondisk_storage, repl_count, 
   return d
 
 
-def create_rebalance_command_file(vol_name):
-  try:
-    dir = settings.BATCH_COMMANDS_DIR
-  except:
-    dir = "."
-  if not os.path.exists(dir):
-    try:
-      os.mkdir(dir)
-    except OSError:
-      return None
-
-  t = time.localtime()
-  data = {}
-  data["initiate_time"] = time.strftime("%a %b %d %H:%M:%S %Y", t)
-  file_name = "%s_%d"%(time.strftime("bp_volume_rebalance_%b_%d_%Y_%H_%M_%S", t) , int(time.time()))
-  full_file_name = "%s/in_process/%s"%(dir, file_name)
-  data["status_url"] = "/show/batch_status_details/%s"%file_name
-  data["title"] = "Volume rebalance for volume \'%s\'"%vol_name
-  data["process"] = "volume_rebalance"
-  data["status"] = "Not yet started"
-  data["command_list"] = []
-  d = {}
-  d["type"] = "rebalance_start"
-  d["desc"] = "Volume rebalance for volume %s - start"%vol_name
-  d["command"] = "gluster volume rebalance %s start --xml"%vol_name
-  d["status_code"] = 0
-  data["command_list"].append(d)
-  d = {}
-  d["type"] = "rebalance_status"
-  d["desc"] = "Volume rebalance for volume %s - status"%vol_name
-  d["command"] = "gluster volume rebalance %s status --xml"%vol_name
-  d["status_code"] = 0
-  data["command_list"].append(d)
-  try :
-    with open(full_file_name, "w+") as f:
-      json.dump(data, f, indent=2)
-  except Exception, e:
-    d["error"] = str(e)
-  else:
-    d["file_name"] = file_name
-  return d
-
-def create_factory_defaults_reset_file(scl, vil):
-  try:
-    dir = settings.BATCH_COMMANDS_DIR
-  except:
-    dir = "."
-  if not os.path.exists(dir):
-    try:
-      os.mkdir(dir)
-    except OSError:
-      return None
-
-  t = time.localtime()
-  data = {}
-  data["initiate_time"] = time.strftime("%a %b %d %H:%M:%S %Y", t)
-  file_name = "%s_%d"%(time.strftime("bp_factory_defaults_reset_%b_%d_%Y_%H_%M_%S", t) , int(time.time()))
-  full_file_name = "%s/in_process/%s"%(dir, file_name)
-  data["status_url"] = "/show/batch_status_details/%s"%file_name
-  data["title"] = "Reset system to factory defaults"
-  data["process"] = "factory_deafults_reset"
-  data["status"] = "Not yet started"
-  data["command_list"] = []
-
-  for v in vil:
-    if v["status"] == 1:
-      #Stop this volume
-      d = {}
-      d["type"] = "vol_stop"
-      d["desc"] = "Stopping volume %s "%v["name"]
-      d["command"] = 'gluster volume stop %s force --xml'%v["name"]
-      d["status_code"] = 0
-      data["command_list"].append(d)
-  for v in vil:
-    d = {}
-    d["type"] = "vol_delete"
-    d["desc"] = "Deleting volume %s "%v["name"]
-    d["command"] = 'gluster volume delete %s force --xml'%v["name"]
-    d["status_code"] = 0
-    data["command_list"].append(d)
-    for brick in v["bricks"]:
-      for ib in brick:
-        h, b = ib.split(':')
-        d = {}
-        d["type"] = "brick_delete"
-        d["desc"] = "Deleting brick %s on %s for volume %s "%(b, h, v["name"])
-        d["command"] = '/opt/fractal/bin/client rcmd rm -rf %s'%b
-        d["status_code"] = 0
-        data["command_list"].append(d)
-
-  # Remove all the volume directories..
-
-  localhost = socket.gethostname().strip()
-  for hostname, n in scl.items():
-    if (hostname.strip() == localhost) or (not n["in_cluster"]):
-      continue
-    d = {}
-    d["type"] = "peer_detach"
-    d["desc"] = "Removing %s from the storage pool"%hostname
-    d["command"] = 'gluster peer detach %s --xml'%hostname
-    d["status_code"] = 0
-    data["command_list"].append(d)
-
-  try :
-    with open(full_file_name, "w+") as f:
-      json.dump(data, f, indent=2)
-  except Exception, e:
-    d["error"] = str(e)
-  else:
-    d["file_name"] = file_name
-  return d
-
-
 def volume_stop_or_start(vol_name, op):
 
   prod_command = 'gluster --mode=script volume %s %s --xml'%(op, vol_name)
-  dummy_command = "%s/vol_stop.xml"%settings.BASE_FILE_PATH
+  dummy_command = "%s/vol_stop.xml"%devel_files_path
   d = run_gluster_command(prod_command, dummy_command, "Starting volume %s"%vol_name)
   return d
 
@@ -609,12 +491,6 @@ def run_gluster_command(prod_command, dummy_command, display_command):
   #Run the command and return a dict with the xml results
   #prod_command is the actual command, dummy_command is the file to use in its place for non production, display_command is the string to be
   #be used for display to the user to show what the command is doing
-
-  production = True
-  try:
-    production =  settings.PRODUCTION
-  except Exception, e:
-    production = True
 
   d = {}
   d['actual_command'] = prod_command
@@ -629,6 +505,7 @@ def run_gluster_command(prod_command, dummy_command, display_command):
     status_dict = xml_parse.get_op_status(root)
     d["op_status"] = status_dict
     d["root"] = root
+    d["tree"] = rd["tree"]
   return d
 
 def set_volume_quota(vol_name, enable_quota, set_quota, limit, unit):
@@ -638,20 +515,20 @@ def set_volume_quota(vol_name, enable_quota, set_quota, limit, unit):
   if enable_quota:
     #Need to first enable quota
     prod_command = 'gluster volume quota %s enable --xml'%(vol_name)
-    dummy_command = "%s/enable_quota.xml"%settings.BASE_FILE_PATH
+    dummy_command = "%s/enable_quota.xml"%devel_files_path
     d = run_gluster_command(prod_command, dummy_command, "Enabling quota for volume %s"%vol_name)
     ret_list.append(d)
 
   if not set_quota:
     #Need to first enable quota
     prod_command = 'gluster volume quota %s remove / --xml'%(vol_name)
-    dummy_command = "%s/remove_quota.xml"%settings.BASE_FILE_PATH
+    dummy_command = "%s/remove_quota.xml"%devel_files_path
     d = run_gluster_command(prod_command, dummy_command, "Removing quota for volume %s"%vol_name)
     ret_list.append(d)
   else:
     #Need to first enable quota
     prod_command = 'gluster volume quota %s limit-usage / %s%s --xml'%(vol_name, limit, unit)
-    dummy_command = "%s/set_quota.xml"%settings.BASE_FILE_PATH
+    dummy_command = "%s/set_quota.xml"%devel_files_path
     d = run_gluster_command(prod_command, dummy_command, "Setting quota for volume %s to %s %s"%(vol_name, limit, unit))
     ret_list.append(d)
 
@@ -662,7 +539,7 @@ def get_volume_quotas(vol_name):
   quotas = None
   #Need to first enable quota
   prod_command = 'gluster volume quota %s list --xml'%(vol_name)
-  dummy_command = "%s/list_quota.xml"%settings.BASE_FILE_PATH
+  dummy_command = "%s/list_quota.xml"%devel_files_path
   d = run_gluster_command(prod_command, dummy_command, "Enabling quota for volume %s"%vol_name)
   if d["op_status"]["op_ret"] == 0:
     root = d["root"]
@@ -726,7 +603,7 @@ def remove_sled(scl, sled):
       node_num = 2
     d["command"] = "Removing sled %d node %d from the storage pool"%(sled+1, node_num) 
     #rd = xml_parse.run_command_get_xml_output_tree(command, "/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/utils/test/peer_detach.xml")
-    rd = xml_parse.run_command_get_xml_output_tree(command, "%s/peer_detach.xml"%settings.BASE_FILE_PATH)
+    rd = xml_parse.run_command_get_xml_output_tree(command, "%s/peer_detach.xml"%devel_files_path)
     if "error_list" in rd:
       d["error_list"] = rd["error_list"]
     status_dict = None
@@ -758,7 +635,7 @@ def remove_sled(scl, sled):
     d["actual_command"] = command
 
     #rd = xml_parse.run_command_get_xml_output_tree(command, "/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/utils/test/peer_detach.xml")
-    rd = xml_parse.run_command_get_xml_output_tree(command, "%s/peer_detach.xml"%settings.BASE_FILE_PATH)
+    rd = xml_parse.run_command_get_xml_output_tree(command, "%s/peer_detach.xml"%devel_files_path)
     if "error_list" in rd:
       if "error_list" in d:
         d["error_list"].append(rd["error_list"])
@@ -787,7 +664,7 @@ def remove_sled(scl, sled):
         node_num = 2
       d["command"] = "Re-adding sled %d node %d to the storage pool as previous node removal failed"%(sled+1, node_num) 
       #rd = xml_parse.run_command_get_xml_output_tree(command, "/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/utils/test/peer_probe.xml")
-      rd = xml_parse.run_command_get_xml_output_tree(command, "%s/peer_probe.xml"%settings.BASE_FILE_PATH)
+      rd = xml_parse.run_command_get_xml_output_tree(command, "%s/peer_probe.xml"%devel_files_path)
       if "error_list" in rd:
         d["error_list"] = rd["error_list"]
       status_dict = None
