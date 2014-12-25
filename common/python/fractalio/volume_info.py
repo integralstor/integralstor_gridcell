@@ -112,7 +112,7 @@ def _get_volume_list(production):
     #print (size_total-size_free)/float(size_total)
     if size_total > 0:
       vol["size_used_percent"] = int(((size_total-size_free)/float(size_total)) * 100)
-    else
+    else:
       vol["size_used_percent"] = -1
     #print vol["size_used_percent"]
 
