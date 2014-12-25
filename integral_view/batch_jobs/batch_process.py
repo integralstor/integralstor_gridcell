@@ -3,31 +3,19 @@
 import json, time, re, os, tempfile, shutil, sys 
 from xml.etree import ElementTree
 
-
-#BASEPATH = "/opt/fractal/batch/"
-'''
-if len(sys.argv) < 2:
-  raise Exception("No settings.py path provided!")
-sys.path.insert(0, sys.argv[1])
-os.environ['DJANGO_SETTINGS_MODULE']='gluster_admin.settings'
-'''
-path = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, '%s/../..'%path)
-os.environ['DJANGO_SETTINGS_MODULE']='integral_view.settings'
-
-import settings
-BASEPATH = settings.BATCH_COMMANDS_DIR
-production = settings.PRODUCTION
 import fractalio
-from fractalio import command, xml_parse
-from integral_view.utils import audit
+from fractalio import command, xml_parse, common, audit
+
+production = common.is_production()
+batch_files_path = common.get_batch_files_path()
+devel_files_path = common.get_devel_files_path()
 
 
 def get_heal_count(cmd, type):
 #Gets the number of files healed so far
   rl = []
   if not production:
-    fn = "/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/utils/test/heal_info.txt"
+    fn = "%s/heal_info.txt"%devel_files_path
     with open(fn, "r") as f:
       lines = f.readlines()
       #print lines
@@ -66,18 +54,18 @@ def main():
   if not lock.get_lock('batch_process'):
       print 'Generate Status : Could not acquire lock. Exiting.'
 
-  fl = os.listdir(os.path.normpath("%s/in_process"%BASEPATH))
+  fl = os.listdir(os.path.normpath(batch_files_path)
   for file in fl:
     if not file.startswith("bp_"):
       #unknown file type so ignore
       continue
     else:
-      with open(os.path.normpath("%s/in_process/%s"%(BASEPATH, file)), "r") as f:
+      with open(os.path.normpath("%s/%s"%(batch_files_path,file)), "r") as f:
         try :
           d = json.load(f)
           process_batch(d)
         except Exception, e:
-          print "Error loading json content for %s/in_process/%s"%(BASEPATH, file)
+          print "Error loading json content for %s/%s"%(batch_files_path, file)
           continue
         finally:
           f.close()
@@ -87,11 +75,11 @@ def process_batch(d, fname):
   #Process each batch file
 
   if not d:
-    err = "Error: No JSON info in %s/in_process/%s"%(BASEPATH, file)
+    err = "Error: No JSON info in %s/%s"%(batch_files_path, file)
     return -1, err
 
   if not d["process"] in ["replace_sled", "volume_rebalance", "factory_defaults_reset"]:
-    err = "Error! Unknown process in %s/in_process/%s"%(BASEPATH, file)
+    err = "Error! Unknown process in %s/%s"%(batch_files_path, file)
     return -1, err
 
   if not "start_time" in d:
@@ -141,8 +129,7 @@ def process_batch(d, fname):
           # Stop executing more commands!
           break
       else:
-        fn = "%s/files/heal_full.txt"%settings.BASE_CONF_PATH
-        #fn = "/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/utils/test/heal_full.txt"
+        fn = "/opt/fractalio/devel/files/heal_full.txt"
         with open(fn, "r") as f:
           lines = f.readlines()
 
@@ -153,7 +140,7 @@ def process_batch(d, fname):
           #print m
           if m:
             #Successfully executed
-            audit.batch_audit(settings.AUDIT_URL, cd["type"], cd["desc"])
+            audit.batch_audit(cd["type"], cd["desc"])
             cd["status_code"] = 3
             break
         if cd["status_code"] != 3:
@@ -212,26 +199,19 @@ def process_batch(d, fname):
       #Commands that have valid XML outputs
       if not production:
         if cd["type"] == "add_brick":
-          fn = "%s/files/add_brick.xml"%settings.BASE_CONF_PATH
-          #fn = "/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/utils/test/add_brick.xml"
+          fn = "%s/add_brick.xml"%devel_files_path
         elif cd["type"] == "remove_brick_start":
-          fn = "%s/files/remove_brick_start.xml"%settings.BASE_CONF_PATH
-          #fn = "/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/utils/test/remove_brick_start.xml"
+          fn = "%s/remove_brick_start.xml"%devel_files_path
         elif cd["type"] == "remove_brick_status":
-          fn = "%s/files/remove_brick_status.xml"%settings.BASE_CONF_PATH
-          #fn = "/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/utils/test/remove_brick_status.xml"
+          fn = "%s/remove_brick_status.xml"%devel_files_path
         elif cd["type"] == "remove_brick_commit":
-          fn = "%s/files/remove_brick_commit.xml"%settings.BASE_CONF_PATH
-          #fn = "/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/utils/test/remove_brick_commit.xml"
+          fn = "%s/remove_brick_commit.xml"%devel_files_path
         elif cd["type"] == "rebalance_start":
-          fn = "%s/files/rebalance_start.xml"%settings.BASE_CONF_PATH
-          #fn = "/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/utils/test/rebalance_start.xml"
+          fn = "%s/rebalance_start.xml"%devel_files_path
         elif cd["type"] == "rebalance_status":
-          fn = "%s/files/rebalance_status.xml"%settings.BASE_CONF_PATH
-          #fn = "/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/utils/test/rebalance_status.xml"
+          fn = "%s/rebalance_status.xml"%devel_files_path
         elif cd["type"] == "replace_brick_commit":
-          fn = "%s/files/replace_brick_commit.xml"%settings.BASE_CONF_PATH
-          #fn = "/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/utils/test/replace_brick_commit.xml"
+          fn = "%s/replace_brick_commit.xml"%devel_files_path
         with open(fn, 'rt') as tf:
             tree = ElementTree.parse(tf)
       else:
@@ -285,7 +265,7 @@ def process_batch(d, fname):
       if cd["type"] in ["add_brick", "remove_brick_start", "rebalance_start", "volume_heal_full"]:
         #One off command so
         #All ok so mark status as successful so it is not rerun
-        audit.batch_audit(settings.AUDIT_URL, cd["type"], cd["desc"])
+        audit.batch_audit(cd["type"], cd["desc"])
         cd["status_code"] = 3
         continue
 
@@ -344,10 +324,10 @@ def process_batch(d, fname):
 
   #Write the updated json to a temp file and copy to prevent possible race read/write conditions?
 
-  with open(os.path.normpath("%s/in_process/tmp_%s"%(BASEPATH, file)), "w+") as f1:
+  with open(os.path.normpath("%s/tmp_%s"%(batch_files_path, file)), "w+") as f1:
     json.dump(d, f1, indent=2)
     f1.flush()
     f1.close()
-  shutil.move(os.path.normpath("%s/in_process/tmp_%s"%(BASEPATH, file)), os.path.normpath("%s/in_process/%s"%(BASEPATH, file)))
+  shutil.move(os.path.normpath("%s/tmp_%s"%(batch_files_path, file)), os.path.normpath("%s/%s"%(batch_files_path, file)))
 
   

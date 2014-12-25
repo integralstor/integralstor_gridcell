@@ -1,11 +1,12 @@
 
 import time, os, os.path, re, urllib, urllib2
 
-from django.conf import settings
 import fractalio
-from fractalio import file_processing
+from fractalio import file_processing, common
 
 import logs
+
+audit_dir = common.get_audit_dir()
 
 class AuditException(Exception):
 
@@ -17,10 +18,8 @@ class AuditException(Exception):
   def __str__(self):
     return repr(self.msg)
 
-def batch_audit(audit_url, audit_action, audit_str):
-  if not audit_url:
-    raise Exception("No Audit URL provided")
-  audit_url = "%s/internal_audit/"%audit_url
+def batch_audit(audit_action, audit_str):
+  audit_url = "%s/%s/"%(common.get_audit_url_host(), common.get_audit_url_component())
   data = urllib.urlencode({'who' : 'batch',
                           'audit_action':audit_action,
                          'audit_str'  : audit_str})
@@ -49,15 +48,6 @@ def get_lines(file_name = None):
   al = []
   if not file_name:
     fname = _get_audit_file_path()
-  else:
-    try:
-      dir = settings.AUDIT_TRAIL_DIR
-    except Exception:
-      dir = os.path.abspath('./audit_trail')
-
-    fname = os.path.normpath("%s/%s"%(dir, file_name))
-    if not os.path.exists(fname):
-      raise Exception("Specified file does not exist")
 
   if not fname:
     raise AuditException("Could not get audit file name.")
@@ -73,10 +63,6 @@ def get_lines(file_name = None):
 
 def _get_audit_file_path():
 # Return the audit file path. Create the audit directory and file if it does not exist
-  try:
-    audit_dir = settings.AUDIT_TRAIL_DIR
-  except Exception:
-    audit_dir = os.path.abspath('./audit_trail')
 
   if not os.path.exists(audit_dir):
     try:
@@ -144,22 +130,12 @@ def _parse_audit_line(str):
 def rotate_audit_trail():
   #Rotate the audit trail log file
 
-  try:
-    dir = settings.AUDIT_TRAIL_DIR
-  except Exception:
-    dir = os.path.abspath('./alerts')
-  
-  logs.rotate_log(dir, "audit.log", None)
+  logs.rotate_log(audit_dir, "audit.log", None)
 
 def get_log_file_list():
   #Get a list of dicts with each dict having a date and all the rotated log files for that date
 
-  try:
-    dir = settings.AUDIT_TRAIL_DIR
-  except Exception:
-    dir = os.path.abspath('./alerts')
-  
-  l = logs.get_log_file_list(dir, "audit.log")
+  l = logs.get_log_file_list(audit_dir, "audit.log")
   nl = logs.generate_display_log_file_list(l, "audit.log")
   return nl
 

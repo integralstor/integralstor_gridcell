@@ -1,23 +1,10 @@
 #!/usr/bin/python
 import urllib, urllib2, sys, os
-from django.conf import settings
 
-path = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, '%s/../..'%path)
-os.environ['DJANGO_SETTINGS_MODULE']='integral_view.settings'
+import fractalio
+from fractalio import common, system_info
 
-from integral_view.utils import system_info
-
-
-def raise_alert(alert_url, msg):
-  url = "http://%s/raise_alert?msg=%s"%(alert_url, urllib.quote_plus(msg))
-  print url
-  try:
-    ur = urllib2.urlopen(url)
-    ur.close()
-  except urllib2.URLError as e:
-    print "Error raising alert : %s"%e
-    pass
+production = common.is_production()
 
 import atexit
 atexit.register(lock.release_lock, 'poll_for_alerts')
@@ -26,8 +13,6 @@ def main():
 
   if not lock.get_lock('poll_for_alerts'):
       print 'Generate Status : Could not acquire lock. Exiting.'
-
-  alert_url = settings.ALERTS_URL
 
   '''
   sd = system_info.get_chassis_components_status(settings.PRODUCTION)
@@ -51,18 +36,18 @@ def main():
     print node
     if node["node_status"] != 0:
       if node["node_status"] == -1:
-        raise_alert(alert_url, 'Node %s seems to be down. View the \"System status\" screen for more info.'%(name))
+        alerts.raise_alert(alert_url, 'Node %s seems to be down. View the \"System status\" screen for more info.'%(name))
       elif node["node_status"] > 0:
         raise_alert(alert_url, 'Node %s seems to be degraded with the following errors : %s.'%(name, ' '.join(node["errors"]))
     if node["cpu_status"]["status"] != "ok":
-      raise_alert(alert_url, 'The CPU on node %s has issues. View the \"System status\" screen for more info.'%(name))
+      alerts.raise_alert(alert_url, 'The CPU on node %s has issues. View the \"System status\" screen for more info.'%(name))
     if "ipmi_status" in node:        
       for status_dict in node["ipmi_status"]:
         if status_dict["status"] != "ok":
-          raise_alert(alert_url, 'The %s on node %s has issues. The %s shows a value of %s. View the \"System status\" screen for more info.'%(status_dict["component_name"], status_dict["parameter_name"], status_dict["reading"]))
+          alerts.raise_alert(alert_url, 'The %s on node %s has issues. The %s shows a value of %s. View the \"System status\" screen for more info.'%(status_dict["component_name"], status_dict["parameter_name"], status_dict["reading"]))
     for n, v in node["disk_status"].items():
       if v["status"] != "PASSED":
-        raise_alert(alert_url, 'Disk %s on node %s has issues. View the \"System status\" screen for more info.'%(n, name))
+        alerts.raise_alert(alert_url, 'Disk %s on node %s has issues. View the \"System status\" screen for more info.'%(n, name))
 
   lock.release_lock('poll_for_alerts')
 

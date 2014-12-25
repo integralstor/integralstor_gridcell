@@ -1,21 +1,16 @@
 
 import smtplib, json, email.utils, sqlite3, sys, os
 from email.mime.text import MIMEText
-from django.conf import settings
 
-path = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, '%s/../..'%path)
-#sys.path.insert(0, '/opt/fractal/gluster_admin')
-#sys.path.insert(0, '/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin')
-
-os.environ['DJANGO_SETTINGS_MODULE'] = 'integral_view.settings'
-
+import fractalio
+from fractalio import common
+db_path = common.get_db_path()
 
 def load_email_settings():
   conn = None
   d = None
   try :
-    conn = sqlite3.connect("%s/integral_view_config.db"%settings.DB_LOCATION)
+    conn = sqlite3.connect("%s/integral_view_config.db"%db_path)
     #conn = sqlite3.connect("/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/devel/db/integral_view_config.db")
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
@@ -35,7 +30,7 @@ def save_email_settings(d):
 
   conn = None
   try :
-    conn = sqlite3.connect("%s/integral_view_config.db"%settings.DB_LOCATION)
+    conn = sqlite3.connect("%s/integral_view_config.db"%db_path)
     #conn = sqlite3.connect("/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/devel/db/integral_view_config.db")
     cur = conn.cursor()
     cur.execute("select * from email_config")
@@ -55,7 +50,7 @@ def save_email_settings(d):
 def delete_email_settings():
   conn = None
   try :
-    conn = sqlite3.connect("%s/integral_view_config.db"%settings.DB_LOCATION)
+    conn = sqlite3.connect("%s/integral_view_config.db"%db_path)
     #conn = sqlite3.connect("/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/devel/db/integral_view_config.db")
     cur = conn.cursor()
     cur.execute("delete from  email_config ")

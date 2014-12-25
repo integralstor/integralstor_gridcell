@@ -1,8 +1,12 @@
 # Django settings for integral_view project.
+import fractalio
+from fractalio import common
 
 DEBUG = True
 
 APP_DEBUG = True
+
+'''
 PRODUCTION = False
 #DEVEL_APP_ROOT = '/opt/integral_view/integral-view'
 DEVEL_APP_ROOT = '/home/bkrram/fractalio/integral-view'
@@ -34,29 +38,18 @@ if not PRODUCTION:
   KRB5_PATH = CONFIG_DIR
   SMB_CONF_PATH = CONFIG_DIR
 
-LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = "'/show/dashboard/'"
-
 BASE_FILE_PATH = '%s/files'%BASE_CONF_ROOT
 BATCH_COMMANDS_DIR = '%s/batch'%BASE_CONF_ROOT
 AUDIT_TRAIL_DIR = '%s/audit_trail'%BASE_CONF_ROOT
 ALERTS_DIR = '%s/alerts'%BASE_CONF_ROOT
-DB_LOCATION = '%s/db'%BASE_CONF_ROOT
-STATIC_DIR_PATH = '%s/static'%BASE_APP_PATH
-TEMPLATE_DIR_PATH = "%s/templates"%BASE_APP_PATH
+'''
 
-DISPLAY_COLOURS = {
-  "inactive" : "darkgray",
-  "not_in_pool" : "orange",
-  "in_pool" : "#669900",
-  "not_in_pool" : "#CC9900",
-  "dead" : "red",
-  "active" : "lightgreen",
-  "spare" : "#FFCC00",
-  "in_volume" : "yellow",
-  "available" : "lightgreen",
-  "has_volumes" : "#D17519"
-}
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = "'/show/dashboard/'"
+
+DB_LOCATION = common.get_db_path()
+STATIC_DIR_PATH = '/opt/fractalio/integral_view/integral_view/static'
+TEMPLATE_DIR_PATH = "/opt/fractalio/integral_view/integral_view/templates"
 
 
 TEMPLATE_DEBUG = DEBUG

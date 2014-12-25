@@ -2,15 +2,16 @@
 import django
 import django.template
 from django.contrib import auth
-from django.conf import settings
 
 import json
 
 import integral_view
 from integral_view.forms import admin_forms
-from integral_view.utils import audit, mail, iv_logging
+from integral_view.utils import iv_logging
 
-import logging
+import fractalio
+from fractalio import audit, mail 
+
 
 def login(request):
   """ Used to login a user into the management utility"""

@@ -2,12 +2,13 @@ import zipfile, datetime
 
 import django, django.template
 from  django.contrib import auth
-from django.conf import settings
+
+import fractalio
+from fractalio import common, volume_info, system_info, audit, alerts
 
 import integral_view
-import logging
 from integral_view.forms import volume_management_forms, log_management_forms
-from integral_view.utils import volume_info, system_info, audit, alerts, iv_logging
+from integral_view.utils import iv_logging
 
 #from integral_view.utils import logs
 
@@ -54,7 +55,8 @@ def download_vol_log(request):
 
       iv_logging.debug("Got volume log download request for %s"%vol_name)
       file_name = None
-      if settings.PRODUCTION:
+      production = fractalio.common.is_production()
+      if production:
         file_name = '/var/log/glusterfs/bricks/data-%s.log'%vol_name
       else:
         # this will return the same file that you are viewing now for download.

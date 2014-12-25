@@ -1,7 +1,9 @@
 
 from integral_view.iscsi import iscsi
 from integral_view.forms import iscsi_forms
-from integral_view.utils import audit, volume_info
+import fractalio
+from fractalio import audit, volume_info
+
 import django.template, django
 
 def iscsi_display_global_config():

@@ -1,13 +1,15 @@
 import re
-from django.conf import settings
+
 import fractalio
-from fractalio import command
+from fractalio import command, common
+
+ntp_conf_path = common.get_ntp_conf_path()
 
 def get_ntp_servers():
 
   list = []
   try :
-    with open("%s/ntp.conf"%settings.NTP_CONF_PATH, "r") as f:
+    with open("%s/ntp.conf"%ntp_conf_path, "r") as f:
       lines = f.readlines()
       for line in lines:
         r1 = re.match("[\s]*server[\s]*([\S]+)", line)

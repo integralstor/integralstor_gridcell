@@ -1,19 +1,23 @@
 
 import time, os, sys, fcntl, os.path, re
 
-
-from django.conf import settings
-
 import fractalio
-from fractalio import file_processing
+from fractalio import file_processing, common
 
-import logs
-#Our alert mailer
-import mail
+import logs, mail
 
-path = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, '%s/../..'%path)
-os.environ['DJANGO_SETTINGS_MODULE'] = 'integral_view.settings'
+alerts_dir = common.get_alerts_dir()
+
+
+def raise_alert(alert_url, msg):
+  url = "http://%s/%s?msg=%s"%(common.get_alerts_url_host, common.get_alerts_url_component(), urllib.quote_plus(msg))
+  #print url
+  try:
+    ur = urllib2.urlopen(url)
+    ur.close()
+  except urllib2.URLError as e:
+    print "Error raising alert : %s"%e
+    pass
 
 class AlertsException(Exception):
 
@@ -30,15 +34,6 @@ def load_alerts(fname = None):
   alerts_list = []
   if not fname:
     filename = _get_alerts_file_path()
-  else:
-    try:
-      dir = settings.ALERTS_DIR
-    except Exception:
-      dir = os.path.abspath('./alerts')
-
-    filename = os.path.normpath("%s/%s"%(dir, fname))
-    if not os.path.exists(filename):
-      raise Exception("Specified file does not exist")
 
   match = None
   with open(filename, "r") as f:
@@ -95,18 +90,14 @@ def raise_alert(msg):
 
 def _get_alerts_file_path():
 # Return the alerts file path. Create the alerts directory and file if it does not exist
-  try:
-    dir = settings.ALERTS_DIR
-  except Exception:
-    dir = os.path.abspath('./alerts')
 
-  if not os.path.exists(dir):
+  if not os.path.exists(alerts_dir):
     try:
-      os.mkdir(dir)
+      os.mkdir(alerts_dir)
     except OSError:
       return None
 
-  filename = os.path.normpath("%s/alerts.log"%dir)
+  filename = os.path.normpath("%s/alerts.log"%alerts_dir)
   if not os.path.exists(filename):
     mode = "w"
     #Create if it does not exist
@@ -134,21 +125,11 @@ def new_alerts():
 def rotate_alerts():
   #Rotate the alerts log file
 
-  try:
-    dir = settings.ALERTS_DIR
-  except Exception:
-    dir = os.path.abspath('./alerts')
-  
-  logs.rotate_log(dir, "alerts.log", ["----------"])
+  logs.rotate_log(alerts_dir, "alerts.log", ["----------"])
 
 def get_log_file_list():
   #Get a list of dicts with each dict having a date and all the rotated log files for that date
 
-  try:
-    dir = settings.ALERTS_DIR
-  except Exception:
-    dir = os.path.abspath('./alerts')
-  
-  l = logs.get_log_file_list(dir, "alerts.log")
+  l = logs.get_log_file_list(alerts_dir, "alerts.log")
   nl = logs.generate_display_log_file_list(l, "alerts.log")
   return nl

@@ -1,5 +1,5 @@
 from django.conf.urls import patterns, include, url
-from integral_view.views.iscsi import iscsi_display_global_config, iscsi_display_initiators, iscsi_display_targets, iscsi_view_initiator, iscsi_edit_initiator, iscsi_create_initiator, iscsi_delete_initiator, iscsi_display_auth_access_group_list, iscsi_create_auth_access_group, iscsi_view_auth_access_group, iscsi_delete_auth_access_group, iscsi_edit_auth_access_user, iscsi_edit_target_global_config, iscsi_view_target_global_config, iscsi_create_target,iscsi_view_target , iscsi_edit_target, iscsi_delete_target, iscsi_delete_auth_access_user, iscsi_create_auth_access_user
+#from integral_view.views.iscsi import iscsi_display_global_config, iscsi_display_initiators, iscsi_display_targets, iscsi_view_initiator, iscsi_edit_initiator, iscsi_create_initiator, iscsi_delete_initiator, iscsi_display_auth_access_group_list, iscsi_create_auth_access_group, iscsi_view_auth_access_group, iscsi_delete_auth_access_group, iscsi_edit_auth_access_user, iscsi_edit_target_global_config, iscsi_view_target_global_config, iscsi_create_target,iscsi_view_target , iscsi_edit_target, iscsi_delete_target, iscsi_delete_auth_access_user, iscsi_create_auth_access_user
 from integral_view.views.admin_auth  import login, logout, change_admin_password, configure_email_settings 
 from integral_view.views.trusted_pool_setup  import add_nodes, remove_node
 from integral_view.views.volume_creation import volume_creation_wizard, create_volume, create_volume_conf
@@ -40,25 +40,6 @@ urlpatterns = patterns('',
     url(r'^configure_email_settings/', login_required(configure_email_settings)),
     url(r'^reset_to_factory_defaults/', login_required(reset_to_factory_defaults)),
     url(r'^configure_ntp_settings/', login_required(configure_ntp_settings)),
-    url(r'^iscsi_display_targets/', login_required(iscsi_display_targets)),
-    url(r'^iscsi_view_target/', login_required(iscsi_view_target)),
-    url(r'^iscsi_create_target/', login_required(iscsi_create_target)),
-    url(r'^iscsi_edit_target/', login_required(iscsi_edit_target)),
-    url(r'^iscsi_delete_target/', login_required(iscsi_delete_target)),
-    url(r'^iscsi_display_initiators/', login_required(iscsi_display_initiators)),
-    url(r'^iscsi_view_initiator/', login_required(iscsi_view_initiator)),
-    url(r'^iscsi_create_initiator/', login_required(iscsi_create_initiator)),
-    url(r'^iscsi_delete_initiator/', login_required(iscsi_delete_initiator)),
-    url(r'^iscsi_edit_initiator/', login_required(iscsi_edit_initiator)),
-    url(r'^iscsi_display_auth_access_group_list/', login_required(iscsi_display_auth_access_group_list)),
-    url(r'^iscsi_create_auth_access_group/', login_required(iscsi_create_auth_access_group)),
-    url(r'^iscsi_create_auth_access_user/', login_required(iscsi_create_auth_access_user)),
-    url(r'^iscsi_view_auth_access_group/', login_required(iscsi_view_auth_access_group)),
-    url(r'^iscsi_delete_auth_access_group/', login_required(iscsi_delete_auth_access_group)),
-    url(r'^iscsi_delete_auth_access_user/', login_required(iscsi_delete_auth_access_user)),
-    url(r'^iscsi_edit_auth_access_user/', login_required(iscsi_edit_auth_access_user)),
-    url(r'^iscsi_edit_target_global_config/', login_required(iscsi_edit_target_global_config)),
-    url(r'^iscsi_view_target_global_config/', login_required(iscsi_view_target_global_config)),
     url(r'^display_shares/', login_required(display_shares)),
     url(r'^view_local_users/', login_required(view_local_users)),
     url(r'^create_local_user/', login_required(create_local_user)),
@@ -115,3 +96,24 @@ urlpatterns = patterns('',
     #url(r'^view_samba_share/', login_required(view_samba_share)),
 )
 
+'''
+    url(r'^iscsi_display_targets/', login_required(iscsi_display_targets)),
+    url(r'^iscsi_view_target/', login_required(iscsi_view_target)),
+    url(r'^iscsi_create_target/', login_required(iscsi_create_target)),
+    url(r'^iscsi_edit_target/', login_required(iscsi_edit_target)),
+    url(r'^iscsi_delete_target/', login_required(iscsi_delete_target)),
+    url(r'^iscsi_display_initiators/', login_required(iscsi_display_initiators)),
+    url(r'^iscsi_view_initiator/', login_required(iscsi_view_initiator)),
+    url(r'^iscsi_create_initiator/', login_required(iscsi_create_initiator)),
+    url(r'^iscsi_delete_initiator/', login_required(iscsi_delete_initiator)),
+    url(r'^iscsi_edit_initiator/', login_required(iscsi_edit_initiator)),
+    url(r'^iscsi_display_auth_access_group_list/', login_required(iscsi_display_auth_access_group_list)),
+    url(r'^iscsi_create_auth_access_group/', login_required(iscsi_create_auth_access_group)),
+    url(r'^iscsi_create_auth_access_user/', login_required(iscsi_create_auth_access_user)),
+    url(r'^iscsi_view_auth_access_group/', login_required(iscsi_view_auth_access_group)),
+    url(r'^iscsi_delete_auth_access_group/', login_required(iscsi_delete_auth_access_group)),
+    url(r'^iscsi_delete_auth_access_user/', login_required(iscsi_delete_auth_access_user)),
+    url(r'^iscsi_edit_auth_access_user/', login_required(iscsi_edit_auth_access_user)),
+    url(r'^iscsi_edit_target_global_config/', login_required(iscsi_edit_target_global_config)),
+    url(r'^iscsi_view_target_global_config/', login_required(iscsi_view_target_global_config)),
+'''

@@ -1,24 +1,15 @@
 
-import gluster_commands
 
 import re, random, sys, os
+
 import fractalio
-from fractalio import filesize, command, networking, xml_parse
+from fractalio import filesize, command, networking, xml_parse, common
 
-from django.conf import settings
-path = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, '%s/../..'%path)
-os.environ['DJANGO_SETTINGS_MODULE'] = 'integral_view.settings'
-production = settings.PRODUCTION
+import gluster_commands
 
+production = common.is_production()
 
 def get_volume_info_all():
-
-  production = True
-  try:
-    production =  settings.PRODUCTION
-  except Exception, e:
-    production = False
 
   vl = _get_volume_list(production)
   for v in vl:
@@ -31,21 +22,33 @@ def get_volume_info_all():
 
 def _get_volume_list(production):
 
-  d = xml_parse.run_command_get_xml_output_tree("/usr/sbin/gluster volume info all --xml", "%s/b.xml"%settings.BASE_FILE_PATH, production)
-  if "error_list" in d:
-    raise Exception("Error getting volume info : %s"%(", ".join(d["error_list"])))
+  d = gluster_commands.run_gluster_command("/usr/sbin/gluster volume info all --xml", "%s/b.xml"%common.get_devel_files_path(), "Getting volume info")
+  if not d or  "op_status" not in d or ("op_status" in d) and d["op_status"]["op_ret"] != 0:
+    err = "Error getting the volume infomation : "
+    if d:
+      if "error_list" in d:
+        err += " ".join(d["error_list"])
+      if "op_status" in d and "op_errstr" in d["op_status"]:
+        if d["op_status"]["op_errstr"]:
+          err += d["op_status"]["op_errstr"]
+    raise Exception(err)
   via_tree = d["tree"]
-  admin_vol_name = None
-  if settings and settings.ADMIN_VOL_NAME:
-    admin_vol_name = settings.ADMIN_VOL_NAME
+  admin_vol_name = common.get_fractalio_admin_volume_name()
   vl = xml_parse.get_volume_list(via_tree, admin_vol_name)
 
   for vol in vl:
     if vol["status"] != 1:
       continue      
-    d = xml_parse.run_command_get_xml_output_tree("/usr/local/sbin/gluster volume status %s detail --xml"%vol["name"], "%s/volume_status_detail.xml"%settings.BASE_FILE_PATH, production)
-    if "error_list" in d:
-      raise Exception("Error getting volume status details : %s"%(", ".join(d["error_list"])))
+    d = gluster_commands.run_gluster_command("/usr/sbin/gluster volume status %s detail --xml"%vol["name"], "%s/volume_status_detail.xml"%common.get_devel_files_path(), "Getting volume status details")
+    if not d or  "op_status" not in d or ("op_status" in d) and d["op_status"]["op_ret"] != 0:
+      err = "Error getting the volume status details: "
+      if d:
+        if "error_list" in d:
+          err += " ".join(d["error_list"])
+        if "op_status" in d and "op_errstr" in d["op_status"]:
+          if d["op_status"]["op_errstr"]:
+            err += d["op_status"]["op_errstr"]
+      raise Exception(err)
     vsd_tree = d["tree"]
     bd, num_up, num_down = xml_parse.get_brick_status(vsd_tree)
     vol["brick_status"] = bd
@@ -112,9 +115,16 @@ def _get_volume_list(production):
 
 
     # Now get the status of the self heal and NFS servers for each node
-    d = xml_parse.run_command_get_xml_output_tree("/usr/local/sbin/gluster volume status %s --xml"%vol["name"], "%s/volume_status.xml"%settings.BASE_FILE_PATH, production)
-    if "error_list" in d:
-      raise Exception("Error getting volume status information : %s"%(", ".join(d["error_list"])))
+    d = gluster_commands.run_gluster_command("/usr/sbin/gluster volume status %s --xml"%vol["name"], "%s/volume_status.xml"%common.get_devel_files_path(), "Getting volume status")
+    if not d or  "op_status" not in d or ("op_status" in d) and d["op_status"]["op_ret"] != 0:
+      err = "Error getting the volume status : "
+      if d:
+        if "error_list" in d:
+          err += " ".join(d["error_list"])
+        if "op_status" in d and "op_errstr" in d["op_status"]:
+          if d["op_status"]["op_errstr"]:
+            err += d["op_status"]["op_errstr"]
+      raise Exception(err)
     vs_tree = d["tree"]
     vol = xml_parse.get_volume_process_status(vs_tree, vol)
 
@@ -166,7 +176,7 @@ def get_volumes_on_node(hostname, vil):
 def get_snapshots(vol_name):
 
   prod_command = 'gluster snapshot info volume %s  --xml'%vol_name
-  dummy_command = "%s/view_snapshots.xml"%settings.BASE_FILE_PATH
+  dummy_command = "%s/view_snapshots.xml"%common.get_devel_files_path()
   d = gluster_commands.run_gluster_command(prod_command, dummy_command, "Starting volume %s"%vol_name)
   l = None
   if d:
@@ -271,7 +281,7 @@ def set_volume_options(cd):
 def _set_volume_option(vol_name, option, value, display_command):
   prod_command = 'gluster volume set %s %s %s --xml'%(vol_name, option, value)
   #dummy_command = "/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/utils/test/set_vol_options.xml"
-  dummy_command = "%s/set_vol_options.xml"%settings.BASE_FILE_PATH
+  dummy_command = "%s/set_vol_options.xml"%common.get_devel_files_path()
   d = run_gluster_command(prod_command, dummy_command, display_command)
   return d
 

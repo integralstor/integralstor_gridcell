@@ -6,17 +6,17 @@ import django.template, django
 from django.conf import settings
 
 import fractalio
-from fractalio import command, db
+from fractalio import command, db, common, batch, audit, alerts, ntp, mail, gluster_commands, volume_info, system_info
+
+from integral_view.utils import iv_logging
 
 import integral_view
-from integral_view.utils import audit, batch, alerts, ntp, mail, gluster_commands, iv_logging
-from integral_view.utils import volume_info, system_info
-import logging
 from integral_view.iscsi import iscsi
 from integral_view.forms import common_forms
 from integral_view.samba import samba_settings
 from glusterfs import gfapi
 
+production = fractalio.common.is_production()
 
 def get_gluster_dir_list(vol,path):
   path = path
@@ -65,15 +65,12 @@ def show(request, page, info = None):
         else:
           raise Exception ("No volume or Directory Specified")
 
-        if settings.PRODUCTION:
-          path_base = "/tmp/vol/"
+        if production:
           hostname = "127.0.0.1"
-          #path_base = "/"
         else:
-          path_base = "vol1"
-          hostname = "fractal-c92e.fractal.lan"
+          hostname = "192.168.1.244"
 
-        vol = gfapi.Volume(hostname, path_base)
+        vol = gfapi.Volume(hostname, vol_name)
         vol_mnt = vol.mount()
         if vol_mnt ==0:
           dirs = get_gluster_dir_list(vol,dir_name)
@@ -160,7 +157,7 @@ def show(request, page, info = None):
 
       #Load the list of entries from all the files in the start and process directories
       try :
-        file_list = batch.load_all_files("in_process")
+        file_list = batch.load_all_files()
       except Exception, e:
         return_dict["error"] = "Error loading batch files: %s"%e
       else:
@@ -241,32 +238,6 @@ def show(request, page, info = None):
       return_dict['node'] = si[info]
       return_dict['vol_list'] = vol_list
 
-    elif page=="refresh_status":
-      if "file_name" not in request.REQUEST:
-        return_dict['error'] = 'Invalid request. No status file specified'
-        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
-      file_name = request.REQUEST["file_name"]
-      if not os.path.isfile("%s/status/%s"%(settings.BASE_FILE_PATH, file_name)):
-        return_dict['error'] = 'The requested status file does not exist'
-        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
-      o = ""
-      with open("%s/status/%s"%(settings.BASE_FILE_PATH, file_name), "r") as f:
-        l = f.readline()
-        #print l
-        while l:
-          tl = l.rstrip()
-          if tl == "==done==":
-            #print "done"
-            o += '<script type="text/javascript">'
-            o += 'window.done = 1;'
-            o+= '</script>'
-            break
-          else:
-            #print l
-            o += l
-            o += "<br>"
-          l = f.readline()
-      return django.http.HttpResponse(o)
 
     elif page=="manifest":
       #Basically read a generated manifest file and display the results.
@@ -275,7 +246,7 @@ def show(request, page, info = None):
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
       manifest = request.GET["manifest"]
       try :
-        with open("%s/manifest/%s"%(settings.BASE_FILE_PATH, manifest), "r") as f:
+        with open("%s/%s"%(fractalio.common.get_system_status_path(), manifest), "r") as f:
           nodes = json.load(f)
       except Exception, e:
         return_dict['error'] = 'Error loading the new configuratio : %s'%e
@@ -294,12 +265,12 @@ def show(request, page, info = None):
         id = int(request.GET['id'])
         l = iscsi.load_auth_access_users_info(id)
         if l:
-          str = "<b>Authorized access group users : </b>"
+          istr = "<b>Authorized access group users : </b>"
           for i in l:
-            str += i["user"]
-            str += ", "
+            istr += i["user"]
+            istr += ", "
           #return django.http.HttpResponse("<b>Authorized access details </b><br>User : %s, Peer user : %s"%(d["user"],d["peer_user"] ))
-          return django.http.HttpResponse("%s"%str)
+          return django.http.HttpResponse("%s"%istr)
         else:
           return_dict['error'] = 'No auth access information for the id specified'
           return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
@@ -416,7 +387,7 @@ def refresh_alerts(request, random=None):
     #this command will insert or update the row value if the row with the user exists.
     cmd = ["INSERT OR REPLACE INTO admin_alerts (user, last_refresh_time) values (?,?);", (request.user.username, datetime.now())]
     cmd_list.append(cmd)
-    test = db.execute_iud("%s/integral_view_config.db"%settings.DB_LOCATION, cmd_list)
+    test = db.execute_iud("%s/integral_view_config.db"%fractalio.common.db_path(), cmd_list)
     if alerts.new_alerts():
       import json
       new_alerts = json.dumps([dict(alert=pn) for pn in alerts.load_alerts()])
@@ -482,7 +453,7 @@ def configure_ntp_settings(request):
           temp.write("server %s iburst\n"%server)
         temp.flush()
         client = salt.client.LocalClient()
-        client.cmd('role:master', 'cp.get_file', ["salt://tmp/%s"%os.path.basename(temp.name), '%s/ntp.conf'%settings.NTP_CONF_PATH])
+        client.cmd('role:master', 'cp.get_file', ["salt://tmp/%s"%os.path.basename(temp.name), '%s/ntp.conf'%fractalio.common.get_ntp_conf_path()])
         client.cmd('role:master', 'service.restart', ["ntpd"])
         #shutil.copyfile(temp.name, '%s/ntp.conf'%settings.NTP_CONF_PATH)
         temp.close()
@@ -494,7 +465,7 @@ def configure_ntp_settings(request):
         temp.write("server 127.127.1.0\n")
         temp.write("fudge 127.127.1.0 stratum 10\n")
         temp.flush()
-        client.cmd('role:secondary', 'cp.get_file', ["salt://tmp/%s"%os.path.basename(temp.name), '%s/ntp.conf'%settings.NTP_CONF_PATH])
+        client.cmd('role:secondary', 'cp.get_file', ["salt://tmp/%s"%os.path.basename(temp.name), '%s/ntp.conf'%fractalio.common.get_ntp_conf_path()])
         client.cmd('role:secondary', 'service.restart', ["ntpd"])
         #shutil.copyfile(temp.name, '/tmp/ntp.conf')
 
@@ -555,7 +526,7 @@ def reset_to_factory_defaults(request):
 
     #Reset the ntp config file
     try :
-      shutil.copyfile("%s/factory_defaults/ntp.conf"%settings.BASE_CONF_PATH, '%s/ntp.conf'%settings.NTP_CONF_PATH)
+      shutil.copyfile("%s/factory_defaults/ntp.conf"%fractalio.common.get_factory_defaults_path(), '%s/ntp.conf'%fractalio.common.get_ntp_conf_path())
       pass
     except Exception, e:
       return_dict["error"] = "Error reseting NTP configuration : %s"%e
@@ -599,16 +570,16 @@ def reset_to_factory_defaults(request):
 
     #Reset the alerts file
     try :
-      shutil.copyfile("%s/factory_defaults/alerts.log"%settings.BASE_CONF_PATH, '%s/alerts.log'%settings.ALERTS_DIR)
+      shutil.copyfile("%s/factory_defaults/alerts.log"%fractalio.common.get_factory_defaults_path(), '%s/alerts.log'%fractalio.common.get_alerts_path())
     except Exception, e:
       return_dict["error"] = "Error reseting alerts : %s."%e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
     #Reset all batch jobs
     try :
-      l = os.listdir("%s/in_process"%settings.BATCH_COMMANDS_DIR)
+      l = os.listdir("%s"%fractalio.common.get_batch_files_path())
       for fname in l:
-        os.remove("%s/in_process/%s"%(settings.BATCH_COMMANDS_DIR, fname))
+        os.remove("%s/%s"%(fractalio.common.get_batch_files_path(), fname))
     except Exception, e:
       return_dict["error"] = "Error removing scheduled batch jobs : %s."%e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
@@ -643,7 +614,7 @@ def hardware_scan(request):
   return_dict = {}
   url = 'add_nodes_form.html'
   local = salt.client.LocalClient()
-  opts = salt.config.master_config(settings.SALT_MASTER_CONFIG)
+  opts = salt.config.master_config(fractalio.common.get_salt_master_config())
   iv_logging.info("Hardware scan initiated")
   wheel = salt.wheel.Wheel(opts)
   keys = wheel.call_func('key.list_all')
@@ -699,7 +670,7 @@ def hardware_scan(request):
   return django.shortcuts.render_to_response(url, return_dict, context_instance = django.template.context.RequestContext(request))
 
 def _regenerate_manifest():
-  cmd_to_execute = "/etc/generate_manifest.py %s"%settings.CONFIG_DIR
+  cmd_to_execute = "/etc/fractalio/generate_manifest.py %s"%fractalio.common.get_system_status_path()
   return (command.execute_with_rc(cmd_to_execute))
 
 def internal_audit(request):
@@ -778,4 +749,30 @@ def require_admin_login(view):
       return django.http.HttpResponseRedirect('/login')
 
   return new_view
+    elif page=="refresh_status":
+      if "file_name" not in request.REQUEST:
+        return_dict['error'] = 'Invalid request. No status file specified'
+        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
+      file_name = request.REQUEST["file_name"]
+      if not os.path.isfile("%s/status/%s"%(settings.BASE_FILE_PATH, file_name)):
+        return_dict['error'] = 'The requested status file does not exist'
+        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
+      o = ""
+      with open("%s/status/%s"%(settings.BASE_FILE_PATH, file_name), "r") as f:
+        l = f.readline()
+        #print l
+        while l:
+          tl = l.rstrip()
+          if tl == "==done==":
+            #print "done"
+            o += '<script type="text/javascript">'
+            o += 'window.done = 1;'
+            o+= '</script>'
+            break
+          else:
+            #print l
+            o += l
+            o += "<br>"
+          l = f.readline()
+      return django.http.HttpResponse(o)
 '''

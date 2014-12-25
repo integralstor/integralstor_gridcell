@@ -1,25 +1,16 @@
 import os, re, socket, json, sys, types
 
-from django.conf import settings
+import fractalio
+from fractalio import common
 
-#Our components
-#import integral_view
-#import integral_view.utils
-#import integral_view.utils.volume_info
 import volume_info, gluster_commands
-import types
 
-path = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, '%s/../..'%path)
-os.environ['DJANGO_SETTINGS_MODULE']='integral_view.settings'
-BASEPATH = settings.BATCH_COMMANDS_DIR
-production = settings.PRODUCTION
-
+system_status_path = common.get_system_status_path()
 
 def load_system_config():
 
-  msfn = "%s/master.status"%settings.CONFIG_DIR
-  mmfn = "%s/master.manifest"%settings.CONFIG_DIR
+  msfn = "%s/master.status"%system_status_path
+  mmfn = "%s/master.manifest"%system_status_path
 
   with open(msfn, "r") as f:
     ms_nodes = json.load(f)
@@ -125,11 +116,12 @@ def get_available_node_list(si):
 
 def main():
 
-  print get_chassis_components_status()
+  #print get_chassis_components_status()
   #print load_system_config()["host1"]
   #sl = load_system_config()
   #print "System config :"
   #print sl
+  pass
 
 
 if __name__ == "__main__":
