@@ -79,6 +79,7 @@ def _get_volume_list(production):
       #print replica_set_status
       if num_up == 0:
         vol["data_access_status"] = "Volume down. No data accessible!"
+        vol["data_access_status_code"] = -1
       else:
         if max(replica_set_status) == vol["replica_count"]:
           vol["data_access_status"] = "Some data inaccessible"
