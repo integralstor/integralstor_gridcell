@@ -31,30 +31,22 @@
 </div>
 
 
-<table class="table table-bordered table-condensed table-hover datatable" style="width:500px">
-  <thead>
-    <tr>
-      <th>
-        Node name
-      </th>
-      <th>
-        Details  
-      </th>
-    </tr>
-  </thead>
-<tbody>
+<div class="row margin-left-10">
+
 {% for hostname, v in system_info.items %}
-  <tr>
-    <td>
-      {{hostname}}
-    </td>
-    <td>
-      <a href="/show/node_info/{{hostname}}/?from=system_config" role="button" class="btn btn-default">Details.. </a>
-    </td>
-  </tr>
+  <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
+     <div class="box box-success">
+        <div class="box-header">
+            <h3 class="box-title">{{hostname}}</h3>
+        </div>
+        <div class="box-body">
+            <a href="/show/node_info/{{hostname}}/?from=system_config" role="button" class="btn btn-default">Details.. </a>
+        </div><!-- /.box-body -->
+    </div>
+  </div>
 {%endfor%}
-</tbody>
-</table>
+</div>
+
 
 {%endblock%}
 {%block help_header%}
