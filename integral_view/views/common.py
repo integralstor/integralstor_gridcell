@@ -551,7 +551,10 @@ def flag_node(request):
   import salt.client
 
   client = salt.client.LocalClient()
-  blink_time = 20 #default = 255
+  if production:
+    blink_time = 255
+  else:
+    blink_time = 20 #default = 255
   ret = client.cmd(node_name,'cmd.run',['ipmitool chassis identify %s' %(blink_time)])
   print ret
   if ret[node_name] == 'Chassis identify interval: %s seconds'%(blink_time):
