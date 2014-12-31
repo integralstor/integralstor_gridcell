@@ -1,8 +1,17 @@
 {% extends 'logged_in_base.html' %}
 
-{%block contents%}
 
-<span id="topic-text"> Scan for new hardware - Result </span>
+{%block page-header%}
+  Admin
+  <small>
+      Admin
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Scan New Nodes -- Results
+  </small>
+{%endblock%}
+
+
+{%block contents%}
 
 {% if errors %}
 <p id="p-warning-text">{{errors}}</p>
@@ -20,10 +29,10 @@ Result
 {% for d in success %}
 <tr>
 <td>
-{d}
+{{d}}
 </td>
 <td>
-Added successfully
+<span class="bigger-300"><i class="fa fa-check-circle-o green"></i></span>
 </td>
 </tr>
 {%endfor%}
@@ -33,19 +42,20 @@ Added successfully
 {d}
 </td>
 <td>
-Failed to add
+<span class="bigger-300"><i class="fa fa-times-circle-o red"></i></span>
+
 </td>
 </tr>
 {%endfor%}
 </table>
 
-
-
-
 {%endblock%}
+
+
 {%block help_header%}
 Add nodes results help
 {%endblock%}
+
 {%block help_body%}
 Help aboout adding nodes - update
 {%endblock%}

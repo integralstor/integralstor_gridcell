@@ -4,133 +4,291 @@
 {%endblock%}
 
 {%block page-header%}
-  Node Status
-{%endblock%}
+  Platform
+    <small>
+      Platform 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Node Status
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      {{node_name}}
+  </small>
+ {%endblock%}
 
 {%block contents%}
-
-
-<p id="p-instruction-text"> This page will autorefresh every 30 seconds to display updates.</p>
-
-{% if node.node_status != -1 %}
-<table class="table table-bordered table-hover" style="width:800px">
+<table class="table table-bordered table-striped table-hover" style="width:60%">
 <tr>
   <th>
-    Component Type
+    CPU
   </th>
+  <td>
+    {{node.cpu_model}}
+  </td>
+</tr>
+<tr>
   <th>
-    Component Detail
+    Memory
   </th>
-  <th>
-    Status
-  </th>
-</tr>
-<tr>
-  <td colspan=3>
-   <b>CPU</b>
+  <td>
+    {{ node.memory.mem_total.value}} {{node.memory.mem_total.unit}}
   </td>
 </tr>
-<tr>
-  <td>
-    &nbsp; 
-  </td>
-  <td>
-    Status
-  </td>
-  <td>
-    {{node.cpu_status.status}}
-  </td>
-</tr>
-<tr>
-  <td>
-    &nbsp; 
-  </td>
-  <td>
-    Temperature
-  </td>
-  <td>
-    {{node.cpu_status.temp}}
-  </td>
-</tr>
-<tr>
-  <td>
-    &nbsp; 
-  </td>
-  <td>
-    Load averages
-  </td>
-  <td>
-    15 minute average : {{node.load_avg.15_min}}<br>5 minute average : {{node.load_avg.5_min}}<br> 1 minute average : {{node.load_avg.1_min}}
-  </td>
-</tr>
-<tr>
-  <td colspan=3>
-   <b>System</b>
-  </td>
-</tr>
-<tr>
-  <td>
-    &nbsp; 
-  </td>
-  <td>
-    Temperature
-  </td>
-  <td>
-    {{node.temp_status.temp}}
-  </td>
-</tr>
-<tr>
-  <td colspan=3>
-   <b>Disks</b>
-  </td>
-</tr>
-{% for disk_id, disk in  node.disks.items%}
-<tr>
-  <td>
-  &nbsp;
-  </td>
-  <td>
-    Serial number : {{disk_id}}, Name : {{disk.name}}
-  </td>
-  <td>
-  {{disk.status}}
-  </td>
-</tr>
-{%endfor%}
-<tr>
-  <td colspan=3>
-   <b>Interfaces</b>
-  </td>
-</tr>
-{% for if_name, interface in  node.interfaces.items%}
-<tr>
-  <td>
-  &nbsp;
-  </td>
-  <td>
-  Interface name : {{if_name}}
-  <td>
-  {{interface.status}}
-  </td>
-</tr>
-{%endfor%}
-{% for k, v in  node.fan_status.items%}
-<tr>
-  <td>
-   Fan {{k}}
-  </td>
-  <td>
-  {{v.status}}
-  </td>
-</tr>
-{%endfor%}
 </table>
+{% if node.node_status != -1 %}
+  <table class="table table-bordered table-hover table-responsive" style="width:800px">
+  <thead>
+    <th colspan=1>
+      Component Type
+    </th>
+    <th colspan=3>
+      Component Detail
+    </th>
+    <th colspan=5>
+      Status
+    </th>
+  </thead>
+  <tr>
+    <td colspan=8>
+     <b>CPU</b>
+    </td>
+  </tr>
+  <tr>
+    <td colspan=1>
+      &nbsp; 
+    </td>
+    <td colspan=3>
+      Status
+    </td>
+    <td colspan=5>
+      {{node.cpu_status.status}}
+    </td>
+  </tr>
+  <tr>
+    <td colspan=1>
+      &nbsp; 
+    </td>
+    <td colspan=3>
+      Temperature
+    </td>
+    <td colspan=5>
+      {{node.cpu_status.temp}}
+    </td>
+  </tr>
+  <tr>
+    <td colspan=1>
+      &nbsp; 
+    </td>
+    <td colspan=3>
+      Load averages
+    </td>
+    <td colspan=5>
+      15 minute average : {{node.load_avg.15_min}}<br>5 minute average : {{node.load_avg.5_min}}<br> 1 minute average : {{node.load_avg.1_min}}
+    </td>
+  </tr>
+  <tr>
+    <td colspan=8>
+     <b>System</b>
+    </td>
+  </tr>
+  <tr>
+    <td colspan=1>
+      &nbsp; 
+    </td>
+    <td colspan=3>
+      Temperature
+    </td>
+    <td colspan=5>
+      {{node.temp_status.temp}}
+    </td>
+  </tr>
+  <tr>
+    <td colspan=7>
+     <b>Interfaces</b>
+    </td>
+  </tr>
+  {% for if_name, interface in  node.interfaces.items%}
+  <tr>
+    <td colspan=1>
+    &nbsp;
+    </td>
+    <td colspan=3>
+    Interface name : {{if_name}}
+    <td colspan=5>
+    {{interface.status}}
+    </td>
+  </tr>
+  {%endfor%}
+  {% for k, v in  node.fan_status.items%}
+  <tr>
+    <td>
+     Fan {{k}}
+    </td>
+    <td>
+    {{v.status}}
+    </td>
+  </tr>
+  {%endfor%}
+
+  <tr>
+    <td colspan=7>
+     <b>ZFS Status</b>
+    </td>
+  </tr>
+  {% for pool in node.pools %}
+    <tr>
+      <td colspan=1>
+      &nbsp;
+      </td>
+      <td colspan=3>
+        ZFS Pool name
+      </td>
+      <td colspan=5>
+        {{pool.config.pool_status.name}}
+      </td>
+    </tr>
+    <tr>
+      <td colspan=1>
+      &nbsp;
+      </td>
+      <td colspan=3>
+        ZFS Pool type
+      </td>
+      <td colspan=5>
+        {%if pool.config.type == 'normal' %} Non-RAID {%elif pool.config.type == 'raidz1'%} RAID-5 {%endif%}
+      </td>
+    </tr>
+    <tr>
+      <td colspan=1>
+        &nbsp;
+      </td>
+      <td colspan=3>
+        ZFS Pool status
+      </td>
+      <td colspan=5>
+        {{pool.state}} ({{pool.config.pool_status.read}} read errors, {{pool.config.pool_status.write}} write errors, {{pool.config.pool_status.cksum}} checksum errors)
+      </td>
+    </tr>
+    {% if 'zil_status' in pool.config %}
+    <tr>
+      <td colspan=1>
+      &nbsp;
+      </td>
+      <td colspan=3>
+        ZFS Write cache status
+      </td>
+      <td colspan=5>
+         {{pool.config.zil_status.state}} ({{pool.config.zil_status.read}} read errors, {{pool.config.zil_status.write}} write errors, {{pool.config.zil_status.cksum}} checksum errors)
+      </td>
+    </tr>
+    {%endif%}
+    {% if pool.type == 'raidz1' %}
+    <tr>
+      <td colspan=1>
+      &nbsp;
+      </td>
+      <td colspan=3>
+        ZFS Pool RAID status
+      </td>
+      <td colspan=5>
+         {{pool.raid_or_mirror_status.state}} ({{pool.raid_or_mirror_status.read}} read errors, {{pool.raid_or_mirror_status.write}} write errors, {{pool.raid_or_mirror_status.cksum}} checksum errors)
+      </td>
+    </tr>
+    {%endif%}
+    <tr>
+      <td colspan=1>
+      &nbsp;
+      </td>
+      <td colspan=3>
+        ZFS Pool scan status
+      </td>
+      <td colspan=5>
+        {%for scan in pool.scan %}{{scan}}{%endfor%}
+      </td>
+    </tr>
+    <tr>
+      <td colspan=1>
+      &nbsp;
+      </td>
+      <td colspan=3>
+        ZFS Pool errors
+      </td>
+      <td colspan=5>
+        {%for error in pool.errors %}{{error}}{%endfor%}
+      </td>
+    </tr>
+    <tr>
+      <td colspan=8>
+       <b>Disks</b>
+      </td>
+    </tr>
+    <tr>
+      <th>
+        Disk serial number
+      </th>
+      <th>
+        Disk state
+      </th>
+      <th>
+        Disk Read errors
+      </th>
+      <th>
+        Disk write errors
+      </th>
+      <th>
+        Disk checksum errors
+      </th>
+      <th>
+        Action
+      </th>
+      <th>
+        S.M.A.R.T status
+      </th>
+    </tr>
+    {% for component in pool.config.components %}
+      <tr>
+        <td>
+          {{component.name}}
+        </td>
+        <td>
+          {{component.state}}
+        </td>
+        <td>
+          {{component.read}}
+        </td>
+        <td>
+          {{component.write}}
+        </td>
+        <td>
+          {{component.cksum}}
+        </td>
+        <td>
+          <form method="POST" action="/replace_disk/">
+            <input type="hidden" name="node" value="{{hostname}}">
+            <input type="hidden" name="serial_number" value="{{serial_number}}">
+            <input type="hidden" name="step" value="offline_disk">
+            {% if disk.status != 'PASSED' %}
+              <button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');"> Replace (swap out) this disk </button>
+              {%else%}
+              <button type="submit" class="btn " onClick ="$('#processing').modal('show');"> Replace (swap out) this disk </button>
+            {%endif%}
+          </form>
+        </td>
+        {% for serial_number, disk in node.disks.items %}
+          {%if disk.id == component.name%}
+            <td class="center">
+              {{disk.status|title}}
+            </td>
+          {%endif%}
+        {%endfor%}
+      </tr>
+    {%endfor%}
+  {%endfor%}
+  </table>
+
 {%else%}
-Node is down
+  Node is down
 {%endif%}
-{%if frm%}
-<a href="/show/{{frm}}/" role="button" class="btn btn-default"><< Back </a> &nbsp;&nbsp;
-{%endif%}
+
+<a href="/show/system_status/" role="button" class="btn btn-default"><< Back </a> &nbsp;&nbsp;
 <a href="/flag_node?node={{node_name}}" role="button" class="btn btn-default">Activate node identification LED </a> 
 <br><br>
 <p> Activating the node identification LED will cause a blue LED on that node to blink for 4 minutes, to help you physically identify this node.</p>

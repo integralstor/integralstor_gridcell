@@ -293,11 +293,7 @@ def show(request, page, info = None):
       template = "view_system_config.html"
 
     elif page == "system_status":
-
-      template = "view_system_status.html"
-
-    elif page == "disk_status":
-
+     #Disk Status page and system status page has been integrated.
      #assert False
 
       #Get the disk status
@@ -662,7 +658,11 @@ def reset_to_factory_defaults(request):
 def hardware_scan(request):
 
   return_dict = {}
-  url = 'add_nodes_form.html'
+  first_time = True
+  if first_time:
+    url = 'first_time_login.html'
+  else:
+    url = 'add_nodes_form.html'
   local = salt.client.LocalClient()
   opts = salt.config.master_config(fractalio.common.get_salt_master_config())
   iv_logging.info("Hardware scan initiated")
@@ -682,46 +682,63 @@ def hardware_scan(request):
     if form.is_valid():
       # User has chosed some nodes to be added so add them.
       cd = form.cleaned_data
-      pending_minions = cd["nodes"]
-      nodes = {}
-      success = []
-      failed = []
-      if pending_minions:
-        for m in pending_minions:
-          #print "Accepting %s"%m
-          if wheel.call_func('key.accept', match=('%s'%m,)):
-            r = client.cmd(m, 'grains.get')
-            if r:
-              if 'bond0' in r[m] and r[m]['bond0']:
-                ip = r[m]['bond0'][0]
-            if ip:
-              r1 = client.cmd('role:master', 'hosts.set_host', [ip, m])
-              if not r1:
-                errors = "Error adding the DNS information for %s"%m
-            else:
-                errors = "Error adding the DNS information for %s. No IP address information found."%m
-            audit.audit("hardware_scan_node_added", "Added a new node %s to the grid"%m, request.META["REMOTE_ADDR"])
-            success.append(m)
-          else:
-            failed.append(m)
-      nodes["success"] = success
-      nodes["failed"] = failed
-      url = 'add_nodes_result.html'
-      ret, rc = _regenrate_manifest()
-      if rc != 0:
-        if errors:
-          errors += "Error regenerating the new configuration : "
-        else:
-          errors = "Error regenerating the new configuration : "
-        errors += ",".join(command.get_output_list(ret))
-        errors += ",".join(command.get_error_list(ret))
-        return_dict["errors"] = errors
+      success, failed, errors = add_hardwares(request.META["REMOTE_ADDR"],cd["nodes"])
+      if first_time:
+        return django.http.HttpResponseRedirect('/show/dashboard/')
+      else:
+        url = 'add_nodes_result.html'
+      return_dict["success"] = success
+      return_dict["failed"] = failed
+      return_dict["errors"] = errors
         
   return django.shortcuts.render_to_response(url, return_dict, context_instance = django.template.context.RequestContext(request))
 
+def add_hardwares(remote_addr,pending_minions):
+  client = salt.client.LocalClient()
+  opts = salt.config.master_config(fractalio.common.get_salt_master_config())
+  iv_logging.info("Hardware scan initiated")
+  wheel = salt.wheel.Wheel(opts)
+  success = []
+  failed = []
+  errors = None
+  ip = None
+  r = {}
+  if pending_minions:
+    for m in pending_minions:
+      #print "Accepting %s"%m
+      if wheel.call_func('key.accept', match=('%s'%m)):
+        command_to = 'salt %s saltutil.sync_all'%(m)
+        command.execute(command_to)
+        r = client.cmd(m, 'grains.items')
+        if r:
+          if 'ip_interfaces' in r[m] and r[m]['ip_interfaces']['bond0']:
+            ip = r[m]['ip_interfaces']['bond0'][0]
+        if ip:
+          r1 = client.cmd(m,'hosts.set_host', [ip, m])
+          if not r1:
+            errors = "Error adding the DNS information for %s"%m
+        else:
+            errors = "Error adding the DNS information for %s. No IP address information found."%m
+        audit.audit("hardware_scan_node_added", "Added a new node %s to the grid"%m,remote_addr )
+        success.append(m)
+      else:
+        failed.append(m)
+    ret, rc = _regenerate_manifest()
+    if rc != 0:
+      if errors:
+        errors += "Error regenerating the new configuration : "
+      else:
+        errors = "Error regenerating the new configuration : "
+      errors += ",".join(command.get_output_list(ret))
+      errors += ",".join(command.get_error_list(ret))
+
+  return (success, failed, errors)
+
 def _regenerate_manifest():
-  cmd_to_execute = "/etc/fractalio/generate_manifest.py %s"%fractalio.common.get_system_status_path()
-  return (command.execute_with_rc(cmd_to_execute))
+  manifest_command = "/opt/fractalio/monitoring/generate_manifest.py %s"%fractalio.common.get_system_status_path()
+  command.execute_with_rc(manifest_command)
+  status_command = "/opt/fractalio/monitoring/generate_status.py %s"%fractalio.common.get_system_status_path()
+  return (command.execute_with_rc(status_command))
 
 def internal_audit(request):
 

@@ -12,7 +12,7 @@
     <small>
       Platform 
       <i class="fa fa-angle-double-right smaller-80"></i>
-      Disk Status
+      Node Status
   </small>
  {%endblock%}
 {%block contents%}
@@ -40,7 +40,7 @@
             {%endif%}
           {%endfor%}
       </div>
-      <a href="/show/disk_status/?node_id={{hostname}}" class="small-box-footer">
+      <a href="/show/node_status/{{hostname}}" class="small-box-footer">
           <strong>More info</strong> <i class="fa fa-arrow-circle-right"></i>
       </a>
   </div>

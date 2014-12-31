@@ -1,5 +1,4 @@
 *.pyc
 *~
 audit.log
-integral_view_auth.db
-
+*.db
