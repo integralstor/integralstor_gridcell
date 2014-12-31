@@ -288,11 +288,42 @@
   Node is down
 {%endif%}
 
-<a href="/show/system_status/" role="button" class="btn btn-default"><< Back </a> &nbsp;&nbsp;
-<a href="/flag_node?node={{node_name}}" role="button" class="btn btn-default">Activate node identification LED </a> 
-<br><br>
-<p> Activating the node identification LED will cause a blue LED on that node to blink for 4 minutes, to help you physically identify this node.</p>
+<div id="message" style="display:none; width:90%;font-size:16px;">  
+  <div class="alert alert-dismissable">
+      <i class="fa fa-check"></i>
+      <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+      <div id="message_content">
+        
+      </div>
+  </div>
+</div>
 
+<a href="/show/system_status/" role="button" class="btn btn-warning"> 
+  <i class="fa fa-arrow-circle-left"></i>  Back
+</a> &nbsp;&nbsp;
+<a role="button" class="btn btn-info" id="activate_led">Activate node identification LED </a> 
+<br><br>
+<p class="text-green"> Activating the node identification LED will cause a blue LED on that node to blink for 4 minutes, to help you physically identify this node.</p>
+
+<script>
+  $("#activate_led").click(function(){
+    $.ajax({
+      type : 'GET',
+      url :"/flag_node?node={{node_name}}",
+      data : {},
+      success : function(){
+        $(".alert").addClass("alert-success")
+        $("#message_content").html('<strong>Success !</strong> LED is blinking on the node.')
+        $("#message").show();
+      },
+      error : function(){
+        $(".alert").addClass("alert-danger")
+        $("#message_content").html('<strong>Error !</strong> Plese try again. Something just went  off .')
+        $("#message").show();
+      }
+    });
+  });
+</script>
 {%endblock%}
 {%block help_header%}
 Node status help

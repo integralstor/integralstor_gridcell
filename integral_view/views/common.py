@@ -15,6 +15,7 @@ from integral_view.iscsi import iscsi
 from integral_view.forms import common_forms
 from integral_view.samba import samba_settings
 from glusterfs import gfapi
+from django.contrib.auth.decorators import login_required
 
 production = fractalio.common.is_production()
 
@@ -36,7 +37,8 @@ def get_gluster_dir_list(vol,path):
       #get_dir_list(vol,path+d+"/")
   return dir_dict_list
 
-    
+
+@login_required    
 def show(request, page, info = None):
 
     assert request.method == 'GET'
@@ -443,6 +445,7 @@ def refresh_alerts(request, random=None):
       message = "View alerts"
       return django.http.HttpResponse("No New Alerts")
 
+@login_required
 def raise_alert(request):
 
   return_dict = {}
@@ -462,7 +465,7 @@ def raise_alert(request):
     return django.shortcuts.render_to_response(template, return_dict, context_instance=django.template.context.RequestContext(request))
 
     
-
+@login_required
 def configure_ntp_settings(request):
 
   return_dict = {}
@@ -533,7 +536,9 @@ def configure_ntp_settings(request):
       url = "edit_ntp_settings.html"
   return_dict["form"] = form
   return django.shortcuts.render_to_response(url, return_dict, context_instance = django.template.context.RequestContext(request))
-      
+
+@login_required 
+@django.views.decorators.csrf.csrf_exempt
 def flag_node(request):
 
   return_dict = {}
@@ -542,23 +547,33 @@ def flag_node(request):
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance = django.template.context.RequestContext(request))
 
   node_name = request.GET["node"]
-  str = "/opt/fractal/bin/client %s ipmitool chassis identify 255"%node_name
-  iv_logging.debug("Flagging node %s using %s"%(node_name,str))
-  r, rc = command.execute_with_rc("/opt/fractal/bin/client %s ipmitool chassis identify 255"%node_name)
-  err = ""
-  if rc == 0:
-    l = command.get_output_list(r)
-    if l:
-      for ln in l:
-        if ln.find("Success"):
-          return django.shortcuts.render_to_response("node_flagged.html", return_dict, context_instance = django.template.context.RequestContext(request))
-        err += ln
-        err += "."
-  else:
-    err = "Error contacting node. Node down?"
+  import os
+  import salt.client
 
-  return_dict["error"] = err
-  return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance = django.template.context.RequestContext(request))
+  client = salt.client.LocalClient()
+  blink_time = 20 #default = 255
+  ret = client.cmd(node_name,'cmd.run',['ipmitool chassis identify %s' %(blink_time)])
+  print ret
+  if ret[node_name] == 'Chassis identify interval: %s seconds'%(blink_time):
+    return django.shortcuts.render_to_response("node_flagged.html", return_dict, context_instance = django.template.context.RequestContext(request))
+  else:
+    return_dict["error"] = "err"
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance = django.template.context.RequestContext(request))
+  # str = "/opt/fractal/bin/client %s ipmitool chassis identify 255"%node_name
+  # iv_logging.debug("Flagging node %s using %s"%(node_name,str))
+  # r, rc = command.execute_with_rc("/opt/fractal/bin/client %s ipmitool chassis identify 255"%node_name)
+  # err = ""
+  # if rc == 0:
+  #   l = command.get_output_list(r)
+  #   if l:
+  #     for ln in l:
+  #       if ln.find("Success"):
+  #         return django.shortcuts.render_to_response("node_flagged.html", return_dict, context_instance = django.template.context.RequestContext(request))
+  #       err += ln
+  #       err += "."
+  # else:
+  #   err = "Error contacting node. Node down?"
+
     
 @admin_login_required
 def reset_to_factory_defaults(request):
@@ -655,6 +670,7 @@ def reset_to_factory_defaults(request):
       return_dict["error"] = "Error creating factory defaults reset batch file : %s."%e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
+@login_required
 def hardware_scan(request):
 
   return_dict = {}
@@ -740,6 +756,7 @@ def _regenerate_manifest():
   status_command = "/opt/fractalio/monitoring/generate_status.py %s"%fractalio.common.get_system_status_path()
   return (command.execute_with_rc(status_command))
 
+@login_required
 def internal_audit(request):
 
   response = django.http.HttpResponse()
