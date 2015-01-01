@@ -703,9 +703,39 @@ def hardware_scan(request):
       cd = form.cleaned_data
       success, failed, errors = add_hardwares(request.META["REMOTE_ADDR"],cd["nodes"])
       if first_time:
-        return django.http.HttpResponseRedirect('/show/dashboard/')
+        #The new manifest and status shd have been regenerated so now get the system status dict and use that to generate the admin volume
+        url = 'first_time_add_nodes_result.html'
+        do_not_proceed = True
+        si = system_info.load_system_config()
+        primary = None
+        secondary = None
+        for node_name, node in si.items():
+          if "roles" not in node:
+            continue
+          roles = node["roles"]
+          if "primary" in roles:
+            primary = node_name
+          elif "secondary" in roles:
+            secondary = node_name
+        if not primary:
+          errors += "Could not detect a primary node!"
+        if not secondary:
+          errors += "Could not detect a secondary node!"
+        if primary and secondary:
+          cmd = "gluster volume create %s repl 2 %s:/opt/fractalio/mnt/%s %s:/opt/fractalio/mnt/%s"%(fractalio.common.get_admin_vol_name(), primary, fractalio.common.get_admin_vol_name(), secondary, fractalio.common.get_admin_vol_name())
+          iv_logging.info("create admin volume command %s"%cmd)
+          d = gluster_commands.run_gluster_command(cmd, "%s/create_volume.xml"%fractalio.common.get_devel_files_path(), "Admin volume creation")
+
+          if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
+            do_not_proceed = False
+          else:
+            if "op_status" in d and "op_errstr" in d["op_status"]:
+              if d["op_status"]["op_errstr"]:
+               errors += "Error creating the administration volume : %s"%d["op_status"]["op_errstr"]
+        return_dict["do_not_proceed"] = do_not_proceed
       else:
         url = 'add_nodes_result.html'
+            
       return_dict["success"] = success
       return_dict["failed"] = failed
       return_dict["errors"] = errors
