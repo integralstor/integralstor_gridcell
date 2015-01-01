@@ -102,9 +102,7 @@ def remove_node(si, node):
 
 def add_nodes(anl):
 
-  sled_dict = {}
   ol = []
-  sled_list = []
   localhost = socket.gethostname().strip()
 
   # Create a dict with the keys being sleds and values being list of nodes in the sled in order to process by sled
