@@ -8,7 +8,7 @@ import pprint
 
 def _gen_manifest_info():
   local = salt.client.LocalClient()
-  data = local.cmd('*', 'grains.item', ['hwaddr_interfaces', 'mem_total', 'fqdn', 'cpu_model'])
+  data = local.cmd('*', 'grains.item', ['hwaddr_interfaces', 'mem_total', 'fqdn', 'cpu_model', 'roles'])
   dd = local.cmd('*', 'fractalio_status.disk_info')
   for node, diskinfo in dd.items():
     data[node]["disks"] = diskinfo

@@ -32,7 +32,7 @@ else:
   AUDIT_URL = "127.0.0.1:8000"
 
 CONFIG_DIR = '%s/config'%BASE_CONF_ROOT
-ADMIN_VOL_NAME = "fractal_admin_vol"
+ADMIN_VOL_NAME = "fractalio_admin_vol"
 
 if not PRODUCTION:
   KRB5_PATH = CONFIG_DIR

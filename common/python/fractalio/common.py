@@ -7,6 +7,9 @@ def is_production():
   else:
     return True
 
+def get_admin_vol_name():
+  return "fractalio_admin_vol"
+
 def get_salt_master_config():
   return '/etc/salt/master'
 
@@ -16,26 +19,23 @@ def get_krb5_conf_path():
 def get_smb_conf_path():
   return '/etc'
 
-def get_fractalio_admin_volume_name():
-  return "fractalio_admin_vol"
-
 def get_system_status_path():
-  return "/opt/fractalio/status"
+  return "%s/status"%get_admin_vol_name()
 
 def get_ntp_conf_path():
   return "/etc"
 
 def get_db_path():
-  return "/opt/fractalio/db"
+  return "%s/db"%get_admin_vol_name()
 
 def get_batch_files_path():
-  return "/opt/fractalio/batch_processes"
+  return "%s/batch_processes"%get_admin_vol_name()
 
 def get_devel_files_path():
   return "/opt/fractalio/devel/files"
 
 def get_audit_dir():
-  return "/opt/fractalio/logs/audit"
+  return "%s/logs/audit"%get_admin_vol_name()
 
 def get_audit_url_component():
   return "internal_audit"
@@ -44,7 +44,7 @@ def get_audit_url_host():
   return "integral_view.fractalio.lan"
 
 def get_alerts_dir():
-  return "/opt/fractalio/logs/alerts"
+  return "%s/logs/alerts"%get_admin_vol_name()
 
 def get_alerts_url_component():
   return "raise_alert"

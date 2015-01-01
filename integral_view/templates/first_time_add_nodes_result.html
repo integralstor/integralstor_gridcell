@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+
+{%block page-header%}
+  Admin
+  <small>
+      Admin
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Scan New Nodes -- Results
+  </small>
+{%endblock%}
+
+
+{%block contents%}
+
+{% if errors %}
+<p id="p-warning-text">The following errors were reported : {{errors}}</p>
+{%endif%}
+
+
+<table style="width:60%" class="table table-condensed table-bordered" >
+<tr>
+<th>
+Node
+</th>
+<th>
+Result
+</th>
+</tr>
+{% for d in success %}
+<tr>
+<td>
+{{d}}
+</td>
+<td>
+<span class="bigger-300"><i class="fa fa-check-circle-o green"></i></span>
+</td>
+</tr>
+{%endfor%}
+{% for d in failed %}
+<tr>
+<td>
+{d}
+</td>
+<td>
+<span class="bigger-300"><i class="fa fa-times-circle-o red"></i></span>
+
+</td>
+</tr>
+{%endfor%}
+</table>
+
+{%if do_not_proceed %}
+  The system cannot proceed until the primary and secondary nodes have been detected and the Fractalio administration volume has been created. Please make sure that all your GRIDCells have been powered on and connected to the same subnet.
+  Click here to to try again.
+{%else%}
+  Click here to proceed to enter IntegralView and administer your system.
+{%endif%}
+
+{%endblock%}
+
+
+{%block help_header%}
+Add nodes results help
+{%endblock%}
+
+{%block help_body%}
+Help aboout adding nodes - update
+{%endblock%}
