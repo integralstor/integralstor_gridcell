@@ -701,7 +701,7 @@ def hardware_scan(request):
     if form.is_valid():
       # User has chosed some nodes to be added so add them.
       cd = form.cleaned_data
-      success, failed, errors = add_hardwares(request.META["REMOTE_ADDR"],cd["nodes"])
+      success, failed, errors = add_hardware(request.META["REMOTE_ADDR"],cd["nodes"])
       if first_time:
         #The new manifest and status shd have been regenerated so now get the system status dict and use that to generate the admin volume
         url = 'first_time_add_nodes_result.html'
@@ -742,7 +742,7 @@ def hardware_scan(request):
         
   return django.shortcuts.render_to_response(url, return_dict, context_instance = django.template.context.RequestContext(request))
 
-def add_hardwares(remote_addr,pending_minions):
+def add_hardware(remote_addr,pending_minions):
   client = salt.client.LocalClient()
   opts = salt.config.master_config(fractalio.common.get_salt_master_config())
   iv_logging.info("Hardware scan initiated")
@@ -763,7 +763,8 @@ def add_hardwares(remote_addr,pending_minions):
           if 'ip_interfaces' in r[m] and r[m]['ip_interfaces']['bond0']:
             ip = r[m]['ip_interfaces']['bond0'][0]
         if ip:
-          r1 = client.cmd(m,'hosts.set_host', [ip, m])
+          r1 = client.cmd('roles:master', 'ddns.add_host', ['fractalio.lan', m, 86400, ip])
+          #r1 = client.cmd(m,'hosts.set_host', [ip, m])
           if not r1:
             errors = "Error adding the DNS information for %s"%m
         else:
