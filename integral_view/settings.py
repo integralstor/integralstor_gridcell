@@ -174,6 +174,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     'django.contrib.admindocs',
+    'integral_view',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (

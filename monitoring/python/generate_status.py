@@ -11,6 +11,7 @@ def _gen_status_info(path):
   # First load the status from all nodes
   local = salt.client.LocalClient()
   sd = local.cmd('*', 'fractalio_status.status')
+  print sd
   if not sd:
     print 'Did not get a response from salt'
     return -1, None
@@ -61,6 +62,7 @@ def _gen_status_info(path):
             node_status = 1
             temp_d["errors"].append("Disk with serial number %s on node %s is reporting SMART errors."%(disk_sn, hostname))
           dd["name"] = sd[hostname]["disks"][disk_sn]["name"] 
+          dd["position"] = sd[hostname]["disks"][disk_sn]["position"]
         else:
           dd["status"] = "Disk Missing"
           node_status = 1

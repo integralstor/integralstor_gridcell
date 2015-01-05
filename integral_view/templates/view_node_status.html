@@ -246,7 +246,8 @@
     {% for component in pool.config.components %}
       <tr>
         <td>
-          {{component.name}}
+          {%load utilities%}
+          {{component.name|split:"_"}}
         </td>
         <td>
           {{component.state}}
@@ -282,6 +283,23 @@
       </tr>
     {%endfor%}
   {%endfor%}
+  <tr>
+    <td colspan=1>
+      &nbsp; 
+     <b>Disk Position</b>
+    </td>
+    <td colspan=8>
+      <img src="/static/images/diskmap1.png" width="900px;" class="img-responsive" />
+      <div class="row margin-left-10">
+      {%for diskname,diskdetails in node.disks.items%}
+        {%if diskdetails.position != "2"%}
+         <div class="col-lg-2 col-md-3 col-sm-2 col-xs-2">
+           <span class="disk-center"><strong>{{diskname}}</strong></span>
+        </div>
+        {%endif%}
+      {%endfor%}
+      </div>
+      </td>
   </table>
 
 {%else%}

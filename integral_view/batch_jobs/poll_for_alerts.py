@@ -38,7 +38,7 @@ def main():
       if node["node_status"] == -1:
         alerts.raise_alert(alert_url, 'Node %s seems to be down. View the \"System status\" screen for more info.'%(name))
       elif node["node_status"] > 0:
-        raise_alert(alert_url, 'Node %s seems to be degraded with the following errors : %s.'%(name, ' '.join(node["errors"]))
+        raise_alert(alert_url, 'Node %s seems to be degraded with the following errors : %s.'%(name, ' '.join(node["errors"])))
     if node["cpu_status"]["status"] != "ok":
       alerts.raise_alert(alert_url, 'The CPU on node %s has issues. View the \"System status\" screen for more info.'%(name))
     if "ipmi_status" in node:        

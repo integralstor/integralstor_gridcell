@@ -334,6 +334,17 @@ input {
     margin-left: 1px;
   }
 }
+.margin-left-20 {
+  margin-left: 20px;
+}
+@media (min-height: 767px){
+  .margin-left-20{
+    margin-left: 2px;
+  }
+}
+.disk-center {
+  margin-left: 30%;
+}
 .bigger-110 {
   font-size: 110%;
 }

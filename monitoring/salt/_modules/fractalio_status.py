@@ -4,6 +4,61 @@ import fractalio
 from fractalio import zfs, hardware_utils, command
 
 
+def process_call(command):
+  process = subprocess.Popen(command, stdout=subprocess.PIPE)
+  output = ""
+  while True:
+    out = process.stdout.readline()
+    if out == '' and process.poll() != None: break
+    output += out
+  return (process.returncode, output)
+
+def get_hdparm(devpath):
+  argv = []
+  argv.append("/sbin/hdparm")
+  argv.append("-i")
+  argv.append(devpath)
+
+  return process_call(argv)
+
+def get_serialno(output):
+  for line in output.split():
+    if "SerialNo" in line:
+      return line.split('=')[1]
+
+def _diskmap():
+  disknames = {}
+  disk_positions = {}
+  for file in os.listdir('/sys/bus/scsi/devices'):
+    m = re.match("^\d", file)
+    if m:
+      str = '/sys/bus/scsi/devices/' + file + '/block'
+      for disk in os.listdir(str):
+          disknames[file.split(':')[0]] = disk
+
+  for key in sorted(disknames):
+    devpath = "/dev/" + disknames[key]
+    (ret,output) = get_hdparm(devpath)
+    if not ret:
+      sno = get_serialno(output)
+      if not sno:
+        sno = "None"
+    else:
+      sno = "None"
+    str = '/sys/block/' + disknames[key] + '/queue/rotational'
+    try:
+      fh = open(str, "r")
+      value = fh.read().strip()
+      if value:
+        #print "Port:%s,Disk:%s,SerialNo:%s" % (key,disknames[key],sno)
+        disk_positions[sno] = key
+      fh.close()
+    except IOError, e:
+      errstr = "%s:OSError(%s): %s\n" % (str,e.errno, e.strerror)
+      print errstr
+  return disk_positions
+
+
 def _execute_command(command = None):
   """ This function executes a command and returns the output in the form of a tuple.
       Exits in the case of an exception.
@@ -246,6 +301,9 @@ def disk_status():
       disk_status[serial_number] = d
     else:
       print "Count not find the disk serial number!"
+  disk_positions = _diskmap()
+  for diskpos in disk_positions:
+    disk_status[diskpos]["position"] = disk_positions[diskpos]
   return disk_status
 
 def interface_status():
@@ -337,8 +395,8 @@ def status():
   return d
       
 if __name__ == '__main__':
-  #print status()
-  print disk_info()
+  print status()
+  #print disk_info()
   #print pool_status()
   #print disk_status()
   #print interface_status()
