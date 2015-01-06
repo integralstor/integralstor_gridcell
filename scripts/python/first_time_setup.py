@@ -68,7 +68,7 @@ def initiate_setup():
 
 
 def main():
-  initiate_setup()
+  ret = initiate_setup()
 
 if __name__ == "__main__":
   main()
