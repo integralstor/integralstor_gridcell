@@ -1,5 +1,5 @@
 
-import fractalio, sys
+import fractalio, sys, os, shutil
 from fractalio import node_scan, gluster_commands
 import salt.client
 
