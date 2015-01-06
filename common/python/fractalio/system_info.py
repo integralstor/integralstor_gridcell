@@ -5,9 +5,13 @@ from fractalio import common
 
 import volume_info, gluster_commands
 
-system_status_path = common.get_system_status_path()
 
-def load_system_config():
+def load_system_config(first_time = False):
+
+  if first_time:
+    system_status_path = common.get_tmp_path()
+  else:
+    system_status_path = common.get_system_status_path()
 
   msfn = "%s/master.status"%system_status_path
   mmfn = "%s/master.manifest"%system_status_path

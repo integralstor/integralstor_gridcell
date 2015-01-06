@@ -6,7 +6,7 @@ import django.template, django
 from django.conf import settings
 
 import fractalio
-from fractalio import command, db, common, batch, audit, alerts, ntp, mail, gluster_commands, volume_info, system_info
+from fractalio import command, db, common, batch, audit, alerts, ntp, mail, gluster_commands, volume_info, system_info, node_scan
 
 from integral_view.utils import iv_logging
 
@@ -677,18 +677,11 @@ def reset_to_factory_defaults(request):
 def hardware_scan(request):
 
   return_dict = {}
-  first_time = True
-  if first_time:
-    url = 'first_time_login.html'
-  else:
-    url = 'add_nodes_form.html'
-  local = salt.client.LocalClient()
-  opts = salt.config.master_config(fractalio.common.get_salt_master_config())
+  url = 'add_nodes_form.html'
   iv_logging.info("Hardware scan initiated")
-  wheel = salt.wheel.Wheel(opts)
-  keys = wheel.call_func('key.list_all')
-  client = salt.client.LocalClient()
-  pending_minions = keys['minions_pre']
+
+  pending_minions = node_scan.get_pending_minions()
+
   if request.method == 'GET':
     # Return a list of new nodes available to be pulled into the grid
     if pending_minions:
@@ -701,94 +694,16 @@ def hardware_scan(request):
     if form.is_valid():
       # User has chosed some nodes to be added so add them.
       cd = form.cleaned_data
-      success, failed, errors = add_hardware(request.META["REMOTE_ADDR"],cd["nodes"])
-      if first_time:
-        #The new manifest and status shd have been regenerated so now get the system status dict and use that to generate the admin volume
-        url = 'first_time_add_nodes_result.html'
-        do_not_proceed = True
-        si = system_info.load_system_config()
-        primary = None
-        secondary = None
-        for node_name, node in si.items():
-          if "roles" not in node:
-            continue
-          roles = node["roles"]
-          if "primary" in roles:
-            primary = node_name
-          elif "secondary" in roles:
-            secondary = node_name
-        if not primary:
-          errors += "Could not detect a primary node!"
-        if not secondary:
-          errors += "Could not detect a secondary node!"
-        if primary and secondary:
-          cmd = "gluster volume create %s repl 2 %s:/opt/fractalio/mnt/%s %s:/opt/fractalio/mnt/%s"%(fractalio.common.get_admin_vol_name(), primary, fractalio.common.get_admin_vol_name(), secondary, fractalio.common.get_admin_vol_name())
-          iv_logging.info("create admin volume command %s"%cmd)
-          d = gluster_commands.run_gluster_command(cmd, "%s/create_volume.xml"%fractalio.common.get_devel_files_path(), "Admin volume creation")
-
-          if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
-            do_not_proceed = False
-          else:
-            if "op_status" in d and "op_errstr" in d["op_status"]:
-              if d["op_status"]["op_errstr"]:
-               errors += "Error creating the administration volume : %s"%d["op_status"]["op_errstr"]
-        return_dict["do_not_proceed"] = do_not_proceed
-      else:
-        url = 'add_nodes_result.html'
-            
+      iv_logging.info("Hardware scan initiated")
+      success, failed, errors = node_scan.add_nodes(request.META["REMOTE_ADDR"],cd["nodes"])
+      url = 'add_nodes_result.html'
       return_dict["success"] = success
       return_dict["failed"] = failed
       return_dict["errors"] = errors
         
   return django.shortcuts.render_to_response(url, return_dict, context_instance = django.template.context.RequestContext(request))
 
-def add_hardware(remote_addr,pending_minions):
-  client = salt.client.LocalClient()
-  opts = salt.config.master_config(fractalio.common.get_salt_master_config())
-  iv_logging.info("Hardware scan initiated")
-  wheel = salt.wheel.Wheel(opts)
-  success = []
-  failed = []
-  errors = None
-  ip = None
-  r = {}
-  if pending_minions:
-    for m in pending_minions:
-      #print "Accepting %s"%m
-      if wheel.call_func('key.accept', match=('%s'%m)):
-        command_to = 'salt %s saltutil.sync_all'%(m)
-        command.execute(command_to)
-        r = client.cmd(m, 'grains.items')
-        if r:
-          if 'ip_interfaces' in r[m] and r[m]['ip_interfaces']['bond0']:
-            ip = r[m]['ip_interfaces']['bond0'][0]
-        if ip:
-          r1 = client.cmd('roles:master', 'ddns.add_host', ['fractalio.lan', m, 86400, ip])
-          #r1 = client.cmd(m,'hosts.set_host', [ip, m])
-          if not r1:
-            errors = "Error adding the DNS information for %s"%m
-        else:
-            errors = "Error adding the DNS information for %s. No IP address information found."%m
-        audit.audit("hardware_scan_node_added", "Added a new node %s to the grid"%m,remote_addr )
-        success.append(m)
-      else:
-        failed.append(m)
-    ret, rc = _regenerate_manifest()
-    if rc != 0:
-      if errors:
-        errors += "Error regenerating the new configuration : "
-      else:
-        errors = "Error regenerating the new configuration : "
-      errors += ",".join(command.get_output_list(ret))
-      errors += ",".join(command.get_error_list(ret))
 
-  return (success, failed, errors)
-
-def _regenerate_manifest():
-  manifest_command = "/opt/fractalio/monitoring/generate_manifest.py %s"%fractalio.common.get_system_status_path()
-  command.execute_with_rc(manifest_command)
-  status_command = "/opt/fractalio/monitoring/generate_status.py %s"%fractalio.common.get_system_status_path()
-  return (command.execute_with_rc(status_command))
 
 @login_required
 def internal_audit(request):

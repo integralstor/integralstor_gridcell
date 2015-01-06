@@ -7,6 +7,9 @@ def is_production():
   else:
     return True
 
+def get_defaults_dir():
+  return "/opt/fractalio/defaults"
+
 def get_admin_vol_name():
   return "fractalio_admin_vol"
 
