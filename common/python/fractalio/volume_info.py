@@ -33,7 +33,7 @@ def _get_volume_list(production):
           err += d["op_status"]["op_errstr"]
     raise Exception(err)
   via_tree = d["tree"]
-  admin_vol_name = common.get_fractalio_admin_vol_name()
+  admin_vol_name = common.get_admin_vol_name()
   vl = xml_parse.get_volume_list(via_tree, admin_vol_name)
 
   for vol in vl:

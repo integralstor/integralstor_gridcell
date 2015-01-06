@@ -28,6 +28,8 @@ def load_system_config():
   '''
 
   for k in d.keys():
+    if k not in ms_nodes:
+      continue
     status_node = ms_nodes[k]
     for sk in status_node.keys():
       if sk not in d[k]:
