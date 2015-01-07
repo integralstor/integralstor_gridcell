@@ -326,7 +326,6 @@ def show(request, page, info = None):
           #print kiey, value
           if not si[key]["in_cluster"]:
             disk_new[key] = {}
-            print "Something"
             disk_new[key]["disks"] = {}
             disk_new[key]["in_cluster"] = si[key]["in_cluster"]
             for disk_key, disk_value in si[key]["disks"].iteritems():
