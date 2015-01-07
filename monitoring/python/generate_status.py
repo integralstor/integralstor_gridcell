@@ -11,7 +11,7 @@ def _gen_status_info(path):
   # First load the status from all nodes
   local = salt.client.LocalClient()
   sd = local.cmd('*', 'fractalio_status.status')
-  print sd
+  #print sd
   if not sd:
     print 'Did not get a response from salt'
     return -1, None
@@ -186,11 +186,11 @@ def main():
   num_args = len(sys.argv)
   if num_args > 1:
     rc = gen_status(os.path.normpath(sys.argv[1]))
-    print rc
+    #print rc
   else:
     #rc = gen_status('/home/bkrram/fractal/integral_view/integral_view/devel/config')
     rc = gen_status('/tmp')
-    print rc
+    #print rc
 
 if __name__ == "__main__":
   main()

@@ -300,6 +300,7 @@ def show(request, page, info = None):
 
       #Get the disk status
       disk_status = {}
+      disk_new = {}
 
       if request.GET.get("node_id") is not None:
         disk_status = si[request.GET.get("node_id")]
@@ -322,31 +323,57 @@ def show(request, page, info = None):
 
         """
         for key, value in si.iteritems():
-          #print key, value
-          disk_status[key] = {}
-          disk_status[key]["disks"] = {}
-          for disk_key, disk_value in si[key]["disks"].iteritems():
-            #print disk_key, disk_value
-            if disk_value["rotational"]:
-              disk_status[key]["disks"][disk_key] = disk_value["status"]
-            #print disk_value["status"]
-            if disk_value["status"] != "PASSED":
-              disk_failures += 1
-            if disk_failures > 2:
-              background_color = "bg-yellow"
-            if disk_failures >= 4:
-              background_color == "bg-red"
+          #print kiey, value
+          if not si[key]["in_cluster"]:
+            disk_new[key] = {}
+            disk_new[key]["disks"] = {}
+            disk_new[key]["in_cluster"] = si[key]["in_cluster"]
+            for disk_key, disk_value in si[key]["disks"].iteritems():
+              #print disk_key, disk_value
+              if disk_value["rotational"]:
+                disk_new[key]["disks"][disk_key] = disk_value["status"]
+              #print disk_value["status"]
+              if disk_value["status"] != "PASSED":
+                disk_failures += 1
+              if disk_failures > 2:
+                background_color = "bg-yellow"
+              if disk_failures >= 4:
+                background_color == "bg-red"
           
-          #print type(si[key]["pools"][0]["state"])
-          if si[key]["pools"][0]["state"] == unicode("ONLINE"):
-            background_color == "bg-red"
-          disk_status[key]["background_color"] = background_color
-          disk_status[key]["name"] = si[key]["pools"][0]["name"]
-          #print disk_status
-          #disk_status[key]["info"] = pool_status
+            #print type(si[key]["pools"][0]["state"])
+            if si[key]["pools"][0]["state"] == unicode("ONLINE"):
+              background_color == "bg-red"
+            disk_new[key]["background_color"] = background_color
+            disk_new[key]["name"] = si[key]["pools"][0]["name"]
+            #print disk_new
+            #disk_new[key]["info"] = pool_status
+          else:
+            disk_status[key] = {}
+            disk_status[key]["disks"] = {}
+            disk_status[key]["in_cluster"] = si[key]["in_cluster"]
+            for disk_key, disk_value in si[key]["disks"].iteritems():
+              #print disk_key, disk_value
+              if disk_value["rotational"]:
+                disk_status[key]["disks"][disk_key] = disk_value["status"]
+              #print disk_value["status"]
+              if disk_value["status"] != "PASSED":
+                disk_failures += 1
+              if disk_failures > 2:
+                background_color = "bg-yellow"
+              if disk_failures >= 4:
+                background_color == "bg-red"
+          
+            #print type(si[key]["pools"][0]["state"])
+            if si[key]["pools"][0]["state"] == unicode("ONLINE"):
+              background_color == "bg-red"
+            disk_status[key]["background_color"] = background_color
+            disk_status[key]["name"] = si[key]["pools"][0]["name"]
+            #print disk_status
+            #disk_status[key]["info"] = pool_status
         
         template = "view_disk_status.html"
         return_dict["disk_status"] = disk_status
+        return_dict["disk_new"] = disk_new
 
 
     elif page == "pool_status":
