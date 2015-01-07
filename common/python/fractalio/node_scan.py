@@ -44,7 +44,7 @@ def add_nodes(remote_addr,pending_minions, first_time = False):
             errors = "Error adding the DNS information for %s"%m
         else:
             errors = "Error adding the DNS information for %s. No IP address information found."%m
-        audit.audit("hardware_scan_node_added", "Added a new node %s to the grid"%m,remote_addr )
+        audit.audit("hardware_scan_node_added", "Added a new GRIDCell %s to the grid"%m,remote_addr )
         success.append(m)
       else:
         failed.append(m)

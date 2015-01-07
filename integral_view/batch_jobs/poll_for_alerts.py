@@ -36,18 +36,18 @@ def main():
     print node
     if node["node_status"] != 0:
       if node["node_status"] == -1:
-        alerts.raise_alert(alert_url, 'Node %s seems to be down. View the \"System status\" screen for more info.'%(name))
+        alerts.raise_alert(alert_url, 'GRIDCell %s seems to be down. View the \"System status\" screen for more info.'%(name))
       elif node["node_status"] > 0:
         raise_alert(alert_url, 'Node %s seems to be degraded with the following errors : %s.'%(name, ' '.join(node["errors"])))
     if node["cpu_status"]["status"] != "ok":
-      alerts.raise_alert(alert_url, 'The CPU on node %s has issues. View the \"System status\" screen for more info.'%(name))
+      alerts.raise_alert(alert_url, 'The CPU on GRIDCell %s has issues. View the \"System status\" screen for more info.'%(name))
     if "ipmi_status" in node:        
       for status_dict in node["ipmi_status"]:
         if status_dict["status"] != "ok":
-          alerts.raise_alert(alert_url, 'The %s on node %s has issues. The %s shows a value of %s. View the \"System status\" screen for more info.'%(status_dict["component_name"], status_dict["parameter_name"], status_dict["reading"]))
+          alerts.raise_alert(alert_url, 'The %s on GRIDCell %s has issues. The %s shows a value of %s. View the \"System status\" screen for more info.'%(status_dict["component_name"], status_dict["parameter_name"], status_dict["reading"]))
     for n, v in node["disk_status"].items():
       if v["status"] != "PASSED":
-        alerts.raise_alert(alert_url, 'Disk %s on node %s has issues. View the \"System status\" screen for more info.'%(n, name))
+        alerts.raise_alert(alert_url, 'Disk %s on GRIDCell %s has issues. View the \"System status\" screen for more info.'%(n, name))
 
   lock.release_lock('poll_for_alerts')
 

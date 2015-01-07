@@ -2,6 +2,7 @@
 import fractalio, sys, os, shutil
 from fractalio import node_scan, gluster_commands
 import salt.client
+from pwd import getpwnam
 
 def initiate_setup():
   #The new manifest and status shd have been regenerated so now get the system status dict and use that to generate the admin volume
@@ -51,13 +52,34 @@ def initiate_setup():
             if ret not in ["new", "present"]:
               errors += "Error setting the fstab entry for the admin volume on %s"%node
         if not errors:
-          shutil.copytree("%s/db"%fractalio.common.get_defaults_dir(), fractalio.common.get_admin_vol_mountpoint())
-          shutil.copytree("%s/logs"%fractalio.common.get_defaults_dir(), fractalio.common.get_admin_vol_mountpoint())
-          os.mkdir("%s/status"%fractalio.common.get_admin_vol_mountpoint())
-          shutil.move("%s/master.manifest"%fractalio.common.get_tmp_path(), fractalio.common.get_system_status_path())
-          print "Successfully configured the primary and secondary GRIDCells! You can now use IntegralView to administer the system."
-          return 0
-       
+          #Stop the DNS servers and move the config to the admin volume and the restart it
+          r3 = client.cmd('roles:primary', 'cmd.run_all', ['service named stop'], expr_form='grain')
+          if r3:
+            for node, ret in r3.items():
+              if ret.retcode != 0:
+                errors += "Error stopping the DNS server on %s"%node
+          if not errors:
+            shutil.copytree("%s/named"%fractalio.common.get_defaults_dir(), fractalio.common.get_admin_vol_mountpoint())
+            named_uid = getpwnam('named').pw_uid
+            named_gid = getpwnam('named').pw_gid
+            for root, dirs, files in os.walk("%s/named"%fractalio.common.get_admin_vol_mountpoint()):  
+              for d in dirs:  
+                os.chown(os.path.join(root, d), named_uid, named_gid)
+              for f in files:
+                os.chown(os.path.join(root, f), named_uid, named_gid)
+            r4 = client.cmd('roles:master', 'cmd.run_all', ['service named start'], expr_form='grain')
+            if r4:
+              for node, ret in r4.items():
+                if ret.retcode != 0:
+                  errors += "Error starting the DNS server from the new config location on %s"%node
+            if not errors:
+              #Phew! Finally all ok. Copy the rest of the stuff and go ahead
+              shutil.copytree("%s/db"%fractalio.common.get_defaults_dir(), fractalio.common.get_admin_vol_mountpoint())
+              shutil.copytree("%s/logs"%fractalio.common.get_defaults_dir(), fractalio.common.get_admin_vol_mountpoint())
+              os.mkdir("%s/status"%fractalio.common.get_admin_vol_mountpoint())
+              shutil.move("%s/master.manifest"%fractalio.common.get_tmp_path(), fractalio.common.get_system_status_path())
+              print "Successfully configured the primary and secondary GRIDCells! You can now use IntegralView to administer the system."
+              return 0
     else:
       if "op_status" in d and "op_errstr" in d["op_status"]:
         if d["op_status"]["op_errstr"]:
