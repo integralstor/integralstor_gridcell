@@ -99,7 +99,7 @@ class ReplaceNodeForm(forms.Form):
     dest_node = cleaned_data.get('dest_node')
     src_node = cleaned_data.get('src_node')
     if src_node == dest_node:
-      raise forms.ValidationError("Source and replacement nodes should be different")
+      raise forms.ValidationError("Source and replacement GRIDCells should be different")
     return cleaned_data
 
 

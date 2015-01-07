@@ -30,15 +30,15 @@ def create_local_user(userid, name, pswd):
     rc = client.cmd('*', 'user.add', [userid])
     for hostname, status in rc.items():
       if not status:
-        error_list.append("Error creating the userid on node %s"%hostname)
+        error_list.append("Error creating the userid on GRIDCell %s"%hostname)
     rc = client.cmd('*', 'shadow.set_password', [userid, enc_pswd] )
     for hostname, status in rc.items():
       if not status:
-        error_list.append("Error setting the password for userid on node %s"%hostname)
+        error_list.append("Error setting the password for userid on GRIDCell %s"%hostname)
     rc = client.cmd('*', 'user.chfullname', [userid, name] )
     for hostname, status in rc.items():
       if not status:
-        error_list.append("Error setting the name for userid on node %s"%hostname)
+        error_list.append("Error setting the name for userid on GRIDCell %s"%hostname)
     '''
     ret, rc = command.execute_with_rc(r'useradd -p %s -c fractal_user_%s %s'%(enc_pswd, name, userid))
     if rc != 0:
@@ -90,7 +90,7 @@ def delete_local_user(userid):
     rc = client.cmd('*', 'user.delete', [userid] )
     for hostname, status in rc.items():
       if not status:
-        error_list.append("Error deleting the userid on node %s"%hostname)
+        error_list.append("Error deleting the userid on GRIDCell %s"%hostname)
 
   #print "Deleting user %s from the storage system"%userid
   ret, rc = command.execute_with_rc(r'/usr/local/samba/bin/pdbedit -d 1 -x %s'%userid)

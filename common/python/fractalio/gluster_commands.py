@@ -75,13 +75,13 @@ def remove_node(si, node):
     d = {}
     prod_command = 'gluster peer detach %s --xml'%node
     dummy_command = "%s/peer_detach.xml"%devel_files_path
-    d = run_gluster_command(prod_command, dummy_command, "Removing node %s from the storage pool"%node)
+    d = run_gluster_command(prod_command, dummy_command, "Removing GRIDCell %s from the storage pool"%node)
 
     '''
     d = {}
     command = 'gluster peer detach %s --xml'%node
     d["actual_command"] = command
-    d["command"] = "Removing node %s from the storage pool"%node
+    d["command"] = "Removing GRIDCell %s from the storage pool"%node
     #rd = xml_parse.run_command_get_xml_output_tree(command, "/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/utils/test/peer_detach.xml")
     rd = xml_parse.run_command_get_xml_output_tree(command, "%s/peer_detach.xml"%devel_files_path)
     if "error_list" in rd:
@@ -93,7 +93,7 @@ def remove_node(si, node):
       d["op_status"] = status_dict
     if status_dict and status_dict["op_ret"] == 0:
       #Success so add audit info
-      d["audit_str"] = "removed node %s"%node
+      d["audit_str"] = "removed GRIDCell %s"%node
     ol.append(d)
     return ol
     '''
@@ -115,11 +115,11 @@ def add_nodes(anl):
       
       prod_command = "gluster peer probe %s --xml"%host
       dummy_command = "%s/peer_probe.xml"%devel_files_path
-      d = run_gluster_command(prod_command, dummy_command, "Adding node %s to the pool"%host)
-      d["audit_str"] = "Added node %s to the storage pool"%host
+      d = run_gluster_command(prod_command, dummy_command, "Adding GRIDCell %s to the storage pool"%host)
+      d["audit_str"] = "Added GRIDCell %s to the storage pool"%host
       '''
       d = {}
-      d["command"] = "Adding node %s to the pool"%host
+      d["command"] = "Adding GRIDCell %s to the pool"%host
       cmd = "gluster peer probe %s --xml"%host
       d["actual_command"] = cmd
       #rd = xml_parse.run_command_get_xml_output_tree(cmd, "/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/utils/test/peer_probe.xml")
@@ -133,7 +133,7 @@ def add_nodes(anl):
 
       if status_dict and status_dict["op_ret"] == 0:
         #Success so add audit info
-        d["audit_str"] = "added node %s to the storage pool"%host
+        d["audit_str"] = "added GRIDCell %s to the storage pool"%host
       '''
       ol.append(d)
 
@@ -148,7 +148,7 @@ def build_create_or_expand_volume_command(command, si, anl, vol_type, ondisk_sto
   #num_disks = len(si[anl[0]]["disks"])
   for n in anl:
     if "pools" not in si[n]:
-      d["error"] = "There are no storage pools on some nodes so volume creation cannot proceeded."
+      d["error"] = "There are no storage pools on some GRIDCells so volume creation cannot proceeded."
       return d
   num_pools = len(si[anl[0]]["pools"])
   cmd = command
@@ -164,7 +164,7 @@ def build_create_or_expand_volume_command(command, si, anl, vol_type, ondisk_sto
   else:
     #Replicated 
     if num_nodes < repl_count:
-      d["error"] = "Insufficient number of nodes to make the replica pairs"
+      d["error"] = "Insufficient number of GRIDCells to make the replica pairs"
       return d
     pool_num = 1
     first_node = 1
@@ -180,7 +180,7 @@ def build_create_or_expand_volume_command(command, si, anl, vol_type, ondisk_sto
           node_name = anl[first_node-1]
           node = si[anl[first_node-1]]
           nl = []
-          a = "node %s %s"%(node_name, node["pools"][pool_num-1]["name"])
+          a = "GRIDCells %s %s"%(node_name, node["pools"][pool_num-1]["name"])
           print a
           nl.append(a)
           brick = "%s:/%s/%s/%s"%(node_name, node["pools"][pool_num-1]["name"], ondisk_storage, vol_name)
@@ -191,7 +191,7 @@ def build_create_or_expand_volume_command(command, si, anl, vol_type, ondisk_sto
           node = si[anl[second_node-1]]
           brick = "%s:/%s/%s/%s"%(node_name, node["pools"][pool_num-1]["name"], ondisk_storage, vol_name)
           cmd = cmd + brick + " "
-          a = "node %s disk %s"%(node_name, node["pools"][pool_num-1]["name"])
+          a = "GRIDCells %s pool %s"%(node_name, node["pools"][pool_num-1]["name"])
           print a
           nl.append(a)
           count += 1
@@ -214,7 +214,7 @@ def build_create_or_expand_volume_command(command, si, anl, vol_type, ondisk_sto
         node_name = anl[first_node-1]
         node = si[anl[first_node-1]]
         brick = "%s:/%s/%s/%s"%(node_name, node["pools"][pool_num-1]["name"], ondisk_storage, vol_name)
-        a = "node %s disk %s"%(node_name, node["pools"][pool_num-1]["name"])
+        a = "GRIDCell %s pool %s"%(node_name, node["pools"][pool_num-1]["name"])
         if a in tl:
           break
         cmd = cmd + brick + " "
@@ -229,7 +229,7 @@ def build_create_or_expand_volume_command(command, si, anl, vol_type, ondisk_sto
         node = si[anl[second_node-1]]
         brick = "%s:/%s/%s/%s"%(node_name, node["pools"][pool_num-1]["name"], ondisk_storage, vol_name)
         cmd = cmd + brick + " "
-        a = "node %s disk %s"%(node_name, node["pools"][pool_num-1]["name"])
+        a = "GRIDCell %s pool %s"%(node_name, node["pools"][pool_num-1]["name"])
         print a
         count += 1
         tl.append(a)
@@ -276,7 +276,7 @@ def build_create_or_expand_volume_command(command, si, anl, vol_type, ondisk_sto
     #Replicated volume
 
     if num_nodes < repl_count:
-      d["error"] = "Insufficient number of nodes to make the replica pairs"
+      d["error"] = "Insufficient number of GRIDCells to make the replica pairs"
       return d
 
     if raid:
@@ -429,7 +429,7 @@ def build_expand_volume_command(vol, si):
     anl.append(hostname)
 
   if len(anl) < 2:
-    d["error"] = "Could not find sufficient storage to expand this volume. You need atleast 2 unused nodes in order to expand a volume"
+    d["error"] = "Could not find sufficient storage to expand this volume. You need atleast 2 unused GRIDCells in order to expand a volume"
     return d
 
   command = 'gluster volume add-brick %s  '%vol["name"]

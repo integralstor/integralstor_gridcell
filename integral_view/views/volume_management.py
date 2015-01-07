@@ -510,7 +510,7 @@ def delete_volume(request):
           for b in bricks:
             d = {}
             l = b.split(':')
-            d["command"] = "Deleting volume storage on node %s"%l[0]
+            d["command"] = "Deleting volume storage on GRIDCell %s"%l[0]
             print "executing command"
             client = salt.client.LocalClient()
             cmd_to_run = 'rm -rf %s'%l[1]
@@ -530,7 +530,7 @@ def delete_volume(request):
             d["actual_command"] = "/opt/fractal/bin/client %s rcmd rm -rf %s"%(l[0], l[1])
             (r, rc) = command.execute_with_rc("/opt/fractal/bin/client %s rcmd rm -rf %s"%(l[0], l[1]))
             if rc == 0:
-              audit.audit("vol_delete", "Deleted volume data on node %s"%(l[0]), request.META["REMOTE_ADDR"])
+              audit.audit("vol_delete", "Deleted volume data on GRIDCell %s"%(l[0]), request.META["REMOTE_ADDR"])
               d["result"] = "Success"
               result_list.append(d)
             else:
@@ -576,10 +576,10 @@ def replace_node(request):
   
   d = volume_info.get_replacement_node_info(si, vil)
   if not d["src_node_list"]:
-    return_dict["error"] = "There are no nodes eligible to be replaced."
+    return_dict["error"] = "There are no GRIDCells eligible to be replaced."
     return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
   if not d["dest_node_list"]:
-    return_dict["error"] = "There are no eligible replacement nodes."
+    return_dict["error"] = "There are no eligible replacement GRIDCells."
     return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
   return_dict["src_node_list"] = d["src_node_list"]
@@ -607,7 +607,7 @@ def replace_node(request):
           return_dict["error"] = "Error initiating replace : %s"%d["error"]
           return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
         else:
-          audit.audit("replace_node", "Scheduled replacement of node %s with node %s"%(src_node, dest_node), request.META["REMOTE_ADDR"])
+          audit.audit("replace_node", "Scheduled replacement of GRIDCell %s with GRIDCell %s"%(src_node, dest_node), request.META["REMOTE_ADDR"])
           return django.http.HttpResponseRedirect('/show/batch_start_conf/%s'%d["file_name"])
     else:
       form = volume_management_forms.ReplaceNodeForm(request.POST, src_node_list = d["src_node_list"], dest_node_list = d["dest_node_list"])
@@ -648,7 +648,7 @@ def replace_disk(request):
       if "node" not in request.POST or  "serial_number" not in request.POST:
         return_dict["error"] = "Incorrect access method. Please use the menus"
       elif request.POST["node"] not in si:
-        return_dict["error"] = "Unknown node. Please use the menus"
+        return_dict["error"] = "Unknown GRIDCell. Please use the menus"
       elif "step" not in request.POST :
         return_dict["error"] = "Incomplete request. Please use the menus"
       elif request.POST["step"] not in ["offline_disk", "scan_for_new_disk", "online_new_disk"]:
