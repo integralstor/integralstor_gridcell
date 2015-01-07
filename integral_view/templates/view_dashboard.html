@@ -1,7 +1,5 @@
 {% extends 'logged_in_base.html' %}
-{%block autorefresh%}
-<meta http-equiv="refresh" content="30" >
-{%endblock%}
+
 
 {%block page-header%}
   Dash Board
@@ -30,7 +28,6 @@
 </div>
 
 {%block contents%}
-<p id="p-instruction-text"> This page will autorefresh every 30 seconds to display updates.</p>
 
 <h4>Status</h4>
 <table class="table table-hover table-bordered">

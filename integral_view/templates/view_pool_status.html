@@ -1,7 +1,5 @@
 {% extends 'logged_in_base.html' %}
-{%block autorefresh%}
-<meta http-equiv="refresh" content="30" >
-{%endblock%}
+
 
 {%block page-header%}
   Storage Pool Status
@@ -43,7 +41,6 @@ function load_node_info(hostname, str) {
 </div>
 
 
-<p id="p-instruction-text"> This page will autorefresh every 30 seconds to display updates.</p>
 
 <b> Storage nodes in use </b>
 <table class="table table-bordered table-condensed table-hover datatable" style="width:800px">

@@ -1,7 +1,5 @@
 {% extends 'logged_in_base.html' %}
-{%block autorefresh%}
-<meta http-equiv="refresh" content="30" >
-{%endblock%}
+
 
 
 {%block page-header%}
@@ -43,7 +41,6 @@ function load_node_status(hostname, str) {
   </div>
 </div>
 
-<p id="p-instruction-text"> This page will autorefresh every 30 seconds to display updates.</p>
 
 
 <table class="table table-bordered display datatable" style="width:100%">
