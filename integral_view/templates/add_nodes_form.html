@@ -23,7 +23,7 @@
   <small>
       Admin
       <i class="fa fa-angle-double-right smaller-80"></i>
-      Scan New Nodes
+      Scan for new GRIDCells
   </small>
 {%endblock%}
 
@@ -31,7 +31,7 @@
 {%block contents%}
 
 {% if no_new_nodes %}
-The hardware scan did not detect any new nodes.
+The hardware scan did not detect any new GRIDCells.
 {%else%}
   {%include 'add_hardware_form.html'%}
 {%endif%}

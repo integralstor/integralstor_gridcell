@@ -6,7 +6,7 @@
   <small>
       Volumes 
       <i class="fa fa-angle-double-right smaller-80"></i>
-      Background operations -> Replace a node 
+      Background operations -> Replace a GRIDCell 
 
   </small>
 {%endblock%}
@@ -20,7 +20,7 @@ function select(showid, hideid) {
 }
 function load_node_info(hostname, str) {
   url='/show/node_info/' + encodeURIComponent(hostname);
-  document.getElementById('myModalLabel').innerHTML = "Node information for " + str ;
+  document.getElementById('myModalLabel').innerHTML = "GRIDCell information for " + str ;
   $('#myModalBody').load(url);
   $('#myModal').modal();
 }
@@ -45,10 +45,10 @@ function load_node_info(hostname, str) {
 
 {% if not supress_error_messages %}
 {% if form.src_node.errors %}
-<span id="error-text"> Please select a node to replace</span>
+<span id="error-text"> Please select a GRIDCell to replace</span>
 {%endif%}
 {% if form.dest_node.errors %}
-<span id="error-text"> Please select a replacement node</span>
+<span id="error-text"> Please select a replacement GRIDCell</span>
 {%endif%}
 {%endif%}
 
@@ -56,18 +56,18 @@ function load_node_info(hostname, str) {
 
 <div id="src_node" style="display:block;margin-top:5px;margin-left:auto;border:solid 0px;"> 
 
-<p id="instruction-text"> Please select a node to replace</id><br>
+<p id="instruction-text"> Please select a GRIDCell to replace</id><br>
 
 <table class="table table-bordered" style="width:300px">
 <tr>
   <th>
-    Node name
+    GRIDCell name
   </th>
   <th>
     Details
   </th>
   <th>
-    Select a node
+    Select a GRIDCell
   </th>
 </tr>
 {%for hostname in src_node_list %}
@@ -90,18 +90,18 @@ function load_node_info(hostname, str) {
 
 <div id = "dest_node" style="display:None;margin-top:5px;margin-left:auto;border:solid 0px;"> 
 
-<span id="p-instruction-text"> Please select a replacement node</span>
+<span id="p-instruction-text"> Please select a replacement GRIDCell</span>
 
 <table class="table table-bordered" style="width:300px">
 <tr>
   <th>
-    Node name
+    GRIDCell name
   </th>
   <th>
     Details
   </th>
   <th>
-    Select a node
+    Select a GRIDCell
   </th>
 </tr>
 {%for hostname in dest_node_list %}
@@ -127,7 +127,7 @@ function load_node_info(hostname, str) {
 </form>
 {%endblock%}
 {%block help_header%}
-Replace node help
+Replace GRIDCell help
 {%endblock%}
 {%block help_body%}
 <p>Help about replacing a nod - needs customisation…</p>

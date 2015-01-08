@@ -6,7 +6,7 @@
 
 
 {%block page-header%}
-  GRIDCell Status
+  GRIDCell Disk Status
     <small>
       GRIDCell
       <i class="fa fa-angle-double-right smaller-80"></i>
@@ -170,7 +170,7 @@ function toggleTable(tid, bid) {
 <table id="table_{{forloop.counter}}" class="table table-bordered table-condensed table-hover" style="width:800px;display:none">
   <tr>
     <th colspan=7>
-      Node name : {{hostname}}
+      GRIDCell name : {{hostname}}
     </td>
   </tr>
   {% for pool in d.pools %}

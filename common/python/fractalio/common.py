@@ -10,6 +10,9 @@ def is_production():
 def get_defaults_dir():
   return "/opt/fractalio/defaults"
 
+def get_tmp_path():
+  return "/opt/fractalio/tmp"
+
 def get_admin_vol_name():
   return "fractalio_admin_vol"
 

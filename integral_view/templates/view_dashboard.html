@@ -52,7 +52,7 @@
       Platform status
     </td>
     <td>
-      {% if num_nodes_bad > 0 %} {{num_nodes_bad}} nodes have problems {%else%} All healthy {%endif%}
+      {% if num_nodes_bad > 0 %} {{num_nodes_bad}} GRIDCell(s) have problems {%else%} All healthy {%endif%}
     </td>
     <td>
       <a href="/show/system_status" role="button" class="btn {%if num_nodes_bad > 0 %} btn-warning {%else%} btn-default{%endif%}"> Details</a>
@@ -69,7 +69,7 @@
       Storage pool status
     </td>
     <td>
-      {% if num_pools_bad > 0 %} Some nodes ({{num_pools_bad}}) in the pool have problems {%else%} All healthy {%endif%}
+      {% if num_pools_bad > 0 %} Some GRIDCell(s) ({{num_pools_bad}}) in the pool have problems {%else%} All healthy {%endif%}
     </td>
     <td>
       <a href="/show/pool_status" role="button" class="btn {%if num_pools_bad > 0 %} btn-warning {%else%} btn-default{%endif%}"> Details</a>
