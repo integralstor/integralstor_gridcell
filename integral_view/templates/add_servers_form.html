@@ -1,11 +1,11 @@
 {% extends 'logged_in_base.html' %}
 
 {%block page-header%}
-  Add IntegralStor Nodes
+  Add IntegralStor GRIDCells
   <small>
       Storage Pool
       <i class="fa fa-angle-double-right smaller-80"></i>
-      Add IntegralStor Nodes
+      Add IntegralStor GRIDCells
   </small>
 {%endblock%}
 
@@ -13,7 +13,7 @@
 <script type="text/javascript">
 function load_node_info(hostname, str) {
   url='/show/node_info/' + encodeURIComponent(hostname);
-  document.getElementById('myModalLabel').innerHTML = "Node information for " + str ;
+  document.getElementById('myModalLabel').innerHTML = "GRIDCell information for " + str ;
   $('#myModalBody').load(url);
   $('#myModal').modal();
 }
@@ -21,7 +21,7 @@ function load_node_info(hostname, str) {
 
 {%if no_available_nodes %}
 
-<p id="p-instruction-text"> There are no nodes available to add to the storage pool. </p>
+<p id="p-instruction-text"> There are no GRIDCells available to add to the storage pool. </p>
 <br>
 <p id="p-instruction-text"> Click <a href="/show/system_config"> here </a> to view the current system configuration. </p>
 
@@ -50,18 +50,18 @@ function load_node_info(hostname, str) {
 {%endif%}
 
 {% if form.hosts.errors %}
-<p id="error-text"> Please select at least one node</p>
+<p id="error-text"> Please select at least one GRIDCell</p>
 {%endif %}
 
 
 
-The following nodes will be added to the storage pool.
+The following GRIDCells will be added to the storage pool.
 <br>
 <br>
 <table class="table table-bordered" style="width:300px">
 <tr>
   <th>
-    Node name
+    GRIDCell name
   </th>
   <th>
     Details
@@ -103,7 +103,7 @@ The following nodes will be added to the storage pool.
 {% for node, display in form.nodes.field.widget.choices %}
 <input  value="{{ node }}" name="nodes" checked style="display:None" >
 {%endfor%}
-<button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Add nodes >></button>
+<button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Add GRIDCells >></button>
 </form>
 
 {%endif%}
@@ -112,5 +112,5 @@ The following nodes will be added to the storage pool.
 Add storage help
 {%endblock%}
 {%block help_body%}
-<p>The system automatically detects nodes that are not part of the storage pool and then presents them in this screen for your confirmation. This is for your information only. </p>
+<p>The system automatically detects GRIDCells that are not part of the storage pool and then presents them in this screen for your confirmation. This is for your information only. </p>
 {%endblock%}

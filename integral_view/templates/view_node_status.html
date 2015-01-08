@@ -6,7 +6,7 @@
     <small>
       Platform 
       <i class="fa fa-angle-double-right smaller-80"></i>
-      Node Status
+      GRIDCell Status
       <i class="fa fa-angle-double-right smaller-80"></i>
       {{node_name}}
   </small>
@@ -301,7 +301,7 @@
   </table>
 
 {%else%}
-  Node is down
+  GRIDCell is down
 {%endif%}
 
 <div id="message" style="display:none; width:90%;font-size:16px;">  
@@ -317,9 +317,9 @@
 <a href="/show/system_status/" role="button" class="btn btn-warning"> 
   <i class="fa fa-arrow-circle-left"></i>  Back
 </a> &nbsp;&nbsp;
-<a role="button" class="btn btn-info" id="activate_led">Activate node identification LED </a> 
+<a role="button" class="btn btn-info" id="activate_led">Activate GRIDCell identification LED </a> 
 <br><br>
-<p class="text-green"> Activating the node identification LED will cause a blue LED on that node to blink for 4 minutes, to help you physically identify this node.</p>
+<p class="text-green"> Activating the GRIDCell identification LED will cause a blue LED on that GRIDCell to blink for 4 minutes, to help you physically identify this GRIDCell.</p>
 
 <script>
   $("#activate_led").click(function(){
@@ -329,7 +329,7 @@
       data : {},
       success : function(){
         $(".alert").addClass("alert-success")
-        $("#message_content").html('<strong>Success !</strong> LED is blinking on the node.')
+        $("#message_content").html('<strong>Success !</strong> LED is blinking on the GRIDCell.')
         $("#message").show();
       },
       error : function(){
@@ -342,9 +342,9 @@
 </script>
 {%endblock%}
 {%block help_header%}
-Node status help
+GRIDCell status help
 {%endblock%}
 {%block help_body%}
-<p>Help about node status…</p>
+<p>Help about GRIDCell status…</p>
 {%endblock%}
 

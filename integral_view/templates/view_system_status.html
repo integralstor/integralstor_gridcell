@@ -17,8 +17,8 @@
 
 function load_node_status(hostname, str) {
   url='/show/node_status/' + encodeURIComponent(hostname);
-  document.getElementById('myModalLabel').innerHTML = "Node information for " + str ;
-  //document.getElementById('myModalLabel').innerHTML = "Node information for " + str + "&nbsp; (" + hostname + ")";
+  document.getElementById('myModalLabel').innerHTML = "GRIDCell information for " + str ;
+  //document.getElementById('myModalLabel').innerHTML = "GRIDCell information for " + str + "&nbsp; (" + hostname + ")";
   $('#myModalBody').load(url);
   $('#myModal').modal();
 }
@@ -47,10 +47,10 @@ function load_node_status(hostname, str) {
 <thead>
   <tr>
     <th>
-      Node name
+      GRIDCell name
     </th>
     <th>
-      <b>Node Status </b>
+      <b>GRIDCell Status </b>
     </th>
     <th>
       <b>Storage pool status</b>

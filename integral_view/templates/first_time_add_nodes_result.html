@@ -6,7 +6,7 @@
   <small>
       Admin
       <i class="fa fa-angle-double-right smaller-80"></i>
-      Scan New Nodes -- Results
+      Scan for new GRIDCells -- Results
   </small>
 {%endblock%}
 
@@ -21,7 +21,7 @@
 <table style="width:60%" class="table table-condensed table-bordered" >
 <tr>
 <th>
-Node
+GRIDCell
 </th>
 <th>
 Result
@@ -51,7 +51,7 @@ Result
 </table>
 
 {%if do_not_proceed %}
-  The system cannot proceed until the primary and secondary nodes have been detected and the Fractalio administration volume has been created. Please make sure that all your GRIDCells have been powered on and connected to the same subnet.
+  The system cannot proceed until the primary and secondary GRIDCells have been detected and the Fractalio administration volume has been created. Please make sure that all your GRIDCells have been powered on and connected to the same subnet.
   Click here to to try again.
 {%else%}
   Click here to proceed to enter IntegralView and administer your system.
@@ -61,9 +61,9 @@ Result
 
 
 {%block help_header%}
-Add nodes results help
+Add GRIDCells results help
 {%endblock%}
 
 {%block help_body%}
-Help aboout adding nodes - update
+Help aboout adding GRIDCells - update
 {%endblock%}

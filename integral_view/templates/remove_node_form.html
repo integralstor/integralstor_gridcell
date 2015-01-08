@@ -1,7 +1,7 @@
 {% extends 'logged_in_base.html' %}
 
 {%block page-header%}
-  Remove IntegralStor Node
+  Remove a IntegralStor GRIDCell
   <small>
       Storage Pool
       <i class="fa fa-angle-double-right smaller-80"></i>
@@ -14,20 +14,20 @@
 <script type="text/javascript">
 function load_node_info(hostname, str) {
   url='/show/node_info/' + encodeURIComponent(hostname) + '?modal=1';
-  document.getElementById('myModalLabel').innerHTML = "Node information for " + str ;
+  document.getElementById('myModalLabel').innerHTML = "GRIDCell information for " + str ;
   $('#myModalBody').load(url);
   $('#myModal').modal();
 }
 </script>
 
 {% if form.errors %}
-<p id="error-text"> Please select at least one IntegralStor node.</p>
+<p id="error-text"> Please select at least one IntegralStor GRIDCell.</p>
 {%endif%}
 
 {%if not node_list %}
 
-<span id="error-text">None of the IntegralStor nodes can currently be removed from the storage pool. An IntegralStor node may be removed only if it does not have any data volumes on it.<br>
-Please use the "Replace node" menu item to migrate data volumes onto an empty node before performing this operation.</span><br>
+<span id="error-text">None of the IntegralStor GRIDCells can currently be removed from the storage pool. An IntegralStor GRIDCell may be removed only if it does not have any data volumes on it.<br>
+Please use the "Replace GRIDCell" menu item to migrate data volumes onto an empty GRIDCell before performing this operation.</span><br>
 
 {%else %}
 
@@ -51,22 +51,22 @@ Please use the "Replace node" menu item to migrate data volumes onto an empty no
 
 
 {% if form.hosts.errors %}
-<p id="error-text"> Please select at least one IntegralStor node</p>
+<p id="error-text"> Please select at least one IntegralStor GRIDCell</p>
 {%endif %}
 
 
 
-Please select an IntegralStor node to remove from the storage pool.
+Please select an IntegralStor GRIDCell to remove from the storage pool.
 <br>
 <br>
 <form action="/remove_node/" method="post">
 <table class="table table-bordered" style="width:300px">
 <tr>
   <th>
-    Node name
+    GRIDCell name
   </th>
   <th>
-    Select a node
+    Select a GRIDCell
   </th>
   <th>
     Details
@@ -88,7 +88,7 @@ Please select an IntegralStor node to remove from the storage pool.
 </table>
 
 <input type="button" class="btn btn-default" value="Cancel" onClick="window.location='/show/dashboard'"> &nbsp;&nbsp;
-<button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Remove node >></button>
+<button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Remove GRIDCell >></button>
 </form>
 <!-- Modal -->
 <div class="modal fade" id="processing" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">

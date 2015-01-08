@@ -6,7 +6,7 @@
   <small>
       Storage Pool 
       <i class="fa fa-angle-double-right smaller-80"></i>
-      View Integral Stor Storage Nodes
+      View Integral Stor Storage GRIDCells
   </small>
 {%endblock%}
 
@@ -16,8 +16,8 @@
 
 function load_node_info(hostname, str) {
   url='/show/node_status/' + encodeURIComponent(hostname);
-  document.getElementById('myModalLabel').innerHTML = "Node information for " + str ;
-  //document.getElementById('myModalLabel').innerHTML = "Node information for " + str + "&nbsp; (" + hostname + ")";
+  document.getElementById('myModalLabel').innerHTML = "GRIDCell information for " + str ;
+  //document.getElementById('myModalLabel').innerHTML = "GRIDCell information for " + str + "&nbsp; (" + hostname + ")";
   $('#myModalBody').load(url);
   $('#myModal').modal();
 }
@@ -42,18 +42,18 @@ function load_node_info(hostname, str) {
 
 
 
-<b> Storage nodes in use </b>
+<b> Storage GRIDCells in use </b>
 <table class="table table-bordered table-condensed table-hover datatable" style="width:800px">
   <thead>
     <tr>
       <th>
-        Node name
+        GRIDCell name
       </th>
       <th>
         <b>Status </b>
       </th>
       <th>
-        Node details
+        GRIDCell details
       </th>
     </tr>
   </thead>
@@ -78,9 +78,9 @@ function load_node_info(hostname, str) {
               </td>
               <td>
                 {% if d.cluster_status == 1 %}
-                <a href="/show/node_status/{{hostname}}/?from=pool_status" role="button" class="btn btn-default">Node info.. </a>
+                <a href="/show/node_status/{{hostname}}/?from=pool_status" role="button" class="btn btn-default">GRIDCell info.. </a>
                 {%else%}
-                <a href="/show/node_status/{{hostname}}/?from=pool_status" role="button" class="btn btn-warning">Node info.. </a>
+                <a href="/show/node_status/{{hostname}}/?from=pool_status" role="button" class="btn btn-warning">GRIDCell info.. </a>
                 {%endif%}
               </td>
             </tr>
@@ -91,17 +91,17 @@ function load_node_info(hostname, str) {
 </table>
 
 {%if num_free_nodes > 0 %}
-  <b> Storage nodes not currently in use </b>
+  <b> Storage GRIDCells not currently in use </b>
 
 
   <table class="table table-bordered table-condensed table-hover datatable" style="width:800px">
     <thead>
       <tr>
         <th>
-          Node name
+          GRIDCell name
         </th>
         <th>
-          Node details
+          GRIDCell details
         </th>
       </tr>
     </thead>
@@ -114,7 +114,7 @@ function load_node_info(hostname, str) {
                   {{hostname}}
                 </td>
                 <td>
-                  <a href="/show/node_status/{{hostname}}/?from=pool_status" role="button" class="btn btn-default">Node info.. </a>
+                  <a href="/show/node_status/{{hostname}}/?from=pool_status" role="button" class="btn btn-default">GRIDCell info.. </a>
                 </td>
               </tr>
           {%endif%}
@@ -123,7 +123,7 @@ function load_node_info(hostname, str) {
     </tbody>
   </table>
 {%else%}
-  <b> All storage nodes are currently in use. No free storage nodes available. </b>
+  <b> All storage GRIDCells are currently in use. No free storage GRIDCells available. </b>
 {%endif%}
 
 {%endblock%}
