@@ -1,7 +1,7 @@
 
-#import fractalio, sys, os, shutil
-#from fractalio import node_scan, gluster_commands, system_info
-#import salt.client
+import fractalio, sys, os, shutil
+from fractalio import node_scan, gluster_commands, system_info
+import salt.client
 from pwd import getpwnam
 
 def initiate_setup():
@@ -10,7 +10,6 @@ def initiate_setup():
   print "Scanning the network for GRIDCells .."
   print
   pending_nodes = node_scan.get_pending_minions()
-  '''
   if pending_nodes:
     print "Found the following GRIDCells : %s"%",".join(pending_nodes)
     print
@@ -24,7 +23,6 @@ def initiate_setup():
     print "No GRIDCells found!"
     print
     return 0
-  '''
   do_not_proceed = True
   print "Loading GRIDCell information"
   print
@@ -141,6 +139,7 @@ def initiate_setup():
   print "Setting the IntegralStor Administration volume to mount on reboot on the primary and secondary GRIDCells... Done."
   print
 
+  '''
   print "Stopping the DNS server on the primary and secondary GRIDCells."
   print
   #Stop the DNS servers and move the config to the admin volume and the restart it
@@ -158,7 +157,6 @@ def initiate_setup():
   print "Stopping the DNS server on the primary and secondary GRIDCells... Done."
   print
 
-  '''
   shutil.copytree("%s/named"%fractalio.common.get_defaults_dir(), fractalio.common.get_admin_vol_mountpoint())
   named_uid = getpwnam('named').pw_uid
   named_gid = getpwnam('named').pw_gid
@@ -192,20 +190,20 @@ def main():
   while i < 40:
     print
     i += 1
-  print "Welcome to the initial setup of your IntegralStor system.".center(150, ' ')
+  print "Welcome to the initial setup of your IntegralStor system.".center(80, ' ')
   i = 0
   while i < 10:
     print
     i += 1
-  print "Please ensure that all your GRIDCells are connected to the network and powered on. It is especially important that the primary and secondary GRIDCells are powered on and connected for this process to complete successfully.".center(150, ' ')
+  print "Please ensure that all your GRIDCells are connected to the network and powered on. It is especially important that the primary and secondary GRIDCells are powered on and connected for this process to complete successfully.".center(80, ' ')
   print
   print
   print
   inp = raw_input ("Press <Enter> when you are ready to proceed : ")
   print "Continuing"
-  #ret = initiate_setup()
+  ret = initiate_setup()
   if ret == 0:
-    print "Successfully configured the primary and secondary GRIDCells! You can now use IntegralView to administer the system.".center(150, ' ')
+    print "Successfully configured the primary and secondary GRIDCells! You can now use IntegralView to administer the system.".center(80, ' ')
 
 if __name__ == "__main__":
   main()

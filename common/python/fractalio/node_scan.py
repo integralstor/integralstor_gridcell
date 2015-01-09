@@ -33,10 +33,11 @@ def add_nodes(remote_addr,pending_minions, first_time = False, accessing_from = 
       ip = None
       print "Accepting %s"%m
       if wheel.call_func('key.accept', match=('%s'%m)):
+	time.sleep(20)
         command_to = 'salt %s saltutil.sync_all'%(m)
         ret, ret_code = command.execute_with_rc(command_to)
         #print ret, ret_code
-        #time.sleep(5)
+        time.sleep(20)
         r = client.cmd(m, 'grains.item', ['ip_interfaces'], timeout=180)
         #print r
         if r:
@@ -63,7 +64,8 @@ def add_nodes(remote_addr,pending_minions, first_time = False, accessing_from = 
             errors = "Error adding the DNS information for GRIDCell %s"%m
             print "Error adding DNS information for GRIDCell %s"%m
           else:
-            audit.audit("hardware_scan_node_added", "Added a new GRIDCell %s to the grid"%m,remote_addr )
+            if not first_time:
+              audit.audit("hardware_scan_node_added", "Added a new GRIDCell %s to the grid"%m,remote_addr )
             success.append(m)
         else:
             errors = "Error adding the DNS information for %s. No IP address information found."%m
