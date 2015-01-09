@@ -27,7 +27,8 @@
     Memory
   </th>
   <td>
-    {{ node.memory.mem_total.value}} {{node.memory.mem_total.unit}}
+    Total : {{ node.memory.mem_total.value}} {{node.memory.mem_total.unit}} <br />
+    Free : {{ node.memory.mem_free.value}} {{node.memory.mem_free.unit}}
   </td>
 </tr>
 </table>
@@ -45,64 +46,66 @@
     </th>
   </thead>
   <tr>
-    <td colspan=8>
-     <b>CPU</b>
-    </td>
-  </tr>
-  <tr>
-    <td colspan=1>
-      &nbsp; 
-    </td>
-    <td colspan=3>
-      Status
-    </td>
-    <td colspan=5>
-      {{node.cpu_status.status}}
-    </td>
-  </tr>
-  <tr>
-    <td colspan=1>
-      &nbsp; 
-    </td>
-    <td colspan=3>
-      Temperature
-    </td>
-    <td colspan=5>
-      {{node.cpu_status.temp}}
-    </td>
-  </tr>
-  <tr>
-    <td colspan=1>
-      &nbsp; 
-    </td>
-    <td colspan=3>
-      Load averages
-    </td>
-    <td colspan=5>
-      15 minute average : {{node.load_avg.15_min}}<br>5 minute average : {{node.load_avg.5_min}}<br> 1 minute average : {{node.load_avg.1_min}}
-    </td>
   </tr>
   <tr>
     <td colspan=8>
      <b>System</b>
     </td>
   </tr>
+{%for ipmi in node.ipmi_status%}
   <tr>
+    <td colspan=1>
+      {{ipmi.component_name}}
+    </td>
+    <td colspan=3>
+      {{ipmi.parameter_name}}
+    </td>
+    <td colspan=2>
+	{{ipmi.reading}} 
+    </td>
+    <td colspan=2>
+	{{ipmi.status}}
+    </td>
+  </tr>
+{%if ipmi.component_name == 'CPU'%}
+<tr>
+
     <td colspan=1>
       &nbsp; 
     </td>
     <td colspan=3>
-      Temperature
+      Load averages
+    </td>
+    <td colspan=2>
+      15 minute average <br>5 minute average  <br> 1 minute average 
+    </td>
+    <td colspan=2>
+      {{node.load_avg.15_min}}<br>{{node.load_avg.5_min}}<br>{{node.load_avg.1_min}}
+    </td>
+</tr>
+{%endif%}
+{%endfor%}
+<tr>
+
+    <td colspan=1>
+      Cluster
+    </td>
+    <td colspan=3>
+      Cluster Status
     </td>
     <td colspan=5>
-      {{node.temp_status.temp}}
+      {%if node.cluster_status == 1%}
+      	OK
+      {%else%}
+	NOT OK
+      {%endif%}
     </td>
-  </tr>
   <tr>
     <td colspan=7>
      <b>Interfaces</b>
     </td>
   </tr>
+
   {% for if_name, interface in  node.interfaces.items%}
   <tr>
     <td colspan=1>

@@ -10,3 +10,7 @@ cp -rf /tmp/integral_view/integral-view/monitoring/python/ /opt/fractalio/monito
 echo "Updating Integral view -- Django app"
 cp -rf /tmp/integral_view/integral-view/integral_view/ /opt/fractalio/integral_view/
 
+echo "Copying Utility scripts"
+cp -rf /tmp/integral_view/integral-view/scripts/python/first_time_setup.py /opt/fractalio/scripts/
+cp -rf /tmp/integral_view/integral-view/scripts/shell/* /opt/fractalio/scripts/
+
