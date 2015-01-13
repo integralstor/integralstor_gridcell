@@ -79,9 +79,9 @@ Restore
     <input type="hidden" name="snapshot_name" value="{{d.name}}">
     <input type="hidden" name="vol_name" value="{{vol_name}}">
     {% if vol_started %}
-    <input class="btn btn-primary" type="submit" value="Restore >>">
-    {%else%}
     <input class="btn btn-disabled" disabled type="submit" value="Restore >>">
+    {%else%}
+    <input class="btn btn-primary" type="submit" value="Restore >>">
     {%endif%}
     </form>
   </td>

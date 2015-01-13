@@ -48,6 +48,8 @@ def get_lines(file_name = None):
   al = []
   if not file_name:
     fname = _get_audit_file_path()
+  else:
+    fname = "%s/%s"%(audit_dir, file_name)
 
   if not fname:
     raise AuditException("Could not get audit file name.")

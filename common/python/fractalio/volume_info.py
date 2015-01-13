@@ -287,7 +287,7 @@ def _set_volume_option(vol_name, option, value, display_command):
   prod_command = 'gluster volume set %s %s %s --xml'%(vol_name, option, value)
   #dummy_command = "/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/utils/test/set_vol_options.xml"
   dummy_command = "%s/set_vol_options.xml"%common.get_devel_files_path()
-  d = run_gluster_command(prod_command, dummy_command, display_command)
+  d = gluster_commands.run_gluster_command(prod_command, dummy_command, display_command)
   return d
 
 

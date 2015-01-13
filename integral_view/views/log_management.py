@@ -23,7 +23,11 @@ def edit_integral_view_log_level(request):
       cd = form.cleaned_data
       log_level = int(cd['log_level'])
       iv_logging.debug("Trying to change Integral View Log settings - log level is %d"%log_level)
-      iv_logging.set_log_level(log_level)
+      try:
+        iv_logging.set_log_level(log_level)
+      except Exception, e:
+        return_dict['error'] = 'Error setting log level : %s'%e
+        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
       iv_logging.debug("Trying to change Integral View Log settings - changed log level")
       return django.http.HttpResponseRedirect("/show/integral_view_log_level?saved=1")
   else:
@@ -57,7 +61,23 @@ def download_vol_log(request):
       file_name = None
       production = fractalio.common.is_production()
       if production:
-        file_name = '/var/log/glusterfs/bricks/data-%s.log'%vol_name
+        v = volume_info.get_volume_info(vil, vol_name)
+        if not v:
+          return_dict["error"] = "Could not retrieve volume info"
+          return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+        brick = v["bricks"][0][0]
+        if not brick:
+          return_dict["error"] = "Could not retrieve volume log location - no brick"
+          return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+        l = brick.split(':')
+        if not l:
+          return_dict["error"] = "Could not retrieve volume log location - malformed brick 1"
+          return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+        l1 = l[1].split('/')
+        if not l1:
+          return_dict["error"] = "Could not retrieve volume log location - malformed brick 2"
+          return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+        file_name = '/var/log/glusterfs/bricks/%s-%s-%s.log'%(l1[1], l1[2], vol_name)
       else:
         # this will return the same file that you are viewing now for download.
         # doing this so as to remove the dependency of the absolute path problem.
@@ -68,10 +88,10 @@ def download_vol_log(request):
         #file_name = '/home/bkrram/Documents/software/Django-1.4.3/code/integral_view/integral_view/devel/files/logfile'
 
       
-      display_name = 'data-%s.log'%vol_name
+      display_name = 'fractalio-%s.log'%vol_name
 
       #Formulate the zip file name
-      zf_name = '/tmp/dlc_vol_log'
+      zf_name = '/tmp/fractalio_volume_%s_log'%vol_name
       #assert False
       dt = datetime.datetime.now()
       dt_str = dt.strftime("%d%m%Y%H%M%S")
@@ -86,7 +106,7 @@ def download_vol_log(request):
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
       response = django.http.HttpResponse()
-      response['Content-disposition'] = 'attachment; filename=dlc_vol_log%s.zip'%dt_str
+      response['Content-disposition'] = 'attachment; filename=fractalio_volume_%s_log_%s.zip'%(vol_name, dt_str)
       response['Content-type'] = 'application/x-compressed'
       try:
         with open(zf_name, 'rb') as f:

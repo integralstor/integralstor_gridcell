@@ -34,6 +34,8 @@ def load_alerts(fname = None):
   alerts_list = []
   if not fname:
     filename = _get_alerts_file_path()
+  else:
+    filename = "%s/%s"%(alerts_dir, fname)
 
   match = None
   with open(filename, "r") as f:

@@ -2,6 +2,8 @@ import django, django.http
 from django.conf import settings
 from django.contrib import auth
 
+import salt.client
+
 import random
 
 import fractalio
@@ -155,6 +157,7 @@ def create_volume_conf(request):
   
     iv_logging.debug("create vol node list %s"%node_list_str)
     return_dict['cmd'] = d['cmd']
+    return_dict['dataset_list'] = d['dataset_list']
     return_dict['node_list_str'] = node_list_str
     return_dict['vol_type'] = vol_type
     return_dict['vol_name'] = vol_name
@@ -187,11 +190,48 @@ def create_volume(request):
     return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
   cmd = request.POST['cmd']
+  dsl = request.POST.getlist('dataset_list')
+  dataset_dict = {}
+  for ds in dsl:
+    tl = ds.split(':')
+     dataset_dict[tl[0]] = tl[1]
+
   if not fractalio.common.is_production():
     cmd = 'ls -al'
 
   iv_logging.info("create volume command %s"%cmd)
-  d = gluster_commands.run_gluster_command(cmd, "%s/create_volume.xml"%fractalio.common.get_devel_files_path(), "Volume creation")
+  #First create the datasets on which the bricks will reside
+  client = salt.client.LocalClient()
+  revert_list = []
+  errors = ""
+  for node, dataset in dataset_dict.items():
+    dataset_cmd = 'zfs create %s'%dataset
+    dataset_revert_cmd = 'zfs destory %s'%dataset
+    r1 = client.cmd(node, 'cmd.run_all', [dataset_cmd])
+    if r1:
+      for node, ret in r1.items():
+        #print ret
+        if ret["retcode"] != 0:
+          errors += ", Error creating the underlying storage brick on %s"%node
+          print errors
+        else:
+          revert_list.append({node:dataset_revert_cmd})
+
+  if errors != "":
+    if revert_list:
+      #Undo the creation of the datasets
+      for node, dsr_cmd in revert_list.items():
+        r1 = client.cmd(node, 'cmd.run_all', [dsr_cmd])
+        if r1:
+          for node, ret in r1.items():
+            #print ret
+            if ret["retcode"] != 0:
+              errors += ", Error undoing the creating the underlying storage brick on %s"%node
+      return_dict["error"] = errors
+      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+
+  #Underlying storage created so now create the volume
+  d = gluster_commands.run_gluster_command("%s force"%cmd, "%s/create_volume.xml"%fractalio.common.get_devel_files_path(), "Volume creation")
 
   if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
     #Success so audit the change

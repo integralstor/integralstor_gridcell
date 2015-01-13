@@ -37,6 +37,11 @@
 <input type=hidden name="repl_count" value="{{repl_count}}">
 {%endif%}
 <input type=hidden name="cmd" value="{{cmd}}">
+{%for d in dataset_list%}
+{%for k, v in d.items%}
+<input type="hidden" name="dataset_list" value="{{k}}:{{v}}">
+{%endfor%}
+{%endfor%}
 <input type=hidden name="node_list_str" value="{{node_list_str}}">
 
 
