@@ -160,7 +160,7 @@ def edit_share(request):
         else:
           groups = None
         vol = cd["vol"]
-        logger.debug("Save share request, name %s path %s, comment %s, read_only %s, browseable %s, guest_ok %s, users %s, groups %s, vol %s"%(name, path, comment, read_only, browseable, guest_ok, users, groups))
+        #logger.debug("Save share request, name %s path %s, comment %s, read_only %s, browseable %s, guest_ok %s, users %s, groups %s, vol %s"%(name, path, comment, read_only, browseable, guest_ok, users, groups))
         samba_settings.save_share(share_id, name, comment, guest_ok, read_only, path, browseable, users, groups, vol)
         samba_settings.generate_smb_conf()
       except Exception, e:
@@ -189,7 +189,7 @@ def delete_share(request):
   else:
     share_id = request.POST["share_id"]
     name = request.POST["name"]
-    logger.debug("Delete share request for name %s"%name)
+    #logger.debug("Delete share request for name %s"%name)
     try :
       samba_settings.delete_share(share_id)
       samba_settings.generate_smb_conf()
@@ -249,7 +249,7 @@ def create_share(request):
       else:
         groups = None
       vol = cd["vol"]
-      logger.debug("Create share request, name %s path %s, comment %s, read_only %s, browseable %s, guest_ok %s, users %s, groups %s, vol %s"%(name, path, comment, read_only, browseable, guest_ok, users, groups))
+      #logger.debug("Create share request, name %s path %s, comment %s, read_only %s, browseable %s, guest_ok %s, users %s, groups %s, vol %s"%(name, path, comment, read_only, browseable, guest_ok, users, groups))
       #path = "/%s%s"%(vol, display_path)
       try :
         samba_settings.create_share(name, comment, guest_ok, read_only, path, display_path, browseable, users, groups, vol)
@@ -275,11 +275,13 @@ def samba_server_settings(request):
 
   if "action" in request.REQUEST and request.REQUEST["action"] == "edit":
     ini = {}
-    for k in d.keys():
-      ini[k] = d[k] 
-    if d["security"] == "ads":
+    if d:    
+      for k in d.keys():
+        ini[k] = d[k] 
+    if d and d["security"] == "ads":
       form = samba_shares_forms.AuthADSettingsForm(initial=ini)
-    elif d["security"] == "users":
+    #elif d["security"] == "users":
+    else:
       form = samba_shares_forms.AuthUsersSettingsForm(initial=ini)
     return_dict["form"] = form
     return django.shortcuts.render_to_response('edit_samba_server_settings.html', return_dict, context_instance=django.template.context.RequestContext(request))

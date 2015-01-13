@@ -1,4 +1,4 @@
-import socket
+import socket, re
 
 def can_connect(hostname, port, timeout=0.05):
 

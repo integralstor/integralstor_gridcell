@@ -10,7 +10,7 @@ class MultipleServerField(forms.CharField):
 
   def _is_valid_server(self, server):
     server = server.strip()
-    if networking.is_valid_ip_or_hostname(server):
+    if fractalio.networking.is_valid_ip_or_hostname(server):
       return True
     else:
       return False

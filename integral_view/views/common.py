@@ -515,8 +515,8 @@ def configure_ntp_settings(request):
       else:
         slist = server_list.split(' ')
       try:
-        primary_server = "fractalio-primary"
-        secondary_server = "fractalio-secondary"
+        primary_server = "primary.fractalio.lan"
+        secondary_server = "secondary.fractalio.lan"
         #First create the ntp.conf file for the primary and secondary nodes
         temp = tempfile.NamedTemporaryFile(mode="w", dir="/srv/salt/tmp")
         temp.write("driftfile /var/lib/ntp/drift\n")
@@ -529,20 +529,20 @@ def configure_ntp_settings(request):
           temp.write("server %s iburst\n"%server)
         temp.flush()
         client = salt.client.LocalClient()
-        client.cmd('role:master', 'cp.get_file', ["salt://tmp/%s"%os.path.basename(temp.name), '%s/ntp.conf'%fractalio.common.get_ntp_conf_path()])
-        client.cmd('role:master', 'service.restart', ["ntpd"])
+        client.cmd('roles:master', 'cp.get_file', ["salt://tmp/%s"%os.path.basename(temp.name), '%s/ntp.conf'%fractalio.common.get_ntp_conf_path()], expr_form='grain')
+        client.cmd('roles:master', 'cmd.run_all', ["service ntpd restart"], expr_form='grain')
         #shutil.copyfile(temp.name, '%s/ntp.conf'%settings.NTP_CONF_PATH)
         temp.close()
-        temp = tempfile.NamedTemporaryFile(mode="w")
-        temp.write("server %s iburst\n"%primary_server)
-        temp.write("server %s iburst\n"%secondary_server)
+        temp1 = tempfile.NamedTemporaryFile(mode="w", dir="/srv/salt/tmp")
+        temp1.write("server %s iburst\n"%primary_server)
+        temp1.write("server %s iburst\n"%secondary_server)
         for s in si.keys():
-          temp.write("peer %s iburst\n"%s)
-        temp.write("server 127.127.1.0\n")
-        temp.write("fudge 127.127.1.0 stratum 10\n")
-        temp.flush()
-        client.cmd('role:secondary', 'cp.get_file', ["salt://tmp/%s"%os.path.basename(temp.name), '%s/ntp.conf'%fractalio.common.get_ntp_conf_path()])
-        client.cmd('role:secondary', 'service.restart', ["ntpd"])
+          temp1.write("peer %s iburst\n"%s)
+        temp1.write("server 127.127.1.0\n")
+        temp1.write("fudge 127.127.1.0 stratum 10\n")
+        temp1.flush()
+        client.cmd('role:secondary', 'cp.get_file', ["salt://tmp/%s"%os.path.basename(temp1.name), '%s/ntp.conf'%fractalio.common.get_ntp_conf_path()], expr_form='grain')
+        client.cmd('role:secondary', 'cmd.run_all', ["service ntpd restart"], expr_form='grain')
         #shutil.copyfile(temp.name, '/tmp/ntp.conf')
 
         '''

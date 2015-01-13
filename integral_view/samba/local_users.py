@@ -46,7 +46,7 @@ def create_local_user(userid, name, pswd):
     '''
 
   # Now all set to create samba user
-  ret, rc = command.execute_with_conf_and_rc(r'/usr/local/samba/bin/pdbedit  -d 1 -t -a  -u %s -f %s'%(userid, name), "%s\n%s"%(pswd, pswd))
+  ret, rc = command.execute_with_conf_and_rc(r'pdbedit  -d 1 -t -a  -u %s -f %s'%(userid, name), "%s\n%s"%(pswd, pswd))
   if rc != 0:
     #print command.get_error_list(ret)
     raise Exception("Error creating user. Return code : %d. "%rc)
@@ -93,7 +93,7 @@ def delete_local_user(userid):
         error_list.append("Error deleting the userid on GRIDCell %s"%hostname)
 
   #print "Deleting user %s from the storage system"%userid
-  ret, rc = command.execute_with_rc(r'/usr/local/samba/bin/pdbedit -d 1 -x %s'%userid)
+  ret, rc = command.execute_with_rc(r'pdbedit -d 1 -x %s'%userid)
   if rc != 0:
     raise Exception("Error deleting user from the storage system. Return code : %d. "%rc)
   #print "Deleted user %s from the storage system"%userid
@@ -112,7 +112,7 @@ def change_password(userid, pswd):
 
 def get_local_users():
 
-  ret, rc = command.execute_with_rc("/usr/local/samba/bin/pdbedit -d 1 -L")
+  ret, rc = command.execute_with_rc("pdbedit -d 1 -L")
 
   if rc != 0:
     raise "Error retrieving user list. Return code : %d"%rc

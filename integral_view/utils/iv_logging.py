@@ -12,19 +12,15 @@ def set_log_level(level):
   if level not in [logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL]:
     logger.setLevel(logging.INFO)
   else:
-    try :
-      d1 = db.read_single_row("%s/integral_view_config.db"%db_path, "select * from samba_global_ad")
-      cmd_list = []
-      if d1:
-        cmd = ["update global_params set logging_level=? where id = ?", (level, 1,)]
-      else:
-        cmd = ["insert into global_params (logging_level, id) values(?,?)", (level, 1,)]
-      cmd_list.append(cmd)
-      db.execute_iud("%s/integral_view_config.db"%db_path, cmd_list)
-    except Exception, e:
-      print "Error updating log level : %s"%str(e)
-    finally:
-      logger.setLevel(level)
+    d1 = db.read_single_row("%s/integral_view_config.db"%db_path, "select * from global_params")
+    cmd_list = []
+    if d1:
+      cmd = ["update global_params set logging_level=? where id = ?", (level, 1,)]
+    else:
+      cmd = ["insert into global_params (logging_level, id) values(?,?)", (level, 1,)]
+    cmd_list.append(cmd)
+    db.execute_iud("%s/integral_view_config.db"%db_path, cmd_list)
+    logger.setLevel(level)
 
 def get_log_level_str():
   level = get_log_level()

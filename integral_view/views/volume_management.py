@@ -178,7 +178,7 @@ def volume_specific_op(request, operation, vol_name=None):
         repl_count = 0
 
         if vol["type"] == "Replicate":
-          replica_count = int(vol["replicaCount"])
+          replica_count = int(vol["replica_count"])
           replicated = True
 
         d = gluster_commands.build_expand_volume_command(vol, si)
@@ -235,7 +235,7 @@ def create_snapshot(request):
       return_dict["form"] = form
       return django.shortcuts.render_to_response('create_snapshot.html', return_dict, context_instance = django.template.context.RequestContext(request))
     cd = form.cleaned_data
-    d  = integral_view.utils.gluster_commands.create_snapshot(cd)
+    d  = gluster_commands.create_snapshot(cd)
     if d and  ("op_status" in d) and d["op_status"]["op_ret"] == 0:
       #Success so audit the change
       audit.audit("create_snapshot", d["display_command"], request.META["REMOTE_ADDR"])
@@ -434,7 +434,7 @@ def set_volume_options(request):
     return_dict["form"] = form
     return django.shortcuts.render_to_response('volume_options_form.html', return_dict, context_instance = django.template.context.RequestContext(request))
   cd = form.cleaned_data
-  ol = integral_view.utils.volume_info.set_volume_options(cd)
+  ol = fractalio.volume_info.set_volume_options(cd)
   for d in ol:
     if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
       #Success so audit the change
@@ -513,7 +513,7 @@ def delete_volume(request):
             d["command"] = "Deleting volume storage on GRIDCell %s"%l[0]
             print "executing command"
             client = salt.client.LocalClient()
-            cmd_to_run = 'rm -rf %s'%l[1]
+            cmd_to_run = 'zfs destroy %s'%l[1][1:]
             print 'Running %s'%cmd_to_run
             #assert False
             rc = client.cmd(l[0], 'cmd.run', [cmd_to_run])
