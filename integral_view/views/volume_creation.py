@@ -194,7 +194,7 @@ def create_volume(request):
   dataset_dict = {}
   for ds in dsl:
     tl = ds.split(':')
-     dataset_dict[tl[0]] = tl[1]
+    dataset_dict[tl[0]] = tl[1]
 
   if not fractalio.common.is_production():
     cmd = 'ls -al'

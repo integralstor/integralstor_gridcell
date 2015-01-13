@@ -6,7 +6,7 @@ import django.template, django
 from django.conf import settings
 
 import fractalio
-from fractalio import command, db, common, batch, audit, alerts, ntp, mail, gluster_commands, volume_info, system_info, node_scan
+from fractalio import command, db, common, batch, audit, alerts, ntp, mail, gluster_commands, volume_info, system_info
 
 from integral_view.utils import iv_logging
 
@@ -24,6 +24,10 @@ def get_gluster_dir_list(vol,path):
   vol = vol
   dir_dict_list = []
   dirs = vol.listdir(path)
+  print dirs
+  if not dirs:
+    d_dict = {'id':path, 'text':"/",'icon':'fa fa-angle-right','children':True,'data':{'dir':path},'parent':"#"}
+    dir_dict_list.append(d_dict)
   for d in dirs:
     true = True
     if vol.isdir(path+d+"/"):
@@ -37,6 +41,18 @@ def get_gluster_dir_list(vol,path):
       #get_dir_list(vol,path+d+"/")
   return dir_dict_list
 
+def create_gluster_dir(vol_name,path,mode=0777):
+  if production:
+    hostname = "127.0.0.1"
+  else:
+    hostname = "192.168.1.244"
+  vol = gfapi.Volume(hostname, vol_name)
+  vol_mnt = vol.mount()
+  vol_dir = vol.mkdir(path,mode)
+  if vol_dir == 0:
+    return True
+  else:
+    return False
 
 @login_required    
 def show(request, page, info = None):
@@ -55,6 +71,7 @@ def show(request, page, info = None):
     template = "logged_in_error.html"
 
     if page == "dir_contents":
+      production = True
       dir_name = None
       error = False
       path_base = None
@@ -71,7 +88,6 @@ def show(request, page, info = None):
           hostname = "127.0.0.1"
         else:
           hostname = "192.168.1.244"
-
         vol = gfapi.Volume(hostname, vol_name)
         vol_mnt = vol.mount()
         if vol_mnt ==0:

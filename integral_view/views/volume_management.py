@@ -27,7 +27,7 @@ def volume_specific_op(request, operation, vol_name=None):
   form = None
 
   vil = volume_info.get_volume_info_all()
-  si = system_info.load_system_config()
+  si = {} #system_info.load_system_config()
 
   if request.method == "GET":
 
@@ -58,6 +58,16 @@ def volume_specific_op(request, operation, vol_name=None):
       form = integral_view.forms.volume_management_forms.VolumeNameForm(vol_list = l)
       if not l:
         return_dict["no_vols"] = True
+
+    elif operation == "create_volume_dir":
+      l = []
+      for v in vil:
+        l.append(v["name"])
+      if not l:
+        return_dict["no_vols"] = True
+      form = integral_view.forms.volume_management_forms.VolumeNameForm(vol_list = l)
+      return_dict['form'] = form
+      return django.shortcuts.render_to_response('create_volume_dir.html', return_dict, context_instance=django.template.context.RequestContext(request))  
     else:
       l = []
       for v in vil:
@@ -83,6 +93,28 @@ def volume_specific_op(request, operation, vol_name=None):
         if v["status"] == 1:
           l.append(v["name"])
       form = integral_view.forms.volume_management_forms.VolumeNameForm(request.POST, vol_list = l)
+
+    elif operation == "create_volume_dir":
+      dir_name = request.POST["name"]
+      vol_name = request.POST["vol"]
+      path = request.POST["path"]
+
+      vol_creation = integral_view.views.common.create_gluster_dir(vol_name,(path+dir_name),0777)
+      if vol_creation:
+        return_dict["conf_message"] = "Directory Creation success in path %s for volume %s"%(path+dir_name,vol_name)
+        #Reinitialize the form and render back it on the screen.
+        l = []
+        for v in vil:
+          l.append(v["name"])
+        if not l:
+          return_dict["no_vols"] = True
+        form = integral_view.forms.volume_management_forms.VolumeNameForm(vol_list = l)
+        return_dict['form'] = form        
+        
+        return django.shortcuts.render_to_response('create_volume_dir.html', return_dict, context_instance=django.template.context.RequestContext(request))  
+      else:
+        return_dict["error"] = "Directory creation error %s. Please try again"%(path+dir_name)
+        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
     else:
       l = []
       for v in vil:
