@@ -344,6 +344,8 @@ function ()
                 <!-- Content Header (Page header) -->
                 <section class="content-header">
                     <h1>
+                        <div class="row">
+                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
                         {%block page-header%}
                           DashBoard
                           <small>
@@ -352,8 +354,12 @@ function ()
                             Dashboard
                           </small>
                         {%endblock%}
+</div>
+<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+			                  <button id="refresh_page" class="btn btn-primary btn-flat pull-right" value="Refresh this page"> Refresh page</button>
                         <a href="#help" data-toggle="modal" class="btn btn-primary btn-flat pull-right">Help!</a>
-			                  <button id="refresh_page" class="btn btn-primary btn-flat pull-right" value="Refresh this page"> Refresh this page </button>
+</div>
+</div>
                     </h1>
                 </section>
 
@@ -419,6 +425,7 @@ function ()
         });
       {%endblock%}
       $("table").css({'width':'90%'})
+    $(".dataTables_info").addClass('margin-left-10')
     });
     $("#alerts_dropdown").click(function(){
       $("#alert_icon").removeClass("red faa-flash animated").addClass("white");
