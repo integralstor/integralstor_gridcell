@@ -594,7 +594,7 @@ def delete_volume(request):
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
     return_dict["result_list"] = result_list
-    return_dict["app_debug"] = True
+    return_dict["app_debug"] = settings.APP_DEBUG
     return django.shortcuts.render_to_response('volume_delete_results.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
 def replace_node(request):

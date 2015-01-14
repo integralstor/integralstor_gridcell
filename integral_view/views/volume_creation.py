@@ -220,13 +220,14 @@ def create_volume(request):
   if errors != "":
     if revert_list:
       #Undo the creation of the datasets
-      for node, dsr_cmd in revert_list.items():
-        r1 = client.cmd(node, 'cmd.run_all', [dsr_cmd])
-        if r1:
-          for node, ret in r1.items():
-            #print ret
-            if ret["retcode"] != 0:
-              errors += ", Error undoing the creating the underlying storage brick on %s"%node
+      for revert in revert_list:
+        for node, dsr_cmd in revert.items():
+          r1 = client.cmd(node, 'cmd.run_all', [dsr_cmd])
+          if r1:
+            for node, ret in r1.items():
+              #print ret
+              if ret["retcode"] != 0:
+                errors += ", Error undoing the creating the underlying storage brick on %s"%node
       return_dict["error"] = errors
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
