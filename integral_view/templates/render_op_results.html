@@ -1,39 +1,115 @@
 {% extends 'logged_in_base.html' %}
+{%block page-header%}
+{% if op == 'add_server' %}
+Storage pool 
+  <small>
+      Storage pool 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Add a GRIDCell 
+  </small>
+{% elif op == 'remove_server' %}
+Storage pool 
+  <small>
+      Storage pool 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Remove a GRIDCell
+  </small>
+{% elif op == 'view_server_status' %}
+Storage pool 
+  <small>
+      Storage pool 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+       View status
+  </small>
+{% elif op == 'vol_start' %}
+Start a volume 
+  <small>
+      Volumes 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Start a volume - results
+  </small>
+{% elif op == 'start_rebalance' %}
+Start volume rebalance
+  <small>
+      Volumes 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Start a volume rebalance - results
+  </small>
+{% elif op == 'stop_rebalance' %}
+Start volume rebalance
+  <small>
+      Volumes 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Start volume rebalance - results
+  </small>
+{% elif op == 'check_rebalance' %}
+Check volume rebalance status
+Volume management -> Check volume rebalance status</b> <br><br>
+  <small>
+      Volumes 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Check volume rebalance status - results
+  </small>
+{% elif op == 'vol_stop' %}
+Stop a volume 
+  <small>
+      Volumes 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Stop a volume - results
+  </small>
+{% elif op == 'vol_delete' %}
+Delete a volume 
+  <small>
+      Volumes 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Delete a volume - results
+  </small>
+{% elif op == 'view_volume_status_all' %}
+View the status of all volumes
+  <small>
+      Volumes 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      View the status of all volumes
+  </small>
+{% elif op == 'view_volume_info_all' %}
+View the information about all volumes
+  <small>
+      Volumes 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      View the information about all volumes
+  </small>
+{% elif op == 'enable_quota' %}
+Enable volume quotas
+  <small>
+      Volumes 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Enable volume quotas - results
+  </small>
+{% elif op == 'disable_quota' %}
+Disable volume quotas
+  <small>
+      Volumes 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Disable volume quotas - results
+  </small>
+{% elif op == 'rotate_log' %}
+Rotate volume log
+  <small>
+      Logging 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Rotate volume log - results
+  </small>
+{% elif op == 'expand_volume' %}
+Expand volume
+  <small>
+      Volumes 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Expand volume - results
+  </small>
+{% endif%}
+{%endblock%}
 
 {%block contents%}
-{% if op == 'add_server' %}
-<b>Trusted pool setup -> Add server </b> <br><br>
-{% elif op == 'remove_server' %}
-<b>Trusted pool setup -> Remove server </b> <br><br>
-{% elif op == 'view_server_status' %}
-<b>Trusted pool setup -> View server status</b> <br><br>
-{% elif op == 'vol_start' %}
-<b>Volume management -> Start a volume </b> <br><br>
-{% elif op == 'start_rebalance' %}
-<b>Volume management -> Start volume rebalance</b> <br><br>
-{% elif op == 'stop_rebalance' %}
-<b>Volume management -> Stop volume rebalance</b> <br><br>
-{% elif op == 'check_rebalance' %}
-<b>Volume management -> Check volume rebalance status</b> <br><br>
-{% elif op == 'vol_stop' %}
-<b>Volume management -> Stop a volume </b> <br><br>
-{% elif op == 'vol_delete' %}
-<b>Volume management -> Delete a volume </b> <br><br>
-{% elif op == 'view_volume_status_all' %}
-<b>Volume management -> View the status of all volumes</b> <br><br>
-{% elif op == 'view_volume_info_all' %}
-<b>Volume management -> View the information about all volumes</b> <br><br>
-{% elif op == 'enable_quota' %}
-<b>Enable quotas -> Enable volume quotas</b> <br><br>
-{% elif op == 'disable_quota' %}
-<b>Enable quotas -> Disable volume quotas</b> <br><br>
-{% elif op == 'display_disk_level_quota' %}
-<b>Enable quotas -> Display disk level quotas</b> <br><br>
-{% elif op == 'rotate_log' %}
-<b>Logging -> Rotate log</b> <br><br>
-{% elif op == 'expand_volume' %}
-<b>Volume management -> Expand volume</b> <br><br>
-{% endif%}
 {% if app_debug %}
 Executed the following command : "{{cmd}}". <br><br>
 {% endif %}

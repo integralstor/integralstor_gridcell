@@ -106,13 +106,13 @@ def perform_op(request, op, name1=None, name2= None):
       if audit_code:
         audit.audit(audit_code, audit_str, request.META["REMOTE_ADDR"])
       if op in ['vol_stop', 'vol_delete', 'disable_quota']:
-        tup = integral_view.utils.command.execute_with_conf(command)
-        e = integral_view.utils.command.get_conf_error_list(tup)
-        o = integral_view.utils.command.get_conf_output_list(tup)
+        tup = fractalio.command.execute_with_conf(command)
+        e = fractalio.command.get_conf_error_list(tup)
+        o = fractalio.command.get_conf_output_list(tup)
       else:
-        tup = integral_view.utils.command.execute(command)
-        e = integral_view.utils.command.get_error_list(tup)
-        o = integral_view.utils.command.get_output_list(tup)
+        tup = fractalio.command.execute(command)
+        e = fractalio.command.get_error_list(tup)
+        o = fractalio.command.get_output_list(tup)
       if e:
         return_dict['cmd_errors'] = e
       if o:
@@ -125,9 +125,9 @@ def perform_op(request, op, name1=None, name2= None):
         else:
           command = 'ls -al'
     
-        tup = integral_view.utils.command.execute(command)
-        e1 = integral_view.utils.command.get_error_list(tup)
-        o1 = integral_view.utils.command.get_output_list(tup)
+        tup = fractalio.command.execute(command)
+        e1 = fractalio.command.get_error_list(tup)
+        o1 = fractalio.command.get_output_list(tup)
         if e1:
           if e:
             e.extend(e1)

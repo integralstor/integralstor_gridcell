@@ -498,7 +498,7 @@ def set_volume_quota(request):
       if o["name"] == "features.quota" and o["value"] == "on":
         enable_quota = False
         break
-  ol = integral_view.utils.gluster_commands.set_volume_quota(cd["vol_name"], enable_quota, cd["set_quota"], cd["limit"], cd["unit"])
+  ol = fractalio.gluster_commands.set_volume_quota(cd["vol_name"], enable_quota, cd["set_quota"], cd["limit"], cd["unit"])
   for d in ol:
     if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
       #Success so audit the change

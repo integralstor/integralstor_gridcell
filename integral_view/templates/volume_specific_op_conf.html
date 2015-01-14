@@ -6,7 +6,11 @@
   <small>
       Volumes 
       <i class="fa fa-angle-double-right smaller-80"></i>
+{% if op == 'vol_delete' %}
       Delete a volume
+{% elif op == 'vol_stop' %}
+  Stop a volume
+{% endif %}
   </small>
 {%endblock%}
 

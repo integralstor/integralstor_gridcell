@@ -197,7 +197,7 @@ def build_create_or_expand_volume_command(command, si, anl, vol_type, ondisk_sto
           brick = "%s:/%s/%s/%s"%(node_name, node["pools"][pool_num-1]["name"], ondisk_storage, vol_name)
           cmd = cmd + brick + " "
           dataset_name = "%s/%s/%s"%(node["pools"][pool_num-1]["name"], ondisk_storage, vol_name)
-          dataset_list.append({node_namehostname:dataset_name})
+          dataset_list.append({node_name:dataset_name})
           a = "GRIDCells %s pool %s"%(node_name, node["pools"][pool_num-1]["name"])
           print a
           nl.append(a)
@@ -226,7 +226,7 @@ def build_create_or_expand_volume_command(command, si, anl, vol_type, ondisk_sto
           break
         cmd = cmd + brick + " "
         dataset_name = "%s/%s/%s"%(node["pools"][pool_num-1]["name"], ondisk_storage, vol_name)
-        dataset_list.append({node_namehostname:dataset_name})
+        dataset_list.append({node_name:dataset_name})
         count += 1
         tl.append(a)
         print a
@@ -239,7 +239,7 @@ def build_create_or_expand_volume_command(command, si, anl, vol_type, ondisk_sto
         brick = "%s:/%s/%s/%s"%(node_name, node["pools"][pool_num-1]["name"], ondisk_storage, vol_name)
         cmd = cmd + brick + " "
         dataset_name = "%s/%s/%s"%(node["pools"][pool_num-1]["name"], ondisk_storage, vol_name)
-        dataset_list.append({node_namehostname:dataset_name})
+        dataset_list.append({node_name:dataset_name})
         a = "GRIDCell %s pool %s"%(node_name, node["pools"][pool_num-1]["name"])
         print a
         count += 1
