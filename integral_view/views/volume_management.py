@@ -185,6 +185,8 @@ def volume_specific_op(request, operation, vol_name=None):
               d["nfs_volume_access"] = option["value"]
             if option["name"] == "features.read-only": 
               d["readonly"] = option["value"]
+            if option["name"] == "features.worm": 
+              d["enable_worm"] = option["value"]
         form = integral_view.forms.volume_management_forms.VolumeOptionsForm(initial=d)
         return_dict["form"] = form
         return django.shortcuts.render_to_response('volume_options_form.html', return_dict, context_instance=django.template.context.RequestContext(request))

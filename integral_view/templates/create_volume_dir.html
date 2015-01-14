@@ -25,10 +25,10 @@
     <table  class="table " style="width:800px">
       <tr>
         <td>
-          <label for="id_name">Directory name:</label>
+          <label for="id_name">New directory name :</label>
         </td>
         <td>
-          <input type="text"  name="name" class="form-control" id="id_name" placeholder="Name of the directory"> 
+          <input type="text"  name="name" class="form-control" id="id_name" placeholder="Name of the directory that you want to create"> 
         </td>
         <td>
           {{ form.name.errors }}
@@ -53,10 +53,10 @@
 
       <tr>
         <td>
-          <label for="id_path">Directory within volume:</label>
+          <label for="id_path">Select parent directory :</label>
         </td>
         <td>
-          <input type="text"  name="path" class="form-control" id="id_path" placeholder="Click the Browse button to choose a directory.." disabled> 
+          <input type="text"  name="path" class="form-control" id="id_path" placeholder="Click the Browse button to choose the parent directory" disabled> 
           <a href="#" class="btn btn-default" onClick="displayTree();return true;"> Browse..</a>
           <div id="pathdiv" style="display:inline"></div>
         </td>

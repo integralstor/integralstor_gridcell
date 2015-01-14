@@ -179,12 +179,12 @@ function ()
                               <ul class="treeview-menu">
                                 <li>
                                   <a href="/show/volume_info_all/">
-                                    <i class="fa fa-angle-double-right"></i>View volume configuration
+                                    <i class="fa fa-angle-double-right"></i>Volume configuration
                                   </a>
                                 </li>
                                 <li style="letter-spacing:1px">
                                   <a href="/show/volume_status_all" data-toggle="tooltip" title="View current volume status" style="letter-spacing:1px">
-                                    <i class="fa fa-angle-double-right"></i>View volume status
+                                    <i class="fa fa-angle-double-right"></i>Volume status
                                   </a>
                                 </li>
                                 <li>
@@ -219,13 +219,14 @@ function ()
                                   </a>
                                 </li>
                                 <li>
-                                  <a href="{%url 'create_vol_dir'%}">
-                                    <i class="fa fa-angle-double-right"></i>Create a directory
-                                  </a>
-                                </li>
-                                <li>
                                   <a href="/volume_specific_op/vol_quota/">
                                     <i class="fa fa-angle-double-right"></i>Set volume quota
+                                  </a>
+                                </li>
+                                <li class="divider"></li>
+                                <li>
+                                  <a href="{%url 'create_vol_dir'%}">
+                                    <i class="fa fa-angle-double-right"></i>Create a directory
                                   </a>
                                 </li>
                                 <li class="divider"></li>

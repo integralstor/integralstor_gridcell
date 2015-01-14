@@ -321,7 +321,7 @@ def edit_auth_method(request):
       return_dict["error"] = "Error updating authentication method - %s" %e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
 
-  return django.http.HttpResponseRedirect('/auth_server_settings/')
+  return django.http.HttpResponseRedirect('/auth_server_settings?action=edit')
 
 
 def save_samba_server_settings(request):
