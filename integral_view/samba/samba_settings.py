@@ -6,6 +6,7 @@ from fractalio import command, db, common
 
 import local_users
 
+import salt.client 
 
 db_path = common.get_db_path()
 
@@ -434,9 +435,9 @@ def load_valid_users_list(share_id):
 
 def _get_ad_users_or_groups(type):
   if type and type=="users":
-    c = command.execute_with_rc("/usr/local/samba/bin/wbinfo -u ")
+    c = command.execute_with_rc("wbinfo -u ")
   elif type and type=="groups":
-    c = command.execute_with_rc("/usr/local/samba/bin/wbinfo -g ")
+    c = command.execute_with_rc("wbinfo -g ")
   else:
     raise Exception("Unknown type specified to retrieve AD users or groups.")
 
