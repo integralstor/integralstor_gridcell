@@ -395,7 +395,8 @@ def status():
   return d
       
 if __name__ == '__main__':
-  print status()
+  #print status()
+  print _diskmap()
   #print disk_info()
   #print pool_status()
   #print disk_status()

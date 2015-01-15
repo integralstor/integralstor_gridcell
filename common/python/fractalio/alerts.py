@@ -63,19 +63,20 @@ def load_alerts(fname = None):
       f.close()
   return alerts_list
 
-def raise_alert(msg):
+def raise_alert(msg_list):
   t = int(time.time())
   filename = _get_alerts_file_path()
   with open(filename, "a") as f:
     fcntl.flock(f, fcntl.LOCK_EX)
-    f.write("\n%-13d %s\n"%(t, msg))
+    for msg in msg_list:
+      f.write("\n%-13d %s\n"%(t, msg))
     fcntl.flock(f, fcntl.LOCK_UN)
     f.close()
   try:
     d = mail.load_email_settings()
     if d:
       if d["email_alerts"]:
-        ret = mail.send_mail(d["server"], d["port"], d["username"], d["pswd"], d["tls"], d["rcpt_list"], "Alert from Fractal-view", msg)
+        ret = mail.send_mail(d["server"], d["port"], d["username"], d["pswd"], d["tls"], d["rcpt_list"], "Alert from Fractal-view", '\n'.join(msg_list))
         if ret:
           with open(filename, "a") as f:
             fcntl.flock(f, fcntl.LOCK_EX)
