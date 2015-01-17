@@ -26,7 +26,7 @@
   <div class="box-body">
     <div class="row margin-left-10">
     {%for hostname, d in disk_new.items%}
-      <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
+      <div class="col-lg-4 col-md-6 col-sm-6 col-xs-12">
       <!-- small box -->
         <div class="small-box {{d.background_color}}">
           <div class="inner">
@@ -38,6 +38,9 @@
             </p>  
           </div>
           <div class="disk-icon">
+            {%for diskpos in d.disk_pos%}
+              <i class="fa fa-hdd-o" id ="{{diskpos}}">
+            {%endfor%}
             {%for disk in d.disks.items %}
               {%if disk.1 == "PASSED" %}
                  <i class="fa fa-hdd-o white"></i>
@@ -45,6 +48,7 @@
                  <i class="fa fa-hdd-o faa-hdd-o animated red"></i>
               {%endif%}
            {%endfor%}
+
           </div>
           <a href="/show/node_status/{{hostname}}" class="small-box-footer">
              <strong>More info</strong> <i class="fa fa-arrow-circle-right"></i>
@@ -63,9 +67,9 @@
     <h3 class="box-title">GRIDCells in Storage Pool</h3>
   </div>
   <div class="box-body">
-    <div class="row margin-left-10">
+    <div class="row margin-left-1">
     {%for hostname, d in disk_status.items%}
-      <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
+      <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
       <!-- small box -->
         <div class="small-box {{d.background_color}}">
           <div class="inner">
@@ -77,13 +81,19 @@
             </p>  
           </div>
           <div class="disk-icon">
-            {%for disk in d.disks.items %}
-              {%if disk.1 == "PASSED" %}
-                 <i class="fa fa-hdd-o white"></i>
+            <i class="fa fa-hdd-o" id ="{{d.disk_pos.1}}"></i>
+            <i class="fa fa-hdd-o" id ="{{d.disk_pos.2}}"></i>
+            <i class="fa fa-hdd-o" id ="{{d.disk_pos.3}}"></i>
+            <i class="fa fa-hdd-o" id ="{{d.disk_pos.4}}"></i>
+            <script>
+                {%for disk in d.disks.items %}
+                  {%if disk.1 == "PASSED" %}
+                    $("#{{disk.0}}").addClass('white')
               {%else%}
-                 <i class="fa fa-hdd-o faa-hdd-o animated red"></i>
+                    $("#{{disk.0}}").addClass("faa-hdd-o animated red");
               {%endif%}
            {%endfor%}
+          </script>
           </div>
           <a href="/show/node_status/{{hostname}}" class="small-box-footer">
              <strong>More info</strong> <i class="fa fa-arrow-circle-right"></i>

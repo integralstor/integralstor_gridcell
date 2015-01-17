@@ -4,7 +4,7 @@ import salt.client
 import json, os, shutil, datetime, sys, re
 import fractalio
 import pprint
-from fractalio import lock
+from fractalio import lock, common
 
 def _gen_status_info(path):
 
@@ -62,7 +62,6 @@ def _gen_status_info(path):
             node_status = 1
             temp_d["errors"].append("Disk with serial number %s on node %s is reporting SMART errors."%(disk_sn, hostname))
           dd["name"] = sd[hostname]["disks"][disk_sn]["name"] 
-          dd["position"] = sd[hostname]["disks"][disk_sn]["position"]
         else:
           dd["status"] = "Disk Missing"
           node_status = 1
@@ -77,6 +76,7 @@ def _gen_status_info(path):
           temp_d["errors"].append("New disk detected. Disk with serial number %s on node %s seems to be new."%(td, hostname))
           node_status = 2
       temp_d["disks"] = disks
+      #print disks
 
 
       # Process interface information
@@ -185,12 +185,16 @@ def main():
 
   num_args = len(sys.argv)
   if num_args > 1:
-    rc = gen_status(os.path.normpath(sys.argv[1]))
-    #print rc
+    path = sys.argv[1]
   else:
-    #rc = gen_status('/home/bkrram/fractal/integral_view/integral_view/devel/config')
-    rc = gen_status('/tmp')
-    #print rc
+    path = common.get_system_status_path()
+    if not path:
+      path = '/tmp'
+  print "Generating the status in %s"%path
+  rc = gen_status(path)
+  print rc
+  return rc
+
 
 if __name__ == "__main__":
   main()

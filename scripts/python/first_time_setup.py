@@ -72,6 +72,19 @@ def initiate_setup():
     print "Exiting now.."
     return -1
   #Test d here!
+  print "Creating the bricks for the admin volume"
+  r1 = client.cmd('roles:master', 'cmd.run_all', ['zfs create frzpool/normal/%s %s'%(fractalio.common.get_admin_vol_name())], expr_form='grain')
+  if r1:
+    for node, ret in r1.items():
+      #print ret
+      if ret["retcode"] != 0:
+        errors = "Error creating the brick path ZFS dataset on %s"%node
+        print errors
+        print "Exiting now.."
+        return -1
+      else:
+        print "Brick path ZFS dataset created on %s"%node
+        print
   print "Creating the IntegralStor Administration Volume."
   print
   cmd = "gluster --mode=script volume create %s repl 2 %s:/frzpool/normal/%s %s:/frzpool/normal/%s --xml"%(fractalio.common.get_admin_vol_name(), primary,  fractalio.common.get_admin_vol_name(), secondary, fractalio.common.get_admin_vol_name())
@@ -175,13 +188,108 @@ def initiate_setup():
   #Phew! Finally all ok. Copy the rest of the stuff and go ahead
   print "Copying the default configuration onto the IntegralStor administration volume."
   print
-  shutil.copytree("%s/db"%fractalio.common.get_defaults_dir(), "%s/db"%fractalio.common.get_admin_vol_mountpoint())
-  shutil.copytree("%s/logs"%fractalio.common.get_defaults_dir(), "%s/logs"%fractalio.common.get_admin_vol_mountpoint())
-  os.mkdir("%s/status"%fractalio.common.get_admin_vol_mountpoint())
-  shutil.move("%s/master.manifest"%fractalio.common.get_tmp_path(), fractalio.common.get_system_status_path())
-  shutil.move("%s/master.status"%fractalio.common.get_tmp_path(), fractalio.common.get_system_status_path())
-  print "Copying the default configuration onto the IntegralStor administration volume... Done."
-  print
+  try :
+    shutil.copytree("%s/db"%fractalio.common.get_defaults_dir(), "%s/db"%fractalio.common.get_admin_vol_mountpoint())
+    shutil.copytree("%s/ntp"%fractalio.common.get_defaults_dir(), "%s/ntp"%fractalio.common.get_admin_vol_mountpoint())
+    shutil.copytree("%s/logs"%fractalio.common.get_defaults_dir(), "%s/logs"%fractalio.common.get_admin_vol_mountpoint())
+    print "Setting up NTP"
+    r2 = client.cmd('roles:master', 'cmd.run_all', ['rm /etc/ntp.conf'], expr_form='grain')
+    if r2:
+      for node, ret in r2.items():
+        if ret["retcode"] != 0:
+          errors = "Error deleting the original NTP config file on %s"%node
+          print errors
+          print "Exiting now.."
+          return -1
+    r2 = client.cmd('roles:primary', 'cmd.run_all', ['ln -s %s/ntp/primary_ntp.conf /etc/ntp.conf'], expr_form='grain')
+    if r2:
+      for node, ret in r2.items():
+        if ret["retcode"] != 0:
+          errors = "Error linking to the NTP config file on %s"%node
+          print errors
+          print "Exiting now.."
+          return -1
+    r2 = client.cmd('roles:secondary', 'cmd.run_all', ['ln -s %s/ntp/secondary_ntp.conf /etc/ntp.conf'], expr_form='grain')
+    if r2:
+      for node, ret in r2.items():
+        if ret["retcode"] != 0:
+          errors = "Error linking to the NTP config file on %s"%node
+          print errors
+          print "Exiting now.."
+          return -1
+    r2 = client.cmd('roles:master', 'cmd.run_all', ['service ntpd restart'], expr_form='grain')
+    if r2:
+      for node, ret in r2.items():
+        if ret["retcode"] != 0:
+          errors = "Error restarting the NTP config file on %s"%node
+          print errors
+          print "Exiting now.."
+          return -1
+    os.mkdir("%s/status"%fractalio.common.get_admin_vol_mountpoint())
+    os.mkdir("%s/batch_processes"%fractalio.common.get_admin_vol_mountpoint())
+    shutil.move("%s/master.manifest"%fractalio.common.get_tmp_path(), fractalio.common.get_system_status_path())
+    shutil.move("%s/master.status"%fractalio.common.get_tmp_path(), fractalio.common.get_system_status_path())
+    print "Copying the default configuration onto the IntegralStor administration volume... Done."
+    print
+    print "Setting up CTDB and Samba"
+    os.mkdir("%s/lock"%fractalio.common.get_admin_vol_mountpoint())
+    with open("%s/lock/ctdb"%fractalio.common.get_admin_vol_mountpoint(), "w") as f:
+      f.write("CTDB_RECOVERY_LOCK=%s/lock/lockfile\n"%fractalio.common.get_admin_vol_mountpoint())
+      f.write("CTDB_MANAGES_SAMBA=yes")
+      f.write("CTDB_NODES=/etc/ctdb/nodes")
+      f.close()
+
+    with open("%s/lock/nodes"%fractalio.common.get_admin_vol_mountpoint(), "w") as f1:
+      for node_name in si.keys():
+        f1.write("%s\n"%node_name)
+      f1.close() 
+
+    r2 = client.cmd('*', 'cmd.run_all', ['ln -s %s/lock/ctdb /etc/sysconfig/ctdb'%fractalio.common.get_admin_vol_mountpoint()])
+      if r2:
+      for node, ret in r2.items():
+        if ret["retcode"] != 0:
+          errors = "Error linking to the CTDB config file on %s"%node
+          print errors
+          print "Exiting now.."
+          return -1
+    r2 = client.cmd('*', 'cmd.run_all', ['ln -s %s/lock/nodes /etc/sysconfig/nodes'%fractalio.common.get_admin_vol_mountpoint()])
+      if r2:
+      for node, ret in r2.items():
+        if ret["retcode"] != 0:
+          errors = "Error linking to the CTDB nodes file on %s"%node
+          print errors
+          print "Exiting now.."
+          return -1
+
+    r2 = client.cmd('*', 'cmd.run_all', ['chkconfig smbd off'])
+      if r2:
+      for node, ret in r2.items():
+        if ret["retcode"] != 0:
+          errors = "Error turning off smbd autostart on %s"%node
+          print errors
+          print "Exiting now.."
+          return -1
+    r2 = client.cmd('*', 'cmd.run_all', ['service ctdb start'])
+      if r2:
+      for node, ret in r2.items():
+        if ret["retcode"] != 0:
+          errors = "Error turning on CTDB autostart on %s"%node
+          print errors
+          print "Exiting now.."
+          return -1
+
+    r2 = client.cmd('*', 'cmd.run_all', ['chkconfig ctdb on'])
+      if r2:
+      for node, ret in r2.items():
+        if ret["retcode"] != 0:
+          errors = "Error turning on CTDB autostart on %s"%node
+          print errors
+          print "Exiting now.."
+          return -1
+        
+  except Exception, e:
+    print "Errored out! Error : %s"%e
+    return -1
   return 0
 
 

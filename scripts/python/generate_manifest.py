@@ -3,7 +3,7 @@
 import salt.client
 import json, os, datetime, shutil, sys
 import fractalio
-from fractalio import lock
+from fractalio import lock, common
 import pprint
 
 def _gen_manifest_info():
@@ -78,12 +78,14 @@ def main():
 
   num_args = len(sys.argv)
   if num_args > 1:
-    rc = gen_manifest(os.path.normpath(sys.argv[1]))
+    path = sys.argv[1]
   else:
-    #rc = gen_manifest('/home/bkrram/fractal/integral_view/integral_view/devel/config')
-    rc = gen_manifest('/tmp')
-  #print rc
-  #print rc
+    path = common.get_system_status_path()
+    if not path:
+      path = '/tmp'
+  print "Generating the manifest in %s"%path
+  rc = gen_manifest(path)
+  print rc
   return rc
 
 if __name__ == "__main__":

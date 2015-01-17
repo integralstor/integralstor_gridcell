@@ -546,6 +546,8 @@ def set_volume_quota(vol_name, enable_quota, set_quota, limit, unit):
 
 def get_volume_quotas(vol_name):
 
+  '''
+  XML output of buggy so need to parse text for now
   quotas = None
   #Need to first enable quota
   prod_command = 'gluster volume quota %s list --xml'%(vol_name)
@@ -557,12 +559,36 @@ def get_volume_quotas(vol_name):
     return quotas
   else:
     return None
+  '''
+  ret, ret_code = command.execute_with_rc('gluster volume quota %s list'%vol_name)
+  if ret_code != 0:
+    return None
+    
+  output = command.get_output_list(ret)
+  data_line = False
+  return_dict = {}
+  for line in output:
+    if data_line:
+      fields = line.split()
+      d = {}
+      d["limit"] = fields[1]
+      d["size"] = fields[3]
+      d["soft_limit"] = fields[2]
+      d["available"] = fields[4]
+      d["soft_limit_exceeded"] = fields[5]
+      d["hard_limit_exceeded"] = fields[6]
+      return_dict[fields[0]] = d
+      #print d
+    if "------------------" in line:
+      data_line = True
+  #assert False
+  return return_dict
 
 
 
 def main():
 
-  print list_dir("distvol", "/")
+  print get_volume_quotas('distvol')
 
 if __name__ == "__main__":
   main()

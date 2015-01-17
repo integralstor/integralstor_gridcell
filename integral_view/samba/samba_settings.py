@@ -201,6 +201,8 @@ def _generate_global_section(f, d):
   f.write("  server string = Fractal-io File server\n")
   f.write("  log file = /var/log/smblog.vfs\n")
   f.write("  log level=5\n")
+  f.write("  clustering=yes\n")
+  f.write("  private dir=%s/lock\n"%fractalio.common.get_admin_vol_mountpoint())
   f.write("  load printers = no\n")
   f.write("  idmap config *:backend = tdb\n")
   f.write("  workgroup = %s\n"%d["workgroup"].upper())

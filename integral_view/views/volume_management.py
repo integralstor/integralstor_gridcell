@@ -143,7 +143,7 @@ def volume_specific_op(request, operation, vol_name=None):
                 init["set_quota"] = True
                 if "quotas" in vd and "/" in vd["quotas"]:
                   q = vd["quotas"]["/"]
-                  match = re.search('([0-9]+)([A-Za-z]+)', q["limit"])
+                  match = re.search('([0-9.]+)([A-Za-z]+)', q["limit"])
                   if match:
                     r  = match.groups()
                     init["limit"] = r[0]
@@ -505,7 +505,7 @@ def set_volume_quota(request):
       audit.audit("set_vol_quota", d["display_command"], request.META["REMOTE_ADDR"])
 
   return_dict["result_list"] = ol
-  return_dict["app_debug"] = True
+  return_dict["app_debug"] = settings.APP_DEBUG
   return django.shortcuts.render_to_response('volume_quota_result.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
 def delete_volume(request):

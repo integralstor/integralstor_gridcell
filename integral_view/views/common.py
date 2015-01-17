@@ -1,4 +1,4 @@
-import json, time, os, shutil, tempfile, os.path, re, subprocess, sys
+import json, time, os, shutil, tempfile, os.path, re, subprocess, sys, shutil
 
 import salt.client, salt.wheel
 
@@ -241,6 +241,10 @@ def show(request, page, info = None):
         frm = request.GET["from"]
         return_dict['frm'] = frm
       vol_list = volume_info.get_volumes_on_node(info, vil)
+      sorted_disks = []
+      for key,value in sorted(si[info]["disks"].iteritems(), key=lambda (k,v):v["position"]):
+        sorted_disks.append(key)
+      si[info]["disk_pos"] = sorted_disks
       return_dict['node'] = si[info]
       return_dict['node_name'] = info
 
@@ -325,10 +329,6 @@ def show(request, page, info = None):
         template = "view_disk_status_details.html"
 
       else:
-        #count the failures in case of Offline or degraded
-        disk_failures = 0
-        #Default background color
-        background_color = "bg-green"
         """
           Iterate the system information, and get the following data :
             1. The status of every disk
@@ -340,6 +340,11 @@ def show(request, page, info = None):
         """
         for key, value in si.iteritems():
           #print kiey, value
+          #count the failures in case of Offline or degraded
+          disk_failures = 0
+          #Default background color
+          background_color = "bg-green"
+
           if not si[key]["in_cluster"]:
             disk_new[key] = {}
             disk_new[key]["disks"] = {}
@@ -351,7 +356,7 @@ def show(request, page, info = None):
               #print disk_value["status"]
               if disk_value["status"] != "PASSED":
                 disk_failures += 1
-              if disk_failures > 2:
+              if disk_failures >= 1:
                 background_color = "bg-yellow"
               if disk_failures >= 4:
                 background_color == "bg-red"
@@ -361,6 +366,10 @@ def show(request, page, info = None):
               background_color == "bg-red"
             disk_new[key]["background_color"] = background_color
             disk_new[key]["name"] = si[key]["pools"][0]["name"]
+            sorted_disks = []
+            for key1,value1 in sorted(si[key]["disks"].iteritems(), key=lambda (k,v):v["position"]):
+              sorted_disks.append(key1)
+            disk_new[key]["disk_pos"] = sorted_disks
             #print disk_new
             #disk_new[key]["info"] = pool_status
           else:
@@ -374,7 +383,7 @@ def show(request, page, info = None):
               #print disk_value["status"]
               if disk_value["status"] != "PASSED":
                 disk_failures += 1
-              if disk_failures > 2:
+              if disk_failures >= 1:
                 background_color = "bg-yellow"
               if disk_failures >= 4:
                 background_color == "bg-red"
@@ -384,6 +393,10 @@ def show(request, page, info = None):
               background_color == "bg-red"
             disk_status[key]["background_color"] = background_color
             disk_status[key]["name"] = si[key]["pools"][0]["name"]
+            sorted_disks = []
+            for key1,value1 in sorted(si[key]["disks"].iteritems(), key=lambda (k,v):v["position"]):
+              sorted_disks.append(key1)
+            disk_status[key]["disk_pos"] = sorted_disks
             #print disk_status
             #disk_status[key]["info"] = pool_status
         
@@ -534,7 +547,7 @@ def configure_ntp_settings(request):
         primary_server = "primary.fractalio.lan"
         secondary_server = "secondary.fractalio.lan"
         #First create the ntp.conf file for the primary and secondary nodes
-        temp = tempfile.NamedTemporaryFile(mode="w", dir="/srv/salt/tmp")
+        temp = tempfile.NamedTemporaryFile(mode="w")
         temp.write("driftfile /var/lib/ntp/drift\n")
         temp.write("restrict default kod nomodify notrap nopeer noquery\n")
         temp.write("restrict -6 default kod nomodify notrap nopeer noquery\n")
@@ -544,12 +557,12 @@ def configure_ntp_settings(request):
         for server in slist:
           temp.write("server %s iburst\n"%server)
         temp.flush()
-        client = salt.client.LocalClient()
-        client.cmd('roles:master', 'cp.get_file', ["salt://tmp/%s"%os.path.basename(temp.name), '%s/ntp.conf'%fractalio.common.get_ntp_conf_path()], expr_form='grain')
-        client.cmd('roles:master', 'cmd.run_all', ["service ntpd restart"], expr_form='grain')
+        shutil.move(temp.name, "%s/ntp/primary_ntp.conf"%fractalio.common.get_admin_vol_mountpoint())
+        #client = salt.client.LocalClient()
+        #client.cmd('roles:master', 'cp.get_file', ["salt://tmp/%s"%os.path.basename(temp.name), '%s/ntp.conf'%fractalio.common.get_ntp_conf_path()], expr_form='grain')
+        #client.cmd('roles:master', 'cmd.run_all', ["service ntpd restart"], expr_form='grain')
         #shutil.copyfile(temp.name, '%s/ntp.conf'%settings.NTP_CONF_PATH)
-        temp.close()
-        temp1 = tempfile.NamedTemporaryFile(mode="w", dir="/srv/salt/tmp")
+        temp1 = tempfile.NamedTemporaryFile(mode="w")
         temp1.write("server %s iburst\n"%primary_server)
         temp1.write("server %s iburst\n"%secondary_server)
         for s in si.keys():
@@ -557,8 +570,9 @@ def configure_ntp_settings(request):
         temp1.write("server 127.127.1.0\n")
         temp1.write("fudge 127.127.1.0 stratum 10\n")
         temp1.flush()
-        client.cmd('role:secondary', 'cp.get_file', ["salt://tmp/%s"%os.path.basename(temp1.name), '%s/ntp.conf'%fractalio.common.get_ntp_conf_path()], expr_form='grain')
-        client.cmd('role:secondary', 'cmd.run_all', ["service ntpd restart"], expr_form='grain')
+        shutil.move(temp1.name, "%s/ntp/secondary_ntp.conf"%fractalio.common.get_admin_vol_mountpoint())
+        #client.cmd('role:secondary', 'cp.get_file', ["salt://tmp/%s"%os.path.basename(temp1.name), '%s/ntp.conf'%fractalio.common.get_ntp_conf_path()], expr_form='grain')
+        #client.cmd('role:secondary', 'cmd.run_all', ["service ntpd restart"], expr_form='grain')
         #shutil.copyfile(temp.name, '/tmp/ntp.conf')
 
         '''

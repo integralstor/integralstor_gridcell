@@ -28,7 +28,7 @@ def get_serialno(output):
 
 def _diskmap():
   disknames = {}
-  disk_positions = {}
+  disk_positions = []
   for file in os.listdir('/sys/bus/scsi/devices'):
     m = re.match("^\d", file)
     if m:
@@ -36,7 +36,10 @@ def _diskmap():
       for disk in os.listdir(str):
           disknames[file.split(':')[0]] = disk
 
+  #print disknames
+  #print sorted(disknames)
   for key in sorted(disknames):
+    td = {}
     devpath = "/dev/" + disknames[key]
     (ret,output) = get_hdparm(devpath)
     if not ret:
@@ -49,9 +52,12 @@ def _diskmap():
     try:
       fh = open(str, "r")
       value = fh.read().strip()
-      if value:
+      if value != '0':
+        #print sno
         #print "Port:%s,Disk:%s,SerialNo:%s" % (key,disknames[key],sno)
-        disk_positions[sno] = key
+        td["serial_number"] = sno
+        td["scsi_port_number"] = int(key)
+        disk_positions.append(td)
       fh.close()
     except IOError, e:
       errstr = "%s:OSError(%s): %s\n" % (str,e.errno, e.strerror)
@@ -217,6 +223,14 @@ def disk_info():
   #return_dict['disk_info'] = "Can't populate disk list Information"
 
   #print return_dict
+  disk_positions = _diskmap()
+  for pos, diskposinfo in enumerate(disk_positions):
+    #print pos, diskposinfo
+    #print disk_status[diskposinfo["serial_number"]]
+    return_dict[diskposinfo["serial_number"]]["position"] = pos+1
+  for sn, d in return_dict.items():
+    if "position" not in d:
+      d["position"] = -1
   return return_dict
 
 
@@ -265,7 +279,7 @@ def disk_status():
   pool_list = zfs.get_pool_list()
   for disk_name in dl:
     #print salt.modules.status.diskusage(disk_name)
-    print disk_name
+    #print disk_name
     d = {}
     cmd = "/usr/sbin/smartctl -H -i %s"%disk_name
     output_tuple_dl, rc = _execute_command(cmd)
@@ -301,9 +315,6 @@ def disk_status():
       disk_status[serial_number] = d
     else:
       print "Count not find the disk serial number!"
-  disk_positions = _diskmap()
-  for diskpos in disk_positions:
-    disk_status[diskpos]["position"] = disk_positions[diskpos]
   return disk_status
 
 def interface_status():
@@ -397,7 +408,7 @@ def status():
 if __name__ == '__main__':
   #print status()
   print _diskmap()
-  #print disk_info()
+  print disk_info()
   #print pool_status()
   #print disk_status()
   #print interface_status()

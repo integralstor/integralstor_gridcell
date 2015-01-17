@@ -4,7 +4,7 @@ from fractalio import common
 
 DEBUG = True
 
-APP_DEBUG = True
+APP_DEBUG = False
 
 '''
 PRODUCTION = False

@@ -326,6 +326,12 @@ input {
     margin-top: 10px;
   }
 }
+.margin-left-1 {
+  margin-left: 1%;
+}
+.margin-left-5 {
+  margin-left: 5%;
+}
 .margin-left-10 {
   margin-left: 10%;
 }
@@ -339,7 +345,7 @@ input {
   margin-left: 40%;
 }
 .disk-center {
-  margin-left: 30%;
+  margin-left: 13.6%;
 }
 .bigger-110 {
   font-size: 110%;

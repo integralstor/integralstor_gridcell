@@ -276,7 +276,7 @@
         </td>
         {% for serial_number, disk in node.disks.items %}
           {%if disk.id == component.name%}
-            <td class="center">
+            <td class="center" id="status_{{disk.status}}">
               {{disk.status|title}}
             </td>
           {%endif%}
@@ -291,17 +291,13 @@
     </td>
     <td colspan=8>
       <img src="/static/images/diskmap1.png" width="900px;" class="img-responsive" />
-      <div class="row margin-left-10">
-      {%for diskname,diskdetails in node.disks.items%}
-        {%if diskdetails.position != "2"%}
-         <div class="col-lg-2 col-md-3 col-sm-2 col-xs-2">
-           <span class="disk-center"><strong>{{diskname}}</strong></span>
-        </div>
-        {%endif%}
-      {%endfor%}
-      </div>
-      </td>
-  </table>
+      <span class="disk-center" id="{{node.disk_pos.1}}"><strong>{{node.disk_pos.1}}</strong></span>
+      <span class="disk-center" id="{{node.disk_pos.2}}"><strong>{{node.disk_pos.2}}</strong></span>
+      <span class="disk-center" id="{{node.disk_pos.3}}"><strong>{{node.disk_pos.3}}</strong></span>
+      <span class="disk-center" id="{{node.disk_pos.4}}"><strong>{{node.disk_pos.4}}</strong></span>
+    </td>
+  </tr>
+</table>
 
 {%else%}
   GRIDCell is down
@@ -325,6 +321,10 @@
 <p class="text-green"> Activating the GRIDCell identification LED will cause a blue LED on that GRIDCell to blink for 4 minutes, to help you physically identify this GRIDCell.</p>
 
 <script>
+  $(document).ready(function(){
+    var tds = $('td[id^="status_"]')
+    tds.each(function(){if($(this).html().trim() != "Passed"){var id = $(this).closest('tr').children("td:first").html().trim(); $("#"+id).addClass('red')}})
+  });
   $("#activate_led").click(function(){
     $.ajax({
       type : 'GET',
