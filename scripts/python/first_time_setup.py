@@ -139,7 +139,7 @@ def initiate_setup():
 
   print "Setting the IntegralStor Administration volume to mount on reboot on the primary and secondary GRIDCells."
   print
-  r2 = client.cmd('roles:master', 'mount.set_fstab', [fractalio.common.get_admin_vol_mountpoint(), 'localhost:/%s'%fractalio.common.get_admin_vol_name(), 'nfs', 'rw'], expr_form='grain')
+  r2 = client.cmd('roles:master', 'mount.set_fstab', [fractalio.common.get_admin_vol_mountpoint(), 'localhost:/%s'%fractalio.common.get_admin_vol_name(), 'glusterfs', 'defaults, _netdev'], expr_form='grain')
   if r2:
     for node, ret in r2.items():
       if ret not in ["new", "present"]:
@@ -152,7 +152,6 @@ def initiate_setup():
   print "Setting the IntegralStor Administration volume to mount on reboot on the primary and secondary GRIDCells... Done."
   print
 
-  '''
   print "Stopping the DNS server on the primary and secondary GRIDCells."
   print
   #Stop the DNS servers and move the config to the admin volume and the restart it
@@ -171,19 +170,30 @@ def initiate_setup():
   print
 
   shutil.copytree("%s/named"%fractalio.common.get_defaults_dir(), fractalio.common.get_admin_vol_mountpoint())
+  os.mkdir("%s/named/master"%fractalio.common.get_admin_vol_mountpoint())
+  os.mkdir("%s/named/slave"%fractalio.common.get_admin_vol_mountpoint())
   named_uid = getpwnam('named').pw_uid
   named_gid = getpwnam('named').pw_gid
-    for root, dirs, files in os.walk("%s/named"%fractalio.common.get_admin_vol_mountpoint()):  
-      for d in dirs:  
-        os.chown(os.path.join(root, d), named_uid, named_gid)
-      for f in files:
-        os.chown(os.path.join(root, f), named_uid, named_gid)
-    r4 = client.cmd('roles:master', 'cmd.run_all', ['service named start'], expr_form='grain')
-    if r4:
-      for node, ret in r4.items():
-        if ret["retcode"] != 0:
-          errors += "Error starting the DNS server from the new config location on %s"%node
-  '''
+  for root, dirs, files in os.walk("%s/named"%fractalio.common.get_admin_vol_mountpoint()):  
+    for d in dirs:  
+      os.chown(os.path.join(root, d), named_uid, named_gid)
+    for f in files:
+      os.chown(os.path.join(root, f), named_uid, named_gid)
+  r4 = client.cmd('roles:primary', 'cmd.run_all', ['cp %s/named/master/named.conf_primary /etc/named.conf'%fractalio.common.get_admin_vol_mountpoint()], expr_form='grain')
+  if r4:
+    for node, ret in r4.items():
+      if ret["retcode"] != 0:
+        errors += "Error copying the DNS config file to the config location on %s"%node
+  r4 = client.cmd('roles:secondary', 'cmd.run_all', ['cp %s/named/master/named.conf_slave /etc/named.conf'%fractalio.common.get_admin_vol_mountpoint()], expr_form='grain')
+  if r4:
+    for node, ret in r4.items():
+      if ret["retcode"] != 0:
+        errors += "Error copying the DNS config file to the config location on %s"%node
+  r4 = client.cmd('roles:master', 'cmd.run_all', ['service named start'], expr_form='grain')
+  if r4:
+    for node, ret in r4.items():
+      if ret["retcode"] != 0:
+        errors += "Error starting the DNS server from the new config location on %s"%node
 
   #Phew! Finally all ok. Copy the rest of the stuff and go ahead
   print "Copying the default configuration onto the IntegralStor administration volume."
@@ -192,6 +202,7 @@ def initiate_setup():
     shutil.copytree("%s/db"%fractalio.common.get_defaults_dir(), "%s/db"%fractalio.common.get_admin_vol_mountpoint())
     shutil.copytree("%s/ntp"%fractalio.common.get_defaults_dir(), "%s/ntp"%fractalio.common.get_admin_vol_mountpoint())
     shutil.copytree("%s/logs"%fractalio.common.get_defaults_dir(), "%s/logs"%fractalio.common.get_admin_vol_mountpoint())
+    shutil.copytree("%s/defaults"%fractalio.common.get_defaults_dir(), "%s/defaults"%fractalio.common.get_admin_vol_mountpoint())
     print "Setting up NTP"
     r2 = client.cmd('roles:master', 'cmd.run_all', ['rm /etc/ntp.conf'], expr_form='grain')
     if r2:
@@ -233,6 +244,7 @@ def initiate_setup():
     print
     print "Setting up CTDB and Samba"
     os.mkdir("%s/lock"%fractalio.common.get_admin_vol_mountpoint())
+    os.mkdir("%s/samba"%fractalio.common.get_admin_vol_mountpoint())
     with open("%s/lock/ctdb"%fractalio.common.get_admin_vol_mountpoint(), "w") as f:
       f.write("CTDB_RECOVERY_LOCK=%s/lock/lockfile\n"%fractalio.common.get_admin_vol_mountpoint())
       f.write("CTDB_MANAGES_SAMBA=yes")
@@ -257,6 +269,24 @@ def initiate_setup():
       for node, ret in r2.items():
         if ret["retcode"] != 0:
           errors = "Error linking to the CTDB nodes file on %s"%node
+          print errors
+          print "Exiting now.."
+          return -1
+
+    r2 = client.cmd('*', 'cmd.run_all', ['mv /etc/smb.conf /etc/smb.conf.orig'])
+      if r2:
+      for node, ret in r2.items():
+        if ret["retcode"] != 0:
+          errors = "Error backing up  original samba config file on %s"%node
+          print errors
+          print "Exiting now.."
+          return -1
+
+    r2 = client.cmd('*', 'cmd.run_all', ['cp %s/defaults/smb.conf %s/samba/smb.conf'%(fractalio.common.get_admin_vol_mountpoint(), fractalio.common.get_admin_vol_mountpoint())])
+      if r2:
+      for node, ret in r2.items():
+        if ret["retcode"] != 0:
+          errors = "Error copying the default samba config file on %s"%node
           print errors
           print "Exiting now.."
           return -1

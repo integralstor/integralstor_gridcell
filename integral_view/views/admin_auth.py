@@ -38,7 +38,6 @@ def login(request):
         for s in sessions:
           if s.get_decoded() and (s.get_decoded()['_auth_user_id'] == user.id):
             s.delete()
-
         # authentication succeeded! Login and send to home screen
         django.contrib.auth.login(request, user)
         iv_logging.info("Login request from user '%s' succeeded"%username)
@@ -52,6 +51,11 @@ def login(request):
   else:
     # GET request so create a new form and send back to user
     form = admin_forms.LoginForm()
+    # Clear the session if the user has been logged in anywhere else.
+    sessions = Session.objects.all()
+    for s in sessions:
+      if s.get_decoded() is not None and s.get_decoded().get('_auth_user_id') is not None:
+        return_dict['session_active'] = True
 
   return_dict['form'] = form
 
@@ -66,6 +70,11 @@ def login(request):
 def logout(request):
   """ Used to logout a user into the management utility"""
   iv_logging.info("User '%s' logged out"%request.user)
+  # Clear the session if the user has been logged in anywhere else.
+  sessions = Session.objects.all()
+  for s in sessions:
+   if s.get_decoded() and (s.get_decoded()['_auth_user_id'] == request.user.id or not s.get_decoded()):
+      s.delete()
   django.contrib.auth.logout(request)
   return django.http.HttpResponseRedirect('/login/')
 

@@ -4,6 +4,14 @@
 
 <div class="row margin-top-100">
   <div class="col-md-offset-3 col-md-6 col-sm-offset-3 sol-sm-6 col-xs-12">
+
+    {%if session_active%}
+      <div class="callout callout-danger">
+        <h4>Another User is logged i!</h4>
+        <p>You are seeing this message, either because another user is already logged in to the application and doing some process or another user has loggedin to the system. If you login, then you might logout the other user and his process will be terminated.</p>
+      </div>
+    {%endif%}
+
     <form role="form" action="/login/" method="post">
         <div class="box box-solid box-primary">
           <div class="box-header">
