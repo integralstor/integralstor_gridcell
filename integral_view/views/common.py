@@ -6,7 +6,7 @@ import django.template, django
 from django.conf import settings
 
 import fractalio
-from fractalio import command, db, common, batch, audit, alerts, ntp, mail, gluster_commands, volume_info, system_info
+from fractalio import command, db, common, batch, audit, alerts, ntp, mail, gluster_commands, volume_info, system_info, node_scan
 
 from integral_view.utils import iv_logging
 

@@ -2,7 +2,7 @@
 import fractalio
 from fractalio import common
 
-DEBUG = True
+DEBUG = False
 
 APP_DEBUG = False
 
