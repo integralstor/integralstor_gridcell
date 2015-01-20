@@ -6,9 +6,9 @@ def _regenerate_manifest(first_time = False):
     path = fractalio.common.get_tmp_path()
   else:
     path = fractalio.common.get_system_status_path()
-  manifest_command = "/opt/fractalio/monitoring/generate_manifest.py %s"%path
+  manifest_command = "/opt/fractalio/scripts/python/generate_manifest.py %s"%path
   command.execute_with_rc(manifest_command)
-  status_command = "/opt/fractalio/monitoring/generate_status.py %s"%path
+  status_command = "/opt/fractalio/scripts/python/generate_status.py %s"%path
   return (command.execute_with_rc(status_command))
 
 def get_pending_minions():

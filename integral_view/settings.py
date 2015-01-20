@@ -3,6 +3,7 @@ import fractalio
 from fractalio import common
 
 DEBUG = False
+ALLOWED_HOSTS = ['*']
 
 APP_DEBUG = False
 
@@ -45,7 +46,6 @@ ALERTS_DIR = '%s/alerts'%BASE_CONF_ROOT
 '''
 
 LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = "'/show/dashboard/'"
 
 DB_LOCATION = common.get_db_path()
 STATIC_DIR_PATH = '/opt/fractalio/integral_view/integral_view/static'

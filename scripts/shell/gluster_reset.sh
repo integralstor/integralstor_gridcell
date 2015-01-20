@@ -23,5 +23,14 @@ echo "Stopping salt minion"
 
 service salt-minion stop
 
+zfs destroy frzpool/normal/fractalio_admin_vol
+
+cp /opt/fractalio/defaults/named/named.conf /etc/named.conf
+
+service named restart
+
+service salt-minion restart
+
+
 echo "Phew ! All done ahoy ! Now start the salt-minion and please the status of named"
 

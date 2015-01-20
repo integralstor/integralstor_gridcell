@@ -595,7 +595,7 @@ def configure_ntp_settings(request):
   return django.shortcuts.render_to_response(url, return_dict, context_instance = django.template.context.RequestContext(request))
 
 @login_required 
-@django.views.decorators.csrf.csrf_exempt
+#@django.views.decorators.csrf.csrf_exempt
 def flag_node(request):
 
   return_dict = {}

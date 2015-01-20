@@ -180,7 +180,8 @@ def volume_specific_op(request, operation, vol_name=None):
             if option["name"] == "auth.reject": 
               d["auth_reject"] = option["value"]
             if option["name"] == "nfs.disable": 
-              d["nfs_disable"] = option["value"]
+              if option["value"] == "on":
+                d["nfs_disable"] = True
             if option["name"] == "nfs.volume-access": 
               d["nfs_volume_access"] = option["value"]
             if option["name"] == "features.read-only": 
