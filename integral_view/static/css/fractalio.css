@@ -1,4 +1,5 @@
 
+
 #container {
 
 /*  margin: auto;*/
@@ -214,6 +215,14 @@ input {
   padding-right:10px;
 }
 
+/*customization of Bootstrap*/
+.progress-bar[aria-valuenow="0"] {
+  color: #000;
+  min-width: 3%;
+  background: transparent;
+  box-shadow: none;
+}
+/*End of Bootstrap Customization*/
 /* Customization of AdminLTE css */
 
 /*Get the small box disks*/
@@ -280,10 +289,10 @@ input {
 
 /*Background color for the logo*/
 .skin-blue .logo{
-  background-color: #FF9966;
+  background-color: #00acd6;
 }
 .skin-blue .logo:hover{
-  background-color: #FF9966;
+  background-color:#00acd6;
 }
 
 /*Extra Utilities*/
@@ -343,6 +352,12 @@ input {
 }
 .margin-left-40{
   margin-left: 40%;
+}
+.margin-left-minus1 {
+  margin-left: -1%;
+}
+.margin-left-minus10 {
+  margin-left: -11%;
 }
 .disk-center {
   margin-left: 13.6%;
