@@ -313,7 +313,7 @@ input {
 }
 
 .middle {
-  vertical-align: middle;
+  margin-left: 50%;
 }
 .uppercase{
   text-transform: uppercase;
