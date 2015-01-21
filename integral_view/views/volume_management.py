@@ -192,7 +192,7 @@ def volume_specific_op(request, operation, vol_name=None):
         return_dict["form"] = form
         return django.shortcuts.render_to_response('volume_options_form.html', return_dict, context_instance=django.template.context.RequestContext(request))
       elif operation == 'start_rebalance':
-        d = gluster_commands.create_rebalance_command_file(vol_name)
+        d = gluster_batch.create_rebalance_command_file(vol_name)
         if not "error" in d:
           audit.audit("vol_rebalance_start", "Scheduled volume rebalance start for volume %s"%vol_name, request.META["REMOTE_ADDR"])
           return django.http.HttpResponseRedirect('/show/batch_start_conf/%s'%d["file_name"])

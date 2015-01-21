@@ -138,19 +138,29 @@ function ()
                         <li class="treeview">
                             <a href="#">
                                 <i class="fa fa-th"></i>
-                                <span>GRIDCell</span>
+                                <span>GRIDCells</span>
                                 <i class="fa fa-angle-left pull-right"></i>
                             </a>
                             <ul class="treeview-menu">
                                 <li>
-                                  <a href="/show/system_status" data-toggle="tooltip" title="View current system status" style="letter-spacing:1px; margin-left: 10px;">
+                                  <a href="/show/system_status" data-toggle="tooltip" title="View current system status" >
                                       <i class="fa fa-angle-double-right"></i>GRIDCell status
+                                  </a>
+                                </li>
+                                <li>
+                                  <a href="/show/system_config/" data-toggle="tooltip" title="View current system Configuration">
+                                    <i class="fa fa-angle-double-right"></i>GRIDCell configuration
                                   </a>
                                 </li>
                                 
                                 <li>
-                                  <a href="/show/system_config/" style="letter-spacing:1px; margin-left: 10px;" data-toggle="tooltip" title="View current system Configuration">
-                                    <i class="fa fa-angle-double-right"></i>GRIDCell configuration
+                                  <a href="/hardware_scan/" >
+                                    <i class="fa fa-angle-double-right"></i> Add new GRIDCells
+                                  </a>
+                                </li>
+                                <li>
+                                  <a href="/replace_node/">
+                                    <i class="fa fa-angle-double-right"></i>Replace a GRIDCell
                                   </a>
                                 </li>
                             </ul>
@@ -163,12 +173,14 @@ function ()
                           </a>
                             <ul class="treeview-menu">
                                 <li>
-                                  <a href="/add_nodes" data-toggle="tooltip" title="Add IntegralStor GRIDCells to the storgae pool">    <i class="fa fa-angle-double-right"></i> Add GRIDCells to storage pool
+                                  <a href="/add_nodes" data-toggle="tooltip" title="Add IntegralStor GRIDCells to the storgae pool">    
+                                    <i class="fa fa-angle-double-right"></i>
+                                    Add to storage pool
                                   </a>
                                 </li>
                                 <li>
                                   <a href="/remove_node" date-toggle="tooltip" title="Remove storage from the pool">
-                                    <i class="fa fa-angle-double-right"></i> Remove GRIDCell from storage pool
+                                    <i class="fa fa-angle-double-right"></i> Remove from storage pool
                                   </a>
                                 </li>
                             </ul>
@@ -226,27 +238,45 @@ function ()
                                     <i class="fa fa-angle-double-right"></i>Set volume quota
                                   </a>
                                 </li>
-                                <li class="divider"></li>
-                                <li>
-                                  <a href="{%url 'create_vol_dir'%}">
-                                    <i class="fa fa-angle-double-right"></i>Create a directory
-                                  </a>
-                                </li>
-                                <li class="divider"></li>
-                                <li class="treeview-header">
-                                  <span>Background operations</span>
-                                </li>
-                                <li>
-                                  <a href="/replace_node/">
-                                    <i class="fa fa-angle-double-right"></i>Replace a GRIDCell
-                                  </a>
-                                </li>
                                 <li>
                                   <a href="/volume_specific_op/start_rebalance/">
                                     <i class="fa fa-angle-double-right"></i>Start volume rebalance
                                   </a>
                                 </li>
                               </ul>
+                        </li>
+                        <li class="treeview">
+                          <a href="#" class="treeview-toggle" data-toggle="treeview">
+                            <i class="fa fa-files-o"></i> CIFS access <i class="fa fa-angle-left pull-right"></i>
+                            </a>
+                          <ul class="treeview-menu">
+                            <li><a href="/auth_server_settings"> <i class="fa fa-angle-double-right"></i> Authentication settings</a></li>
+                            <li><a href="/edit_auth_method"><i class="fa fa-angle-double-right"></i> Change authentication method</a></li>
+                            <li><a href="/view_local_users"><i class="fa fa-angle-double-right"></i> Local users</a></li>
+                            <li><a href="/display_shares"><i class="fa fa-angle-double-right"></i> View shares</a></li>
+                            <li><a href="/create_share"><i class="fa fa-angle-double-right"></i> Create a share</a></li>
+                          </ul>
+                        </li>
+                        <li class="treeview">
+                          <a href="#" class="treeview-toggle" data-toggle="treeview">
+                            <i class="fa fa-files-o"></i> NFS access <i class="fa fa-angle-left pull-right"></i>
+                          </a>
+                          <ul class="treeview-menu">
+                            <li>
+                              <a href="{%url 'create_vol_dir'%}">
+                                <i class="fa fa-angle-double-right"></i>Create a directory
+                              </a>
+                            </li>
+                          </ul>
+                        </li>
+                        <li class="treeview">
+                          <a href="#" class="treeview-toggle" data-toggle="treeview"> 
+                            <i class="fa fa-desktop"></i> Snapshots <i class="fa fa-angle-left pull-right"></i>
+                          </a>
+                          <ul class="treeview-menu">
+                            <li><a href="/volume_specific_op/view_snapshots/"><i class="fa fa-angle-double-right"></i> View snapshots</a></li>
+                            <li><a href="/create_snapshot/"><i class="fa fa-angle-double-right"></i> Create a snapshot</a></li>
+                          </ul>
                         </li>
                         <li class="treeview">
                           <a href="#" class="treeview-toggle" data-toggle="treeview">
@@ -260,37 +290,14 @@ function ()
                             </li>
                             <li>
                               <a href="/show/email_settings/">
-                                <i class="fa fa-angle-double-right"></i> Email settings
+                                <i class="fa fa-angle-double-right"></i> Configure Email 
                               </a>
                             </li>
                             <li>
                               <a href="/show/batch_status">
-                                <i class="fa fa-angle-double-right"></i> View status of background processes
+                                <i class="fa fa-angle-double-right"></i> Background processes
                               </a>
                             </li>
-                          </ul>
-                        </li>
-                        <li class="treeview">
-                          <a href="#" class="treeview-toggle" data-toggle="treeview">
-                            <i class="fa fa-files-o"></i> File access <i class="fa fa-angle-left pull-right"></i>
-                            </a>
-                          <ul class="treeview-menu">
-                            <li class="treeview-header"><span>Authentication</span></li>
-                            <li><a href="/auth_server_settings"> <i class="fa fa-angle-double-right"></i> Authentication settings</a></li>
-                            <li><a href="/edit_auth_method"><i class="fa fa-angle-double-right"></i> Change authentication method</a></li>
-                            <li><a href="/view_local_users"><i class="fa fa-angle-double-right"></i> Local users</a></li>
-                            <li class="treeview-header"><span>Shares</span></li>
-                            <li><a href="/display_shares"><i class="fa fa-angle-double-right"></i> View shares</a></li>
-                            <li><a href="/create_share"><i class="fa fa-angle-double-right"></i> Create a share</a></li>
-                          </ul>
-                        </li>
-                        <li class="treeview">
-                          <a href="#" class="treeview-toggle" data-toggle="treeview"> 
-                            <i class="fa fa-desktop"></i> Snapshots <i class="fa fa-angle-left pull-right"></i>
-                          </a>
-                          <ul class="treeview-menu">
-                            <li><a href="/volume_specific_op/view_snapshots/"><i class="fa fa-angle-double-right"></i> View snapshots</a></li>
-                            <li><a href="/create_snapshot/"><i class="fa fa-angle-double-right"></i> Create a snapshot</a></li>
                           </ul>
                         </li>
                         <!--
@@ -339,7 +346,6 @@ function ()
                           </a>
                           <ul class="treeview-menu">
                             <li><a href="/change_admin_password/"><i class="fa fa-angle-double-right"></i> Change admin password</a></li>
-                            <li><a href="/hardware_scan/"><i class="fa fa-angle-double-right"></i> Scan for new GRIDCells</a></li>
                            {%if request.user.is_superuser%} <li><a href="/reset_to_factory_defaults/"><i class="fa fa-angle-double-right"></i> Reset to factory defaults</a></li>{%endif%}
                           </ul>
                         </li>
