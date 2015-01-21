@@ -58,9 +58,9 @@
 
 {% if no_vols %}
 {% if op == "vol_stop" or op == "expand_volume" or op ==  "start_rebalance" %}
-This operation requires a volume to be started first. None of the existing volume(s) are started.
-{%elif op == "vol_start" %}
-No applicable volumes
+This operation requires a volume to be started first. None of the existing volume(s) are started or no volumes exist.
+{%elif op == "vol_start"  or op == "vol_delete" %}
+This operation requires a volume to be stopped first. None of the existing volume(s) are started or no volumes exist.
 {%else%}
 No volumes detected
 {%endif%}

@@ -270,7 +270,7 @@ def initiate_setup():
         f1.write("%s\n"%node_name)
       f1.close() 
 
-    r2 = client.cmd('roles:master', 'cmd.run_all', ['rm /etc/sysconfig/ctdb'], expr_form='grain')
+    r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/sysconfig/ctdb'])
     r2 = client.cmd('*', 'cmd.run_all', ['ln -s %s/lock/ctdb /etc/sysconfig/ctdb'%fractalio.common.get_admin_vol_mountpoint()])
     if r2:
       for node, ret in r2.items():
@@ -279,8 +279,8 @@ def initiate_setup():
           print errors
           print "Exiting now.."
           return -1
-    r2 = client.cmd('roles:master', 'cmd.run_all', ['rm /etc/sysconfig/nodes'], expr_form='grain')
-    r2 = client.cmd('*', 'cmd.run_all', ['ln -s %s/lock/nodes /etc/sysconfig/nodes'%fractalio.common.get_admin_vol_mountpoint()])
+    r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/ctdb/nodes'])
+    r2 = client.cmd('*', 'cmd.run_all', ['ln -s %s/lock/nodes /etc/ctdb/nodes'%fractalio.common.get_admin_vol_mountpoint()])
     if r2:
       for node, ret in r2.items():
         if ret["retcode"] != 0:
@@ -289,19 +289,18 @@ def initiate_setup():
           print "Exiting now.."
           return -1
 
-    r2 = client.cmd('*', 'cmd.run_all', ['mv /etc/smb.conf /etc/smb.conf.orig'])
-
-    r2 = client.cmd('*', 'cmd.run_all', ['cp %s/samba/smb.conf %s/samba/smb.conf'%(fractalio.common.get_defaults_dir(), fractalio.common.get_admin_vol_mountpoint())])
+    shutil.copyfile('%s/samba/smb.conf %s/lock/smb.conf'%(fractalio.common.get_defaults_dir(), fractalio.common.get_admin_vol_mountpoint())
+    r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/samba/smb.conf'])
+    r2 = client.cmd('*', 'cmd.run_all', ['ln -s %s/lock/smb.conf /etc/samba/smb.cong'%fractalio.common.get_admin_vol_mountpoint()])
     if r2:
-      print r2
       for node, ret in r2.items():
         if ret["retcode"] != 0:
-          errors = "Error copying the default samba config file on %s"%node
+          errors = "Error linking to the CTDB nodes file on %s"%node
           print errors
           print "Exiting now.."
           return -1
 
-    r2 = client.cmd('*', 'cmd.run_all', ['chkconfig smbd off'])
+    r2 = client.cmd('*', 'cmd.run_all', ['chkconfig smb off'])
     if r2:
       for node, ret in r2.items():
         if ret["retcode"] != 0:

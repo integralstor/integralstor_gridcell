@@ -31,7 +31,7 @@ def volume_specific_op(request, operation, vol_name=None):
 
   if request.method == "GET":
 
-    if operation == "vol_start":
+    if operation in ["vol_start", "vol_delete"]:
       l = []
       for v in vil:
         if v["status"] != 1:
