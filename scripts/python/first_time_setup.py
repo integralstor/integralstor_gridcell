@@ -156,6 +156,8 @@ def initiate_setup():
     print "Setting the IntegralStor Administration volume to mount on reboot on the primary and secondary GRIDCells... Done."
     print
 
+  '''
+  #No need to mess around with DNS now. Keeping code temporarily in case things change
   print "Stopping the DNS server on the primary and secondary GRIDCells."
   print
   #Stop the DNS servers and move the config to the admin volume and the restart it
@@ -208,6 +210,7 @@ def initiate_setup():
     for node, ret in r4.items():
       if ret["retcode"] != 0:
         errors += "Error starting the DNS server from the new config location on %s"%node
+  '''
 
   #Phew! Finally all ok. Copy the rest of the stuff and go ahead
   print "Copying the default configuration onto the IntegralStor administration volume."
