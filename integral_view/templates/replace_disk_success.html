@@ -1,5 +1,14 @@
 {% extends 'logged_in_base.html' %}
 
+{%block page-header%}
+  Replace disk - results
+    <br /><small>
+      GRIDCells
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Replace disk
+  </small>
+
+ {%endblock%}
 {%block contents%}
 <!-- Modal -->
 <div class="modal fade" id="processing" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -16,7 +25,6 @@
   </div>
 </div>
 
-<span id="topic-text"> Storage -> Replace disk - results</span><br>
 
 
   <p > The system has successfully replaced the disk with serial number {{old_serial_number}} with a new disk with serial number {{new_serial_number}} on GRIDCell {{node}}.</p><br>

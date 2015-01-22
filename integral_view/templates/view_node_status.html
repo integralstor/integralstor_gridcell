@@ -264,8 +264,8 @@
         </td>
         <td>
           <form method="POST" action="/replace_disk/">
-            <input type="hidden" name="node" value="{{hostname}}">
-            <input type="hidden" name="serial_number" value="{{serial_number}}">
+            <input type="hidden" name="node" value="{{node_name}}">
+            <input type="hidden" name="serial_number" value="{{component.name|split:"_"}}">
             <input type="hidden" name="step" value="offline_disk">
             {% if disk.status != 'PASSED' %}
               <button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');"> Replace (swap out) this disk </button>
