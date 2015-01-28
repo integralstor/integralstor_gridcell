@@ -222,7 +222,7 @@ def create_share(request):
     if form.is_valid():
       cd = form.cleaned_data
       name = cd["name"]
-      path = "/%s"%cd["path"]
+      path = "%s"%cd["path"]
       display_path = cd["path"]
       if "comment" in cd:
         comment = cd["comment"]

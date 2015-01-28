@@ -6,7 +6,7 @@ import django.template, django
 from django.conf import settings
 
 import fractalio
-from fractalio import command, db, common, batch, audit, alerts, ntp, mail, gluster_commands, volume_info, system_info, node_scan
+from fractalio import command, db, common, batch, audit, alerts, ntp, mail, gluster_commands, volume_info, system_info, node_scan,xml_parse
 
 from integral_view.utils import iv_logging
 
@@ -415,21 +415,24 @@ def show(request, page, info = None):
       return_dict['num_free_nodes'] = num_free_nodes
 
     elif page == "dashboard":
-
       num_nodes_bad = 0
       num_pools_bad = 0
       num_vols_bad = 0
       total_pool = 0
       total_nodes = len(si)
       total_vols = len(vil)
+      nodes = {}
+      storage_pool = {}
 
       for k, v in si.items():
+        nodes[k] = v["node_status"]
         if v["node_status"] != 0:
           num_nodes_bad += 1
         if v["in_cluster"] :
           total_pool += 1
           if v["cluster_status"] != 1:
             num_pools_bad += 1
+        storage_pool[k] = v["cluster_status_str"]
           
 
       for vol in vil:
@@ -443,7 +446,8 @@ def show(request, page, info = None):
       return_dict["total_nodes"] = total_nodes            
       return_dict["total_pool"] = total_pool            
       return_dict["total_vols"] = total_vols            
-
+      return_dict["nodes"] = nodes            
+      return_dict["storage_pool"] = storage_pool
       template = "view_dashboard.html"
 
     elif page == "alerts":

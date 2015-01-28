@@ -400,7 +400,7 @@ def status():
   d["interfaces"] = interface_status()
   d["pools"] = pool_status()
   d["load_avg"] = load_avg()
-  d["disk_usage"] = disk_usage()
+  #d["disk_usage"] = disk_usage()
   d["mem_info"] = mem_info()
   d["ipmi_status"] = ipmi_status()
   return d

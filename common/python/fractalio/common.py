@@ -29,7 +29,7 @@ def get_krb5_conf_path():
   return '/etc'
 
 def get_smb_conf_path():
-  return '/etc'
+  return '/samba/etc'
 
 def get_system_status_path():
   return "%s/status"%get_admin_vol_mountpoint()

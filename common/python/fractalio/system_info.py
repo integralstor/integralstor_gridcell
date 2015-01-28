@@ -69,6 +69,7 @@ def load_system_config(first_time = False):
   tmpd = {}
   tmpd["hostname"] = localhost
   tmpd["status"] = 1
+  tmpd["status_str"] = "Peer in Cluster"
   peer_list.append(tmpd)
 
   #assert False
@@ -79,6 +80,7 @@ def load_system_config(first_time = False):
         if k == peer["hostname"]:
           d[k]["in_cluster"] = True
           d[k]["cluster_status"] = int(peer["status"])
+          d[k]["cluster_status_str"] = peer["status_str"]
       #if k in peer_list:
       #  d[k]["in_cluster"] = True
     d[k]["volume_list"] = volume_info.get_volumes_on_node(k, None)

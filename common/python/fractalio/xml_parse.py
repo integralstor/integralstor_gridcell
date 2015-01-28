@@ -507,6 +507,7 @@ def get_peer_list(root):
     d = {}
     d["hostname"] = get_text(peer, "hostname")
     d["status"] = get_text(peer, "connected")
+    d["status_str"] = get_text(peer, "stateStr")
     #peerlist.append(get_text(peer, "hostname"))
     peerlist.append(d)
   tree = None
@@ -515,8 +516,10 @@ def get_peer_list(root):
     d["hostname"] = os.uname()[1]
     if networking.can_connect("localhost", 24007):
       d["status"] = '1'
+      d["status_str"] = "Peer in Cluster"
     else:
       d["status"] = '0'
+      d["status_str"] = "Peer not in Cluster"
     peerlist.append(d)
 
   return peerlist
@@ -532,7 +535,8 @@ def get_vol_quotas(root):
     ret_dict[get_text(q, "path")] = d
   return ret_dict
 
-def main():
+
+def main(): 
   pass
 
 if __name__ == "__main__":

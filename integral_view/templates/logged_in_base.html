@@ -24,7 +24,7 @@ function ()
         var alerts = $.parseJSON(JSON.stringify(this));
         $("#alert_icon").removeClass("white").addClass("red faa-flash animated");
         $.each(alerts,function(key,value){
-          $("#alerts").append('<li><a href="/show/alerts/"><div class="pull-left middle"><i class="fa fa-exclamation-circle red bigger-140"></i></div><h4>'+value.message+'</h4><p>'+value.time+'</p></a></li>');
+          $("#alerts").append('<li><a href="/show/alerts/"><div class="pull-left"><i class="fa fa-exclamation-circle red bigger-140"></i></div><h4>'+value.message+'</h4><p>'+value.time+'</p></a></li>');
         });
       });
   });
