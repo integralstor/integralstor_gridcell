@@ -200,8 +200,13 @@ def _generate_global_section(f, d):
   f.write("[global]\n")
   f.write("  server string = Fractal-io File server\n")
   f.write("  log file = /var/log/smblog.vfs\n")
-  f.write("  log level=5\n")
+  #f.write("  log level=5\n")
+  f.write("  log level=1 acls:3 locking:3\n")
   f.write("  clustering=yes\n")
+  f.write("  oplocks=yes\n")
+  f.write("  ea support=yes\n")
+  f.write("  level2 oplocks=yes\n")
+  f.write("  posix locking=no\n")
   f.write("  private dir=%s/lock\n"%fractalio.common.get_admin_vol_mountpoint())
   f.write("  load printers = no\n")
   f.write("  idmap config *:backend = tdb\n")
@@ -243,6 +248,7 @@ def _generate_share_section(f, share_name, vol_name, workgroup, path, read_only,
   f.write("  glusterfs:volume = %s\n"%vol_name)
   f.write("  path = %s\n"%path)
   f.write("  create mask = 0660\n")
+  f.write("  kernel share modes = no\n")
   f.write("  directory mask = 0770\n")
   if read_only:
     t = "yes"
@@ -294,7 +300,20 @@ def generate_smb_conf():
                 ul.append(vu["name"])
         _generate_share_section(f, share["name"], share["vol"], d["workgroup"], share["path"], share["read_only"], share["browseable"], share["guest_ok"], ul, gl, share["comment"], d["security"])
   f.close()
+  errors = _reload_config()
+  if errors != '':
+    raise Exception(errors)
 
+def _reload_config():
+  errors = ''
+  client = salt.client.LocalClient()
+  r1 = client.cmd('*', 'cmd.run_all', ['smbcontrol all reload-config'])
+  if r1:
+    for node, ret in r1.items():
+      #print ret
+      if ret["retcode"] != 0:
+        errors += "Error reloading samba on GRIDCell %s "%node
+  return errors
 
 def generate_krb5_conf():
   d = load_auth_settings()

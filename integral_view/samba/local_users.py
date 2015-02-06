@@ -35,7 +35,7 @@ def create_local_user(userid, name, pswd):
     for hostname, status in rc.items():
       if not status:
         error_list.append("Error setting the password for userid on GRIDCell %s"%hostname)
-    rc = client.cmd('*', 'user.chfullname', [userid, name] )
+    rc = client.cmd('*', 'user.chfullname', [userid, "fractal_user_%s"%name] )
     for hostname, status in rc.items():
       if not status:
         error_list.append("Error setting the name for userid on GRIDCell %s"%hostname)
