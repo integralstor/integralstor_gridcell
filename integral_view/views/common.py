@@ -372,33 +372,39 @@ def show(request, page, info = None):
             disk_new[key]["disk_pos"] = sorted_disks
             #print disk_new
             #disk_new[key]["info"] = pool_status
-          else:
+          else:             
             disk_status[key] = {}
-            disk_status[key]["disks"] = {}
-            disk_status[key]["in_cluster"] = si[key]["in_cluster"]
-            for disk_key, disk_value in si[key]["disks"].iteritems():
-              #print disk_key, disk_value
-              if disk_value["rotational"]:
-                disk_status[key]["disks"][disk_key] = disk_value["status"]
-              #print disk_value["status"]
-              if disk_value["status"] != "PASSED":
-                disk_failures += 1
-              if disk_failures >= 1:
-                background_color = "bg-yellow"
-              if disk_failures >= 4:
+            if si[key]["node_status"] != -1:
+              disk_status[key]["disks"] = {}
+              disk_status[key]["in_cluster"] = si[key]["in_cluster"]
+              for disk_key, disk_value in si[key]["disks"].iteritems():
+                #print disk_key, disk_value
+                if disk_value["rotational"]:
+                  disk_status[key]["disks"][disk_key] = disk_value["status"]
+                #print disk_value["status"]
+                if disk_value["status"] != "PASSED":
+                  disk_failures += 1
+                if disk_failures >= 1:
+                  background_color = "bg-yellow"
+                if disk_failures >= 4:
+                  background_color == "bg-red"
+            
+              #print type(si[key]["pools"][0]["state"])
+              if si[key]["pools"][0]["state"] == unicode("ONLINE"):
                 background_color == "bg-red"
-          
-            #print type(si[key]["pools"][0]["state"])
-            if si[key]["pools"][0]["state"] == unicode("ONLINE"):
-              background_color == "bg-red"
-            disk_status[key]["background_color"] = background_color
-            disk_status[key]["name"] = si[key]["pools"][0]["name"]
-            sorted_disks = []
-            for key1,value1 in sorted(si[key]["disks"].iteritems(), key=lambda (k,v):v["position"]):
-              sorted_disks.append(key1)
-            disk_status[key]["disk_pos"] = sorted_disks
-            #print disk_status
-            #disk_status[key]["info"] = pool_status
+              disk_status[key]["background_color"] = background_color
+              disk_status[key]["name"] = si[key]["pools"][0]["name"]
+              sorted_disks = []
+              for key1,value1 in sorted(si[key]["disks"].iteritems(), key=lambda (k,v):v["position"]):
+                sorted_disks.append(key1)
+              disk_status[key]["disk_pos"] = sorted_disks
+              #print disk_status
+              #disk_status[key]["info"] = pool_status
+            else:
+              disk_status[key] = {}
+              disk_status[key]["background_color"] = "bg-red"
+              disk_status[key]["disk_pos"] = {}
+              disk_status[key]["name"] = "Unknown"
         
         template = "view_disk_status.html"
         return_dict["disk_status"] = disk_status
