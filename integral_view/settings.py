@@ -5,7 +5,7 @@ from fractalio import common
 DEBUG = False
 ALLOWED_HOSTS = ['*']
 
-APP_DEBUG = False
+APP_DEBUG = DEBUG
 
 '''
 PRODUCTION = False
