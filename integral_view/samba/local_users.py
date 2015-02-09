@@ -27,7 +27,7 @@ def create_local_user(userid, name, pswd):
     #Set a standard system password - not the one given by the user as the user should not have access to the system
     enc_pswd = crypt.crypt("fractal_pswd_%s"%userid, "28")
     client = salt.client.LocalClient()
-    rc = client.cmd('*', 'user.add', [userid])
+    rc = client.cmd('*', 'user.add', [userid,None,501])
     for hostname, status in rc.items():
       if not status:
         error_list.append("Error creating the userid on GRIDCell %s"%hostname)
@@ -46,7 +46,7 @@ def create_local_user(userid, name, pswd):
     '''
 
   # Now all set to create samba user
-  ret, rc = command.execute_with_conf_and_rc(r'pdbedit  -d 1 -t -a  -u %s -f %s'%(userid, name), "%s\n%s"%(pswd, pswd))
+  ret, rc = command.execute_with_conf_and_rc(r'/usr/bin/pdbedit  -d 1 -t -a  -u %s -f %s'%(userid, name), "%s\n%s"%(pswd, pswd))
   if rc != 0:
     #print command.get_error_list(ret)
     raise Exception("Error creating user. Return code : %d. "%rc)
@@ -111,9 +111,9 @@ def change_password(userid, pswd):
   #print ul
 
 def get_local_users():
-
-  ret, rc = command.execute_with_rc("pdbedit -d 1 -L")
-
+  print "Comes Here"
+  ret, rc = command.execute_with_rc("/usr/bin/pdbedit -d 1 -L")
+  print ret
   if rc != 0:
     raise "Error retrieving user list. Return code : %d"%rc
 
@@ -127,6 +127,7 @@ def get_local_users():
       if len(l) > 1:
         d["name"] = l[2]
       user_list.append(d)
+  print user_list
   return user_list
 
 def main():

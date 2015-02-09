@@ -12,7 +12,7 @@ import integral_view
 from integral_view.forms import trusted_pool_setup_forms
 
 def perform_op(request, op, name1=None, name2= None):
-  """ Used to translate an operation name specified in the op param into an actual command and return the results
+  """ Used to translate an operation name specified in the op param into an actual cmd and return the results
   name1 and name2 are extra parameters to the operations"""
 
   return_dict = {}
@@ -20,7 +20,7 @@ def perform_op(request, op, name1=None, name2= None):
   scl = system_info.load_system_config()
   return_dict['system_config_list'] = scl
 
-  # Actual command processing begins
+  # Actual cmd processing begins
 
   #By default show error page
   template = "logged_in_error.html"
@@ -32,47 +32,48 @@ def perform_op(request, op, name1=None, name2= None):
   audit_code = None
   audit_str = None
   if op == 'add_server':
-    command = 'gluster peer probe '+hostname
+    cmd = 'gluster peer probe '+hostname
   elif op == 'remove_server':
-    command = 'gluster peer detach '+hostname
+    cmd = 'gluster peer detach '+hostname
   elif op == 'view_server_status':
-    command = 'gluster peer status'
+    cmd = 'gluster peer status'
   elif op == 'view_volume_status_all':
-    command = 'gluster volume status '
+    cmd = 'gluster volume status '
   elif op == 'view_volume_info_all':
-    command = 'gluster volume info all '
+    cmd = 'gluster volume info all '
   elif op == 'enable_quota':
-    command = 'gluster volume quota %s enable'%name1
+    cmd = 'gluster volume quota %s enable'%name1
   elif op == 'vol_stop':
-    command = 'gluster volume stop %s force'%name1
+    cmd = 'gluster volume stop %s force'%name1
     audit_code = "vol_stop"
     audit_str = "Stopped volume %s"%name1
   elif op == 'vol_delete':
-    command = 'gluster volume delete %s force'%name1
+    cmd = 'gluster volume delete %s force'%name1
   elif op == 'start_rebalance':
-    command = 'gluster volume rebalance %s start'%name1
+    cmd = 'gluster volume rebalance %s start'%name1
     audit_code = "vol_rebalance_start"
     audit_str = "Started volume rebalance for volume %s"%name1
   elif op == 'stop_rebalance':
-    command = 'gluster volume rebalance %s stop'%name1
+    cmd = 'gluster volume rebalance %s stop'%name1
     audit_code = "vol_rebalance_stop"
     audit_str = "Stopped volume rebalance for volume %s"%name1
   elif op == 'check_rebalance':
-    command = 'gluster volume rebalance %s status'%name1
+    cmd = 'gluster volume rebalance %s status'%name1
   elif op == 'disable_quota':
-    command = 'gluster volume quota %s disable'%name1
+    cmd = 'gluster volume quota %s disable'%name1
   elif op == 'display_disk_level_quota':
-    command = 'gluster volume quota %s list'%name1
+    cmd = 'gluster volume quota %s list'%name1
   elif op == 'vol_start':
-    command = 'gluster volume start %s '%name1
+    cmd = 'gluster volume start %s '%name1
     audit_code = "vol_start"
     audit_str = "Started volume %s"%name1
+
   elif op == 'rotate_log':
-    command = 'gluster volume log rotate %s '%name1
+    cmd = 'gluster volume log rotate %s '%name1
     audit_code = "log_rotate"
     audit_str = "Rotated log for volume %s"%name1
   elif op == 'expand_volume':
-    command = 'gluster volume add brick %s %s'%(name1, urllib.unquote(name2))
+    cmd = 'gluster volume add brick %s %s'%(name1, urllib.unquote(name2))
   else:
     return_dict["error"] = "Unknown operation specified"
 
@@ -88,9 +89,15 @@ def perform_op(request, op, name1=None, name2= None):
           if audit_code:
             audit.audit(audit_code, audit_str, request.META["REMOTE_ADDR"])
         if op == "vol_stop":
-          d["command"] = "Stopping volume %s"%name1
+          d["cmd"] = "Stopping volume %s"%name1
         elif op == "vol_start":
-          d["command"] = "Starting volume %s"%name1
+          d["cmd"] = "Starting volume %s"%name1
+          fractalio.command.execute("[ ! -d /mnt/perm_vol ] && mkdir /mnt/perm_vol")
+          fractalio.command.execute("umount /mnt/perm_vol/")
+          fractalio.command.execute(" mount -t glusterfs localhost:/"+name1+" /mnt/perm_vol/")
+          fractalio.command.execute("chmod -R 775 /mnt/perm_vol/")
+          fractalio.command.execute("umount /mnt/perm_vol/")
+
       return_dict["result_dict"] = d
       return_dict["op"] = op
       template = 'render_op_xml_results.html'
@@ -99,18 +106,18 @@ def perform_op(request, op, name1=None, name2= None):
       #Non XML raw results so display raw for now
 
 
-      return_dict['cmd'] = command
+      return_dict['cmd'] = cmd
       if not fractalio.common.is_production():
-        command = 'ls -al'
+        cmd = 'ls -al'
 
       if audit_code:
         audit.audit(audit_code, audit_str, request.META["REMOTE_ADDR"])
       if op in ['vol_stop', 'vol_delete', 'disable_quota']:
-        tup = fractalio.command.execute_with_conf(command)
+        tup = fractalio.command.execute_with_conf(cmd)
         e = fractalio.command.get_conf_error_list(tup)
         o = fractalio.command.get_conf_output_list(tup)
       else:
-        tup = fractalio.command.execute(command)
+        tup = fractalio.command.execute(cmd)
         e = fractalio.command.get_error_list(tup)
         o = fractalio.command.get_output_list(tup)
       if e:
@@ -119,13 +126,13 @@ def perform_op(request, op, name1=None, name2= None):
         return_dict['cmd_output'] = o
     
       if op == 'view_volume_status_all':
-        # Need to execute two commands for this case!
+        # Need to execute two cmds for this case!
         if fractalio.common.is_production():
-          command = 'gluster volume status all detail'
+          cmd = 'gluster volume status all detail'
         else:
-          command = 'ls -al'
+          cmd = 'ls -al'
     
-        tup = fractalio.command.execute(command)
+        tup = fractalio.command.execute(cmd)
         e1 = fractalio.command.get_error_list(tup)
         o1 = fractalio.command.get_output_list(tup)
         if e1:

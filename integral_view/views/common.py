@@ -24,7 +24,6 @@ def get_gluster_dir_list(vol,path):
   vol = vol
   dir_dict_list = []
   dirs = vol.listdir(path)
-  print dirs
   if not dirs:
     d_dict = {'id':path, 'text':"/",'icon':'fa fa-angle-right','children':True,'data':{'dir':path},'parent':"#"}
     dir_dict_list.append(d_dict)
@@ -41,7 +40,7 @@ def get_gluster_dir_list(vol,path):
       #get_dir_list(vol,path+d+"/")
   return dir_dict_list
 
-def create_gluster_dir(vol_name,path,mode=0777):
+def create_gluster_dir(vol_name,path,mode=0775):
   if production:
     hostname = "127.0.0.1"
   else:
@@ -49,6 +48,10 @@ def create_gluster_dir(vol_name,path,mode=0777):
   vol = gfapi.Volume(hostname, vol_name)
   vol_mnt = vol.mount()
   vol_dir = vol.mkdir(path,mode)
+  try:
+    vol_grp = vol.chown(path,uid=0,gid=501)
+  except Exception as e:
+    print e
   if vol_dir == 0:
     return True
   else:
@@ -81,6 +84,8 @@ def show(request, page, info = None):
         if ("vol_name" in request.GET) and ("dir" in request.GET):
           vol_name = request.GET["vol_name"]
           dir_name = request.GET["dir"]
+          first = request.GET["first"]
+          print first
         else:
           raise Exception ("No volume or Directory Specified")
 
