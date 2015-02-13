@@ -292,7 +292,7 @@ def initiate_setup():
           print "Exiting now.."
           return -1
 
-    shutil.copyfile('%s/samba/smb.conf %s/lock/smb.conf'%(fractalio.common.get_defaults_dir(), fractalio.common.get_admin_vol_mountpoint())
+    shutil.copyfile('%s/samba/smb.conf %s/lock/smb.conf'%(fractalio.common.get_defaults_dir(), fractalio.common.get_admin_vol_mountpoint()))
     r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/samba/smb.conf'])
     r2 = client.cmd('*', 'cmd.run_all', ['ln -s %s/lock/smb.conf /etc/samba/smb.cong'%fractalio.common.get_admin_vol_mountpoint()])
     if r2:
