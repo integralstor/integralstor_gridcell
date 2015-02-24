@@ -262,17 +262,25 @@ def initiate_setup():
     print "Setting up CTDB and Samba"
     os.mkdir("%s/lock"%fractalio.common.get_admin_vol_mountpoint())
     os.mkdir("%s/samba"%fractalio.common.get_admin_vol_mountpoint())
+    print "Creating CTDB config file"
     with open("%s/lock/ctdb"%fractalio.common.get_admin_vol_mountpoint(), "w") as f:
       f.write("CTDB_RECOVERY_LOCK=%s/lock/lockfile\n"%fractalio.common.get_admin_vol_mountpoint())
       f.write("CTDB_MANAGES_SAMBA=yes\n")
       f.write("CTDB_NODES=/etc/ctdb/nodes")
       f.close()
+    print "Creating CTDB config file... Done"
+    print
 
+    print "Creating CTDB nodes file"
     with open("%s/lock/nodes"%fractalio.common.get_admin_vol_mountpoint(), "w") as f1:
-      for node_name in si.keys():
-        f1.write("%s\n"%node_name)
+      for node_name, node_info in si.items():
+        if "interfaces" in node_info and "bond0" in node_info["interfaces"] and "inet" in node_info["interfaces"]["bond0"] and len(node_info["interfaces"]["bond0"]["inet"]) == 1:
+          f1.write("%s\n"%node_info["interfaces"]["bond0"]["inet"][0]["address"])
       f1.close() 
+    print "Creating CTDB nodes file... Done"
+    print
 
+    print "Linking CTDB files"
     r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/sysconfig/ctdb'])
     r2 = client.cmd('*', 'cmd.run_all', ['ln -s %s/lock/ctdb /etc/sysconfig/ctdb'%fractalio.common.get_admin_vol_mountpoint()])
     if r2:
@@ -292,9 +300,10 @@ def initiate_setup():
           print "Exiting now.."
           return -1
 
-    shutil.copyfile('%s/samba/smb.conf %s/lock/smb.conf'%(fractalio.common.get_defaults_dir(), fractalio.common.get_admin_vol_mountpoint()))
+    #shutil.copyfile('%s/samba/smb.conf %s/lock/smb.conf'%(fractalio.common.get_defaults_dir(), fractalio.common.get_admin_vol_mountpoint()))
+    shutil.copyfile('%s/samba/smb.conf'%fractalio.common.get_defaults_dir(),'%s/lock/smb.conf'%fractalio.common.get_admin_vol_mountpoint())
     r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/samba/smb.conf'])
-    r2 = client.cmd('*', 'cmd.run_all', ['ln -s %s/lock/smb.conf /etc/samba/smb.cong'%fractalio.common.get_admin_vol_mountpoint()])
+    r2 = client.cmd('*', 'cmd.run_all', ['ln -s %s/lock/smb.conf /etc/samba/smb.conf'%fractalio.common.get_admin_vol_mountpoint()])
     if r2:
       for node, ret in r2.items():
         if ret["retcode"] != 0:
@@ -302,7 +311,10 @@ def initiate_setup():
           print errors
           print "Exiting now.."
           return -1
+    print "Linking CTDB files... Done"
+    print
 
+    '''
     r2 = client.cmd('*', 'cmd.run_all', ['chkconfig smb off'])
     if r2:
       for node, ret in r2.items():
@@ -311,7 +323,9 @@ def initiate_setup():
           print errors
           print "Exiting now.."
           return -1
-    r2 = client.cmd('*', 'cmd.run_all', ['service ctdb start'])
+    '''
+
+    r2 = client.cmd('*', 'cmd.run_all', ['chkconfig ctdb on'])
     if r2:
       for node, ret in r2.items():
         if ret["retcode"] != 0:
@@ -320,11 +334,11 @@ def initiate_setup():
           print "Exiting now.."
           return -1
 
-    r2 = client.cmd('*', 'cmd.run_all', ['chkconfig ctdb on'])
+    r2 = client.cmd('*', 'cmd.run_all', ['service ctdb start'])
     if r2:
       for node, ret in r2.items():
         if ret["retcode"] != 0:
-          errors = "Error turning on CTDB autostart on %s"%node
+          errors = "Error starting CTDB service on %s"%node
           print errors
           print "Exiting now.."
           return -1

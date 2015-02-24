@@ -33,7 +33,7 @@ def add_nodes(remote_addr,pending_minions, first_time = False, accessing_from = 
       ip = None
       print "Accepting %s"%m
       if wheel.call_func('key.accept', match=('%s'%m)):
-	time.sleep(20)
+	      time.sleep(20)
         command_to = 'salt %s saltutil.sync_all'%(m)
         ret, ret_code = command.execute_with_rc(command_to)
         #print ret, ret_code

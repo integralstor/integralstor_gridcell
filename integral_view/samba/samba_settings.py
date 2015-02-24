@@ -37,7 +37,7 @@ def save_auth_settings(d):
   if d["security"] == "ads":
     d1 = db.read_single_row("%s/integral_view_config.db"%db_path, "select * from samba_global_ad")
     if d1:
-      cmd = ["update samba_global_ad set realm=?, password_server=?, ad_schema_mode=?, id_map_min=?, id_map_max=?,  where id = ?", (d["realm"], d["password_server"], d["ad_schema_mode"], d["id_map_min"], d["id_map_max"], 1,)]
+      cmd = ["update samba_global_ad set realm=?, password_server=?, ad_schema_mode=?, id_map_min=?, id_map_max=?  where id = ?", (d["realm"], d["password_server"], d["ad_schema_mode"], d["id_map_min"], d["id_map_max"], 1,)]
       cmd_list.append(cmd)
     else:
       print "in 2"
@@ -225,12 +225,12 @@ def _generate_global_section(f, d):
     f.write("  domain master = no\n")
     f.write("  wins proxy = no\n")
     f.write("  dns proxy = no\n")
-    f.write("  idmap config *:range = %d-%d \n"%(id_map_max+1, id_map_max+10001))
+    f.write("  idmap config *:range = %d-%d \n"%(d["id_map_max"]+1, d["id_map_max"]+10001))
     f.write("  winbind nss info = rfc2307\n")
     f.write("  winbind trusted domains only = no\n")
     f.write("  winbind refresh tickets = yes\n")
     f.write("  map untrusted to domain = Yes\n")
-    f.write("  realm = %s\n"%realm.upper())
+    f.write("  realm = %s\n"%d["realmd"].upper())
     f.write("  idmap config %s:default = yes\n"%d["workgroup"].upper())
     f.write("  idmap config %s:backend = ad\n"%d["workgroup"].upper())
     f.write("  idmap config %s:schema_mode = %s\n"%(d["workgroup"].upper(), d["ad_schema_mode"]))
