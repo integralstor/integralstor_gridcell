@@ -183,7 +183,3 @@ python-devel:
 
 
 Recommendations : In future, some sort of log file must be generated that explains what yum has installed / failed, on Minion side.
-
-
-
-
