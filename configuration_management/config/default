@@ -1,29 +1,14 @@
 default menu.c32
 prompt 0
-timeout 300
+timeout 500
 ONTIMEOUT local
 
 MENU TITLE ### Fractalio PXE Boot Menu ###
 
 
 LABEL 1
-	MENU LABEL ^1) Install CentOS 6.6 64-bit Primary Node (Kickstart)
-	KERNEL images/pxeboot/vmlinuz append vga=normal initrd=images/pxeboot/initrd.img ramdisk_size=32768 ks=http://10.1.1.1/netboot/distros/centos/6.6/x86_64/ks/ksprimary.cfg ksdevice=eth0 FRACTAL_DEPL=dlc
-
-
-LABEL 2
-	MENU LABEL ^2) Install CentOS 6.6 64-bit Secondary Node (Kickstart)
-	KERNEL images/pxeboot/vmlinuz append vga=normal initrd=images/pxeboot/initrd.img ramdisk_size=32768 ks=http://10.1.1.1/netboot/distros/centos/6.6/x86_64/ks/kssecondary.cfg ksdevice=eth0 FRACTAL_DEPL=dlc
-
-
-LABEL 3
-	MENU LABEL ^3) Install CentOS 6.6 64-bit Normal Node (Kickstart)
-	KERNEL images/pxeboot/vmlinuz append vga=normal initrd=images/pxeboot/initrd.img ramdisk_size=32768 ks=http://10.1.1.1/netboot/distros/centos/6.6/x86_64/ks/ksnormal.cfg ksdevice=eth0 FRACTAL_DEPL=dlc
-
-LABEL 4
-	MENU LABEL ^4) Install Freenas (Kickstart)
-        linux memdisk
-        tftp=http://10.1.1.1/netboot/distros/freenas/freenas.iso   
+	MENU LABEL ^1) Install Fractalio Integral Stor(64 Bit). 
+	KERNEL images/pxeboot/vmlinuz append vga=normal initrd=images/pxeboot/initrd.img ramdisk_size=32768 ks=http://10.1.1.1/netboot/distros/centos/6.6/x86_64/ks/ksnormal.cfg ksdevice=eth0 FRACTAL_DEPL=fractalio
 
 LABEL local
         MENU LABEL Boot local hard drive

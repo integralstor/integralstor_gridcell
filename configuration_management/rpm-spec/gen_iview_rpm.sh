@@ -26,7 +26,7 @@ fi
 cd /tmp
 
 # To clone the integral-view.git
-echo "Please type your github.com username (username example : fractalomkar): "
+echo "Please type your github.com username"
 read github_username
 echo
 git clone https://$github_username@github.com/fractalio/integral-view.git
@@ -55,59 +55,54 @@ EOF
 
 
 # Directory creation
-mkdir /tmp/fractalio_integral_view-0.1
-mkdir -p /tmp/fractalio_integral_view-0.1/opt
-mkdir -p /tmp/fractalio_integral_view-0.1/etc
-mkdir -p /tmp/fractalio_integral_view-0.1/srv
-mkdir -p /tmp/fractalio_integral_view-0.1/usr/lib/python2.6/site-packages/
-mkdir -p /tmp/fractalio_integral_view-0.1/var/log/fractalio
+mkdir /tmp/fractalio_integral_view-0.2
+mkdir -p /tmp/fractalio_integral_view-0.2/opt
+mkdir -p /tmp/fractalio_integral_view-0.2/etc
+mkdir -p /tmp/fractalio_integral_view-0.2/srv
+mkdir -p /tmp/fractalio_integral_view-0.2/usr/lib/python2.6/site-packages/
+mkdir -p /tmp/fractalio_integral_view-0.2/var/log/fractalio
 
-mkdir -p /tmp/fractalio_integral_view-0.1/etc/nginx/sites-enabled/
-mkdir -p /tmp/fractalio_integral_view-0.1/etc/uwsgi/vassals
+mkdir -p /tmp/fractalio_integral_view-0.2/etc/nginx/sites-enabled/
+mkdir -p /tmp/fractalio_integral_view-0.2/etc/uwsgi/vassals
 
-mkdir -p /tmp/fractalio_integral_view-0.1/opt/fractalio/bin
-mkdir -p /tmp/fractalio_integral_view-0.1/opt/fractalio/integral_view
-mkdir -p /tmp/fractalio_integral_view-0.1/opt/fractalio/defaults/db
-mkdir -p /tmp/fractalio_integral_view-0.1/opt/fractalio/defaults/logs/alerts
-mkdir -p /tmp/fractalio_integral_view-0.1/opt/fractalio/defaults/logs/audit
-# This will be created by fractalio-dns*.rpm package /tmp/fractalio_integral_view-0.1/opt/fractalio/named
-mkdir -p /tmp/fractalio_integral_view-0.1/opt/fractalio/mnt/admin_vol
-mkdir -p /tmp/fractalio_integral_view-0.1/opt/fractalio/scripts
-mkdir -p /tmp/fractalio_integral_view-0.1/opt/fractalio/installed-software
-mkdir -p /tmp/fractalio_integral_view-0.1/opt/fractalio/tmp
+mkdir -p /tmp/fractalio_integral_view-0.2/opt/fractalio/bin
+mkdir -p /tmp/fractalio_integral_view-0.2/opt/fractalio/integral_view
+# This will be created by fractalio-dns*.rpm package /tmp/fractalio_integral_view-0.2/opt/fractalio/named
+mkdir -p /tmp/fractalio_integral_view-0.2/opt/fractalio/mnt/admin_vol
+mkdir -p /tmp/fractalio_integral_view-0.2/opt/fractalio/scripts
+mkdir -p /tmp/fractalio_integral_view-0.2/opt/fractalio/installed-software
+mkdir -p /tmp/fractalio_integral_view-0.2/opt/fractalio/tmp
 
 # MANAGE.PY FILE 
-cp /tmp/integral-view/manage.py  /tmp/fractalio_integral_view-0.1/opt/fractalio/integral_view
+cp /tmp/integral-view/manage.py  /tmp/fractalio_integral_view-0.2/opt/fractalio/integral_view
 
 # COPYING THE BIN DIRECTORY ..integral_view/bin to ..opt/fractalio/
-cp -rf /tmp/bin/* /tmp/fractalio_integral_view-0.1/opt/fractalio/bin/
+cp -rf /tmp/bin/* /tmp/fractalio_integral_view-0.2/opt/fractalio/bin/
 
 # COPYING UTILITY SCRIPTS - THIS WILL COPY BOTH PYTHON AND SHELL DIRECTORIES.
-cp -rf /tmp/integral-view/scripts/*  /tmp/fractalio_integral_view-0.1/opt/fractalio/scripts/
+cp -rf /tmp/integral-view/scripts/*  /tmp/fractalio_integral_view-0.2/opt/fractalio/scripts/
 
 # COPYING TO SITE PACKAGES
-cp -rf /tmp/integral-view/common/python/fractalio /tmp/fractalio_integral_view-0.1/usr/lib/python2.6/site-packages/        
+cp -rf /tmp/integral-view/common/python/fractalio /tmp/fractalio_integral_view-0.2/usr/lib/python2.6/site-packages/        
 
 # COPYING SALT MODULES
-cp -rf /tmp/integral-view/salt /tmp/fractalio_integral_view-0.1/srv/
+cp -rf /tmp/integral-view/salt /tmp/fractalio_integral_view-0.2/srv/
 
 # UPDATING INTEGRAL - view  -- "Django app"
-cp -rf /tmp/integral-view/integral_view/ /tmp/fractalio_integral_view-0.1/opt/fractalio/integral_view/
+cp -rf /tmp/integral-view/integral_view/ /tmp/fractalio_integral_view-0.2/opt/fractalio/integral_view/
 
 # COPYING DEFAULTS DIRECTORY
-cp -rf /tmp/integral-view/defaults/* /tmp/fractalio_integral_view-0.1/opt/fractalio/defaults/*
+cp -rf /tmp/integral-view/defaults/ /tmp/fractalio_integral_view-0.2/opt/fractalio/
+mkdir -p /tmp/fractalio_integral_view-0.2/opt/fractalio/defaults/logs/alerts
+mkdir -p /tmp/fractalio_integral_view-0.2/opt/fractalio/defaults/logs/audit
 
-# SO THE /tmp DIRECTORY CONTAINS fractalio_integral_view-0.1/
+# SO THE /tmp DIRECTORY CONTAINS fractalio_integral_view-0.2/
 # NOW CREATE THE DIRECTORY STRUCTURE
-cd /tmp ; tar -cvzf fractalio_integral_view-0.1.tar.gz fractalio_integral_view-0.1/
+cd /tmp ; tar -cvzf fractalio_integral_view-0.2.tar.gz fractalio_integral_view-0.2/
 
-# NOW MOVE THE /tmp/fractalio_integral_view-0.1/ to where ?
-mv /tmp/fractalio_integral_view-0.1/ /root/rpmbuild/SOURCES/
-mv /tmp/fractalio_integral_view-0.1.tar.gz /root/rpmbuild/SOURCES/
-
-#mv /tmp/fractalio_integral_view-0.1/  /root/rpmbuild/SOURCES/
-#echo "Creating a .tar file of /root/rpmbuild/SOURCES/fractalio_integral_view-0.1/ .. "
-#tar -czvf /root/rpmbuild/SOURCES/fractalio_integral_view-0.1.tar.gz /root/rpmbuild/SOURCES/fractalio_integral_view-0.1/
+# NOW MOVE THE /tmp/fractalio_integral_view-0.2/ to where ?
+mv /tmp/fractalio_integral_view-0.2/ /root/rpmbuild/SOURCES/
+mv /tmp/fractalio_integral_view-0.2.tar.gz /root/rpmbuild/SOURCES/
 
 # INSERT THE .spec FILE INTO ~/rpmbuild/SPECS/
 
@@ -123,14 +118,14 @@ cat <<EOF > /root/rpmbuild/SPECS/fractalio_integral_view.spec
 
 Summary:       Installs the IntergralView - a Management Graphical User Interface (GUI).
 Name:          fractalio_integral_view
-Version:       0.1
+Version:       0.2
 Release:       1
-License:       Proprietary
+License:       Fractalio Custom Licence
 Group:         Development/Tools
 SOURCE0:       %{name}-%{version}.tar.gz
 URL:           http://www.fractalio.com/
 Requires:      nginx,uwsgi
-BuildRoot:     %{_tmppath}/%{name}-%{version}-%{release}-root
+BuildRoot:     %{_tmppath}/%{name}-%{version}-root
 
 %description
 This package installs the IntegralView - a management Graphical User Interface (GUI) for the IntegralStore Hardware. This package creates /opt/fractalio/.. directory structure and and also adds required entries in the /etc/rc.local file on that machine.
@@ -167,31 +162,22 @@ rm -rf %{buildroot}
 %post
 
 #!/bin/bash
+cp -rf /tmp/fractalio_integral_view-0.2/opt/fractalio/integral_view/ /opt/fractalio/
+ln -s /opt/fractalio/integral_view/integral_view/integral_view_nginx.conf /etc/nginx/sites-enabled/
+ln -s /opt/fractalio/integral_view/integral_view/integral_view_uwsgi.ini /etc/uwsgi/vassals/
+echo "/usr/local/bin/uwsgi --emperor /etc/uwsgi/vassals --uid root --gid root" >> /etc/rc.local
 
-# Inside the normal nodes the /opt/fractalio/integral_view will be deleted
-if cat /etc/salt/grains | grep normal > /dev/null 2>&1 ; then
-  rm -rf /opt/fractalio/integral_view
+chmod 755 /opt/fractalio/scripts/python/*
+chmod 755 /opt/fractalio/scripts/shell/*
 
-else
+(crontab -l 2>/dev/null; echo "*/1 * * * * /opt/fractalio/scripts/python/generate_status.py > /tmp/out_status >> /tmp/err_status") | crontab -
 
-  ln -s /opt/fractalio/integral_view/integral_view/integral_view_nginx.conf /etc/nginx/sites-enabled/
-  ln -s /opt/fractalio/integral_view/integral_view/integral_view_uwsgi.ini /etc/uwsgi/vassals/
-  echo "/usr/local/bin/uwsgi --emperor /etc/uwsgi/vassals --uid root --gid root" >> /etc/rc.local
+(crontab -l 2>/dev/null; echo "*/1 * * * * /opt/fractalio/scripts/python/poll_for_alerts.py > /tmp/out_alerts >> /tmp/err_alerts") | crontab -
 
-  chmod 755 /opt/fractalio/scripts/python/*
-  chmod 755 /opt/fractalio/scripts/shell/*
-
-  (crontab -l 2>/dev/null; echo "*/1 * * * * /opt/fractalio/scripts/python/generate_status.py > /tmp/out_status >> /tmp/err_status") | crontab -
-
-  (crontab -l 2>/dev/null; echo "*/1 * * * * /opt/fractalio/scripts/python/poll_for_alerts.py > /tmp/out_alerts >> /tmp/err_alerts") | crontab -
-
-  # I have commented this out for future reference and use.
-  #(crontab -l 2>/dev/null; echo "*/1 * * * * /etc/fractalio/python/generate_status.py > /tmp/out_status >> /tmp/err_status") | crontab -
-  #(crontab -l 2>/dev/null; echo "*/1 * * * * /etc/fractalio/batch_jobs/poll_for_alerts.py > /tmp/out_alerts >> /tmp/err_alerts") | crontab -
-  #(crontab -l 2>/dev/null; echo "*/1 * * * * /etc/fractalio/batch_jobs/batch_jobs.py > /tmp/out_batch >> /tmp/err_batch") | crontab -
-
-fi
-
+# I have commented this out for future reference and use.
+#(crontab -l 2>/dev/null; echo "*/1 * * * * /etc/fractalio/python/generate_status.py > /tmp/out_status >> /tmp/err_status") | crontab -
+#(crontab -l 2>/dev/null; echo "*/1 * * * * /etc/fractalio/batch_jobs/poll_for_alerts.py > /tmp/out_alerts >> /tmp/err_alerts") | crontab -
+#(crontab -l 2>/dev/null; echo "*/1 * * * * /etc/fractalio/batch_jobs/batch_jobs.py > /tmp/out_batch >> /tmp/err_batch") | crontab -
 
 %postun
 sed -i "/\/usr\/local\/bin\/uwsgi --emperor \/etc\/uwsgi\/vassals --uid root --gid root/d" /etc/rc.local
@@ -202,6 +188,9 @@ rm -rf /srv/salt
 rm -rf /usr/lib/python-2.6/site-packages/fractalio
 
 %changelog
+* Fri Feb 27 2015  Ramaseshan <ramaseshan@fractalio.com> 0.2
+- Few Minor Bug Fixes
+- Path changes and the new Dashboard integrated
 * Fri Dec 19 2014  Omkar Sharma MN <omkar@fractalio.com> 0.1-1
 - Creates directories inside /etc/, /usr and /var/log/
 - First Build
@@ -214,6 +203,7 @@ rpmbuild -ba /root/rpmbuild/SPECS/fractalio_integral_view.spec
 ls /root/rpmbuild/RPMS/x86_64/
 echo "Deleting the /tmp/integral-view"
 if [ -e "/tmp/integral-view" ] ; then
+  cp -r /tmp/integral-view/configuration_management/login_menu/* /srv/salt/conf_files/
   rm -rf /tmp/integral-view
   echo "The /tmp/integral-view got deleted."
   echo "Executing ls -l /tmp/integral-view : " 
