@@ -20,8 +20,7 @@ def initiate_setup():
       if (not success) or (err):
         print "Errors scanning for GRIDCells : %s"%err
         print
-        sys.exit(-1)
-    
+        return -1
     else:
       print "No GRIDCells found!"
       print
@@ -141,6 +140,7 @@ def initiate_setup():
     print "Mounting the IntegralStor Administration volume on the primary and secondary GRIDCells... Done."
     print
 
+  '''
     print "Setting the IntegralStor Administration volume to mount on reboot on the primary and secondary GRIDCells."
     print
     r2 = client.cmd('roles:master', 'mount.set_fstab', [fractalio.common.get_admin_vol_mountpoint(), 'localhost:/%s'%fractalio.common.get_admin_vol_name(), 'glusterfs', 'defaults, _netdev'], expr_form='grain')
@@ -156,7 +156,6 @@ def initiate_setup():
     print "Setting the IntegralStor Administration volume to mount on reboot on the primary and secondary GRIDCells... Done."
     print
 
-  '''
   #No need to mess around with DNS now. Keeping code temporarily in case things change
   print "Stopping the DNS server on the primary and secondary GRIDCells."
   print
@@ -323,7 +322,6 @@ def initiate_setup():
           print errors
           print "Exiting now.."
           return -1
-    '''
 
     r2 = client.cmd('*', 'cmd.run_all', ['chkconfig ctdb on'])
     if r2:
@@ -333,6 +331,7 @@ def initiate_setup():
           print errors
           print "Exiting now.."
           return -1
+    '''
 
     r2 = client.cmd('*', 'cmd.run_all', ['service ctdb start'])
     if r2:

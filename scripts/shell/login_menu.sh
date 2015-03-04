@@ -23,6 +23,16 @@ set_as_primary(){
   fi
 }
 
+first_time_setup(){
+	if [ $HOSTNAME == "fractalio-pri" ]
+	then
+		/opt/fractalio/scripts/python/first_time_setup.py
+   	pause
+  else
+    echo 'This functionality can only initiated from the primary GRIDCell.'
+	fi
+}
+
 set_as_secondary(){
 	#echo "set as secondary called"
   ping -c 1 fractalio-sec.fractalio.lan > /dev/null 2> /dev/null
@@ -43,21 +53,28 @@ view_minion_status(){
 	then
 		/opt/fractalio/scripts/shell/view_minions.sh
    	pause
+  else
+    echo 'This functionality can only done on a primary GRIDCell'
 	fi
 }
+
 reset_minion(){
 	echo "reset minion called"
 	/opt/fractalio/scripts/shell/reset_salt_minion.sh
   pause
 }
+
 remove_minions(){
 	#echo "remove minions called"
 	if [ $HOSTNAME == "fractalio-pri" ]
 	then
 		python /opt/fractalio/scripts/shell/clear_minions.py
     pause
+  else
+    echo 'This functionality can only done on a primary GRIDCell'
 	fi
 }
+
  
 
 goto_shell() {

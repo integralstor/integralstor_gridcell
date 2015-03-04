@@ -26,9 +26,9 @@ Debug info - end <br><br>
 {%endif%}
 
 {% if result_dict.op_status.op_ret == 0  %}
-{{result_dict.command}} - Successful
+{{result_dict.display_command}} - Successful
 {%else%}
-{{result_dict.command}} - Failed (Errno. {{result_dict.op_status.op_errno}} - {{result_dict.op_status.op_errstr}}, {{result_dict.op_status.output}}{% if result_dict.error_list %}, additional error message - {{result_dict.error_list}} {%endif%})
+{{result_dict.display_command}} - Failed (Errno. {{result_dict.op_status.op_errno}} - {{result_dict.op_status.op_errstr}}, {{result_dict.op_status.output}}{% if result_dict.error_list %}, additional error message - {{result_dict.error_list}} {%endif%})
 {%endif%}
 
 

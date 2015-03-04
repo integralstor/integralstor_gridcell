@@ -494,7 +494,11 @@ def volume_stop_or_start(vol_name, op):
 
   prod_command = 'gluster --mode=script volume %s %s --xml'%(op, vol_name)
   dummy_command = "%s/vol_stop.xml"%devel_files_path
-  d = run_gluster_command(prod_command, dummy_command, "Starting volume %s"%vol_name)
+  if op == 'start':
+    str = "Starting volume %s"%vol_name
+  else:
+    str = "Stopping volume %s"%vol_name
+  d = run_gluster_command(prod_command, dummy_command, str)
   return d
 
 def run_gluster_command(prod_command, dummy_command, display_command):

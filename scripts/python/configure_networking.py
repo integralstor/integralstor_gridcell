@@ -1,6 +1,6 @@
 import os, socket, re, sys
 import fractalio
-from fractalio import networking
+from fractalio import networking, command
 
 def configure_networking():
 
@@ -275,8 +275,8 @@ def configure_networking():
     errors = []
     if change_ip or change_netmask or change_default_gateway or change_jumbo_frames:
       ip_dict["ip"] = ip
-      ip_dict["netmask"] = ip
-      ip_dict["default_gateway"] = ip
+      ip_dict["netmask"] = netmask
+      ip_dict["default_gateway"] = default_gateway
       if jumbo_frames == 'y':
         ip_dict["mtu"] = 9000
       else:
@@ -306,17 +306,8 @@ def configure_networking():
     if restart_networking:
       print
       print
-      if not errors:
-        print "Setting saved successfully. The network service will now be restarted."
-      else:
-        print "Errors saving configuration settings :"
-        print '\n'.join(errors)
-        raw_input('Press enter to return to the main menu')
-        return -1
-      print
-      print
+      valid_input = False
       while not valid_input:
-        str_to_print = "Enable jumbo frames (currently %s, press enter to retain current value) (y/n)? : "%jfe_str
         str_to_print = 'Restart network services now (y/n) :'
         print
         input = raw_input(str_to_print)
@@ -329,6 +320,7 @@ def configure_networking():
           print "Invalid value. Please try again."
       print
     if restart:
+      raw_input('here')
       r, rc = command.execute_with_rc('service network restart')
       if rc == 0:
         print "Network service restarted succesfully."
