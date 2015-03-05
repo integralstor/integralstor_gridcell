@@ -60,13 +60,33 @@ def set_as_primary(primary_ip, primary_netmask):
         valid_input = True
         secondary_ip = input
 
+  str_to_print = "Please enter the IP address of the customer's DNS server: "
+  external_dns = None
+  valid_input = False
+  while not valid_input :
+    print
+    input = raw_input(str_to_print)
+    if input:
+      if networking.is_ip(input):
+        valid_input = True
+        external_dns = input
+    else:
+      valid_input = True
+
   print
   print "Generating the DNS configuartion.."
   rc = networking.generate_default_primary_named_conf(primary_ip, primary_netmask, secondary_ip)
 
   if rc != 0:
+    print "Error generating the DNS configuration file"
     return -1
     
+  rc = networking.set_name_servers([primary_ip, secondary_ip, external_dns])
+
+  if rc != 0:
+    print "Error generating the DNS resolve.conf file"
+    return -1
+
   print "Generating the DNS configuartion.. Done."
 
   print
@@ -76,7 +96,7 @@ def set_as_primary(primary_ip, primary_netmask):
     print "Error setting the DNS server to start on boot"
     return -1
 
-  r, rc = command.execute_with_rc('service named start')
+  r, rc = command.execute_with_rc('service named restart')
   if rc != 0:
     print "Error starting the DNS server"
     return -1
@@ -100,32 +120,39 @@ def set_as_primary(primary_ip, primary_netmask):
 
   print
   print "Setting hostname.."
-  rc = networking.set_hostname('primary')
+  rc = networking.set_hostname('fractalio-pri')
   if rc != 0:
     print "Error setting hostname"
     return -1
   print "Setting hostname.. Done."
 
   print
-  print "Restarting salt services.."
-  r, rc = command.execute_with_rc('service salt-minion restart')
-  if rc != 0:
-    print "Error restarting the salt minion"
-    return -1
-
-  r, rc = command.execute_with_rc('chkconfig salt-master on')
-  if rc != 0:
-    print "Error setting the salt master server to start on boot"
-    return -1
-
+  print "Restarting salt master.."
   r, rc = command.execute_with_rc('service salt-master start')
   if rc != 0:
     print "Error starting the salt master"
     return -1
-  print "Restarting salt services.. Done."
+  print "Restarting salt master.. Done."
 
   print
-  print "Successfully changed the GRIDCell type to primary"
+  print "Restarting salt minion.."
+  r, rc = command.execute_with_rc('service salt-minion restart')
+  if rc != 0:
+    print "Error restarting the salt minion"
+    return -1
+  print "Restarting salt minion.. Done."
+
+  print
+  print "Setting salt master to start on reboot.."
+  r, rc = command.execute_with_rc('chkconfig salt-master on')
+  if rc != 0:
+    print "Error setting the salt master server to start on boot"
+    return -1
+  print "Setting salt master to start on reboot.. Done."
+
+
+  print
+  print "Successfully set the GRIDCell type to primary."
   return 0
 
 
@@ -161,11 +188,31 @@ def set_as_secondary(secondary_ip, secondary_netmask):
         valid_input = True
         primary_ip = input
 
+  str_to_print = "Please enter the IP address of the customer's DNS server: "
+  external_dns = None
+  valid_input = False
+  while not valid_input :
+    print
+    input = raw_input(str_to_print)
+    if input:
+      if networking.is_ip(input):
+        valid_input = True
+        external_dns = input
+    else:
+      valid_input = True
+
   print
   print "Generating the DNS configuartion.."
   rc = networking.generate_default_secondary_named_conf(primary_ip, secondary_netmask, secondary_ip)
 
   if rc != 0:
+    print "Error generating the DNS configuration file"
+    return -1
+
+  rc = networking.set_name_servers([primary_ip, secondary_ip, external_dns])
+
+  if rc != 0:
+    print "Error generating the DNS resolve.conf file"
     return -1
     
   print "Generating the DNS configuartion.. Done."
@@ -177,7 +224,7 @@ def set_as_secondary(secondary_ip, secondary_netmask):
     print "Error setting the DNS server to start on boot"
     return -1
 
-  r, rc = command.execute_with_rc('service named start')
+  r, rc = command.execute_with_rc('service named restart')
   if rc != 0:
     print "Error starting the DNS server"
     return -1
@@ -201,7 +248,7 @@ def set_as_secondary(secondary_ip, secondary_netmask):
 
   print
   print "Setting hostname.."
-  rc = networking.set_hostname('secondary')
+  rc = networking.set_hostname('fractalio-sec')
   if rc != 0:
     print "Error setting hostname"
     return -1
@@ -213,6 +260,10 @@ def set_as_secondary(secondary_ip, secondary_netmask):
   if rc != 0:
     print "Error restarting the salt minion"
     return -1
+  print "Restarting salt services.. Done."
+
+  print
+  print "Successfully set the GRIDCell type to primary."
 
   '''
   THE FOLLOWING SHOULD BE DONE ONLY AFTER TESTING SALT FAILOVER AND MAKING APPROPRIATE CHANGES!

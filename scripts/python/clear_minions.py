@@ -1,4 +1,5 @@
 import salt.client, salt.wheel
+import sys
 import fractalio
 import fractalio.common
 
@@ -11,12 +12,12 @@ def clear_minions():
     minions = keys['minions']
     minion_list = []
     if minions:
-      print "The following nodes are currently connected :"
+      print "The following GRIDCells are currently connected :"
       for i, minion in enumerate(minions):
         print "%d. %s"%(i+1, minion)
       done = False
       while not done:
-        node_list_str = raw_input("Select the nodes that you would like to remove (Enter a comma separated list of the numbers) :")
+        node_list_str = raw_input("Select the GRIDCells that you would like to remove (Enter a comma separated list of the numbers) :")
         if node_list_str:
           node_list = node_list_str.split(',')
           if node_list:
@@ -33,12 +34,13 @@ def clear_minions():
             if done:
               for node_num in node_list:
                 #minion_list.append(minions[int(node_num)-1])
+                print "Removing GRIDCell %s"%minions[int(node_num)-1]
                 wheel.call_func('key.delete', match=('%s'%minions[int(node_num)-1]))
         else:
           print "Please enter a comma separated list of numbers"
-      print 'selected minions : ', minion_list
+      #print 'selected minions : ', minion_list
     else:
-      print "No connected nodes detected."
+      print "No connected GRIDCells detected."
   except Exception, e:
     print "Error clearing minions%s"%e
     return -1

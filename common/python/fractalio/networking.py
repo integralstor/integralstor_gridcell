@@ -179,6 +179,8 @@ def set_name_servers(ns_list):
   except Exception, e:
     print e
     return -1
+  else:
+    return 0
 
 def jumbo_frames_enabled(ifname):
   jumbo_frames = False
@@ -239,6 +241,24 @@ def generate_default_primary_named_conf(primary_ip, primary_netmask, secondary_i
       f.write('include "/etc/named.rfc1912.zones";\n')
       f.flush()
     f.close()
+    with open('/var/named/fractalio.for', 'w') as f1:
+      f1.write('$ORIGIN .\n')
+      f1.write('$TTL 86400    ; 1 day\n')
+      f1.write('fractalio.lan        IN SOA    fractalio-pri.fractalio.lan. root.fractalio.lan. (\n')
+      f1.write('                                2011071026 ; serial\n')
+      f1.write('                                3600       ; refresh (1 hour)\n')
+      f1.write('                                1800       ; retry (30 minutes)\n')
+      f1.write('                                604800     ; expire (1 week)\n')
+      f1.write('                                86400      ; minimum (1 day)\n')
+      f1.write('                )\n')
+      f1.write('            NS    fractalio-pri.fractalio.lan.\n')
+      f1.write('            NS    fractalio-sec.fractalio.lan.\n')
+      f1.write('            PTR    fractalio.lan.\n')
+      f1.write('$ORIGIN fractalio.lan.\n')
+      f1.write('fractalio-pri          A    %s\n'%primary_ip)
+      f1.write('fractalio-sec        A    %s\n'%secondary_ip)
+      f1.flush()
+    f1.close()
   except Exception, e:
     return -1
   else:

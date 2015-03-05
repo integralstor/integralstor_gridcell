@@ -123,7 +123,7 @@ def configure_networking():
     print
   
     dns_secondary = None
-    if not dns_list:
+    if (not dns_list) or (len(dns_list) <= 1):
       str_to_print = "Enter the IP address of the Fractalio secondary GRIDCell (currently not set, press enter to retain current value) : "
     else:
       dns_secondary = dns_list[1]
@@ -320,7 +320,6 @@ def configure_networking():
           print "Invalid value. Please try again."
       print
     if restart:
-      raw_input('here')
       r, rc = command.execute_with_rc('service network restart')
       if rc == 0:
         print "Network service restarted succesfully."
