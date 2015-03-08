@@ -4,7 +4,7 @@ import json, time, re, os, tempfile, shutil, sys
 from xml.etree import ElementTree
 
 import fractalio
-from fractalio import command, xml_parse, common, audit
+from fractalio import command, xml_parse, common, audit, lock
 
 production = common.is_production()
 batch_files_path = common.get_batch_files_path()
@@ -51,25 +51,32 @@ import atexit
 atexit.register(lock.release_lock, 'batch_process')
 
 def main():
-  if not lock.get_lock('batch_process'):
+  try :
+    if not lock.get_lock('batch_process'):
       print 'Generate Status : Could not acquire lock. Exiting.'
 
-  fl = os.listdir(os.path.normpath(batch_files_path)
-  for file in fl:
-    if not file.startswith("bp_"):
-      #unknown file type so ignore
-      continue
-    else:
-      with open(os.path.normpath("%s/%s"%(batch_files_path,file)), "r") as f:
-        try :
-          d = json.load(f)
-          process_batch(d)
-        except Exception, e:
-          print "Error loading json content for %s/%s"%(batch_files_path, file)
+    fl = os.listdir(os.path.normpath(batch_files_path))
+    if fl:
+      for file in fl:
+        if not file.startswith("bp_"):
+          #unknown file type so ignore
           continue
-        finally:
-          f.close()
-  lock.release_lock('batch_process')
+        else:
+          with open(os.path.normpath("%s/%s"%(batch_files_path,file)), "r") as f:
+            try :
+              d = json.load(f)
+              process_batch(d)
+            except Exception, e:
+              print "Error loading json content for %s/%s"%(batch_files_path, file)
+              continue
+            finally:
+              f.close()
+    lock.release_lock('batch_process')
+  except Exception, e:
+    print "Error processing batch files : %s"%e
+    sys.exit(-1)
+  else:
+    sys.exit(0)
 
 def process_batch(d, fname):
   #Process each batch file

@@ -99,7 +99,7 @@ The following GRIDCells will be added to the storage pool.
 {% if prompt_for_spare %}
 <p id="warning-text"> Warning : This action will add the warm spare sled. </p>
 {%endif%}
-<form id = 'add_servers_form' action="/add_nodes/"  method="post">
+<form id = 'add_servers_form' action="/add_nodes_to_pool/"  method="post">
 {% for node, display in form.nodes.field.widget.choices %}
 <input  value="{{ node }}" name="nodes" checked style="display:None" >
 {%endfor%}

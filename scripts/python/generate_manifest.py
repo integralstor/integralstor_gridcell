@@ -76,17 +76,22 @@ atexit.register(lock.release_lock, 'generate_manifest')
 
 def main():
 
-  num_args = len(sys.argv)
-  if num_args > 1:
-    path = sys.argv[1]
+  try :
+    num_args = len(sys.argv)
+    if num_args > 1:
+      path = sys.argv[1]
+    else:
+      path = common.get_system_status_path()
+      if not path:
+        path = '/tmp'
+    print "Generating the manifest in %s"%path
+    rc = gen_manifest(path)
+    print rc
+  except Exception, e:
+    print "Error generating manifest file : %s"%e
+    return -1
   else:
-    path = common.get_system_status_path()
-    if not path:
-      path = '/tmp'
-  print "Generating the manifest in %s"%path
-  rc = gen_manifest(path)
-  print rc
-  return rc
+    return 0
 
 if __name__ == "__main__":
   ret = main()

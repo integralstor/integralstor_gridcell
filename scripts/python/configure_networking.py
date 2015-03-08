@@ -8,7 +8,7 @@ def configure_networking():
     os.system('clear')
     change_ip = False
     change_netmask = False
-    change_hostname = False
+    #change_hostname = False
     change_default_gateway = False
     change_dns_primary = False
     change_dns_secondary = False
@@ -56,6 +56,7 @@ def configure_networking():
         print "Invalid value. Please try again."
     print
   
+    '''
     hostname = socket.gethostname()
     if not hostname:
       str_to_print = "Enter hostname (currently no hostname configured, press enter to retain current value) : "
@@ -75,6 +76,7 @@ def configure_networking():
       if not valid_input:
         print "Invalid value. Please try again."
     print
+    '''
   
     default_gateway = None
     if "default_gateway" in ip_info:
@@ -228,7 +230,7 @@ def configure_networking():
     print "The following are the choices that you have made :"
     print "IP address : %s"%ip
     print "Net Mask : %s"%netmask
-    print "Hostname : %s"%hostname
+    #print "Hostname : %s"%hostname
     print "Default gateway : %s"%default_gateway
     print "IP address of the Fractalio primary GRIDCell : %s"%dns_primary
     print "IP address of the Fractalio secondary GRIDCell : %s"%dns_secondary
@@ -286,10 +288,12 @@ def configure_networking():
         errors.append("Error setting IP configuration")
       restart_networking = True
 
+    '''
     if change_hostname:
       rc = networking.set_hostname(hostname)
       if rc == -1:
         errors.append("Error setting hostname")
+    '''
   
     if change_dns_primary or change_dns_secondary or change_dns_external: 
       rc = networking.set_name_servers(dns_list)

@@ -11,10 +11,11 @@ from integral_view.utils import iv_logging
 import fractalio
 from fractalio import volume_info, system_info, audit, gluster_commands
 
-def add_nodes(request):
+def add_nodes_to_pool(request):
   """ Used to add servers to the trusted pool"""
 
   return_dict = {}
+  error_list = None
 
   si = system_info.load_system_config()
   return_dict['system_info'] = si
@@ -47,12 +48,14 @@ def add_nodes(request):
     for n in nl:
       dbg_node_list.append(n.keys()[0])
     iv_logging.debug("Initiating add nodes for %s"%' '.join(dbg_node_list))
-    ol = gluster_commands.add_nodes(nl)
+    ol, error_list = gluster_commands.add_nodes_to_pool(nl)
     for d in ol:
       if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
         audit.audit("add_storage", d["audit_str"], request.META["REMOTE_ADDR"])
 
     return_dict['result_list'] = ol
+    if error_list:
+      return_dict['error_list'] = error_list
 
     if settings.APP_DEBUG:
       return_dict['app_debug'] = True 
@@ -62,7 +65,7 @@ def add_nodes(request):
   return django.shortcuts.render_to_response(url, return_dict, context_instance = django.template.context.RequestContext(request))
 
 
-def remove_node(request):
+def remove_node_from_pool(request):
 
   vil = volume_info.get_volume_info_all()
   si = system_info.load_system_config()
@@ -90,8 +93,8 @@ def remove_node(request):
         cd = form.cleaned_data
         node = cd["node"]
         iv_logging.info("Removing node '%s'"%node)
-        d = gluster_commands.remove_node(si, node)
-        if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
+        rc, d, err = gluster_commands.remove_node_from_pool(si, node)
+        if rc == 0:
           audit_str =  "Removed node %s"%node
           audit.audit("remove_storage", audit_str, request.META["REMOTE_ADDR"])
         return_dict["result_dict"] = d

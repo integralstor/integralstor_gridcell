@@ -1,7 +1,7 @@
 from django.conf.urls import patterns, include, url
 #from integral_view.views.iscsi import iscsi_display_global_config, iscsi_display_initiators, iscsi_display_targets, iscsi_view_initiator, iscsi_edit_initiator, iscsi_create_initiator, iscsi_delete_initiator, iscsi_display_auth_access_group_list, iscsi_create_auth_access_group, iscsi_view_auth_access_group, iscsi_delete_auth_access_group, iscsi_edit_auth_access_user, iscsi_edit_target_global_config, iscsi_view_target_global_config, iscsi_create_target,iscsi_view_target , iscsi_edit_target, iscsi_delete_target, iscsi_delete_auth_access_user, iscsi_create_auth_access_user
 from integral_view.views.admin_auth  import login, logout, change_admin_password, configure_email_settings 
-from integral_view.views.trusted_pool_setup  import add_nodes, remove_node
+from integral_view.views.trusted_pool_setup  import add_nodes_to_pool, remove_node_from_pool
 from integral_view.views.volume_creation import volume_creation_wizard, create_volume, create_volume_conf
 from integral_view.views.volume_management import volume_specific_op , expand_volume, replace_node, set_volume_options, set_volume_quota, delete_volume, replace_disk, deactivate_snapshot, activate_snapshot, create_snapshot, delete_snapshot, restore_snapshot
 from integral_view.views import perform_op
@@ -57,13 +57,13 @@ urlpatterns = patterns('',
     url(r'^edit_integral_view_log_level/', login_required(edit_integral_view_log_level)),
     url(r'^set_volume_options/', login_required(set_volume_options)),
     url(r'^set_volume_quota/', login_required(set_volume_quota)),
-    url(r'^remove_node/', login_required(remove_node)),
+    url(r'^remove_node_from_pool/', login_required(remove_node_from_pool)),
     url(r'^show/([A-Za-z0-9_]+)/([a-zA-Z0-9_\-\.]*)', login_required(show),name="show_page"),
     url(r'^refresh_alerts/([0-9_]*)', login_required(refresh_alerts)),
     url(r'^logout/', logout,name="logout"),
     url(r'^perform_op/([A-Za-z_]+)/([A-Za-z0-9_\-]*)/([A-Za-z0-9_\.\-\:\/]*)', login_required(perform_op.perform_op)),
     #url(r'^server_op/([A-Za-z_]+)', login_required(server_op)),
-    url(r'^add_nodes/', login_required(add_nodes),name="add_nodes"),
+    url(r'^add_nodes_to_pool/', login_required(add_nodes_to_pool),name="add_nodes"),
     url(r'^volume_creation_wizard/([A-Za-z_]+)', login_required(volume_creation_wizard)),
     url(r'^create_volume/', login_required(create_volume)),
     url(r'^delete_volume/', login_required(delete_volume)),

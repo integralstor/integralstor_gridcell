@@ -6,7 +6,7 @@ import django.template, django
 from django.conf import settings
 
 import fractalio
-from fractalio import command, db, common, batch, audit, alerts, ntp, mail, gluster_commands, volume_info, system_info, node_scan,xml_parse
+from fractalio import command, db, common, batch, audit, alerts, ntp, mail, gluster_commands, volume_info, system_info, grid_ops,xml_parse
 
 from integral_view.utils import iv_logging
 
@@ -752,7 +752,7 @@ def hardware_scan(request):
   url = 'add_nodes_form.html'
   iv_logging.info("Hardware scan initiated")
 
-  pending_minions = node_scan.get_pending_minions()
+  pending_minions = grid_ops.get_pending_minions()
 
   if request.method == 'GET':
     # Return a list of new nodes available to be pulled into the grid
@@ -767,7 +767,7 @@ def hardware_scan(request):
       # User has chosed some nodes to be added so add them.
       cd = form.cleaned_data
       iv_logging.info("Hardware scan initiated")
-      success, failed, errors = node_scan.add_nodes(request.META["REMOTE_ADDR"],cd["nodes"])
+      success, failed, errors = grid_ops.add_nodes_to_grid(request.META["REMOTE_ADDR"],cd["nodes"])
       url = 'add_nodes_result.html'
       return_dict["success"] = success
       return_dict["failed"] = failed

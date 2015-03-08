@@ -32,6 +32,14 @@ Failed (Errno. {{d.op_status.op_errno}} - {{d.op_status.op_errstr}}, {{d.op_stat
 {%endfor%}
 </table>
 
+{%if error_list%}
+<h4>Error Details :</h4>
+<ul>
+{%for e in error_list%}
+<li>{{e}}</li>
+{%endfor%}
+</ul>
+{%endif%}
 
 {%endblock%}
 {%block help_header%}
