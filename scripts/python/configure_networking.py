@@ -56,8 +56,8 @@ def configure_networking():
         print "Invalid value. Please try again."
     print
   
-    '''
     hostname = socket.gethostname()
+    '''
     if not hostname:
       str_to_print = "Enter hostname (currently no hostname configured, press enter to retain current value) : "
     else:
@@ -287,6 +287,10 @@ def configure_networking():
       if rc == -1:
         errors.append("Error setting IP configuration")
       restart_networking = True
+      #This is done to change the /etc/hosts file to the correct IP
+      rc = networking.change_hosts_file_entry(hostname, ip_info['ipaddr'], hostname, ip)
+      if rc == -1:
+        errors.append("Error setting IP configuration")
 
     '''
     if change_hostname:
@@ -296,7 +300,7 @@ def configure_networking():
     '''
   
     if change_dns_primary or change_dns_secondary or change_dns_external: 
-      rc = networking.set_name_servers(dns_list)
+      rc = networking.set_name_servers([dns_primary, dns_secondary, dns_external])
       if rc == -1:
         errors.append("Error setting name servers")
   

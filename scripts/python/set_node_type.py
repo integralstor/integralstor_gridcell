@@ -24,7 +24,7 @@ if nodetype is secondary :
   - #Changes to rc.local will happen only on first time setup
 '''
 
-import sys
+import sys, socket
 import fractalio
 from fractalio import command, networking
 
@@ -120,7 +120,8 @@ def set_as_primary(primary_ip, primary_netmask):
 
   print
   print "Setting hostname.."
-  rc = networking.set_hostname('fractalio-pri')
+  old_hostname = socket.gethostname()
+  rc = networking.set_hostname(old_hostname, primary_ip, 'fractalio-pri', primary_ip)
   if rc != 0:
     print "Error setting hostname"
     return -1
@@ -248,7 +249,8 @@ def set_as_secondary(secondary_ip, secondary_netmask):
 
   print
   print "Setting hostname.."
-  rc = networking.set_hostname('fractalio-sec')
+  old_hostname = socket.gethostname()
+  rc = networking.set_hostname(old_hostname, secondary_ip, 'fractalio-sec', secondary_ip)
   if rc != 0:
     print "Error setting hostname"
     return -1
