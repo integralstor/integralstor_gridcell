@@ -228,8 +228,8 @@ def create_volume(request):
               #print ret
               if ret["retcode"] != 0:
                 errors += ", Error undoing the creating the underlying storage brick on %s"%node
-      return_dict["error"] = errors
-      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+    return_dict["error"] = errors
+    return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
   #Underlying storage created so now create the volume
   d = gluster_commands.run_gluster_command("%s force"%cmd, "%s/create_volume.xml"%fractalio.common.get_devel_files_path(), "Volume creation")

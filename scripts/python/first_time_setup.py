@@ -5,6 +5,7 @@ from fractalio import grid_ops, gluster_commands, system_info, ctdb
 import salt.client
 from pwd import getpwnam
 import shutil
+from time import strftime
 
 def scan_for_nodes():
   try :
@@ -611,6 +612,8 @@ def initiate_setup():
       empty_storage_pool(si, secondary)
       remove_nodes_from_grid()
       return rc
+    with open('/opt/fractalio/first_time_setup_completed', 'w') as f:
+      f.write('%s'%strftime("%Y-%m-%d %H:%M:%S"))
 
   except Exception, e:
     print "Encountered the following error : %s"%e

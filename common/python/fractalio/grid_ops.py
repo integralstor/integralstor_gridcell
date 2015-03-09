@@ -34,14 +34,14 @@ def get_pending_minions():
 def accept_salt_key(wheel, m):
   try:
     if wheel.call_func('key.accept', match=('%s'%m)):
-      time.sleep(20)
+      time.sleep(3)
       command_to = 'salt %s saltutil.sync_all'%(m)
       ret, ret_code = command.execute_with_rc(command_to)
       if ret_code != 0:
         print "Error syncing salt modules to GRIDCell %s "%m
         return -1
       #print ret, ret_code
-      time.sleep(20)
+      time.sleep(3)
     else:
       print "Error accepting GRIDCell key for %s "%m
       return -1

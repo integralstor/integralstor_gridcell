@@ -212,7 +212,7 @@ def volume_specific_op(request, operation, vol_name=None):
         replicated = False
         repl_count = 0
 
-        if vol["type"] == "Replicate":
+        if "replicate" in vol["type"].lower():
           replica_count = int(vol["replica_count"])
           replicated = True
 
@@ -225,6 +225,7 @@ def volume_specific_op(request, operation, vol_name=None):
         return_dict['cmd'] = d['cmd']
         return_dict['node_list'] = d['node_list']
         return_dict['count'] = d['count']
+        return_dict['dataset_list'] = d['dataset_list']
         return_dict['vol_name'] = vol["name"]
         if vol["type"] == "Replicate":
           return_dict['vol_type'] = "replicated"
@@ -639,7 +640,7 @@ def replace_node(request):
         src_node = cd["src_node"]
         dest_node = cd["dest_node"]
 
-        d = batch.create_replace_command_file(si, vil, src_node, dest_node)
+        d = gluster_batch.create_replace_command_file(si, vil, src_node, dest_node)
         if "error" in d:
           return_dict["error"] = "Error initiating replace : %s"%d["error"]
           return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
@@ -923,8 +924,44 @@ def expand_volume(request):
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
     cmd = request.POST['cmd']
+    dsl = request.POST.getlist('dataset_list')
+    dataset_dict = {}
+    for ds in dsl:
+      tl = ds.split(':')
+      dataset_dict[tl[0]] = tl[1]
     vol_name = request.POST['vol_name']
     count = request.POST['count']
+    #First create the datasets on which the bricks will reside
+    client = salt.client.LocalClient()
+    revert_list = []
+    errors = ""
+    for node, dataset in dataset_dict.items():
+      dataset_cmd = 'zfs create %s'%dataset
+      dataset_revert_cmd = 'zfs destory %s'%dataset
+      r1 = client.cmd(node, 'cmd.run_all', [dataset_cmd])
+      if r1:
+        for node, ret in r1.items():
+          #print ret
+          if ret["retcode"] != 0:
+            errors += ", Error creating the underlying storage brick on %s"%node
+            print errors
+          else:
+            revert_list.append({node:dataset_revert_cmd})
+
+    if errors != "":
+      if revert_list:
+        #Undo the creation of the datasets
+        for revert in revert_list:
+          for node, dsr_cmd in revert.items():
+            r1 = client.cmd(node, 'cmd.run_all', [dsr_cmd])
+            if r1:
+              for node, ret in r1.items():
+                #print ret
+                if ret["retcode"] != 0:
+                  errors += ", Error undoing the creating the underlying storage brick on %s"%node
+      return_dict["error"] = errors
+      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+
 
     iv_logging.info("Running volume expand : %s"%cmd)
     d = gluster_commands.run_gluster_command(cmd, "%s/add_brick.xml"%fractalio.common.get_devel_files_path(), "Volume expansion")
