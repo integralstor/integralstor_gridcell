@@ -32,6 +32,14 @@ def scan_for_nodes():
     print
     return 0
 
+def restart_minions():
+  try:
+    client = salt.client.LocalClient()
+    r1 = client.cmd('roles:master', 'cmd.run', ['echo service salt-minion restart | at now + 1 minute'], expr_form='grain')
+  except Exception, e:
+    return -1
+  else:
+    return 0
 
 def remove_nodes_from_grid():
   try :
@@ -203,7 +211,7 @@ def remove_admin_volume(client):
     print
 
     print "Stopping the IntegralStor Administration Volume."
-    d = gluster_commands.run_gluster_command('gluster volume stop %s force --xml'%fractalio.common.get_admin_vol_name(), '', 'Stopping admin vol')
+    d = gluster_commands.run_gluster_command('gluster --mode=script volume stop %s force --xml'%fractalio.common.get_admin_vol_name(), '', 'Stopping admin vol')
     if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
       print "Stopping the IntegralStor Administration Volume... Done."
       print
@@ -215,7 +223,7 @@ def remove_admin_volume(client):
         err += ". Error number %d"%d["op_status"]["op_errno"]
       print "Error stopping the admin volume : %s"%err
 
-    cmd = "gluster volume delete %s force --xml"%fractalio.common.get_admin_vol_name()
+    cmd = "gluster --mode=script volume delete %s --xml"%fractalio.common.get_admin_vol_name()
     #print cmd
     d = gluster_commands.run_gluster_command(cmd, "%s/delete_volume.xml"%fractalio.common.get_devel_files_path(), "Admin volume deletion")
     if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
@@ -293,7 +301,7 @@ def unmount_admin_volume(client):
     print
     return 0
 
-def establish_default_configuration(client):
+def establish_default_configuration(client, si):
 
   print "Establishing the default IntegralStor configuration .. Done"
   print
@@ -311,13 +319,6 @@ def establish_default_configuration(client):
 
     # Delete any existing NTP file
     r2 = client.cmd('roles:master', 'cmd.run_all', ['rm /etc/ntp.conf'], expr_form='grain')
-    if r2:
-      for node, ret in r2.items():
-        if ret["retcode"] != 0:
-          errors = "Error deleting the original NTP config file on %s"%node
-          print errors
-          print "Exiting now.."
-          return -1
 
     # Link the new NTP conf file on the primary onto the admin vol
     r2 = client.cmd('roles:primary', 'cmd.run_all', ['ln -s %s/ntp/primary_ntp.conf /etc/ntp.conf'%fractalio.common.get_admin_vol_mountpoint()], expr_form='grain')
@@ -371,8 +372,11 @@ def establish_default_configuration(client):
 
     ip_list = []
     for node_name, node_info in si.items():
+      if node_name == 'fractalio-sec.fractalio.lan':
+        #Already added when it was added to the storage pool so skip. We only need to do this for the primary
+        continue
       if "interfaces" in node_info and "bond0" in node_info["interfaces"] and "inet" in node_info["interfaces"]["bond0"] and len(node_info["interfaces"]["bond0"]["inet"]) == 1:
-        ip_list.append("%s\n"%node_info["interfaces"]["bond0"]["inet"][0]["address"])
+        ip_list.append("%s"%node_info["interfaces"]["bond0"]["inet"][0]["address"])
 
     rc, errors = ctdb.add_to_nodes_file(ip_list)
     if rc != 0:
@@ -397,7 +401,7 @@ def establish_default_configuration(client):
 
     # The initial add_nodes created the initial nodes file. So move this into the admin vol and link it all          
 
-    shutil.move('/etc/ctdb/nodes', '%s/nodes'%fractalio.common.get_admin_vol_mountpoint())
+    shutil.move('/etc/ctdb/nodes', '%s/lock/nodes'%fractalio.common.get_admin_vol_mountpoint())
     r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/ctdb/nodes'])
     r2 = client.cmd('*', 'cmd.run_all', ['ln -s %s/lock/nodes /etc/ctdb/nodes'%fractalio.common.get_admin_vol_mountpoint()])
     if r2:
@@ -438,15 +442,8 @@ def undo_default_configuration(client):
   try :
 
     r2 = client.cmd('roles:master', 'cmd.run_all', ['rm /etc/ntp.conf'], expr_form='grain')
-    if r2:
-      for node, ret in r2.items():
-        if ret["retcode"] != 0:
-          errors = "Error deleting the NTP config file on %s"%node
-          print errors
 
-
-
-    print "Linking CTDB files"
+    print "Unlinking CTDB files"
     r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/sysconfig/ctdb'])
     r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/ctdb/nodes'])
 
@@ -482,6 +479,7 @@ def start_services(client):
       for node, ret in r2.items():
         if ret["retcode"] != 0:
           errors = "Error starting CTDB service on %s"%node
+          raw_input('press a key')
           print errors
           print "Exiting now.."
           return -1
@@ -495,7 +493,7 @@ def start_services(client):
 
 def stop_services(client):
   try :
-    print "Stoppong services on the active GRIDCells.."
+    print "Stopping services on the active GRIDCells.."
     print
 
     r2 = client.cmd('roles:master', 'cmd.run_all', ['service ntpd restart'], expr_form='grain')
@@ -527,12 +525,14 @@ def initiate_setup():
   created_admin_vol = False
   mounted_admin_vol = False
   created_default_config = False
+  client = None
 
   try :
     do = raw_input("Scan for new nodes?")
     if do == 'y':
       rc = scan_for_nodes()
       if rc != 0:
+        restart_minions()
         remove_nodes_from_grid()
         return rc
 
@@ -543,6 +543,7 @@ def initiate_setup():
     si = system_info.load_system_config(first_time = True)
     if not si:
       print "Error loading GRIDCell information"
+      restart_minions()
       remove_nodes_from_grid()
       return -1
 
@@ -551,19 +552,21 @@ def initiate_setup():
 
     rc, primary, secondary = check_for_primary_and_secondary(si)
     if rc != 0:
+      restart_minions()
       remove_nodes_from_grid()
       return rc
 
     do = raw_input("Create storage pool?")
     if do == 'y':
-      if ("secondary" in si) and ("interfaces" in si[secondary]) and ("bond0" in si[secondary]["interfaces"]) and ("inet" in si[secondary]["interfaces"]["bond0"]) and ("address" in si[secondary]["interfaces"]["bond0"]["inet"]) :
-        rc, d, err = gluster_commands.add_a_node_to_pool(secondary, si[secondary]["interfaces"]["bond0"]["inet"]["address"])
+      if (secondary in si) and ("interfaces" in si[secondary]) and ("bond0" in si[secondary]["interfaces"]) and ("inet" in si[secondary]["interfaces"]["bond0"]) and ("address" in si[secondary]["interfaces"]["bond0"]["inet"][0]) :
+        rc, d, err = gluster_commands.add_a_node_to_pool(secondary, si[secondary]["interfaces"]["bond0"]["inet"][0]["address"])
         if rc != 0:
           if err:
             print "Error creating the storage pool : %s"%err
           else:
             print "Error creating the storage pool : Unknown error"
           empty_storage_pool(si, secondary)
+          restart_minions()
           remove_nodes_from_grid()
           return rc
 
@@ -577,6 +580,7 @@ def initiate_setup():
       if rc != 0:
         remove_admin_volume(client)
         empty_storage_pool(si, secondary)
+        restart_minions()
         remove_nodes_from_grid()
         return rc
 
@@ -587,17 +591,19 @@ def initiate_setup():
       unmount_admin_volume(client)
       remove_admin_volume(client)
       empty_storage_pool(si, secondary)
+      restart_minions()
       remove_nodes_from_grid()
       return rc
 
     mounted_admin_vol = True
 
-    rc = establish_default_configuration(client)
+    rc = establish_default_configuration(client, si)
     if rc != 0:
       undo_default_configuration(client)
       unmount_admin_volume(client)
       remove_admin_volume(client)
       empty_storage_pool(si, secondary)
+      restart_minions()
       remove_nodes_from_grid()
       return rc
 
@@ -610,6 +616,7 @@ def initiate_setup():
       unmount_admin_volume(client)
       remove_admin_volume(client)
       empty_storage_pool(si, secondary)
+      restart_minions()
       remove_nodes_from_grid()
       return rc
     with open('/opt/fractalio/first_time_setup_completed', 'w') as f:
@@ -628,6 +635,7 @@ def initiate_setup():
     if client and created_storage_pool:
       empty_storage_pool(si, secondary)
     if client and added_nodes:
+      restart_minions()
       remove_nodes_from_grid()
     return -1
   else:
@@ -649,13 +657,15 @@ def display_initial_screen():
   print
   print
   inp = raw_input ("Press <Enter> when you are ready to proceed : ")
-  print "Continuing"
+  print 
 
 def main():
   display_initial_screen()
   ret = initiate_setup()
   if ret == 0:
     print "Successfully configured the primary and secondary GRIDCells! You can now use IntegralView to administer the system.".center(80, ' ')
+    print
+    print
 
 if __name__ == "__main__":
   main()

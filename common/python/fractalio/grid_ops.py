@@ -20,7 +20,9 @@ def _regenerate_manifest(first_time = False):
   else:
     path = fractalio.common.get_system_status_path()
   manifest_command = "/opt/fractalio/scripts/python/generate_manifest.py %s"%path
-  command.execute_with_rc(manifest_command)
+  ret, rc = command.execute_with_rc(manifest_command)
+  if rc != 0:
+    return ret, rc
   status_command = "/opt/fractalio/scripts/python/generate_status.py %s"%path
   return (command.execute_with_rc(status_command))
 
@@ -107,7 +109,7 @@ def delete_salt_key(hostname):
     opts = salt.config.master_config(fractalio.common.get_salt_master_config())
     wheel = salt.wheel.Wheel(opts)
     keys = wheel.call_func('key.list_all')
-    if (not keys) or (hostname not in keys):
+    if (not keys) or ('minions' not in keys) or (hostname not in keys['minions']):
       errors = "Specified GRIDCell is not part of the grid"
       return -1, errors
     wheel.call_func('key.delete', match=(hostname))
@@ -183,7 +185,8 @@ def add_nodes_to_grid(remote_addr,pending_minions, first_time = False, accessing
       #All went well so audit and continue to the next
       print "Successfully added GRIDCell %s to the grid"%m
 
-      audit.audit("hardware_scan_node_added", "Added a new GRIDCell %s to the grid"%m,remote_addr )
+      if not first_time:
+      	audit.audit("hardware_scan_node_added", "Added a new GRIDCell %s to the grid"%m,remote_addr )
       success.append(m)
 
     #print "Successfully added : %s"%success
