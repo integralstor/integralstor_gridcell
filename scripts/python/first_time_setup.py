@@ -1,4 +1,4 @@
-
+#! /usr/bin/python
 import salt.wheel
 import fractalio, sys, os, shutil
 from fractalio import grid_ops, gluster_commands, system_info, ctdb
