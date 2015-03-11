@@ -35,16 +35,7 @@ def get_pending_minions():
 
 def accept_salt_key(wheel, m):
   try:
-    if wheel.call_func('key.accept', match=('%s'%m)):
-      time.sleep(3)
-      command_to = 'salt %s saltutil.sync_all'%(m)
-      ret, ret_code = command.execute_with_rc(command_to)
-      if ret_code != 0:
-        print "Error syncing salt modules to GRIDCell %s "%m
-        return -1
-      #print ret, ret_code
-      time.sleep(3)
-    else:
+    if not wheel.call_func('key.accept', match=('%s'%m)):
       print "Error accepting GRIDCell key for %s "%m
       return -1
   except Exception, e:
@@ -53,10 +44,14 @@ def accept_salt_key(wheel, m):
   else:
     return 0
 
+def sync_salt_modules(client):
+  rc = client.cmd('*', 'saltutil.sync_modules')
+  return rc
+
 def get_minion_ip(client, m):
   ip = None
   try:
-    r = client.cmd(m, 'grains.item', ['ip_interfaces'], timeout=180)
+    r = client.cmd(m, 'grains.item', ['ip_interfaces'])
     #print r
     if r:
       #print r[m]
@@ -137,8 +132,7 @@ def add_nodes_to_grid(remote_addr,pending_minions, first_time = False, accessing
     for m in pending_minions:
 
       ip = None
-      print "Accepting %s"%m
-
+      print "Accepting GRIDCell %s"%m
       rc = accept_salt_key(wheel, m)
       if rc != 0:
         print "Failed to add %s to salt"%m
@@ -146,22 +140,27 @@ def add_nodes_to_grid(remote_addr,pending_minions, first_time = False, accessing
         failed.append(m)
         continue
 
+    time.sleep(20)
+    print "Accepted GRIDCell %s"%m
+    for m in pending_minions:
       ip = get_minion_ip(client, m)
       if not ip:
         print "Error retrieving the IP from GRIDCell %s"%m
         errors += "Error retrieving the IP from GRIDCell %s. "%m
         #Cannot add to DNS so remove from salt as well
-        r, err = delete_salt_key(wheel, m)
+        r, err = delete_salt_key(m)
         if (not r) and err:
           errors += err
         failed.append(m)
         continue
 
+      print 'Adding GRIDCell %s to DNS'%m
       rc = add_to_dns(client, m, ip)
+      print 'Added GRIDCell %s to DNS'%m
       if rc != 0:
         errors += "Error adding the DNS information for %s. No IP address information found. "%m
         print "Error adding DNS information for GRIDCell %s"%m
-        r, err = delete_salt_key(wheel, m)
+        r, err = delete_salt_key(m)
         if (not r) and err:
           errors += err
         failed.append(m)
@@ -175,7 +174,7 @@ def add_nodes_to_grid(remote_addr,pending_minions, first_time = False, accessing
         r = remove_from_dns(client, m)
         if r != 0:
           errors += "Error removing %s from DNS"%m
-        r, err = delete_salt_key(wheel, m)
+        r, err = delete_salt_key(m)
         if (not r) and err:
           errors += err
         failed.append(m)
@@ -188,6 +187,11 @@ def add_nodes_to_grid(remote_addr,pending_minions, first_time = False, accessing
       if not first_time:
       	audit.audit("hardware_scan_node_added", "Added a new GRIDCell %s to the grid"%m,remote_addr )
       success.append(m)
+
+    print "Syncing modules to GRIDCells"
+    rc = sync_salt_modules(client)
+    print "Syncing modules to GRIDCells.. Done."
+    print
 
     #print "Successfully added : %s"%success
     #print "Failed adding : %s"%failed
