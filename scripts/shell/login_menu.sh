@@ -133,6 +133,10 @@ show_menu() {
       echo "6. View minion status"
     fi
   fi
+  if [ $secondary == 1 ]
+  then
+    echo "6. View minion status"
+  fi
 }
 
 read_input(){
@@ -144,14 +148,14 @@ read_input(){
     # Normal node
     read -p "Enter choice [1 - 7] " input 
     case $input in
-  		1) configure_networking ;;
-    		2) do_reboot;;
-    		3) do_shutdown;;
-    		4) view_node_config;;
-    		5) view_node_status;;
-   		6) set_as_primary;;
-   		7) set_as_secondary;;
-    		*)  echo "Not a Valid INPUT" && sleep 2
+      1) configure_networking ;;
+      2) do_reboot;;
+      3) do_shutdown;;
+      4) view_node_config;;
+      5) view_node_status;;
+      6) set_as_primary;;
+      7) set_as_secondary;;
+      *)  echo "Not a Valid INPUT" && sleep 2
     esac
   fi
   if [ $primary == 1  ]
@@ -162,27 +166,41 @@ read_input(){
         #Primary node with first time setup complete
         read -p "Enter choice [1 - 7] " input 
         case $input in
-  		1) configure_networking ;;
-    		2) do_reboot;;
-    		3) do_shutdown;;
-    		4) view_node_config;;
-    		5) view_node_status;;
-    		6) view_minion_status ;;
-    		7) first_time_setup;;
-    		*)  echo "Not a Valid INPUT" && sleep 2
+        1) configure_networking ;;
+        2) do_reboot;;
+        3) do_shutdown;;
+        4) view_node_config;;
+        5) view_node_status;;
+        6) view_minion_status ;;
+        7) first_time_setup;;
+        *)  echo "Not a Valid INPUT" && sleep 2
     	esac
     else
         read -p "Enter choice [1 - 6] " input 
         case $input in
-  		1) configure_networking ;;
-    		2) do_reboot;;
-    		3) do_shutdown;;
-    		4) view_node_config;;
-    		5) view_node_status;;
-    		6) view_minion_status ;;
-    		*)  echo "Not a Valid INPUT" && sleep 2
+        1) configure_networking ;;
+        2) do_reboot;;
+        3) do_shutdown;;
+        4) view_node_config;;
+        5) view_node_status;;
+        6) view_minion_status ;;
+        *)  echo "Not a Valid INPUT" && sleep 2
     	esac
     fi
+  fi
+  if [ $secondary == 1 ]
+  then
+    #Secondary node
+      read -p "Enter choice [1 - 6] " input 
+      case $input in
+      1) configure_networking ;;
+      2) do_reboot;;
+      3) do_shutdown;;
+      4) view_node_config;;
+      5) view_node_status;;
+      6) view_minion_status ;;
+      *)  echo "Not a Valid INPUT" && sleep 2
+    	esac
   fi
 }
  
