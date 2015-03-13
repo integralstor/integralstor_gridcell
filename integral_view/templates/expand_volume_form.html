@@ -1,5 +1,12 @@
 {% extends 'logged_in_base.html' %}
 
+{%block page-header%}
+  Volumes
+    <br /><small>
+      Expand volume
+  </small>
+
+ {%endblock%}
 {%block contents%}
 <!-- Modal -->
 <div class="modal fade" id="processing" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -17,8 +24,6 @@
 </div>
 
 
-<span id="topic-text"> Volumes -> Expand volume</span><br>
-<br>
 <span id="instruction-text"> The volume will be expanded by adding the following storage locations. The system automatically selects available storage to be added to the volume. <br><br>Please verify and confirm.<span><br>
 
 

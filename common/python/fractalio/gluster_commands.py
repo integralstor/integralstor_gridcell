@@ -123,8 +123,8 @@ def remove_node_from_pool(si, hostname):
 
 def add_a_node_to_pool(hostname, ip):
   #IP is the IP of the bond0 of the node being added. Needed to add it to the CTDB nodes list
+  d = None 
   try :
-    d = None 
     localhost = socket.gethostname().strip()
 
     # Create a dict with the keys being sleds and values being list of nodes in the sled in order to process by sled
@@ -134,12 +134,17 @@ def add_a_node_to_pool(hostname, ip):
     if hostname != localhost:
       prod_command = "gluster peer probe %s --xml"%hostname
       dummy_command = "%s/peer_probe.xml"%devel_files_path
+      print 'executing gluster cmd'
       d = run_gluster_command(prod_command, dummy_command, "Adding GRIDCell %s to the storage pool"%hostname)
+      print 'executed gluster cmd'
       if d and ("op_status" in d) and ("op_ret" in d["op_status"]) and (d["op_status"]["op_ret"] == 0):
+        print 'adding to ctdb nodes file'
         rc, err = ctdb.add_to_nodes_file([ip])
+        print 'added to ctdb nodes file'
+        print rc, err
         if rc != 0:
           if err:
-            return -1, "Error adding GRIDCell %s to the CTDB nodes file"%hostname
+            return -1, d, "Error adding GRIDCell %s to the CTDB nodes file"%hostname
         d["audit_str"] = "Added GRIDCell %s to the storage pool"%hostname
       else:
         err = ""
@@ -164,7 +169,7 @@ def add_nodes_to_pool(anl):
 
   for node in anl:
     host = node["hostname"]
-    rc, d, err = add_a_node_to_pool(host, node["interfaces"]["bond0"]["inet"]["address"])
+    rc, d, err = add_a_node_to_pool(host, node["host_info"]["interfaces"]["bond0"]["inet"][0]["address"])
     ol.append(d)
     if rc != 0 and err:
       error_list.append(err)
@@ -501,14 +506,14 @@ def build_expand_volume_command(vol, si):
 
   if vol["type"] in ['Replicate', 'Distributed_Replicate', 'distributed_striped_replicated', 'striped_replicated']:
     vol_type = "replicated"
-    repl_count  = int(vol["replicaCount"])
+    repl_count  = int(vol["replica_count"])
   else:
     vol_type = "distributed"
 
   d = build_create_or_expand_volume_command(command, si, anl, vol_type, ondisk_storage, repl_count, vol["name"])
 
   if "cmd" in d:
-    d["cmd"] = d["cmd"] + " --xml"
+    d["cmd"] = d["cmd"] + " force --xml"
 
   return d
     

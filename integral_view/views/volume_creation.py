@@ -246,6 +246,17 @@ def create_volume(request):
     audit.audit("create_volume", audit_str, request.META["REMOTE_ADDR"])
     if request.POST["vol_access"] == "iscsi":
       iscsi.add_iscsi_volume(request.POST["vol_name"])
+  else:
+    if revert_list:
+      #Undo the creation of the datasets
+      for revert in revert_list:
+        for node, dsr_cmd in revert.items():
+          r1 = client.cmd(node, 'cmd.run_all', [dsr_cmd])
+          if r1:
+            for node, ret in r1.items():
+              #print ret
+              if ret["retcode"] != 0:
+                errors += ", Error undoing the creating the underlying storage brick on %s"%node
 
   if request.POST['vol_type'] == 'replicated':
     return_dict['repl_count'] = request.POST['repl_count']

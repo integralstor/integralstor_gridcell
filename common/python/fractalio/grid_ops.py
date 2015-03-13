@@ -63,6 +63,9 @@ def get_minion_ip(client, m):
       else:
         print "Could not retrieve the IP for GRIDCell %s"%m
         return None
+    else:
+      print "Could not retrieve the IP for GRIDCell %s"%m
+      return None
   except Exception, e:
     print "Error retrieving IP for GRIDCell for %s : %s"%(m, e)
     return None
@@ -72,11 +75,17 @@ def get_minion_ip(client, m):
 def add_to_dns(client, m, ip):
   try:
     r1 = client.cmd('roles:primary', 'ddns.add_host', ['fractalio.lan', m, 86400, ip], expr_form='grain', timeout=180)
-    print "Added %s to DNS"%m
+    #print r1
+    #print "Added %s to DNS"%m
     if not r1:
       print "Error adding DNS information for GRIDCell %s"%m
       return -1
     else:
+      for key, value in r1.items():
+        if value is not None and value==False:
+          print "Error adding DNS information for GRIDCell %s"%m
+          return -1
+      print "Added %s to DNS"%m
       return 0
   except Exception, e:
     print "Error adding GRIDCell %s to DNS : %s"%(m, e)
@@ -139,9 +148,9 @@ def add_nodes_to_grid(remote_addr,pending_minions, first_time = False, accessing
         errors += "Failed to add %s to salt. "%m
         failed.append(m)
         continue
+      print "Accepted GRIDCell %s"%m
 
     time.sleep(20)
-    print "Accepted GRIDCell %s"%m
     for m in pending_minions:
       ip = get_minion_ip(client, m)
       if not ip:

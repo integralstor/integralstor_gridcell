@@ -27,7 +27,7 @@ def volume_specific_op(request, operation, vol_name=None):
   form = None
 
   vil = volume_info.get_volume_info_all()
-  si = {} #system_info.load_system_config()
+  si = system_info.load_system_config()
 
   if request.method == "GET":
 
@@ -218,7 +218,7 @@ def volume_specific_op(request, operation, vol_name=None):
 
         d = gluster_commands.build_expand_volume_command(vol, si)
         if "error" in d:
-          return_dict["error"] = "Error creating the volume : %s"%d["error"]
+          return_dict["error"] = "Error expanding the volume : %s"%d["error"]
           return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
         iv_logging.debug("Expand volume node list %s for volume %s"%(d['node_list'], vol["name"]))
 
@@ -612,7 +612,7 @@ def replace_node(request):
   return_dict['system_config_list'] = si
 
   
-  d = volume_info.get_replacement_node_info(si, vil)
+  d = system.get_replacement_node_info(si, vil)
   if not d["src_node_list"]:
     return_dict["error"] = "There are no GRIDCells eligible to be replaced."
     return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
@@ -640,8 +640,45 @@ def replace_node(request):
         src_node = cd["src_node"]
         dest_node = cd["dest_node"]
 
+        vol_list = get_volumes_on_node(src_node, vil)
+        client = salt.client.LocalClient()
+        revert_list = []
+        for vol in vol_list:
+          #Get the brick path and the data set name
+          if 'bricks' in vol and vol['bricks']:
+            brick1 = vol['bricks'][0]
+            d = volume_info.get_components(brick1)
+            if not d:
+              return_dict["error"] = "Error decoding the brick for the specified volume. Brick name : %s "%brick1
+              return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+            dataset_cmd = 'zfs create %s/%s/%s'%(d['pool'], d['ondisk_storage'], vol.strip())
+            revert_cmd = 'zfs destroy %s/%s/%s'%(d['pool'], d['ondisk_storage'], vol.strip())
+            r1 = client.cmd(dest_node, 'cmd.run_all', [dataset_cmd])
+            if r1:
+              for node, ret in r1.items():
+                #print ret
+               if ret["retcode"] != 0:
+                  errors += ", Error creating the underlying storage brick on %s"%node
+                  print errors
+               else:
+                  revert_list.append(revert_cmd)
+
+          else:
+            return_dict["error"] = "No bricks found for the specified volume "
+            return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+        #What do we do with this revert list?!
         d = gluster_batch.create_replace_command_file(si, vil, src_node, dest_node)
         if "error" in d:
+          if revert_list:
+            #Undo the creation of the datasets
+            for dsr_cmd in revert_list:
+                r1 = client.cmd(dest_node, 'cmd.run_all', [dsr_cmd])
+                if r1:
+                  for node, ret in r1.items():
+                    #print ret
+                    if ret["retcode"] != 0:
+                      errors += " , Error undoing the creation of the underlying storage brick on %s"%dest_node
+                      d["error"].append(errors)
           return_dict["error"] = "Error initiating replace : %s"%d["error"]
           return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
         else:
@@ -970,6 +1007,17 @@ def expand_volume(request):
       #Success so audit the change
       audit_str = "Expanded volume %s by adding %s storage units."%(vol_name, count)
       audit.audit("expand_volume", audit_str, request.META["REMOTE_ADDR"])
+    else:
+      if revert_list:
+        #Undo the creation of the datasets
+        for revert in revert_list:
+          for node, dsr_cmd in revert.items():
+            r1 = client.cmd(node, 'cmd.run_all', [dsr_cmd])
+            if r1:
+              for node, ret in r1.items():
+                #print ret
+                if ret["retcode"] != 0:
+                  errors += ", Error undoing the creating the underlying storage brick on %s"%node
 
     if d:
       d["command"] = "Volume expansion of %s by adding %s storage units."%(vol_name, count)

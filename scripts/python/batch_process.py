@@ -47,38 +47,8 @@ def get_heal_count(cmd, type):
   #print rl
   return rl
 
-import atexit
-atexit.register(lock.release_lock, 'batch_process')
 
-def main():
-  try :
-    if not lock.get_lock('batch_process'):
-      print 'Generate Status : Could not acquire lock. Exiting.'
-
-    fl = os.listdir(os.path.normpath(batch_files_path))
-    if fl:
-      for file in fl:
-        if not file.startswith("bp_"):
-          #unknown file type so ignore
-          continue
-        else:
-          with open(os.path.normpath("%s/%s"%(batch_files_path,file)), "r") as f:
-            try :
-              d = json.load(f)
-              process_batch(d)
-            except Exception, e:
-              print "Error loading json content for %s/%s"%(batch_files_path, file)
-              continue
-            finally:
-              f.close()
-    lock.release_lock('batch_process')
-  except Exception, e:
-    print "Error processing batch files : %s"%e
-    sys.exit(-1)
-  else:
-    sys.exit(0)
-
-def process_batch(d, fname):
+def process_batch(d, file):
   #Process each batch file
 
   if not d:
@@ -147,7 +117,7 @@ def process_batch(d, fname):
           #print m
           if m:
             #Successfully executed
-            audit.batch_audit(cd["type"], cd["desc"])
+            audit.audit(cd["type"], cd["desc"], 'Batch job')
             cd["status_code"] = 3
             break
         if cd["status_code"] != 3:
@@ -224,9 +194,11 @@ def process_batch(d, fname):
       else:
         temp = tempfile.TemporaryFile()
         try:
+          #print cd["command"]
           r = command.execute(cd["command"])
+          #print r
           if r:
-            print "command = %s"%cd["command"]
+            #print "command = %s"%cd["command"]
             l = command.get_output_list(r)
             for line in l:
               temp.write(line)
@@ -272,7 +244,7 @@ def process_batch(d, fname):
       if cd["type"] in ["add_brick", "remove_brick_start", "rebalance_start", "volume_heal_full"]:
         #One off command so
         #All ok so mark status as successful so it is not rerun
-        audit.batch_audit(cd["type"], cd["desc"])
+        audit.audit(cd["type"], cd["desc"], 'Batch job')
         cd["status_code"] = 3
         continue
 
@@ -332,9 +304,43 @@ def process_batch(d, fname):
   #Write the updated json to a temp file and copy to prevent possible race read/write conditions?
 
   with open(os.path.normpath("%s/tmp_%s"%(batch_files_path, file)), "w+") as f1:
+    #print 'writing json'
     json.dump(d, f1, indent=2)
     f1.flush()
     f1.close()
   shutil.move(os.path.normpath("%s/tmp_%s"%(batch_files_path, file)), os.path.normpath("%s/%s"%(batch_files_path, file)))
 
   
+import atexit
+atexit.register(lock.release_lock, 'batch_process')
+
+def main():
+  try :
+    if not lock.get_lock('batch_process'):
+      print 'Generate Status : Could not acquire lock. Exiting.'
+
+    fl = os.listdir(os.path.normpath(batch_files_path))
+    if fl:
+      for file in fl:
+        if not file.startswith("bp_"):
+          #unknown file type so ignore
+          continue
+        else:
+          with open(os.path.normpath("%s/%s"%(batch_files_path,file)), "r") as f:
+            try :
+              d = json.load(f)
+              process_batch(d, file)
+            except Exception, e:
+              print "Error loading json content for %s/%s : %s"%(batch_files_path, file, e)
+              continue
+            finally:
+              f.close()
+    lock.release_lock('batch_process')
+  except Exception, e:
+    print "Error processing batch files : %s"%e
+    sys.exit(-1)
+  else:
+    sys.exit(0)
+
+if __name__ == '__main__':
+  main()

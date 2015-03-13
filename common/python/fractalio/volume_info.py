@@ -9,6 +9,22 @@ import gluster_commands
 
 production = common.is_production()
 
+def get_components(brick):
+  if not brick:
+    return None
+  l = brick.split(':')
+  if len(l) == 1:
+    return None
+  d = {}
+  d["host"] = l[0]
+  d["path"] = l[1]
+  l1 = l[1].split('/')
+  if len(l1) == 1:
+    return None
+  d["pool"] = l1[1]
+  d["ondisk_storage"] = l1[2]
+  return d
+
 def get_volume_info_all():
 
   vl = _get_volume_list(production)
@@ -291,26 +307,6 @@ def _set_volume_option(vol_name, option, value, display_command):
   return d
 
 
-def get_replacement_node_info(si, vil):
-
-  #Fill src_node_list and dest_node_list
-  i = 0
-  src_node_list = []
-  dest_node_list = []
-  sil = si.items()
-  for hostname in si.keys():
-    if si[hostname]["node_status"] != 0 :
-      continue
-    if not si[hostname]["in_cluster"] :
-      continue
-    if si[hostname]["volume_list"]:
-      src_node_list.append(hostname)
-    else:
-      dest_node_list.append(hostname)
-  d = {}
-  d["src_node_list"] = src_node_list
-  d["dest_node_list"] = dest_node_list
-  return d
 
 def main():
 

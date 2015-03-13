@@ -5,6 +5,25 @@ from fractalio import common
 
 import volume_info, gluster_commands
 
+def get_replacement_node_info(si, vil):
+
+  #Fill src_node_list and dest_node_list
+  i = 0
+  src_node_list = []
+  dest_node_list = []
+  sil = si.items()
+  for hostname in si.keys():
+    if not si[hostname]["in_cluster"] :
+      continue
+    if (si[hostname]["node_status"] != 0) or ( si[hostname]["volume_list"]) :
+      src_node_list.append(hostname)
+    else:
+      dest_node_list.append(hostname)
+
+  d = {}
+  d["src_node_list"] = src_node_list
+  d["dest_node_list"] = dest_node_list
+  return d
 
 def load_system_config(first_time = False):
 
@@ -35,6 +54,8 @@ def load_system_config(first_time = False):
     if k not in ms_nodes:
       continue
     status_node = ms_nodes[k]
+    d[k]['cluster_status_str'] = 'Peer not in cluster'
+    d[k]["in_cluster"] = False
     for sk in status_node.keys():
       if sk not in d[k]:
         d[k][sk] = status_node[sk]
@@ -65,7 +86,7 @@ def load_system_config(first_time = False):
 
   peer_list = gluster_commands.get_peer_list()
   #Need to add the localhost because it is never returned as part of the peer list
-  localhost = socket.gethostname().strip()
+  localhost = socket.getfqdn().strip()
   tmpd = {}
   tmpd["hostname"] = localhost
   tmpd["status"] = 1

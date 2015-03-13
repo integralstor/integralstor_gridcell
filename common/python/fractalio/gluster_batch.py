@@ -20,31 +20,37 @@ def create_replace_command_file(si, vil, src_node, dest_node):
   tvl = si[src_node]["volume_list"]
   for tv in tvl:
     vd = volume_info.get_volume_info(vil, tv)
+    if vd and ('bricks' in vd and vd['bricks']):
+      brick1 = vd['bricks'][0]
+      brick_components = volume_info.get_components(brick1)
+    brick_path = '/%s/%s/%s'%(brick_components['pool'], brick_components['ondisk_storage'], tv)
+    else:
+      return None
     if vd["type"] == "Distribute":
       d = {}
-      #c = "gluster volume replace-brick %s %s:/data/%s %s:/data/%s"%(tv, scl[n]["hostname"], tv, scl[dest_node]["hostname"], tv)
-      c = "gluster volume add-brick %s %s:/data/%s --xml"%(tv, dest_node, tv)
+      #c = "gluster volume replace-brick %s %s:%s %s:%s"%(tv, src_node, brick_path, dest_node, brick_path)
+      c = "gluster volume add-brick %s %s:%s --xml"%(tv, dest_node, brick_path)
       d["type"] = "add_brick"
       d["desc"] = "Adding volume storage in GRIDCell %s for volume %s"%(dest_node, tv)
       d["command"] = c
       d["status_code"] = 0
       data["command_list"].append(d)
       d = {}
-      c = "gluster --mode=script volume remove-brick %s %s:/data/%s start --xml"%(tv, src_node, tv)
+      c = "gluster --mode=script volume remove-brick %s %s:%s start --xml"%(tv, src_node, brick_path)
       d["type"] = "remove_brick_start"
       d["desc"] = "Migrating volume storage from GRIDCell %s for volume %s start"%(src_node, tv)
       d["command"] = c
       d["status_code"] = 0
       data["command_list"].append(d)
       d = {}
-      c = "gluster volume remove-brick %s %s:/data/%s status --xml"%(tv, src_node, tv)
+      c = "gluster volume remove-brick %s %s:%s status --xml"%(tv, src_node, brick_path)
       d["type"] = "remove_brick_status"
       d["desc"] = "Migrating volume storage from GRIDCell %s for volume %s status"%(src_node, tv)
       d["command"] = c
       d["status_code"] = 0
       data["command_list"].append(d)
       d = {}
-      c = "gluster --mode=script volume remove-brick %s %s:/data/%s commit --xml"%(tv, src_node, tv)
+      c = "gluster --mode=script volume remove-brick %s %s:%s commit --xml"%(tv, src_node, brick_path)
       d["type"] = "remove_brick_commit"
       d["desc"] = "Migrating volume storage from GRIDCell %s for volume %s commit"%(src_node, tv)
       d["command"] = c
@@ -53,7 +59,7 @@ def create_replace_command_file(si, vil, src_node, dest_node):
     else:
       #Replicated vol so for now do a replace-brick
       d = {}
-      c = "gluster volume replace-brick %s %s:/data/%s %s:/data/%s commit force --xml"%(tv, src_node, tv, dest_node, tv)
+      c = "gluster volume replace-brick %s %s:%s %s:%s commit force --xml"%(tv, src_node, brick_path, dest_node, brick_path)
       d["type"] = "replace_brick_commit"
       d["desc"] = "Replacing storage location for volume %s from GRIDCell %s to GRIDCell %s"%(tv, src_node, dest_node)
       d["command"] = c
