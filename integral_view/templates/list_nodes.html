@@ -1,0 +1,31 @@
+      <div class="col-lg-4 col-md-6 col-sm-6 col-xs-12">
+      <!-- small box -->
+        <div class="small-box {{d.background_color}}">
+          <div class="inner">
+            <h4>
+              {{hostname}}
+            </h4>
+            <p>
+              {{d.name}}
+            </p>
+          </div>
+          <div class="disk-icon">
+            <i class="fa fa-hdd-o" id ="{{d.disk_pos.1}}"></i>
+            <i class="fa fa-hdd-o" id ="{{d.disk_pos.2}}"></i>
+            <i class="fa fa-hdd-o" id ="{{d.disk_pos.3}}"></i>
+            <i class="fa fa-hdd-o" id ="{{d.disk_pos.4}}"></i>
+            <script>
+                {%for disk in d.disks.items %}
+                  {%if disk.1 == "PASSED" %}
+                    $("#{{disk.0}}").addClass('white')
+              {%else%}
+                    $("#{{disk.0}}").addClass("faa-hdd-o animated red");
+              {%endif%}
+           {%endfor%}
+          </script>
+          </div>
+          <a href="/show/node_status/{{hostname}}" class="small-box-footer">
+             <strong>More info</strong> <i class="fa fa-arrow-circle-right"></i>
+          </a>
+        </div>
+      </div>
