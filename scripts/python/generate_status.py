@@ -126,10 +126,10 @@ def _gen_status_info(path):
         sd[hostname]["load_avg"].pop("1-min", None)
         temp_d["load_avg"] = sd[hostname]["load_avg"]
         if temp_d["load_avg"]['15_min'] >= temp_d["load_avg"]['cpu_cores']:
-          temp_d["errors"].append("The load average (%d) on node %s has been high over the past 15 minutes."%(temp_d["load_avg"]['15-min'], hostname))
+          temp_d["errors"].append("The load average (%d) on node %s has been high over the past 15 minutes."%(temp_d["load_avg"]['15_min'], hostname))
           node_status = "Degraded"
         if temp_d["load_avg"]['5_min'] >= temp_d["load_avg"]['cpu_cores']:
-          temp_d["errors"].append("The load average (%d) on node %s has been high over the past 5 minutes."%(temp_d["load_avg"]['5-min'], hostname))
+          temp_d["errors"].append("The load average (%d) on node %s has been high over the past 5 minutes."%(temp_d["load_avg"]['5_min'], hostname))
   
       if "cpu_model" in d:
         temp_d["cpu_model"] = d["cpu_model"]

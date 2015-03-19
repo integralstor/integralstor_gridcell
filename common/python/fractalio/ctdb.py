@@ -3,12 +3,24 @@ import fractalio
 from fractalio import common
 
 def add_to_nodes_file(ip_list):
+  existing_ips = []
   try :
+    try:
+      with open('/etc/ctdb/nodes', 'r') as f:
+        for line in f:
+          existing_ips.append(line.strip())
+    except Exception, e:
+      #In case there is no file existing, go ahead
+      pass
     if not ip_list:
       raise "No IPs to add to the CTDB nodes file!"
     with open('/etc/ctdb/nodes', 'a') as f:
       for ip in ip_list:
-        f.write("%s\n"%ip)
+        if existing_ips:
+          if ip.strip() not in existing_ips:
+            f.write("%s\n"%ip)
+        else:
+          f.write("%s\n"%ip)
   except Exception, e:
     errors = "Error adding IPs to the CTDB Nodes file : %s"%e
     return -1, errors
@@ -16,7 +28,6 @@ def add_to_nodes_file(ip_list):
     return 0, None
 
 def remove_from_nodes_file(ip_list):
-  #COMPLETE THIS!!!
   try:
     with open('/tmp/ctdb_nodes_file', 'w') as f1:
       with open('%s/lock/nodes'%common.get_admin_vol_mountpoint(), 'r') as f:

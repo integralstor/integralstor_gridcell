@@ -1,9 +1,10 @@
 #!/usr/bin/python
 import urllib, urllib2, sys, os, time
-import salt.client
+import salt
+from salt import client
 
 import fractalio
-from fractalio import common, system_info, alerts, lock, lcd_display
+from fractalio import common, system_info, alerts, lock, lcd_display, volume_info
 
 production = common.is_production()
 
@@ -18,7 +19,7 @@ def node_up(node):
         return False 
   return True
 
-def check_disk_status(node):
+def check_disk_status(client, node, node_name):
 
   alert_list = []
   err_pos = []
@@ -26,7 +27,7 @@ def check_disk_status(node):
   if "disks" in node:
     disks = node["disks"]
     for sn, disk in disks.items():
-      if disk["status"] != 'PASSED':
+      if "status" in disk and disk["status"] != 'PASSED':
         alert_list.append("Disk with serial number %s on GRIDCell %s has problems."%(sn, node_name))
         err_pos.append(disk["position"])
   if err_pos:
@@ -46,7 +47,7 @@ def check_disk_status(node):
 
   return alert_list
 
-def check_ipmi_status(node):
+def check_ipmi_status(node, node_name):
 
   alert_list = []
   if "ipmi_status" in node:
@@ -59,17 +60,17 @@ def check_ipmi_status(node):
         alert_list.append(m)
   return alert_list
 
-def check_interface_status(node):
+def check_interface_status(node, node_name):
 
   alert_list = []
   if "interfaces" in node:
     interfaces = node["interfaces"]
     for if_name, interface in interfaces.items():
-      if interface["status"] != 'up':
+      if "status" in interface and interface["status"] != 'up':
         alert_list.append("The network interface %s  on GRIDCell %s has problems."%(if_name, node_name))
   return alert_list
 
-def check_pool_status(node):
+def check_pool_status(node, node_name):
 
   alert_list = []
   if "pools" in node:
@@ -87,7 +88,7 @@ def check_pool_status(node):
             alert_list.append( "The component %s in the ZFS pool %s on GRIDCell %s has issues. Component state is %s"%(component["name"], pool_name, node_name, component["state"]))
   return alert_list
 
-def check_load_average(node):
+def check_load_average(node, node_name):
 
   alert_list = []
   if "load_avg" in node:
@@ -106,9 +107,9 @@ def check_quotas():
       if "quotas" in v:
         if '/' in v['quotas']:
           if v["quotas"]['/']["soft_limit_exceeded"].lower() == "yes":
-            alert_list.append("Exceeded %s of %s quota for volume %s. Current usage is %s"%(v['quotas']['/']['soft_limit'], v['quotas']['/']['limit'], v['name'], v['quotas']['/']['size'])
+            alert_list.append("Exceeded %s of %s quota for volume %s. Current usage is %s"%(v['quotas']['/']['soft_limit'], v['quotas']['/']['limit'], v['name'], v['quotas']['/']['size']))
           if v["quotas"]['/']["hard_limit_exceeded"].lower() == "yes":
-            alert_list.append("Exceeded complete %s quota for volume %s. All I/O will be disabled. "%(v['quotas']['/']['limit'], v['name'])
+            alert_list.append("Exceeded complete %s quota for volume %s. All I/O will be disabled. "%(v['quotas']['/']['limit'], v['name']))
   return alert_list
 
 
@@ -134,34 +135,35 @@ def main():
         alert_list.append("GRIDCell %s seems to be down."%node_name)
   
       # Check disks status
-      l = check_disk_status(node)
+      l = check_disk_status(client, node, node_name)
       if l:
         alert_list.extend(l)
       
   
       # Check ipmi status
-      l = check_ipmi_status(node)
+      l = check_ipmi_status(node, node_name)
       if l:
         alert_list.extend(l)
   
       # Check interface status
-      l = check_interface_status(node)
+      l = check_interface_status(node, node_name)
       if l:
         alert_list.extend(l)
   
       # Check zfs pool status
-      l = check_pool_status(node)
+      l = check_pool_status(node, node_name)
       if l:
         alert_list.extend(l)
   
       # Check load average
-      l = check_load_average(node)
-      if l:
-        alert_list.extend(l)
+      min = time.localtime().tm_min
+      if min%15 == 0:
+        l = check_load_average(node, node_name)
+        if l:
+          alert_list.extend(l)
 
       # Check volume quotas every 5 mins
       if min%5 == 0:
-        min = time.localtime().tm_min
         l = check_quotas()
         if l:
           alert_list.extend(l)

@@ -69,20 +69,24 @@ def create_snapshot(d):
 
 
 def remove_node_from_pool(si, hostname):
+  d = None
   try :
-    d = None
-    localhost = socket.gethostname().strip()
+    localhost = socket.getfqdn().strip()
     if si[hostname]["in_cluster"] and hostname != localhost: 
       d = {}
       prod_command = 'gluster peer detach %s --xml'%hostname
       dummy_command = "%s/peer_detach.xml"%devel_files_path
       d = run_gluster_command(prod_command, dummy_command, "Removing GRIDCell %s from the storage pool"%hostname)
       if d and ("op_status" in d) and ("op_ret" in d["op_status"]) and (d["op_status"]["op_ret"] == 0):
+        ip = si[hostname]["interfaces"]["bond0"]["inet"][0]["address"]
         rc, err = ctdb.remove_from_nodes_file([ip])
         if rc != 0:
           if err:
             raise Exception("Error removing GRIDCell from the CTDB nodes file")
         d["audit_str"] = "Removed GRIDCell %s from the storage pool"%hostname
+      elif not d:
+        print "Error removing from the storage pool : No response"
+        return -1, d, err
       else:
         err = ""
         if "op_status" in d and "op_errstr" in d["op_status"]:
@@ -91,9 +95,11 @@ def remove_node_from_pool(si, hostname):
           err += "Error number : %d"%d["op_status"]["op_errno"]
         print "Error removing from the storage pool : %s"%err
         return -1, d, err
-    return d
   except Exception, e:
-    return -1, None, "Error removing GRIDCell %s from the storage pool : %s"%(hostname, e)
+    if d:
+      return -1, d, "Error removing GRIDCell %s from the storage pool : %s"%(hostname, e)
+    else:
+      return -1, None, "Error removing GRIDCell %s from the storage pool : %s"%(hostname, e)
   else:
     return 0, d, None
 
@@ -121,11 +127,11 @@ def remove_node_from_pool(si, hostname):
     '''
 
 
-def add_a_node_to_pool(hostname, ip):
+def add_a_node_to_pool(hostname):
   #IP is the IP of the bond0 of the node being added. Needed to add it to the CTDB nodes list
   d = None 
   try :
-    localhost = socket.gethostname().strip()
+    localhost = socket.getfqdn().strip()
 
     # Create a dict with the keys being sleds and values being list of nodes in the sled in order to process by sled
     #Convoluted logic in order to try and make sure that whole sleds are added and we can back out a node addition if the other node failed
@@ -134,17 +140,10 @@ def add_a_node_to_pool(hostname, ip):
     if hostname != localhost:
       prod_command = "gluster peer probe %s --xml"%hostname
       dummy_command = "%s/peer_probe.xml"%devel_files_path
-      print 'executing gluster cmd'
+      #print 'executing gluster cmd'
       d = run_gluster_command(prod_command, dummy_command, "Adding GRIDCell %s to the storage pool"%hostname)
-      print 'executed gluster cmd'
+      #print 'executed gluster cmd'
       if d and ("op_status" in d) and ("op_ret" in d["op_status"]) and (d["op_status"]["op_ret"] == 0):
-        print 'adding to ctdb nodes file'
-        rc, err = ctdb.add_to_nodes_file([ip])
-        print 'added to ctdb nodes file'
-        print rc, err
-        if rc != 0:
-          if err:
-            return -1, d, "Error adding GRIDCell %s to the CTDB nodes file"%hostname
         d["audit_str"] = "Added GRIDCell %s to the storage pool"%hostname
       else:
         err = ""
@@ -161,39 +160,6 @@ def add_a_node_to_pool(hostname, ip):
   else:
     return 0, d, None
 
-def add_nodes_to_pool(anl):
-
-  ol = []
-  error_list = []
-  localhost = socket.gethostname().strip()
-
-  for node in anl:
-    host = node["hostname"]
-    rc, d, err = add_a_node_to_pool(host, node["host_info"]["interfaces"]["bond0"]["inet"][0]["address"])
-    ol.append(d)
-    if rc != 0 and err:
-      error_list.append(err)
-  return ol, error_list
-
-
-  '''
-      d = {}
-      d["command"] = "Adding GRIDCell %s to the pool"%host
-      cmd = "gluster peer probe %s --xml"%host
-      d["actual_command"] = cmd
-      #rd = xml_parse.run_command_get_xml_output_tree(cmd, "/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/utils/test/peer_probe.xml")
-      rd = xml_parse.run_command_get_xml_output_tree(cmd, "%s/peer_probe.xml"%devel_files_path)
-      if "error_list" in rd:
-        d["error_list"] = rd["error_list"]
-      if "tree" in rd:
-        root = rd["tree"].getroot()
-        status_dict = xml_parse.get_op_status(root)
-        d["op_status"] = status_dict
-
-      if status_dict and status_dict["op_ret"] == 0:
-        #Success so add audit info
-        d["audit_str"] = "added GRIDCell %s to the storage pool"%host
-  '''
 
 
 def build_create_or_expand_volume_command(command, si, anl, vol_type, ondisk_storage, repl_count, vol_name):
@@ -590,7 +556,7 @@ def set_volume_quota(vol_name, enable_quota, set_quota, limit, unit):
     ret_list.append(d)
 
   if not set_quota:
-    #Need to first enable quota
+    #Need to disable quota
     prod_command = 'gluster volume quota %s remove / --xml'%(vol_name)
     dummy_command = "%s/remove_quota.xml"%devel_files_path
     d = run_gluster_command(prod_command, dummy_command, "Removing quota for volume %s"%vol_name)
@@ -963,4 +929,37 @@ def expand_volume(vol_name, hosts):
     status_dict = xml_parse.get_op_status(root)
     d["op_status"] = status_dict
   return d
+
+def add_nodes_to_pool(anl):
+
+  ol = []
+  error_list = []
+  localhost = socket.gethostname().strip()
+
+  for node in anl:
+    host = node["hostname"]
+    rc, d, err = add_a_node_to_pool(host, node["host_info"]["interfaces"]["bond0"]["inet"][0]["address"])
+    ol.append(d)
+    if rc != 0 and err:
+      error_list.append(err)
+  return ol, error_list
+
+
+  #Unwanted code below
+      d = {}
+      d["command"] = "Adding GRIDCell %s to the pool"%host
+      cmd = "gluster peer probe %s --xml"%host
+      d["actual_command"] = cmd
+      #rd = xml_parse.run_command_get_xml_output_tree(cmd, "/home/bkrram/Documents/software/Django-1.4.3/code/gluster_admin/gluster_admin/utils/test/peer_probe.xml")
+      rd = xml_parse.run_command_get_xml_output_tree(cmd, "%s/peer_probe.xml"%devel_files_path)
+      if "error_list" in rd:
+        d["error_list"] = rd["error_list"]
+      if "tree" in rd:
+        root = rd["tree"].getroot()
+        status_dict = xml_parse.get_op_status(root)
+        d["op_status"] = status_dict
+
+      if status_dict and status_dict["op_ret"] == 0:
+        #Success so add audit info
+        d["audit_str"] = "added GRIDCell %s to the storage pool"%host
 '''

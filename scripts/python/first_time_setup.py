@@ -11,19 +11,24 @@ def scan_for_nodes():
   try :
     print "Scanning the network for GRIDCells .."
     print
-    pending_nodes = grid_ops.get_pending_minions()
-    if pending_nodes:
-      print "Found the following GRIDCells : %s"%",".join(pending_nodes)
+    tmp_pending_nodes = grid_ops.get_pending_minions()
+    if not tmp_pending_nodes:
+      print "No GRIDCells found"
+      return -1
+    if 'fractalio-pri.fractalio.lan' not in tmp_pending_nodes:
+      print "A primary GRIDCell was not detected. Please verify that one of the GRIDCells has been configured to be a primary."
+      return -1
+    if 'fractalio-sec.fractalio.lan' not in tmp_pending_nodes:
+      print "A secondary GRIDCell was not detected. Please verify that one of the GRIDCells has been configured to be a secondary."
+      return -1
+    pending_nodes = ['fractalio-pri.fractalio.lan', 'fractalio-sec.fractalio.lan']
+    print "Found the primary and secondary GRIDCells."
+    print
+    success, failed, err = grid_ops.add_nodes_to_grid("System setup process",pending_nodes, first_time = True)
+    if (not success) or (err):
+      print "Errors scanning for GRIDCells : %s"%err
       print
-      success, failed, err = grid_ops.add_nodes_to_grid("System setup process",pending_nodes, first_time = True)
-      if (not success) or (err):
-        print "Errors scanning for GRIDCells : %s"%err
-        print
-        return -1
-    else:
-      print "No GRIDCells found!"
-      print
-      return 0
+      return -1
   except Exception, e:
     print "Encountered the following error : %s"%e
     return -1
@@ -32,14 +37,6 @@ def scan_for_nodes():
     print
     return 0
 
-def restart_minions():
-  try:
-    client = salt.client.LocalClient()
-    r1 = client.cmd('roles:master', 'cmd.run', ['echo service salt-minion restart | at now + 1 minute'], expr_form='grain')
-  except Exception, e:
-    return -1
-  else:
-    return 0
 
 def remove_nodes_from_grid():
   try :
@@ -100,33 +97,6 @@ def check_for_primary_and_secondary(si):
     print
     return (0, primary, secondary)
 
-'''
-def create_storage_pool():
-  try :
-    print "Creating an initial storage pool with the primary and secondary GRIDCells..."
-    print
-    d = gluster_commands.run_gluster_command('gluster peer probe %s --xml'%secondary, '', 'Adding nodes to cluster')
-    if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
-      print "Creating an initial storage pool with the primary and secondary GRIDCells... Done"
-      print
-      return 0
-    else:
-      err = ""
-      if "op_status" in d and "op_errstr" in d["op_status"]:
-        err = d["op_status"]["op_errstr"]
-      if "op_errno" in d["op_status"]:
-        err += "Error number : %d"%d["op_status"]["op_errno"]
-      print "Error creating the storage pool : %s"%err
-      print "Please check to make sure that glusterd is running on the primary and secondary nodes."
-      return -1
-  except Exception, e:
-    print "Encountered the following error : %s"%e
-    return -1
-  else:
-    print "Creating an initial storage pool with the primary and secondary GRIDCells... Done."
-    print
-    return 0
-'''
 
 def empty_storage_pool(si, secondary):
   try :
@@ -257,49 +227,6 @@ def remove_admin_volume(client):
     print
     return 0
 
-def mount_admin_volume(client):
-  try :
-    print "Mounting the IntegralStor Administration volume on the primary and secondary GRIDCells."
-    r1 = client.cmd('roles:master', 'cmd.run_all', ['mount -t glusterfs localhost:/%s %s'%(fractalio.common.get_admin_vol_name(), fractalio.common.get_admin_vol_mountpoint())], expr_form='grain')
-    if r1:
-      for node, ret in r1.items():
-        #print ret
-        if ret["retcode"] != 0:
-          errors = "Error mounting the admin volume on %s"%node
-          print errors
-          print "Exiting now.."
-          return -1
-        else:
-          print "Admin volume mounted on %s"%node
-          print
-  except Exception, e:
-    print "Encountered the following error : %s"%e
-    return -1
-  else:
-    print "Mounting the IntegralStor Administration volume on the primary and secondary GRIDCells... Done."
-    print
-    return 0
-
-def unmount_admin_volume(client):
-  try :
-    print "Unmounting the IntegralStor Administration volume on the primary and secondary GRIDCells."
-    r1 = client.cmd('roles:master', 'cmd.run_all', ['umount %s'%fractalio.common.get_admin_vol_mountpoint()], expr_form='grain')
-    if r1:
-      for node, ret in r1.items():
-        #print ret
-        if ret["retcode"] != 0:
-          errors = "Error unmounting the admin volume on %s"%node
-          print errors
-        else:
-          print "Admin volume unmounted on %s"%node
-          print
-  except Exception, e:
-    print "Encountered the following error : %s"%e
-    return -1
-  else:
-    print "Unmounting the IntegralStor Administration volume on the primary and secondary GRIDCells... Done."
-    print
-    return 0
 
 def establish_default_configuration(client, si):
 
@@ -372,9 +299,6 @@ def establish_default_configuration(client, si):
 
     ip_list = []
     for node_name, node_info in si.items():
-      if node_name == 'fractalio-sec.fractalio.lan':
-        #Already added when it was added to the storage pool so skip. We only need to do this for the primary
-        continue
       if "interfaces" in node_info and "bond0" in node_info["interfaces"] and "inet" in node_info["interfaces"]["bond0"] and len(node_info["interfaces"]["bond0"]["inet"]) == 1:
         ip_list.append("%s"%node_info["interfaces"]["bond0"]["inet"][0]["address"])
 
@@ -459,64 +383,23 @@ def undo_default_configuration(client):
 
 
 
-def start_services(client):
 
+def undo_setup(client, si, primary, secondary):
   try :
-    print "Starting services on the active GRIDCells.."
-    print
-
-    r2 = client.cmd('roles:master', 'cmd.run_all', ['service ntpd restart'], expr_form='grain')
-    if r2:
-      for node, ret in r2.items():
-        if ret["retcode"] != 0:
-          errors = "Error restarting the NTP config file on %s"%node
-          print errors
-          print "Exiting now.."
-          return -1
-
-    r2 = client.cmd('*', 'cmd.run_all', ['service ctdb start'])
-    if r2:
-      for node, ret in r2.items():
-        if ret["retcode"] != 0:
-          errors = "Error starting CTDB service on %s"%node
-          raw_input('press a key')
-          print errors
-          print "Exiting now.."
-          return -1
+    if client:
+      grid_ops.start_or_stop_services(client, [primary, secondary], 'stop')
+      undo_default_configuration(client)
+      grid_ops.unmount_admin_volume(client, [primary, secondary])
+      remove_admin_volume(client)
+      if si and secondary:
+        empty_storage_pool(si, secondary)
+      grid_ops.restart_minions(client, [primary, secondary])
+      remove_nodes_from_grid()
   except Exception, e:
-    print "Encountered the following error : %s"%e
+    print "Error rolling back the setup : "%e
     return -1
   else:
-    print "Starting services on the active GRIDCells.. Done."
-    print
     return 0
-
-def stop_services(client):
-  try :
-    print "Stopping services on the active GRIDCells.."
-    print
-
-    r2 = client.cmd('roles:master', 'cmd.run_all', ['service ntpd restart'], expr_form='grain')
-    if r2:
-      for node, ret in r2.items():
-        if ret["retcode"] != 0:
-          errors = "Error stopping the NTP config file on %s"%node
-          print errors
-
-    r2 = client.cmd('*', 'cmd.run_all', ['service ctdb start'])
-    if r2:
-      for node, ret in r2.items():
-        if ret["retcode"] != 0:
-          errors = "Error stopping CTDB service on %s"%node
-          print errors
-  except Exception, e:
-    print "Encountered the following error : %s"%e
-    return -1
-  else:
-    print "Stopping services on the active GRIDCells.. Done."
-    print
-    return 0
-
 
 def initiate_setup():
 
@@ -526,25 +409,25 @@ def initiate_setup():
   mounted_admin_vol = False
   created_default_config = False
   client = None
+  si = None
+  primary = None
+  secondary = None
 
   try :
     do = raw_input("Scan for new nodes?")
     if do == 'y':
       rc = scan_for_nodes()
       if rc != 0:
-        restart_minions()
-        remove_nodes_from_grid()
+        undo_setup(client, si, primary, secondary)
         return rc
-
-    added_nodes = True
 
     print "Loading GRIDCell information"
     print
+
     si = system_info.load_system_config(first_time = True)
     if not si:
       print "Error loading GRIDCell information"
-      restart_minions()
-      remove_nodes_from_grid()
+      undo_setup(client, si, primary, secondary)
       return -1
 
     print "Loading GRIDCell information...Done."
@@ -552,25 +435,38 @@ def initiate_setup():
 
     rc, primary, secondary = check_for_primary_and_secondary(si)
     if rc != 0:
-      restart_minions()
-      remove_nodes_from_grid()
+      undo_setup(client, si, primary, secondary)
       return rc
 
     do = raw_input("Create storage pool?")
     if do == 'y':
-      if (secondary in si) and ("interfaces" in si[secondary]) and ("bond0" in si[secondary]["interfaces"]) and ("inet" in si[secondary]["interfaces"]["bond0"]) and ("address" in si[secondary]["interfaces"]["bond0"]["inet"][0]) :
-        rc, d, err = gluster_commands.add_a_node_to_pool(secondary, si[secondary]["interfaces"]["bond0"]["inet"][0]["address"])
-        if rc != 0:
-          if err:
-            print "Error creating the storage pool : %s"%err
-          else:
-            print "Error creating the storage pool : Unknown error"
-          empty_storage_pool(si, secondary)
-          restart_minions()
-          remove_nodes_from_grid()
-          return rc
+      rc, d, err = gluster_commands.add_a_node_to_pool(secondary)
+      if rc != 0:
+        if err:
+          print "Error creating the storage pool : %s"%err
+        else:
+          print "Error creating the storage pool : Unknown error"
+        undo_setup(client, si, primary, secondary)
+        return rc
 
-    created_storage_pool = True
+    try :
+      ipl = []
+      ip = si[primary]["interfaces"]["bond0"]["inet"][0]["address"]
+      if ip:
+        ipl.append(ip)
+      ip = si[secondary]["interfaces"]["bond0"]["inet"][0]["address"]
+      if ip:
+        ipl.append(ip)
+    except Exception, e:
+      print "Error retrieving IPs of primary and/or secondary GRIDCell(s)"
+      return rc
+
+    rc, err = ctdb.add_to_nodes_file(ipl)
+    if rc != 0:
+      if err:
+        print "Error adding IPs of the GRIDCell(s) to the CTDB nodes file : %s"%err
+      else:
+        print "Error adding IPs of the GRIDCell(s) to the CTDB nodes file"
 
     client = salt.client.LocalClient()
 
@@ -578,65 +474,39 @@ def initiate_setup():
     if do == 'y':
       rc = create_admin_volume(client, primary, secondary)
       if rc != 0:
-        remove_admin_volume(client)
-        empty_storage_pool(si, secondary)
-        restart_minions()
-        remove_nodes_from_grid()
+        undo_setup(client, si, primary, secondary)
         return rc
 
     created_admin_vol = True
 
-    rc = mount_admin_volume(client)
+    rc, err  = grid_ops.mount_admin_volume(client, [primary, secondary])
     if rc != 0:
-      unmount_admin_volume(client)
-      remove_admin_volume(client)
-      empty_storage_pool(si, secondary)
-      restart_minions()
-      remove_nodes_from_grid()
+      if err:
+        print "Error mounting admin vol : %s"%err
+      else:
+        print "Error mounting admin vol"
+      undo_setup(client, si, primary, secondary)
       return rc
-
-    mounted_admin_vol = True
 
     rc = establish_default_configuration(client, si)
     if rc != 0:
-      undo_default_configuration(client)
-      unmount_admin_volume(client)
-      remove_admin_volume(client)
-      empty_storage_pool(si, secondary)
-      restart_minions()
-      remove_nodes_from_grid()
+      undo_setup(client, si, primary, secondary)
       return rc
 
-    created_default_config = True
-
-    rc = start_services(client)
+    rc,err = grid_ops.start_or_stop_services(client, [primary, secondary], 'start')
     if rc != 0:
-      stop_services(client)
-      undo_default_configuration(client)
-      unmount_admin_volume(client)
-      remove_admin_volume(client)
-      empty_storage_pool(si, secondary)
-      restart_minions()
-      remove_nodes_from_grid()
+      if err:
+        print "Error starting services on the GRIDCells : %s"%err
+      else:
+        print "Error starting services on the GRIDCells"
+      undo_setup(client, si, primary, secondary)
       return rc
     with open('/opt/fractalio/first_time_setup_completed', 'w') as f:
       f.write('%s'%strftime("%Y-%m-%d %H:%M:%S"))
 
   except Exception, e:
     print "Encountered the following error : %s"%e
-    if client:
-      stop_services(client)
-    if client and created_default_config:
-      undo_default_configuration(client)
-    if client and mounted_admin_vol:
-      unmount_admin_volume(client)
-    if client and created_admin_vol:
-      remove_admin_volume(client)
-    if client and created_storage_pool:
-      empty_storage_pool(si, secondary)
-    if client and added_nodes:
-      restart_minions()
-      remove_nodes_from_grid()
+    undo_setup(client, si, primary, secondary)
     return -1
   else:
     return 0
@@ -776,4 +646,140 @@ if __name__ == "__main__":
           print errors
           print "Exiting now.."
           return -1
+
+def mount_admin_volume(client):
+  try :
+    print "Mounting the IntegralStor Administration volume on the primary and secondary GRIDCells."
+    r1 = client.cmd('roles:master', 'cmd.run_all', ['mount -t glusterfs localhost:/%s %s'%(fractalio.common.get_admin_vol_name(), fractalio.common.get_admin_vol_mountpoint())], expr_form='grain')
+    if r1:
+      for node, ret in r1.items():
+        #print ret
+        if ret["retcode"] != 0:
+          errors = "Error mounting the admin volume on %s"%node
+          print errors
+          print "Exiting now.."
+          return -1
+        else:
+          print "Admin volume mounted on %s"%node
+          print
+  except Exception, e:
+    print "Encountered the following error : %s"%e
+    return -1
+  else:
+    print "Mounting the IntegralStor Administration volume on the primary and secondary GRIDCells... Done."
+    print
+    return 0
+
+def unmount_admin_volume(client):
+  try :
+    print "Unmounting the IntegralStor Administration volume on the primary and secondary GRIDCells."
+    r1 = client.cmd('roles:master', 'cmd.run_all', ['umount %s'%fractalio.common.get_admin_vol_mountpoint()], expr_form='grain')
+    if r1:
+      for node, ret in r1.items():
+        #print ret
+        if ret["retcode"] != 0:
+          errors = "Error unmounting the admin volume on %s"%node
+          print errors
+        else:
+          print "Admin volume unmounted on %s"%node
+          print
+  except Exception, e:
+    print "Encountered the following error : %s"%e
+    return -1
+  else:
+    print "Unmounting the IntegralStor Administration volume on the primary and secondary GRIDCells... Done."
+    print
+    return 0
+def restart_minions():
+  try:
+    client = salt.client.LocalClient()
+    r1 = client.cmd('roles:master', 'cmd.run', ['echo service salt-minion restart | at now + 1 minute'], expr_form='grain')
+  except Exception, e:
+    return -1
+  else:
+    return 0
+def start_services(client):
+
+  try :
+    print "Starting services on the active GRIDCells.."
+    print
+
+    r2 = client.cmd('roles:master', 'cmd.run_all', ['service ntpd restart'], expr_form='grain')
+    if r2:
+      for node, ret in r2.items():
+        if ret["retcode"] != 0:
+          errors = "Error restarting the NTP config file on %s"%node
+          print errors
+          print "Exiting now.."
+          return -1
+
+    r2 = client.cmd('*', 'cmd.run_all', ['service ctdb start'])
+    if r2:
+      for node, ret in r2.items():
+        if ret["retcode"] != 0:
+          errors = "Error starting CTDB service on %s"%node
+          raw_input('press a key')
+          print errors
+          print "Exiting now.."
+          return -1
+  except Exception, e:
+    print "Encountered the following error : %s"%e
+    return -1
+  else:
+    print "Starting services on the active GRIDCells.. Done."
+    print
+    return 0
+
+def stop_services(client):
+  try :
+    print "Stopping services on the active GRIDCells.."
+    print
+
+    r2 = client.cmd('roles:master', 'cmd.run_all', ['service ntpd restart'], expr_form='grain')
+    if r2:
+      for node, ret in r2.items():
+        if ret["retcode"] != 0:
+          errors = "Error stopping the NTP config file on %s"%node
+          print errors
+
+    r2 = client.cmd('*', 'cmd.run_all', ['service ctdb start'])
+    if r2:
+      for node, ret in r2.items():
+        if ret["retcode"] != 0:
+          errors = "Error stopping CTDB service on %s"%node
+          print errors
+  except Exception, e:
+    print "Encountered the following error : %s"%e
+    return -1
+  else:
+    print "Stopping services on the active GRIDCells.. Done."
+    print
+    return 0
+'''
+'''
+def create_storage_pool():
+  try :
+    print "Creating an initial storage pool with the primary and secondary GRIDCells..."
+    print
+    d = gluster_commands.run_gluster_command('gluster peer probe %s --xml'%secondary, '', 'Adding nodes to cluster')
+    if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
+      print "Creating an initial storage pool with the primary and secondary GRIDCells... Done"
+      print
+      return 0
+    else:
+      err = ""
+      if "op_status" in d and "op_errstr" in d["op_status"]:
+        err = d["op_status"]["op_errstr"]
+      if "op_errno" in d["op_status"]:
+        err += "Error number : %d"%d["op_status"]["op_errno"]
+      print "Error creating the storage pool : %s"%err
+      print "Please check to make sure that glusterd is running on the primary and secondary nodes."
+      return -1
+  except Exception, e:
+    print "Encountered the following error : %s"%e
+    return -1
+  else:
+    print "Creating an initial storage pool with the primary and secondary GRIDCells... Done."
+    print
+    return 0
 '''
