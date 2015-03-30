@@ -93,7 +93,7 @@ def remove_node_from_pool(request):
   
     return_dict['system_info'] = si
     nl = []
-    localhost = socket.gethostname().strip()
+    localhost = socket.getfqdn().strip()
     for hostname in si.keys():
       if hostname == localhost:
         continue

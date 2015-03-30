@@ -5,6 +5,7 @@
 # want to do the full Sys V style init stuff.
 
 touch /var/lock/subsys/local
+modprobe ipmi_devintf
 /bin/bash /opt/fractalio/scripts/shell/nodetype.sh
 /bin/bash /opt/fractalio/scripts/shell/gluster-check.sh
 sleep 10
