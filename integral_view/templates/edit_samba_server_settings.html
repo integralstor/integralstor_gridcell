@@ -22,12 +22,12 @@
 {%if form.data.security == "ads" or form.initial.security == "ads"%}
   <div class="form-group" >
     <label for="id_password_server" >Authentication server:</label>
-    <input type="text"  name="password_server" class="form-control" id="id_password_server" placeholder="Authentication server"> 
+    <input type="text"  name="password_server" class="form-control" id="id_password_server" placeholder="Authentication server" value="{{form.password_server.value}}"> 
     {{ form.password_server.errors }}
   </div>
   <div class="form-group" >
-    <label for="id_realm" >AD Domain/Realm::</label>
-    <input type="text"  name="realm" class="form-control" id="id_realm" placeholder="AD Domain/Realm:"> 
+    <label for="id_realm" >AD Domain/Realm:</label>
+    <input type="text"  name="realm" class="form-control" id="id_realm" placeholder="AD Domain/Realm:" value="{{form.realm.value}}"> 
     {{ form.realm.errors }}
   </div>
   <div class="form-group" >
@@ -41,7 +41,7 @@
   </div>
   <div class="form-group" >
     <label for="id_id_map_min" >AD UID Mapping range :</label>
-    <input type="text"  name="id_map_min" class="form-control" id="id_id_map_min" placeholder="Range minimum" > to  <input type="text"  name="id_map_max" class="form-control" id="id_id_map_max" placeholder="Range maximum"  >
+    <input type="text"  name="id_map_min" class="form-control" id="id_id_map_min" placeholder="Range minimum" value="{{form.id_map_min.value|default_if_none:'16777216'}}"> to  <input type="text"  name="id_map_max" class="form-control" id="id_id_map_max" placeholder="Range maximum"  value="{{form.id_map_max.value|default_if_none:'33554431'}}">
     {{ form.id_map_min.errors }}
     {{ form.id_map_max.errors }}
   </div>
@@ -53,13 +53,8 @@
 {%endif%}
   <div class="form-group" >
     <label for="id_workgroup" >Workgroup:</label>
-    <input type="text"  name="workgroup" class="form-control" id="id_workgroup" placeholder="Workgroup" value="{{form.initial.workgroup}}"> 
+    <input type="text"  name="workgroup" class="form-control" id="id_workgroup" placeholder="Workgroup" value="{{form.workgroup.value}}"> 
     {{ form.workgroup.errors }}
-  </div>
-  <div class="form-group" >
-    <label for="id_netbios_name" >Netbios name:</label>
-    <input type="text"  name="netbios_name" class="form-control" id="id_netbios_name" placeholder="Netbios name" value="{{form.initial.netbios_name}}"> 
-    {{ form.netbios_name.errors }}
   </div>
   <a href="/auth_server_settings/" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;<button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');"> Save </button>
 </div>

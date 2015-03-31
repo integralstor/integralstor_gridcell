@@ -35,7 +35,6 @@ def get_gluster_dir_list(vol,path):
       else:
         parent = path
       d_dict = {'id':path+d+"/", 'text':d,'icon':'fa fa-angle-right','children':True,'data':{'dir':path+d+"/"},'parent':parent}
-      print d_dict
       dir_dict_list.append(d_dict)
       #get_dir_list(vol,path+d+"/")
   return dir_dict_list
@@ -242,7 +241,7 @@ def show(request, page, info = None):
         return_dict["error"] = "Could not locate information for volume %s"%info
           
     elif page == "node_status":
-
+      
       template = "view_node_status.html"
       if "from" in request.GET:
         frm = request.GET["from"]
@@ -253,6 +252,14 @@ def show(request, page, info = None):
         sorted_disks.append(key)
       si[info]["disk_pos"] = sorted_disks
       return_dict['node'] = si[info]
+      import salt.client
+      client = salt.client.LocalClient()
+      ctdb = client.cmd(info,'cmd.run',['service ctdb status'])
+      winbind = client.cmd(info,'cmd.run',['service winbind status'])
+      gluster = client.cmd(info,'cmd.run',['service glusterd status'])
+      return_dict['ctdb'] = ctdb[info]
+      return_dict['winbind'] = winbind[info]
+      return_dict['gluster'] = gluster[info]
       return_dict['node_name'] = info
 
       return_dict['vol_list'] = vol_list
@@ -346,12 +353,10 @@ def show(request, page, info = None):
 
         """
         for key, value in si.iteritems():
-          #print kiey, value
           #count the failures in case of Offline or degraded
           disk_failures = 0
           #Default background color
-          background_color = "bg-green"
-
+          background_color = "bg-green" 
           if not si[key]["in_cluster"]:
             disk_new[key] = {}
             disk_new[key]["disks"] = {}
@@ -368,6 +373,8 @@ def show(request, page, info = None):
               if disk_failures >= 4:
                 background_color == "bg-red"
           
+            if si[key]['node_status_str'] == "Degraded":
+              background_color = "bg-yellow"
             #print type(si[key]["pools"][0]["state"])
             if si[key]["pools"][0]["state"] == unicode("ONLINE"):
               background_color == "bg-red"
@@ -395,7 +402,9 @@ def show(request, page, info = None):
                   background_color = "bg-yellow"
                 if disk_failures >= 4:
                   background_color == "bg-red"
-            
+
+              if si[key]['node_status_str'] == "Degraded":
+                background_color = "bg-yellow"
               #print type(si[key]["pools"][0]["state"])
               if si[key]["pools"][0]["state"] == unicode("ONLINE"):
                 background_color == "bg-red"

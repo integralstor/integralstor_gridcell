@@ -165,8 +165,8 @@ def download_sys_log(request):
   
         iv_logging.debug("Got sys log download request for type %s hostname %s"%(sys_log_type, hostname))
   
-        fn = {'boot':'/var/log/boot.log', 'dmesg':'/var/log/dmesg', 'message':'/var/log/messages'}
-        dn = {'boot':'boot.log', 'dmesg':'dmesg', 'message':'messages'}
+        fn = {'boot':'/var/log/boot.log', 'dmesg':'/var/log/dmesg', 'message':'/var/log/messages', 'smb':'/var/log/smblog.vfs', 'winbind':'/var/log/samba/log.winbindd','ctdb':'/var/log/log.ctdb'}
+        dn = {'boot':'boot.log', 'dmesg':'dmesg', 'message':'messages','smb':'samba_logs','winbind':'winbind_logs','ctdb':'ctdb_logs'}
   
         file_name = fn[sys_log_type]
         display_name = dn[sys_log_type]
@@ -177,7 +177,6 @@ def download_sys_log(request):
         client = salt.client.LocalClient()
   
         ret = client.cmd('%s'%(hostname),'cp.push',[file_name])
-        print ret
   
         # This has been maintained for reference purposes.
         # dt = datetime.datetime.now()
@@ -201,7 +200,7 @@ def download_sys_log(request):
   
         try:
           zf = zipfile.ZipFile(zf_name, 'w')
-          zf.write("/var/cache/salt/master/minions/%s/files%s"%(hostname,file_name), arcname = display_name)
+          zf.write("/var/cache/salt/master/minions/%s/files/%s"%(hostname,file_name), arcname = display_name)
           zf.close()
         except Exception as e:
           return_dict["error"] = "Error compressing remote log file : %s"%str(e)

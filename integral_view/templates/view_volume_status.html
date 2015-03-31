@@ -7,8 +7,8 @@
 
 {%block contents%}
 
-
-<table class="table table-bordered" style="width:70%">
+{{vil}}
+<table class="table table-bordered" style="width:80%">
 <tr>
   <td>
   <b> Name</b>
@@ -42,12 +42,26 @@
   </td>
 </tr>
 </table>
-
-<div style="width:70%;border:1px solid rgb(221, 221, 221)">
+{%if vol.quotas %}
+<h4>Quota Status </h4>
+{%load utilities %}
+<table class="table table-bordered" style="width:80%">
+<tbody>
+{% for key,value in vol.quotas.items%}
+  {% for k,v in value.items %}
+  <tr>
+    <th>{{k|human_readable_title:"_"|title}}</th>
+    <td>{{v}}</td>
+  </tr>
+  {%endfor%}
+{%endfor%}
+</tbody>
+</table>
+{%endif%}
 <h4>Space utilization</h4>
 
-<div class="progress">
-  <div class="progress-bar" role="progressbar" aria-valuenow="{{vol.size_used_percent}}" aria-valuemin="0" aria-valuemax="100" style="width: {{vol.size_used_percent}}%;">
+<div class="progress" style="width:90%;">
+  <div class="progress-bar {% if vol.size_used_percent >= 80 %}progress-bar-danger{%endif%}" role="progressbar" aria-valuenow="{{vol.size_used_percent}}" aria-valuemin="0" aria-valuemax="100" style="width: {{vol.size_used_percent}}%;">
     {{vol.size_used_percent}}% used.
   </div>
 </div>
@@ -79,7 +93,6 @@ Space free
 </tr>
 </table>
 
-</div>
 
 {% if vol.data_access_status_code != 0 %}
 
@@ -104,7 +117,6 @@ Space free
 {%endif%}
 </table>
 
-<div style="width:70%;border:1px solid rgb(221, 221, 221)">
 <h4>Data location processes status</h4>
 
 <table class="table table-bordered" style="width:90%">
@@ -149,7 +161,6 @@ NFS Server
 {%endfor%}
 </table>
 
-</div>
 <br>
 <a href="/show/volume_status_all/" role="button" class="btn btn-default"><< Back </a> &nbsp;&nbsp;
 {%endblock%}

@@ -29,7 +29,7 @@ def volume_specific_op(request, operation, vol_name=None):
   
     vil = volume_info.get_volume_info_all()
     si = system_info.load_system_config()
-  
+ 
     if request.method == "GET":
   
       if operation in ["vol_start", "vol_delete"]:
@@ -46,6 +46,7 @@ def volume_specific_op(request, operation, vol_name=None):
           if v["status"] == 1:
             l.append(v["name"])
         form = integral_view.forms.volume_management_forms.VolumeNameForm(vol_list = l)
+
         if not l:
           return_dict["no_vols"] = True
       elif operation == "vol_options":
@@ -251,6 +252,7 @@ def volume_specific_op(request, operation, vol_name=None):
     # form not valid or called using get so return same form
     return_dict['form'] = form
     if operation == "volume_status":
+      return_dict['vil'] = vil
       return django.shortcuts.render_to_response('volume_specific_status.html', return_dict, context_instance=django.template.context.RequestContext(request))
     else:
       return django.shortcuts.render_to_response('volume_specific_op_form.html', return_dict, context_instance=django.template.context.RequestContext(request))
@@ -691,7 +693,7 @@ def replace_node(request):
     return_dict['system_config_list'] = si
   
     
-    d = system_info.get_replacement_node_info(si, vil)
+    d = volume_info.get_replacement_node_info(si, vil)
     if not d["src_node_list"]:
       return_dict["error"] = "There are no GRIDCells eligible to be replaced."
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))

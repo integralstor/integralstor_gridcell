@@ -29,85 +29,6 @@
 
 {%block contents%}
 
-<!-- <h4>Status</h4>
-<table class="table table-hover table-bordered">
-<tr>
-  <th>
-    Component
-  </th>
-  <th>
-    Status
-  </th>
-  <th>
-    Details
-  </th>
-</tr>
-{% if total_nodes > 0 %}
-{% if num_nodes_bad > 0 %}
-  <tr  class="warning">
-{%else%}
-  <tr>
-{%endif%}
-    <td>
-      Platform status
-    </td>
-    <td>
-      {% if num_nodes_bad > 0 %} <i class="fa fa-bell faa-ring animated"></i> {{num_nodes_bad}} GRIDCell(s) have problems {%else%} <i class="fa fa-check-circle-o green fa-2x"></i> All Healthy{%endif%}
-    </td>
-    <td>
-      <a href="/show/system_status" role="button" {%if num_nodes_bad > 0 %}class=" btn btn-warning">Detail s<i class="fa fa-bell-o"></i> {%else%}class="btn btn-success">Details <i class="fa fa-arrow-right"></i>{%endif%} </a>
-    </td>
-  </tr>
-{%endif%}
-{% if total_pool > 0 %}
-{% if num_pools_bad > 0 %}
-  <tr  class="warning">
-{%else%}
-  <tr>
-{%endif%}
-    <td>
-      Storage pool status
-    </td>
-    <td>
-      {% if num_pools_bad > 0 %} <i class="fa fa-bell faa-ring animated"></i> {{num_pools_bad}} GRIDCell(s) have problems {%else%} <i class="fa fa-check-circle-o green fa-2x"></i> All Healthy{%endif%}
-    </td>
-    <td>
-      <a href="/show/pool_status" role="button" {%if num_nodes_bad > 0 %}class=" btn btn-warning">Detail s<i class="fa fa-bell-o"></i> {%else%}class="btn btn-success">Details <i class="fa fa-arrow-right"></i>{%endif%} </a>
-    </td>
-  </tr>
-{%endif%}
-{% if total_pool > 0 %}
-{% if num_vols_bad > 0 %}
-  <tr  class="warning">
-{%else%}
-  <tr>
-{%endif%}
-    <td>
-      Volume status
-    </td>
-    <td>
-      {% if num_vols_bad > 0 %} <i class="fa fa-bell faa-ring animated"></i> {{num_vols_bad}} GRIDCell(s) have problems {%else%} <i class="fa fa-check-circle-o green fa-2x"></i> All Healthy{%endif%} 
-    </td>
-    <td>
-      <a href="/show/volume_status_all" role="button" {%if num_nodes_bad > 0 %}class=" btn btn-warning">Detail s<i class="fa fa-bell-o"></i> {%else%}class="btn btn-success">Details <i class="fa fa-arrow-right"></i>{%endif%} </a>
-    </td>
-  </tr>
-{%endif%}
-</table>
-
-
-<h4>Space utilization</h4>
-  <div class="row">
-    {% for v in volume_info_list %}
-      <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
-        <div class="chart" data-percent="{{v.size_used_percent}}"></div>
-        <span class="label label-primary white">{{v.name}} &nbsp; {{v.size_used_percent}}%</span>        
-      </div>
-    {%endfor%}
-</div>
-
- -->
-
 <div class="row margin-left-1">
   <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
     <div class="box">
@@ -129,8 +50,8 @@
             <tbody>
                {%for k,v in nodes.items%}
                 <tr>
-                    <td><span class="text">{{k}}</span> </td>
-                    <td> {%if v == 0%}<small class="label label-success white"><i class="fa fa-check-circle-o "></i> Online</small>{%else%}<small class="label label-danger white"><i class="fa fa-remove"></i> Offline</small>{%endif%} </td>
+                    <td><a href="/show/node_status/{{k}}" class="text">{{k}}</a> </td>
+                    <td> {%if v == 0%}<small class="label label-success white"><i class="fa fa-check-circle-o "></i> Online</small>{%else%}<small class="label label-danger white"><i class="fa fa-remove"></i> Degraded</small>{%endif%} </td>
                   </tr>
                 {%endfor%}
             </tbody>
@@ -151,6 +72,8 @@
           </div>
       </div>
       <div class="box-body">
+        <p>
+        <br />
         {% if num_pools_bad > 0 %} <i class="fa fa-bell faa-ring animated orange"></i> {{num_pools_bad}} GRIDCell(s) have problems{%endif%}
           <table>
             <thead>
@@ -160,12 +83,13 @@
             <tbody>
               {%for k,v in storage_pool.items%}
                 <tr>
-                    <td><span class="text">{{k}}</span> </td>
+                    <td><a href="/show/node_status/{{k}}" class="text">{{k}}</a> </td>
                     <td> {%if v == "Peer in Cluster"%}<small class="label label-success white"><i class="fa fa-check-circle-o "></i> Healthy</small>{%else%}<small class="label label-danger white"><i class="fa fa-remove"></i> Offline</small>{%endif%} </td>
                   </tr>
               {%endfor%}  
             </tbody>
           </table>
+        </p>
       </div><!-- /.box-body -->
       <div class="box-footer">
           <a href="/show/pool_status" role="button" {%if num_nodes_bad > 0 %}class="btn btn-warning">More Details<i class="fa fa-bell-o"></i> {%else%}class="btn btn-success">More Details <i class="fa fa-arrow-right"></i>{%endif%} </a>
@@ -188,7 +112,7 @@
           {% for v in volume_info_list %}
             <div class="col-lg-4 col-md-6 col-sm-6 col-xs-12">
               <div class="chart" data-percent="{{v.size_used_percent}}"></div>
-              &nbsp;&nbsp;&nbsp;<div class="label label-primary white">{{v.name}} &nbsp; {{v.size_used_percent}}%</div>  
+              &nbsp;&nbsp;&nbsp;<a href="/show/volume_status/{{v.name}}/"><div class="label label-primary white">{{v.name}} &nbsp; {{v.size_used_percent}}%</div></a>
             </div>
           {%endfor%}
       </div>
@@ -207,11 +131,11 @@ $(function() {
     $('.chart').easyPieChart({
       barColor : function(percent){
                         if (percent <= 50)
-                          return 'green'
+                          return '#008D4C'
                         else if (percent >50 && percent <= 75)
-                          return 'orange'
+                          return '#F39C12'
                         else 
-                          return 'red'
+                          return '#F56954'
                       },
       lineCap : 'round',
       lineWidth : 15,
