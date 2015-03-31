@@ -350,6 +350,19 @@ def establish_default_configuration(client, si):
     print "Linking smb.conf files... Done"
     print
 
+    print "Setting appropriate rc.local files."
+    r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/rc.local'])
+    r2 = client.cmd('*', 'cmd.run_all', ['cp %s/rc_local/primary_and_secondary/rc.local /etc/rc.local'%fractalio.common.get_defaults_dir()])
+    if r2:
+      for node, ret in r2.items():
+        if ret["retcode"] != 0:
+          errors = "Error setting the appropriate rc.local file on %s"%node
+          print errors
+          print "Exiting now.."
+          return -1
+    print "Setting appropriate rc.local files... Done"
+    print
+
   except Exception, e:
     print "Encountered the following error : %s"%e
     return -1
@@ -372,6 +385,8 @@ def undo_default_configuration(client):
     r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/ctdb/nodes'])
 
     r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/samba/smb.conf'])
+    r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/rc.local'])
+    r2 = client.cmd('*', 'cmd.run_all', ['cp %s/rc_local/normal/rc.local.not_in_cluster /etc/rc.local'%fractalio.common.get_defaults_dir()])
 
   except Exception, e:
     print "Encountered the following error : %s"%e
