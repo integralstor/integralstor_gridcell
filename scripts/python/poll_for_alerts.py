@@ -43,7 +43,7 @@ def check_disk_status(client, node, node_name):
     s1 =  '/opt/fractalio/scripts/python/lcdmsg.py "Disk error slots" "%s"'%s
     r1 = client.cmd(node_name, 'cmd.run', [s1])
   else:
-    r1 = client.cmd(node_name, 'cmd.run', ['/opt/fractalio/bin/nodetype.sh'])
+    r1 = client.cmd(node_name, 'cmd.run', ['/opt/fractalio/scripts/shell/nodetype.sh'])
 
   return alert_list
 

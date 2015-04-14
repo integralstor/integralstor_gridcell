@@ -300,6 +300,11 @@ def configure_networking():
     '''
   
     if change_dns_primary or change_dns_secondary or change_dns_external: 
+      fqdn = socket.getfqdn()
+      if fqdn == 'fractalio-pri.fractalio.lan':
+        rc = networking.generate_default_primary_named_conf(dns_primary, netmask, dns_secondary)
+        if rc == -1:
+          errors.append("Error setting DNS server configuration")
       rc = networking.set_name_servers([dns_primary, dns_secondary, dns_external])
       if rc == -1:
         errors.append("Error setting name servers")
@@ -331,10 +336,17 @@ def configure_networking():
       r, rc = command.execute_with_rc('service network restart')
       if rc == 0:
         print "Network service restarted succesfully."
+      else:
+        print "Error restarting network services."
+        raw_input('Press enter to return to the main menu')
+        return -1
+      r, rc = command.execute_with_rc('service named restart')
+      if rc == 0:
+        print "DNS service restarted succesfully."
         raw_input('Press enter to return to the main menu')
         return 0
       else:
-        print "Error restarting network services."
+        print "Error restarting DNS services."
         raw_input('Press enter to return to the main menu')
         return -1
   except Exception, e:

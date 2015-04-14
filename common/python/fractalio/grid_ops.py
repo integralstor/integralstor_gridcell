@@ -98,6 +98,9 @@ def get_minion_ip(client, m):
 
 def add_to_dns(client, m, ip):
   try:
+    if m in ['fractalio-pri.fractalio.lan', 'fractalio-sec.fractalio.lan', 'fractalio-pri', 'fractalio-sec']:
+      # Dont add the primary and secondary because they are alread there!
+      return 0
     r1 = client.cmd('roles:primary', 'ddns.add_host', ['fractalio.lan', m, 86400, ip], expr_form='grain', timeout=180)
     #print r1
     #print "Added %s to DNS"%m

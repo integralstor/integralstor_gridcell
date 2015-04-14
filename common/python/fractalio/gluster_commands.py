@@ -586,7 +586,7 @@ def get_volume_quotas(vol_name):
   else:
     return None
   '''
-  ret, ret_code = command.execute_with_rc('gluster volume quota %s list'%vol_name)
+  ret, ret_code = command.execute_with_rc('/usr/sbin/gluster volume quota %s list'%vol_name)
   if ret_code != 0:
     return None
     

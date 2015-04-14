@@ -44,6 +44,7 @@
   {{vol.status_str}}
   </td>
 </tr>
+{% if vol.quotas %}
 <tr>
   <td>
   <b> Quota Limit</b>
@@ -71,6 +72,7 @@
   {{vol.quotas|get_item:"/"|get_item:"available"}}
   </td>
 </tr>
+{%endif%}
 <tr>
   <td>
   <b> Number of data pools used</b>
