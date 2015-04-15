@@ -37,11 +37,13 @@ def save_auth_settings(d):
   if d["security"] == "ads":
     d1 = db.read_single_row("%s/integral_view_config.db"%db_path, "select * from samba_global_ad")
     if d1:
-      cmd = ["update samba_global_ad set realm=?, password_server=?, ad_schema_mode=?, id_map_min=?, id_map_max=?  where id = ?", (d["realm"], d["password_server"], d["ad_schema_mode"], d["id_map_min"], d["id_map_max"], 1,)]
+      #cmd = ["update samba_global_ad set realm=?, password_server=?, ad_schema_mode=?, id_map_min=?, id_map_max=?  where id = ?", (d["realm"], d["password_server"], d["ad_schema_mode"], d["id_map_min"], d["id_map_max"], 1,)]
+      cmd = ["update samba_global_ad set realm=?, password_server=?, ad_schema_mode=?, id_map_min=?, id_map_max=?, password_server_ip=?  where id = ?", (d["realm"], d["password_server"], 'rfc2307', 16777216, 33554431, d["password_server_ip"], 1, )]
       cmd_list.append(cmd)
     else:
       print "in 2"
-      cmd = ["insert into samba_global_ad (realm, password_server, ad_schema_mode, id_map_min, id_map_max, id) values(?,?,?,?,?,?)", (d["realm"], d["password_server"], d["ad_schema_mode"], d["id_map_min"], d["id_map_max"], 1,)]
+      #cmd = ["insert into samba_global_ad (realm, password_server, ad_schema_mode, id_map_min, id_map_max, id) values(?,?,?,?,?,?)", (d["realm"], d["password_server"], d["ad_schema_mode"], d["id_map_min"], d["id_map_max"], 1,)]
+      cmd = ["insert into samba_global_ad (realm, password_server, ad_schema_mode, id_map_min, id_map_max, password_server_ip, id) values(?,?,?,?,?,?)", (d["realm"], d["password_server"], 'rfc2307', 16777216, 33554431, d["password_server_ip"], 1,)]
       cmd_list.append(cmd)
   #print "updating "
   db.execute_iud("%s/integral_view_config.db"%db_path, cmd_list)
@@ -209,6 +211,7 @@ def _generate_global_section(f, d):
   f.write("  posix locking=no\n")
   f.write("  private dir=%s/lock\n"%fractalio.common.get_admin_vol_mountpoint())
   f.write("  load printers = no\n")
+  f.write("  map to guest = bad user\n")
   f.write("  idmap config *:backend = tdb\n")
   f.write("  workgroup = %s\n"%d["workgroup"].upper())
   f.write("  netbios name = %s\n"%d["netbios_name"].upper())
@@ -225,16 +228,17 @@ def _generate_global_section(f, d):
     f.write("  domain master = no\n")
     f.write("  wins proxy = no\n")
     f.write("  dns proxy = no\n")
-    f.write("  idmap config *:range = %d-%d \n"%(d["id_map_max"]+1, d["id_map_max"]+10001))
+    #f.write("  idmap config *:range = %d-%d \n"%(d["id_map_max"]+1, d["id_map_max"]+10001))
     f.write("  winbind nss info = rfc2307\n")
     f.write("  winbind trusted domains only = no\n")
     f.write("  winbind refresh tickets = yes\n")
     f.write("  map untrusted to domain = Yes\n")
-    f.write("  realm = %s\n"%d["realmd"].upper())
+    f.write("  realm = %s\n"%d["realm"].upper())
     f.write("  idmap config %s:default = yes\n"%d["workgroup"].upper())
     f.write("  idmap config %s:backend = ad\n"%d["workgroup"].upper())
     f.write("  idmap config %s:schema_mode = %s\n"%(d["workgroup"].upper(), d["ad_schema_mode"]))
-    f.write("  idmap config %s:range = %d-%d\n"%(d["workgroup"].upper(), d["id_map_min"], d["id_map_max"]))
+    #f.write("  idmap config %s:range = %d-%d\n"%(d["workgroup"].upper(), d["id_map_min"], d["id_map_max"]))
+    f.write("  idmap config %s:range = 16777216-33554431\n")
     f.write("  idmap config %s:base_rid = 0\n"%d["workgroup"].upper())
   return
 
@@ -358,14 +362,27 @@ def kinit(user, pswd, realm):
   print "return code"
   print c[1]
   '''
+  errors = []
   client = salt.client.LocalClient()
   cmd_to_run = 'echo "%s\n" | kinit %s@%s'%(pswd, user, realm)
   print 'Running %s'%cmd_to_run
   #assert False
-  rc = client.cmd('*', 'cmd.run', [cmd_to_run])
-  print rc
+  r1 = client.cmd('*', 'cmd.run_all', [cmd_to_run])
+  if r1:
+    for node, ret in r1.items():
+      #print ret
+      if ret["retcode"] != 0:
+        e = "Error initiating kerberos on GRIDCell %s"%node
+        if "stderr" in ret:
+          e += " : %s"%ret["stderr"]
+        errors.append(e)
+        print errors
+  print r1
 
-  return
+  if errors:
+    return -1, errors
+  else:
+    return 0, None
 
 def net_ads_join(user, pswd, password_server):
   '''
@@ -385,13 +402,27 @@ def net_ads_join(user, pswd, password_server):
       err += " ".join(e)
     raise Exception("net ads join failed : %s."%err)
   '''
+  errors = []
   client = salt.client.LocalClient()
   cmd_to_run = "net ads join -S %s  -U %s%%%s"%(password_server, user, pswd)
   print 'Running %s'%cmd_to_run
   #assert False
-  rc = client.cmd('*', 'cmd.run', [cmd_to_run])
-  print rc
-  return
+  r1 = client.cmd('*', 'cmd.run_all', [cmd_to_run])
+  print r1
+  if r1:
+    for node, ret in r1.items():
+      #print ret
+      if ret["retcode"] != 0:
+        e = "Error joining AD on GRIDCell %s"%node
+        if "stderr" in ret:
+          e += " : %s"%ret["stderr"]
+        errors.append(e)
+        print errors
+  print r1
+  if errors:
+    return -1, errors
+  else:
+    return 0, None
 
 def restart_samba_services():
   client = salt.client.LocalClient()
@@ -455,10 +486,12 @@ def load_valid_users_list(share_id):
 
 
 def _get_ad_users_or_groups(type):
+  d = load_auth_settings()
+  workgroup = d['workgroup']
   if type and type=="users":
-    c = command.execute_with_rc("wbinfo -u ")
+    c = command.execute_with_rc("wbinfo -u --domain=%s"%workgroup)
   elif type and type=="groups":
-    c = command.execute_with_rc("wbinfo -g ")
+    c = command.execute_with_rc("wbinfo -g --domain=%s"%workgroup)
   else:
     raise Exception("Unknown type specified to retrieve AD users or groups.")
 

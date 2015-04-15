@@ -131,7 +131,6 @@ function select_guest_ok() {
               </td>
               <td>
                 {% for choice in form.users.field.choices %}
-                  {{choice}} , {{form.initial.users}}
                   <div class="radio" >
                       <input type="checkbox" name="users" id="{{choice.0}}" value="{{choice.0}}" {%if choice.0 in form.initial.users %} checked="checked"{%endif%}> {{choice.0}}
                   </div>

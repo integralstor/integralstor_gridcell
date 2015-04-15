@@ -49,7 +49,9 @@ def create_config_file():
     with open("/etc/sysconfig/ctdb", "w") as f:
       f.write("CTDB_RECOVERY_LOCK=%s/lock/lockfile\n"%common.get_admin_vol_mountpoint())
       f.write("CTDB_MANAGES_SAMBA=yes\n")
-      f.write("CTDB_NODES=/etc/ctdb/nodes")
+      f.write("CTDB_MANAGES_WINBIND=yes\n")
+      f.write("CTDB_SAMBA_SKIP_SHARE_CHECK=yes\n")
+      f.write("CTDB_NODES=/etc/ctdb/nodes\n")
       f.close()
   except Exception, e:
     return -1, "Error creating ctdb config file : %s"%e

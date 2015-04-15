@@ -15,21 +15,29 @@
 {%block contents%}
 
 <p id="p-instruction-text">{{conf}}</p>
+{{form.errors}}
 
 <form name="save_form" action="/save_samba_server_settings/" method="post" >
 {{form.security}}
+<input type="hidden" name="netbios_name" value="Fractalio">
 <div  style=" position:relative;border:0px solid #DDDDDD;width:600px; padding:15px 15px 15px;margin:0px 15px;border-radius:4px 4px 0px 0px">
 {%if form.data.security == "ads" or form.initial.security == "ads"%}
   <div class="form-group" >
-    <label for="id_password_server" >Authentication server:</label>
-    <input type="text"  name="password_server" class="form-control" id="id_password_server" placeholder="Authentication server" value="{{form.password_server.value}}"> 
+    <label for="id_password_server" >Authentication server DNS name:</label>
+    <input type="text"  name="password_server" class="form-control" id="id_password_server" placeholder="Authentication server DNS name" value="{{form.password_server.value}}"> 
     {{ form.password_server.errors }}
+  </div>
+  <div class="form-group" >
+    <label for="id_password_server_ip" >Authentication server IP address:</label>
+    <input type="text"  name="password_server_ip" class="form-control" id="id_password_server_ip" placeholder="Authentication server IP Address" value="{{form.password_server_ip.value}}"> 
+    {{ form.password_server_ip.errors }}
   </div>
   <div class="form-group" >
     <label for="id_realm" >AD Domain/Realm:</label>
     <input type="text"  name="realm" class="form-control" id="id_realm" placeholder="AD Domain/Realm:" value="{{form.realm.value}}"> 
     {{ form.realm.errors }}
   </div>
+  <!--
   <div class="form-group" >
     <label for="id_ad_schema_mode" >Volume name :</label>
     <select name="ad_schema_mode" class="form-control">
@@ -45,6 +53,7 @@
     {{ form.id_map_min.errors }}
     {{ form.id_map_max.errors }}
   </div>
+  -->
   <div class="form-group" >
     <label for="id_password" >AD Admininstrator password  </label> (Never stored. Used only to initially join AD realm) 
     <input type="password"  name="password" class="form-control" id="id_password" placeholder="AD Administrator password"> 

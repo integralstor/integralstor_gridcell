@@ -350,6 +350,22 @@ def establish_default_configuration(client, si):
     print "Linking smb.conf files... Done"
     print
 
+    print "Linking krb5.conf file"
+    r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/krb5.conf'])
+    with open('%s/krb5.conf'%fractalio.common.get_admin_vol_mountpoint(), 'w') as f:
+      f.close()
+    r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/krb5.conf'])
+    r2 = client.cmd('*', 'cmd.run_all', ['ln -s %s/lock/krb5.conf /etc/krb5.conf'%fractalio.common.get_admin_vol_mountpoint()])
+    if r2:
+      for node, ret in r2.items():
+        if ret["retcode"] != 0:
+          errors = "Error linking to the krb5.conf file on %s"%node
+          print errors
+          print "Exiting now.."
+          return -1
+    print "Linking krb5.conf file... Done"
+    print
+
     print "Setting appropriate rc.local files."
     r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/rc.local'])
     r2 = client.cmd('*', 'cmd.run_all', ['cp %s/rc_local/primary_and_secondary/rc.local /etc/rc.local'%fractalio.common.get_defaults_dir()])

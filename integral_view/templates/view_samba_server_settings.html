@@ -36,10 +36,17 @@
           {% if samba_global_dict.security == "ads" %} 
             <tr>
               <th>
-              AD server:
+              AD server DNS name:
               </th>
               <td>
             {{ samba_global_dict.password_server }}
+              </td>
+            </tr>
+              <th>
+              AD server IP address:
+              </th>
+              <td>
+            {{ samba_global_dict.password_server_ip }}
               </td>
             </tr>
             <tr>

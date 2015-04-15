@@ -1,17 +1,28 @@
 from django import forms
+import fractalio
+from fractalio import networking
 
 class AuthADSettingsForm(forms.Form):
   security = forms.CharField(widget=forms.HiddenInput)
   password = forms.CharField(widget=forms.PasswordInput())
-  ch = [ ('rfc2307', 'Identity Management For Unix'), ('sfu', 'Services For Unix')]
-  ad_schema_mode =  forms.ChoiceField(widget=forms.Select, choices=ch)
-  id_map_min = forms.IntegerField()
-  id_map_max = forms.IntegerField()
+  #ch = [ ('rfc2307', 'Identity Management For Unix'), ('sfu', 'Services For Unix')]
+  #ad_schema_mode =  forms.ChoiceField(widget=forms.Select, choices=ch)
+  #id_map_min = forms.IntegerField()
+  #id_map_max = forms.IntegerField()
   realm = forms.CharField()
   workgroup = forms.CharField()
   password_server = forms.CharField()
+  password_server_ip = forms.CharField()
   netbios_name = forms.CharField()
 
+  def clean(self):
+    cd = super(AuthADSettingsForm, self).clean()
+    if not networking.is_valid_ip(cd['password_server_ip']):
+      del cd["password_server_ip"]
+      self._errors["password_server_ip"] = self.error_class(["Please specify a valid IP address"])
+    return cd
+
+  '''
   id_map_min.initial = 10000
   id_map_max.initial = 20000
 
@@ -25,6 +36,7 @@ class AuthADSettingsForm(forms.Form):
         del cd["id_map_min"]
         del cd["id_map_max"]
     return cd
+  '''
 
 class AuthUsersSettingsForm(forms.Form):
   security = forms.CharField(widget=forms.HiddenInput)

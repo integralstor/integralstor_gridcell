@@ -302,7 +302,10 @@ def configure_networking():
     if change_dns_primary or change_dns_secondary or change_dns_external: 
       fqdn = socket.getfqdn()
       if fqdn == 'fractalio-pri.fractalio.lan':
-        rc = networking.generate_default_primary_named_conf(dns_primary, netmask, dns_secondary)
+        if dns_external:
+          rc = networking.generate_default_primary_named_conf(dns_primary, netmask, dns_secondary, True, dns_external, True)
+        else:
+          rc = networking.generate_default_primary_named_conf(dns_primary, netmask, dns_secondary)
         if rc == -1:
           errors.append("Error setting DNS server configuration")
       rc = networking.set_name_servers([dns_primary, dns_secondary, dns_external])

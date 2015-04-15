@@ -75,7 +75,10 @@ def set_as_primary(primary_ip, primary_netmask):
 
   print
   print "Generating the DNS configuartion.."
-  rc = networking.generate_default_primary_named_conf(primary_ip, primary_netmask, secondary_ip)
+  if external_dns:
+    rc = networking.generate_default_primary_named_conf(primary_ip, primary_netmask, secondary_ip, True, external_dns, True)
+  else:
+    rc = networking.generate_default_primary_named_conf(primary_ip, primary_netmask, secondary_ip)
 
   if rc != 0:
     print "Error generating the DNS configuration file"
@@ -204,7 +207,10 @@ def set_as_secondary(secondary_ip, secondary_netmask):
 
   print
   print "Generating the DNS configuartion.."
-  rc = networking.generate_default_secondary_named_conf(primary_ip, secondary_netmask, secondary_ip)
+  if external_dns:
+    rc = networking.generate_default_secondary_named_conf(primary_ip, secondary_netmask, secondary_ip, True, external_dns, True)
+  else:
+    rc = networking.generate_default_secondary_named_conf(primary_ip, secondary_netmask, secondary_ip)
 
   if rc != 0:
     print "Error generating the DNS configuration file"

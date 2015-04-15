@@ -5,8 +5,10 @@ import integral_view
 from integral_view.forms import samba_shares_forms
 from integral_view.samba import samba_settings, local_users
 
+import salt.client
+
 import fractalio
-from fractalio import volume_info, system_info, audit
+from fractalio import volume_info, system_info, audit, networking
 
 def display_shares(request):
 
@@ -315,9 +317,12 @@ def create_share(request):
 def samba_server_settings(request):
 
   return_dict = {}
+  #print 'a1'
   try:
     try :
+      #print 'a'
       d = samba_settings.load_auth_settings()
+      #print 'b'
     except Exception, e:
       return_dict["error"] = "Error loading authentication configuration - %s" %e
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
@@ -331,12 +336,15 @@ def samba_server_settings(request):
         form = samba_shares_forms.AuthADSettingsForm(initial=ini)
       #elif d["security"] == "users":
       else:
+        #print 'c'
         form = samba_shares_forms.AuthUsersSettingsForm(initial=ini)
+        #print 'd'
       return_dict["form"] = form
       return django.shortcuts.render_to_response('edit_samba_server_settings.html', return_dict, context_instance=django.template.context.RequestContext(request))
   
     # Else a view request
     return_dict["samba_global_dict"] = d
+    #print 'a2'
   
     if "action" in request.REQUEST and request.REQUEST["action"] == "saved":
       return_dict["conf"] = "Information updated successfully"
@@ -420,40 +428,78 @@ def save_samba_server_settings(request):
   
       try :
         samba_settings.save_auth_settings(cd)
+        #print '1'
+
+        # We now need to add the AD server as the forwarder in our DNS config on the primary...
+        nsl = networking.get_name_servers()
+        if not nsl:
+          raise Exception("Could not detect the IP addresses of the primary and secondary GRIDCells")
+        if len(nsl) < 2:
+          raise Exception("Could not detect the IP addresses of the primary and secondary GRIDCells")
+        ipinfo = networking.get_ip_info('bond0')
+        rc = networking.generate_default_primary_named_conf(nsl[0], ipinfo['netmask'], nsl[1], True, cd['password_server_ip'], False)
+        if rc != 0:
+          raise Exception("Error updating the DNS configuration on the primary GRIDCell")
+
+        # ... and on the secondary
+        client = salt.client.LocalClient()
+        r2 = client.cmd('roles:secondary', 'cmd.run_all', ['python /opt/fractalio/scripts/python/create_secondary_named_config.py %s %s %s %s'%(nsl[0], nsl[1], ipinfo['netmask'], cd['password_server_ip'])], expr_form='grain')
+        if r2:
+          for node, ret in r2.items():
+            if ret["retcode"] != 0:
+              raise Exception("Error updating the DNS configuration on the primary GRIDCell")
+
+        #print '2'
       except Exception, e:
         return_dict["error"] = "Error saving authentication settings - %s" %e
       if not "error" in return_dict and cd["security"] == "ads":
         try :
           samba_settings.generate_krb5_conf()
+          #print '3'
         except Exception, e:
           return_dict["error"] = "Error generating kerberos config file - %s" %e
       if not "error" in return_dict:
         try :
           samba_settings.generate_smb_conf()
+          #print '4'
         except Exception, e:
           return_dict["error"] = "Error generating file share authentication config file- %s" %e
       if not "error" in return_dict and cd["security"] == "ads":
         try :
-          samba_settings.kinit("administrator", cd["password"], cd["realm"])
-          #pass
+          rc, err_list = samba_settings.kinit("administrator", cd["password"], cd["realm"])
+          if rc != 0:
+            if err_list:
+              raise Exception(','.join(err_list))
+            else:
+              raise Exception("Kerberos init failure")
+          #print '5'
         except Exception, e:
           return_dict["error"] = "Error generating kerberos ticket - %s" %e
       if not "error" in return_dict and cd["security"] == "ads":
         try :
-          samba_settings.net_ads_join("administrator", cd["password"], cd["password_server"])
+          rc, err_list = samba_settings.net_ads_join("administrator", cd["password"], cd["password_server"])
+          if rc != 0:
+            if err_list:
+              raise Exception(','.join(err_list))
+            else:
+              raise Exception("AD join failure")
         except Exception, e:
           return_dict["error"] = "Error joining Active Directory - %s" %e
-      samba_settings.restart_samba_services()
+      #samba_settings.restart_samba_services()
+      #print '6'
       if "error" in return_dict:
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
     else:
       return django.shortcuts.render_to_response('edit_samba_server_settings.html', return_dict, context_instance=django.template.context.RequestContext(request))
   
+    #print '7'
     audit_str = "Modified share authentication settings"
     audit.audit("modify_samba_settings", audit_str, request.META["REMOTE_ADDR"])
     return_dict["form"] = form
     return_dict["conf_message"] = "Information successfully updated"
+    #print '8'
     return django.http.HttpResponseRedirect('/auth_server_settings?action=saved')
+    #return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
   except Exception, e:
     s = str(e)
     if "Another transaction is in progress".lower() in s.lower():
