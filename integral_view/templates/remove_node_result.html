@@ -1,18 +1,4 @@
 {% extends 'logged_in_base.html' %}
-<style type="text/css">
-    ul.errorlist {
-        margin: 0;
-        padding: 0;
-    }
-    .errorlist li {
-        background-color: white;
-        color: red;
-        display: block;
-        font-size: 10px;
-        margin: 0 0 3px;
-        padding: 4px 5px;
-    }
-</style>
 
 {%block page-header%}
   Remove IntegralStor Node
@@ -36,13 +22,24 @@ Result
 </tr>
 <tr>
 <td>
+{% if result_dict %}
 {{result_dict.display_command}}
+{%else%}
+Removing GRIDCell {{node_name}} from storage pool
+{%endif%}
 </td>
 <td>
-{% if d.op_status.op_ret == 0  %}
+{% if result_code == 0  %}
 Successful
 {%else%}
-Failed (Errno. {{d.op_status.op_errno}} - {{d.op_status.op_errstr}}, {{d.op_status.output}}{% if d.error_list %}, additional error message - {{d.error_list}} {%endif%})
+{% if result_dict %}
+Failed (Errno. {{result_dict.op_status.op_errno}} - {{result_dict.op_status.op_errstr}}, {{result_dict.op_status.output}}{% if result_dict.error_list %}, additional error message - {{result_dict.error_list}} {%endif%})
+{%else%}
+Failed with the following errors :<br>
+{%for error in error_list%}
+{{error}}<br>
+{%endfor%}
+{%endif%}
 {%endif%}
 </td>
 </tr>

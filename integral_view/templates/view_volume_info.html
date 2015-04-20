@@ -7,7 +7,6 @@
 {%endblock%}
 
 {%block contents%}
-
 <table class="table table-bordered">
 <tr>
   <td>
@@ -45,6 +44,35 @@
   {{vol.status_str}}
   </td>
 </tr>
+{% if vol.quotas %}
+<tr>
+  <td>
+  <b> Quota Limit</b>
+  </td>
+  <td>
+  {% load utilities %}
+  {{vol.quotas|get_item:"/"|get_item:"limit"}}
+  </td>
+</tr>
+<tr>
+  <td>
+  <b> Quota Used</b>
+  </td>
+  <td>
+  {% load utilities %}
+  {{vol.quotas|get_item:"/"|get_item:"size"}}
+  </td>
+</tr>
+<tr>
+  <td>
+  <b> Quota Available</b>
+  </td>
+  <td>
+  {% load utilities %}
+  {{vol.quotas|get_item:"/"|get_item:"available"}}
+  </td>
+</tr>
+{%endif%}
 <tr>
   <td>
   <b> Number of data pools used</b>

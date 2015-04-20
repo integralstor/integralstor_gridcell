@@ -1,4 +1,4 @@
-import socket, re, fcntl , struct, os, shutil
+import socket, re, fcntl , struct, os, shutil, time
 from os import path
 from fractalio import command
 
@@ -221,7 +221,8 @@ def jumbo_frames_enabled(ifname):
   else:
     return jumbo_frames
 
-def generate_default_primary_named_conf(primary_ip, primary_netmask, secondary_ip):
+def generate_default_primary_named_conf(primary_ip, primary_netmask, secondary_ip, generate_forwarders = False, forwarder_ip = None, generate_zone_file = True):
+  rc = 0
   try :
     primary_cidr_netmask = get_subnet_in_cidr_format(primary_ip, primary_netmask)
 
@@ -236,7 +237,11 @@ def generate_default_primary_named_conf(primary_ip, primary_netmask, secondary_i
       f.write(' memstatistics-file "/var/named/data/named_mem_stats.txt";\n')
       f.write(" allow-query     { localhost; any; };\n")
       f.write(" allow-transfer  { localhost; %s; };\n"%secondary_ip)
-      f.write(" recursion no;\n")
+      if generate_forwarders:
+        f.write(" forwarders    { %s; };\n"%forwarder_ip)
+        f.write(" recursion yes;\n")
+      else:
+        f.write(" recursion no;\n")
       f.write("};\n")
 
       f.write("logging {\n")
@@ -261,6 +266,21 @@ def generate_default_primary_named_conf(primary_ip, primary_netmask, secondary_i
       f.write('include "/etc/named.rfc1912.zones";\n')
       f.flush()
     f.close()
+    if generate_zone_file:
+      rc = generate_default_zone_file(primary_ip, secondary_ip)
+      if rc != 0:
+        raise Exception ('Error generating the default zone file')
+    r, rc = command.execute_with_rc('service named reload')
+    if rc != 0:
+      print "Error restarting the DNS server"
+  except Exception, e:
+    print "Error generating the master DNS configuration file : %s"%e
+    return -1
+  else:
+    return rc
+
+def generate_default_zone_file(primary_ip, secondary_ip):
+  try:
     with open('/var/named/fractalio.for', 'w') as f1:
       f1.write('$ORIGIN .\n')
       f1.write('$TTL 86400    ; 1 day\n')
@@ -280,11 +300,13 @@ def generate_default_primary_named_conf(primary_ip, primary_netmask, secondary_i
       f1.flush()
     f1.close()
   except Exception, e:
+    print "Error generating zone file : %s"%e
     return -1
   else:
     return 0
 
-def generate_default_secondary_named_conf(primary_ip, secondary_netmask, secondary_ip):
+def generate_default_secondary_named_conf(primary_ip, secondary_netmask, secondary_ip, generate_forwarders = False, forwarder_ip = None):
+  rc = 0
   try :
     secondary_cidr_netmask = get_subnet_in_cidr_format(primary_ip, secondary_netmask)
 
@@ -298,7 +320,11 @@ def generate_default_secondary_named_conf(primary_ip, secondary_netmask, seconda
       f.write('  statistics-file "/var/named/data/named_stats.txt";\n')
       f.write('  memstatistics-file "/var/named/data/named_mem_stats.txt";\n')
       f.write('  allow-query     { localhost; %s; };\n'%secondary_cidr_netmask)
-      f.write('  recursion no;\n')
+      if generate_forwarders:
+        f.write("   forwarders    { %s; };\n"%forwarder_ip)
+        f.write('  recursion yes;\n')
+      else:
+        f.write('  recursion no;\n')
       f.write('};\n')
 
       f.write('logging {\n')
@@ -323,10 +349,14 @@ def generate_default_secondary_named_conf(primary_ip, secondary_netmask, seconda
       f.write('include "/etc/named.rfc1912.zones";\n')
       f.flush()
     f.close()
+    r, rc = command.execute_with_rc('service named restart')
+    if rc != 0:
+      print "Error restarting the DNS server"
   except Exception, e:
+    print "Error generating the DNS slave configuration file : %s"%e
     return -1
   else:
-    return 0
+    return rc
 
 def get_subnet_in_cidr_format(ip, subnet):
   #Given an IP and a subnet (as in 255.255..) string, returns the subnet info in CIDR format (as in 192.168.1.0/24)

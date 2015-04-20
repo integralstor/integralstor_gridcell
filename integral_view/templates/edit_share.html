@@ -130,9 +130,9 @@ function select_guest_ok() {
             <label for="id_users">Allowed users:</label>
               </td>
               <td>
-                {% for choice in form.users.field.choices %} 
+                {% for choice in form.users.field.choices %}
                   <div class="radio" >
-                      <input type="radio" name="users" id="optionsRadios1" value="{{choice.0}}" {%if choice.0 in form.initial.users %} checked="checked"{%endif%}>{{choice.0}}
+                      <input type="checkbox" name="users" id="{{choice.0}}" value="{{choice.0}}" {%if choice.0 in form.initial.users %} checked="checked"{%endif%}> {{choice.0}}
                   </div>
                 {%endfor%}
               </td>
@@ -165,28 +165,23 @@ function set_select_field_disabled(f, val) {
   for(var i = 0; i < f.length; i++)
     f[i].disabled = val
 }
-$("form input[name='guest_ok']").click(function () { 
-    // Handle the click event here
-    //alert("clicked");
-    if (document.forms["edit_form"].elements["guest_ok"].checked) {
-      set_select_field_disabled(document.forms["edit_form"].elements["users"], true);
-      set_select_field_disabled(document.forms["edit_form"].elements["groups"], true);
+$("form input[name='guest_ok']").click(function () {
+    if (document.getElementById("id_guest_ok").checked) {
+      set_select_field_disabled(document.getElementsByName('users'), true);
+      set_select_field_disabled(document.getElementsByName('groups'), true);
     } else {
-      set_select_field_disabled(document.forms["edit_form"].elements["users"], false);
-      set_select_field_disabled(document.forms["edit_form"].elements["groups"], false);
+      set_select_field_disabled(document.getElementsByName('users'),false);
+      set_select_field_disabled(document.getElementsByName('groups'), false);
     }
     });
 $(window).load(function() {
-  // Handler for .load() called.
-    //alert("loaded");
-    //alert(document.forms["edit_form"].elements["guest_ok"].checked);
-    if (document.forms["edit_form"].elements["guest_ok"].checked) {
-      set_select_field_disabled(document.forms["edit_form"].elements["users"], true);
-      set_select_field_disabled(document.forms["edit_form"].elements["groups"], true);
+    if (document.getElementById("id_guest_ok").checked) {
+      set_select_field_disabled(document.getElementsByName('users'),true);
+      set_select_field_disabled(document.getElementsByName('groups'), true);
     } else {
-      set_select_field_disabled(document.forms["edit_form"].elements["users"], false);
-      set_select_field_disabled(document.forms["edit_form"].elements["groups"], false);
-    }
+      set_select_field_disabled(document.getElementsByName('users'),false);
+      set_select_field_disabled(document.getElementsByName('groups'), false);
+   }
   });
 </script>
 

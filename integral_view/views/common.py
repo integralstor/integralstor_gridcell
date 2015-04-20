@@ -35,7 +35,6 @@ def get_gluster_dir_list(vol,path):
       else:
         parent = path
       d_dict = {'id':path+d+"/", 'text':d,'icon':'fa fa-angle-right','children':True,'data':{'dir':path+d+"/"},'parent':parent}
-      print d_dict
       dir_dict_list.append(d_dict)
       #get_dir_list(vol,path+d+"/")
   return dir_dict_list
@@ -60,13 +59,15 @@ def create_gluster_dir(vol_name,path,mode=0775):
 @login_required    
 def show(request, page, info = None):
 
+  return_dict = {}
+  try:
+
     assert request.method == 'GET'
 
     vil = volume_info.get_volume_info_all()
     si = system_info.load_system_config()
 
     #assert False
-    return_dict = {}
     return_dict['system_info'] = si
     return_dict['volume_info_list'] = vil
 
@@ -240,7 +241,7 @@ def show(request, page, info = None):
         return_dict["error"] = "Could not locate information for volume %s"%info
           
     elif page == "node_status":
-
+      
       template = "view_node_status.html"
       if "from" in request.GET:
         frm = request.GET["from"]
@@ -251,6 +252,14 @@ def show(request, page, info = None):
         sorted_disks.append(key)
       si[info]["disk_pos"] = sorted_disks
       return_dict['node'] = si[info]
+      import salt.client
+      client = salt.client.LocalClient()
+      ctdb = client.cmd(info,'cmd.run',['service ctdb status'])
+      winbind = client.cmd(info,'cmd.run',['service winbind status'])
+      gluster = client.cmd(info,'cmd.run',['service glusterd status'])
+      return_dict['ctdb'] = ctdb[info]
+      return_dict['winbind'] = winbind[info]
+      return_dict['gluster'] = gluster[info]
       return_dict['node_name'] = info
 
       return_dict['vol_list'] = vol_list
@@ -344,12 +353,10 @@ def show(request, page, info = None):
 
         """
         for key, value in si.iteritems():
-          #print kiey, value
           #count the failures in case of Offline or degraded
           disk_failures = 0
           #Default background color
-          background_color = "bg-green"
-
+          background_color = "bg-green" 
           if not si[key]["in_cluster"]:
             disk_new[key] = {}
             disk_new[key]["disks"] = {}
@@ -366,6 +373,8 @@ def show(request, page, info = None):
               if disk_failures >= 4:
                 background_color == "bg-red"
           
+            if si[key]['node_status_str'] == "Degraded":
+              background_color = "bg-yellow"
             #print type(si[key]["pools"][0]["state"])
             if si[key]["pools"][0]["state"] == unicode("ONLINE"):
               background_color == "bg-red"
@@ -393,7 +402,9 @@ def show(request, page, info = None):
                   background_color = "bg-yellow"
                 if disk_failures >= 4:
                   background_color == "bg-red"
-            
+
+              if si[key]['node_status_str'] == "Degraded":
+                background_color = "bg-yellow"
               #print type(si[key]["pools"][0]["state"])
               if si[key]["pools"][0]["state"] == unicode("ONLINE"):
                 background_color == "bg-red"
@@ -480,6 +491,13 @@ def show(request, page, info = None):
       return_dict['volume_info_list'] = vil
 
     return django.shortcuts.render_to_response(template, return_dict, context_instance=django.template.context.RequestContext(request))
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
 #this function takes a user argument checks if the user has administrator rights and then returns True.
 #If he does not have the correct permissions, then then it returns a HTttpResponse stating No Permission to access this page.
@@ -540,74 +558,84 @@ def raise_alert(request):
 def configure_ntp_settings(request):
 
   return_dict = {}
-  if request.method=="GET":
-    ntp_servers = ntp.get_ntp_servers()
-    if not ntp_servers:
-      form = common_forms.ConfigureNTPForm()
-    else:
-      form = common_forms.ConfigureNTPForm(initial={'server_list': ','.join(ntp_servers)})
-    url = "edit_ntp_settings.html"
-  else:
-    form = common_forms.ConfigureNTPForm(request.POST)
-    if form.is_valid():
-      iv_logging.debug("Got valid request to change NTP settings")
-      cd = form.cleaned_data
-      si = system_info.load_system_config()
-      server_list = cd["server_list"]
-      if ',' in server_list:
-        slist = server_list.split(',')
+  try:
+    if request.method=="GET":
+      ntp_servers = ntp.get_ntp_servers()
+      if not ntp_servers:
+        form = common_forms.ConfigureNTPForm()
       else:
-        slist = server_list.split(' ')
-      try:
-        primary_server = "primary.fractalio.lan"
-        secondary_server = "secondary.fractalio.lan"
-        #First create the ntp.conf file for the primary and secondary nodes
-        temp = tempfile.NamedTemporaryFile(mode="w")
-        temp.write("driftfile /var/lib/ntp/drift\n")
-        temp.write("restrict default kod nomodify notrap nopeer noquery\n")
-        temp.write("restrict -6 default kod nomodify notrap nopeer noquery\n")
-        temp.write("includefile /etc/ntp/crypto/pw\n")
-        temp.write("keys /etc/ntp/keys\n")
-        temp.write("\n")
-        for server in slist:
-          temp.write("server %s iburst\n"%server)
-        temp.flush()
-        shutil.move(temp.name, "%s/ntp/primary_ntp.conf"%fractalio.common.get_admin_vol_mountpoint())
-        #client = salt.client.LocalClient()
-        #client.cmd('roles:master', 'cp.get_file', ["salt://tmp/%s"%os.path.basename(temp.name), '%s/ntp.conf'%fractalio.common.get_ntp_conf_path()], expr_form='grain')
-        #client.cmd('roles:master', 'cmd.run_all', ["service ntpd restart"], expr_form='grain')
-        #shutil.copyfile(temp.name, '%s/ntp.conf'%settings.NTP_CONF_PATH)
-        temp1 = tempfile.NamedTemporaryFile(mode="w")
-        temp1.write("server %s iburst\n"%primary_server)
-        temp1.write("server %s iburst\n"%secondary_server)
-        for s in si.keys():
-          temp1.write("peer %s iburst\n"%s)
-        temp1.write("server 127.127.1.0\n")
-        temp1.write("fudge 127.127.1.0 stratum 10\n")
-        temp1.flush()
-        shutil.move(temp1.name, "%s/ntp/secondary_ntp.conf"%fractalio.common.get_admin_vol_mountpoint())
-        #client.cmd('role:secondary', 'cp.get_file', ["salt://tmp/%s"%os.path.basename(temp1.name), '%s/ntp.conf'%fractalio.common.get_ntp_conf_path()], expr_form='grain')
-        #client.cmd('role:secondary', 'cmd.run_all', ["service ntpd restart"], expr_form='grain')
-        #shutil.copyfile(temp.name, '/tmp/ntp.conf')
-
-        '''
-        lines = ntp.get_non_server_lines()
-        if lines:
-          for line in lines:
-            temp.write("%s\n"%line)
-        '''
-        #ntp.restart_ntp_service()
-      except Exception, e:
-        return_dict["error"] = "Error updating NTP information : %s"%e
-        return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance = django.template.context.RequestContext(request))
-      else:
-        return django.http.HttpResponseRedirect("/show/ntp_settings?saved=1")
-    else:
-      #invalid form
-      iv_logging.debug("Got invalid request to change NTP settings")
+        form = common_forms.ConfigureNTPForm(initial={'server_list': ','.join(ntp_servers)})
       url = "edit_ntp_settings.html"
-  return_dict["form"] = form
-  return django.shortcuts.render_to_response(url, return_dict, context_instance = django.template.context.RequestContext(request))
+    else:
+      form = common_forms.ConfigureNTPForm(request.POST)
+      if form.is_valid():
+        iv_logging.debug("Got valid request to change NTP settings")
+        cd = form.cleaned_data
+        si = system_info.load_system_config()
+        server_list = cd["server_list"]
+        if ',' in server_list:
+          slist = server_list.split(',')
+        else:
+          slist = server_list.split(' ')
+        try:
+          primary_server = "primary.fractalio.lan"
+          secondary_server = "secondary.fractalio.lan"
+          #First create the ntp.conf file for the primary and secondary nodes
+          temp = tempfile.NamedTemporaryFile(mode="w")
+          temp.write("driftfile /var/lib/ntp/drift\n")
+          temp.write("restrict default kod nomodify notrap nopeer noquery\n")
+          temp.write("restrict -6 default kod nomodify notrap nopeer noquery\n")
+          temp.write("includefile /etc/ntp/crypto/pw\n")
+          temp.write("keys /etc/ntp/keys\n")
+          temp.write("\n")
+          for server in slist:
+            temp.write("server %s iburst\n"%server)
+          temp.flush()
+          shutil.move(temp.name, "%s/ntp/primary_ntp.conf"%fractalio.common.get_admin_vol_mountpoint())
+          #client = salt.client.LocalClient()
+          #client.cmd('roles:master', 'cp.get_file', ["salt://tmp/%s"%os.path.basename(temp.name), '%s/ntp.conf'%fractalio.common.get_ntp_conf_path()], expr_form='grain')
+          #client.cmd('roles:master', 'cmd.run_all', ["service ntpd restart"], expr_form='grain')
+          #shutil.copyfile(temp.name, '%s/ntp.conf'%settings.NTP_CONF_PATH)
+          temp1 = tempfile.NamedTemporaryFile(mode="w")
+          temp1.write("server %s iburst\n"%primary_server)
+          temp1.write("server %s iburst\n"%secondary_server)
+          for s in si.keys():
+            temp1.write("peer %s iburst\n"%s)
+          temp1.write("server 127.127.1.0\n")
+          temp1.write("fudge 127.127.1.0 stratum 10\n")
+          temp1.flush()
+          shutil.move(temp1.name, "%s/ntp/secondary_ntp.conf"%fractalio.common.get_admin_vol_mountpoint())
+          #client.cmd('role:secondary', 'cp.get_file', ["salt://tmp/%s"%os.path.basename(temp1.name), '%s/ntp.conf'%fractalio.common.get_ntp_conf_path()], expr_form='grain')
+          #client.cmd('role:secondary', 'cmd.run_all', ["service ntpd restart"], expr_form='grain')
+          #shutil.copyfile(temp.name, '/tmp/ntp.conf')
+  
+          '''
+          lines = ntp.get_non_server_lines()
+          if lines:
+            for line in lines:
+              temp.write("%s\n"%line)
+          '''
+          #ntp.restart_ntp_service()
+        except Exception, e:
+          return_dict["error"] = "Error updating NTP information : %s"%e
+          return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance = django.template.context.RequestContext(request))
+        else:
+          return django.http.HttpResponseRedirect("/show/ntp_settings?saved=1")
+      else:
+        #invalid form
+        iv_logging.debug("Got invalid request to change NTP settings")
+        url = "edit_ntp_settings.html"
+    return_dict["form"] = form
+    return django.shortcuts.render_to_response(url, return_dict, context_instance = django.template.context.RequestContext(request))
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+
+
 
 @login_required 
 #@django.views.decorators.csrf.csrf_exempt
@@ -653,128 +681,144 @@ def flag_node(request):
 @admin_login_required
 def reset_to_factory_defaults(request):
   return_dict = {}
-  if request.method == "GET":
-    #Send a confirmation screen
-    return django.shortcuts.render_to_response('reset_factory_defaults_conf.html', return_dict, context_instance = django.template.context.RequestContext(request))
-  else:
-    iv_logging.info("Got a request to reset to factory defaults")
-    #Post request so from conf screen
-
-    #Reset the ntp config file
-    try :
-      shutil.copyfile("%s/factory_defaults/ntp.conf"%fractalio.common.get_factory_defaults_path(), '%s/ntp.conf'%fractalio.common.get_ntp_conf_path())
-      pass
-    except Exception, e:
-      return_dict["error"] = "Error reseting NTP configuration : %s"%e
-      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
-
-    #Remove email settings
-    try:
-      mail.delete_email_settings()
-    except Exception, e:
-      #print str(e)
-      return_dict["error"] = "Error reseting mail configuration : %s."%e
-      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
-
-    try:
-      audit.rotate_audit_trail()
-    except Exception, e:
-      #print str(e)
-      return_dict["error"] = "Error rotating the audit trail : %s."%e
-      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
-
-    #Remove all shares 
-    try:
-      samba_settings.delete_all_shares()
-    except Exception, e:
-      #print str(e)
-      return_dict["error"] = "Error deleting shares : %s."%e
-      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
-
-    try:
-      samba_settings.delete_auth_settings()
-    except Exception, e:
-      return_dict["error"] = "Error deleting CIFS authentication settings : %s."%e
-      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
-    try:
-      request.user.set_password("admin");
-      request.user.save()
-    except Exception, e:
-      return_dict["error"] = "Error resetting admin password: %s."%e
-      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
-
-
-    #Reset the alerts file
-    try :
-      shutil.copyfile("%s/factory_defaults/alerts.log"%fractalio.common.get_factory_defaults_path(), '%s/alerts.log'%fractalio.common.get_alerts_path())
-    except Exception, e:
-      return_dict["error"] = "Error reseting alerts : %s."%e
-      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
-
-    #Reset all batch jobs
-    try :
-      l = os.listdir("%s"%fractalio.common.get_batch_files_path())
-      for fname in l:
-        os.remove("%s/%s"%(fractalio.common.get_batch_files_path(), fname))
-    except Exception, e:
-      return_dict["error"] = "Error removing scheduled batch jobs : %s."%e
-      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
-
-    try:
-      iscsi.reset_global_target_conf()
-      iscsi.delete_all_targets()
-      iscsi.delete_all_initiators()
-      iscsi.delete_all_auth_access_groups()
-      iscsi.delete_all_auth_access_users()
-    except Exception, e:
-      return_dict["error"] = "Error resetting ISCSI configuration : %s."%e
-      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
-
-    try:
-      # Create commands to stop and delete volumes. Remove peers from cluster.
-      vil = volume_info.get_volume_info_all()
-      scl = system_info.load_system_config()
-      d = gluster_commands.create_factory_defaults_reset_file(scl, vil)
-      if not "error" in d:
-        audit.audit("factory_defaults_reset_start", "Scheduled reset of the system to factory defaults.",  request.META["REMOTE_ADDR"])
-        return django.http.HttpResponseRedirect('/show/batch_start_conf/%s'%d["file_name"])
-      else:
-        return_dict["error"] = "Error initiating a reset to system factory defaults : %s"%d["error"]
+  try:
+    if request.method == "GET":
+      #Send a confirmation screen
+      return django.shortcuts.render_to_response('reset_factory_defaults_conf.html', return_dict, context_instance = django.template.context.RequestContext(request))
+    else:
+      iv_logging.info("Got a request to reset to factory defaults")
+      #Post request so from conf screen
+  
+      #Reset the ntp config file
+      try :
+        shutil.copyfile("%s/factory_defaults/ntp.conf"%fractalio.common.get_factory_defaults_path(), '%s/ntp.conf'%fractalio.common.get_ntp_conf_path())
+        pass
+      except Exception, e:
+        return_dict["error"] = "Error reseting NTP configuration : %s"%e
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
-    except Exception, e:
-      return_dict["error"] = "Error creating factory defaults reset batch file : %s."%e
-      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+  
+      #Remove email settings
+      try:
+        mail.delete_email_settings()
+      except Exception, e:
+        #print str(e)
+        return_dict["error"] = "Error reseting mail configuration : %s."%e
+        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+  
+      try:
+        audit.rotate_audit_trail()
+      except Exception, e:
+        #print str(e)
+        return_dict["error"] = "Error rotating the audit trail : %s."%e
+        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+  
+      #Remove all shares 
+      try:
+        samba_settings.delete_all_shares()
+      except Exception, e:
+        #print str(e)
+        return_dict["error"] = "Error deleting shares : %s."%e
+        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+  
+      try:
+        samba_settings.delete_auth_settings()
+      except Exception, e:
+        return_dict["error"] = "Error deleting CIFS authentication settings : %s."%e
+        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      try:
+        request.user.set_password("admin");
+        request.user.save()
+      except Exception, e:
+        return_dict["error"] = "Error resetting admin password: %s."%e
+        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+  
+  
+      #Reset the alerts file
+      try :
+        shutil.copyfile("%s/factory_defaults/alerts.log"%fractalio.common.get_factory_defaults_path(), '%s/alerts.log'%fractalio.common.get_alerts_path())
+      except Exception, e:
+        return_dict["error"] = "Error reseting alerts : %s."%e
+        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+  
+      #Reset all batch jobs
+      try :
+        l = os.listdir("%s"%fractalio.common.get_batch_files_path())
+        for fname in l:
+          os.remove("%s/%s"%(fractalio.common.get_batch_files_path(), fname))
+      except Exception, e:
+        return_dict["error"] = "Error removing scheduled batch jobs : %s."%e
+        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+  
+      try:
+        iscsi.reset_global_target_conf()
+        iscsi.delete_all_targets()
+        iscsi.delete_all_initiators()
+        iscsi.delete_all_auth_access_groups()
+        iscsi.delete_all_auth_access_users()
+      except Exception, e:
+        return_dict["error"] = "Error resetting ISCSI configuration : %s."%e
+        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+  
+      try:
+        # Create commands to stop and delete volumes. Remove peers from cluster.
+        vil = volume_info.get_volume_info_all()
+        scl = system_info.load_system_config()
+        d = gluster_commands.create_factory_defaults_reset_file(scl, vil)
+        if not "error" in d:
+          audit.audit("factory_defaults_reset_start", "Scheduled reset of the system to factory defaults.",  request.META["REMOTE_ADDR"])
+          return django.http.HttpResponseRedirect('/show/batch_start_conf/%s'%d["file_name"])
+        else:
+          return_dict["error"] = "Error initiating a reset to system factory defaults : %s"%d["error"]
+          return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      except Exception, e:
+        return_dict["error"] = "Error creating factory defaults reset batch file : %s."%e
+        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
+  
 @login_required
 def hardware_scan(request):
 
   return_dict = {}
-  url = 'add_nodes_form.html'
-  iv_logging.info("Hardware scan initiated")
-
-  pending_minions = grid_ops.get_pending_minions()
-
-  if request.method == 'GET':
-    # Return a list of new nodes available to be pulled into the grid
-    if pending_minions:
-      form = common_forms.AddNodesForm(pending_minions_list = pending_minions)
-      return_dict["form"] = form
+  try:
+    url = 'add_nodes_form.html'
+    iv_logging.info("Hardware scan initiated")
+  
+    pending_minions = grid_ops.get_pending_minions()
+  
+    if request.method == 'GET':
+      # Return a list of new nodes available to be pulled into the grid
+      if pending_minions:
+        form = common_forms.AddNodesForm(pending_minions_list = pending_minions)
+        return_dict["form"] = form
+      else:
+        return_dict["no_new_nodes"] = True
     else:
-      return_dict["no_new_nodes"] = True
-  else:
-    form = common_forms.AddNodesForm(request.POST, pending_minions_list = pending_minions)
-    if form.is_valid():
-      # User has chosed some nodes to be added so add them.
-      cd = form.cleaned_data
-      iv_logging.info("Hardware scan initiated")
-      success, failed, errors = grid_ops.add_nodes_to_grid(request.META["REMOTE_ADDR"],cd["nodes"])
-      url = 'add_nodes_result.html'
-      return_dict["success"] = success
-      return_dict["failed"] = failed
-      return_dict["errors"] = errors
-        
-  return django.shortcuts.render_to_response(url, return_dict, context_instance = django.template.context.RequestContext(request))
-
+      form = common_forms.AddNodesForm(request.POST, pending_minions_list = pending_minions)
+      if form.is_valid():
+        # User has chosed some nodes to be added so add them.
+        cd = form.cleaned_data
+        iv_logging.info("Hardware scan initiated")
+        success, failed, errors = grid_ops.add_nodes_to_grid(request.META["REMOTE_ADDR"],cd["nodes"])
+        url = 'add_nodes_result.html'
+        return_dict["success"] = success
+        return_dict["failed"] = failed
+        return_dict["errors"] = errors
+          
+    return django.shortcuts.render_to_response(url, return_dict, context_instance = django.template.context.RequestContext(request))
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
 
 @login_required

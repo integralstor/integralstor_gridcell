@@ -1,17 +1,23 @@
+echo "Unmounting admin_vol"
+umount /opt/fractalio/mnt/admin_vol 
+
 echo "Removing pools ..."
+zfs destroy frzpool/normal/fractalio_admin_vol
 rm -rf /frzpool/normal/fractalio_admin_vol
 
 echo "Editing fstab"
 sed -i '/localhost/d' /etc/fstab
 
-echo "Unmounting admin_vol"
-umount /opt/fractalio/mnt/admin_vol 
 
 echo "Stopping salt-minion"
 service salt-minion stop
 
-zfs destroy frzpool/normal/fractalio_admin_vol
+echo "Deleting salt pki"
+rm -rf /etc/salt/pki
 
+echo "Starting salt-minion"
 service salt-minion restart
 
-echo "Start the salt minion now"
+echo "Restarting glusterd"
+service glusterd restart
+

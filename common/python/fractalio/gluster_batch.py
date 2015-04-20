@@ -23,7 +23,7 @@ def create_replace_command_file(si, vil, src_node, dest_node):
     if vd and ('bricks' in vd and vd['bricks']):
       brick1 = vd['bricks'][0]
       brick_components = volume_info.get_components(brick1)
-    brick_path = '/%s/%s/%s'%(brick_components['pool'], brick_components['ondisk_storage'], tv)
+      brick_path = '/%s/%s/%s'%(brick_components['pool'], brick_components['ondisk_storage'], tv)
     else:
       return None
     if vd["type"] == "Distribute":

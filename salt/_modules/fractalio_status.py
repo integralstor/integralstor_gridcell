@@ -392,7 +392,7 @@ def ipmi_status():
         td["parameter_name"] = "Fan 3 speed"
         td["component_name"] = "Fan 3"
       ipmi_status.append(td)
-    return ipmi_status
+  return ipmi_status
 
 def status():
   d = {}

@@ -8,7 +8,6 @@
 
 {%block contents%}
 
-
 <table class="table table-bordered table-striped table-hover" style="width:60%">
 <tr>
   <th>
@@ -27,6 +26,23 @@
   </td>
 </tr>
 </table>
+
+<table class="table table-bordered table-striped table-hover" style="width:60%">
+<tr>
+  <th colspan=3>
+    Pool Configuration 
+  </th>
+</tr>
+<tr>
+    <td>
+         TYPE
+    </td> 
+    <td>
+        {{node.pools.0.config.type}}
+    </td>
+</tr>
+</table>
+
 <table class="table table-bordered table-striped table-hover" style="width:60%">
 <tr>
   <th colspan=3>

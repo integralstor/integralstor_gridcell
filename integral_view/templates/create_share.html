@@ -138,7 +138,7 @@ function select_guest_ok() {
               <td>
                 {% for choice in form.users.field.choices %} 
                   <div class="radio" >
-                      <input type="radio" name="users" id="optionsRadios1" value="{{choice.0}}" {%if choice.0 in form.initial.users %} checked="checked"{%endif%}>{{choice.0}}
+                      <input type="checkbox" name="users" id="{{choice.0}}" value="{{choice.0}}" {%if choice.0 in form.initial.users %} checked="checked"{%endif%}> {{choice.0}}
                   </div>
                 {%endfor%}
               </td>
@@ -164,7 +164,7 @@ function select_guest_ok() {
             </table>
 
         <a href="/display_shares" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
-        <button type="submit" class="btn btn-primary" onClick="document.getElementById('id_path').disabled = false;return true;")> Create >> </button>
+        <button type="submit" class="btn btn-primary" onClick="document.getElementById('id_path').disabled = false;return true;")> Create </button>
 </form>
 <script type="text/javascript">
 document.getElementById('id_path').disabled = true;
@@ -174,17 +174,17 @@ function set_select_field_disabled(f, val) {
 }
 $("form input[name='guest_ok']").click(function () { 
     if (document.forms["create_form"].elements["guest_ok"].checked) {
-      set_select_field_disabled(document.forms["create_form"].elements["users"], true);
-      set_select_field_disabled(document.forms["create_form"].elements["groups"], true);
+      set_select_field_disabled(document.getElementsByName('users'), true);
+      set_select_field_disabled(document.getElementsByName('groups'), true);
     } else {
-      set_select_field_disabled(document.forms["create_form"].elements["users"], false);
-      set_select_field_disabled(document.forms["create_form"].elements["groups"], false);
+      set_select_field_disabled(document.getElementsByName('users'),false);
+      set_select_field_disabled(document.getElementsByName('groups'), false);
     }
     });
 $(window).load(function() {
     document.forms["create_form"].elements["guest_ok"].checked = false
-    set_select_field_disabled(document.forms["create_form"].elements["users"], false);
-    set_select_field_disabled(document.forms["create_form"].elements["groups"], false);
+      set_select_field_disabled(document.getElementsByName('users'),false);
+      set_select_field_disabled(document.getElementsByName('groups'), false);
   });
 </script>
   <script src="/static/jstree/dist/jstree.js"></script>

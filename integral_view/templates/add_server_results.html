@@ -13,19 +13,28 @@ Operation
 Result
 </th>
 </tr>
-{% for d in result_list %}
+{% for node_name, rd in result_dict.items %}
 <tr>
 <td>
-{{d.display_command}}
+Adding GRIDCell {{node_name}}
 {% if app_debug %}
-<br>{{d.actual_command}}
+{% if rd.d %}
+<br>{{rd.d.actual_command}}
+{%endif%}
 {%endif%}
 </td>
 <td>
-{% if d.op_status.op_ret == 0  %}
+{% if rd.rc == 0 %}
 Success
 {%else%}
-Failed (Errno. {{d.op_status.op_errno}} - {{d.op_status.op_errstr}}, {{d.op_status.output}}{% if d.error_list %}, additional error message - {{d.error_list}} {%endif%})
+Failed : <br>
+{%if rd.d %}
+(Errno. {{rd.d.op_status.op_errno}} - {{rd.d.op_status.op_errstr}}, {{rd.d.op_status.output}}{% if rd.d.error_list %}, additional error message - {{rd.d.error_list}} {%endif%})
+{%else%}
+{%for err in rd.error_list%}
+{{err}}<br>
+{%endfor%}
+{%endif%}
 {%endif%}
 </td>
 </tr>

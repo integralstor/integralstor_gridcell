@@ -32,6 +32,25 @@
   </td>
 </tr>
 </table>
+
+{% if node.errors %}
+<table class="table table-bordered table-striped table-hover red" style="width:60%">
+<tr>
+  <th colspan=3>
+    Errors
+  </th>
+</tr>
+<tr>
+    <td>
+	<ul>
+        {% for err in node.errors %}	
+		<li>{{err}}</li>
+        {%endfor%}
+	</ul>
+    </td>
+</tr>
+</table>
+{% endif %}
 {% if node.node_status != -1 %}
   <table class="table table-bordered table-hover table-responsive" style="width:800px">
   <thead>
@@ -64,7 +83,11 @@
 	{{ipmi.reading}} 
     </td>
     <td colspan=2>
-	{{ipmi.status}}
+	{% if ipmi.status == "ok" %}
+		<i class="fa fa-check-circle green fa-2x"></i>	
+        {%else%}
+   		<i class="fa fa-remove red fa-2x"></i>	
+        {%endif%}
     </td>
   </tr>
 {%if ipmi.component_name == 'CPU'%}
@@ -95,9 +118,9 @@
     </td>
     <td colspan=5>
       {%if node.cluster_status == 1%}
-      	OK
+      <i class="fa fa-check-circle green fa-2x"></i>
       {%else%}
-	NOT OK
+	<i class="fa fa-remove red fa-2x"></i>	
       {%endif%}
     </td>
   <tr>
@@ -114,14 +137,18 @@
     <td colspan=3>
     Interface name : {{if_name}}
     <td colspan=5>
-    {{interface.status}}
+    {% if interface.status == "up"%}
+       <i class="fa fa-check-circle green fa-2x"></i>	
+    {%else%}
+      <i class="fa fa-remove red fa-2x"></i>	
+    {%endif%}
     </td>
   </tr>
   {%endfor%}
   {% for k, v in  node.fan_status.items%}
   <tr>
     <td>
-     Fan {{k}}
+     FFFan {{k}}
     </td>
     <td>
     {{v.status}}
@@ -129,6 +156,53 @@
   </tr>
   {%endfor%}
 
+  <tr>
+    <td colspan=7>
+     <b> System Service Status</b>
+    </td>
+  </tr>
+  <tr>
+    <td colspan=1>
+    </td>
+    <td colspan=3>
+       CTDB Service
+    </td>
+    <td colspan=7>
+       {%if ctdb|slice:"-13:" == "is running..."%}
+          <i class="fa fa-check-circle green fa-2x"></i>	
+       {%else%}
+          <i class="fa fa-remove red fa-2x"></i>	
+       {%endif%}
+    </td>
+  </tr>
+  <tr>
+    <td colspan=1>
+    </td>
+    <td colspan=3>
+       Winbind Service
+    </td>
+    <td colspan=7>
+       {%if winbind|slice:"-13:" == "is running..."%}
+          <i class="fa fa-check-circle green fa-2x"></i>	
+       {%else%}
+          <i class="fa fa-remove red fa-2x"></i>	
+       {%endif%}
+    </td>
+  </tr>
+  <tr>
+    <td colspan=1>
+    </td>
+    <td colspan=3>
+       Gluster Service
+    </td>
+    <td colspan=7>
+       {%if gluster|slice:"-13:" == "is running..."%}
+          <i class="fa fa-check-circle green fa-2x"></i>	
+       {%else%}
+          <i class="fa fa-remove red fa-2x"></i>	
+       {%endif%}
+    </td>
+  </tr>
   <tr>
     <td colspan=7>
      <b>ZFS Status</b>
