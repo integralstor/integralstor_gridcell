@@ -37,19 +37,19 @@ Debug info - end <br><br>
 {%endblock%}
 {%block help_header%}
 {%if op == "vol_stop"%}
-Volume start results help
+Start a volume - results 
 {%elif op == "vol_start"%}
-Volume stop results help
+Stop a volume - results
 {%elif op == "expand_volume"%}
-Expand volume results help
+Expand a volume - results
 {%endif%}
 {%endblock%}
 {%block help_body%}
 {%if op == "vol_stop"%}
-<p>Help about volume stop results - need to be customized…</p>
+<p>This screen displays the result of stopping a volume. Volume data cannot be accessed from a stopped volume.</p>
 {%elif op == "vol_start"%}
-<p>Help about volume start results - need to be customized…</p>
+<p>This screen displays the result of starting a volume. Volume data can only be accessed from a started volume.</p>
 {%elif op == "expand_volume"%}
-<p>Help about Expand volume results - need to be customized…</p>
+<p>This screen displays the result of starting a volume to include new GRIDCells. Existing data will need to be rebalanced in order for it to make use of these new GRIDCells.</p>
 {%endif%}
 {%endblock%}

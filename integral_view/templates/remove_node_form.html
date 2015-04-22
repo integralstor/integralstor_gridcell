@@ -109,8 +109,8 @@ Please select an IntegralStor GRIDCell to remove from the storage pool.
 {%endif%}
 {%endblock%}
 {%block help_header%}
-Remove storage help
+Remove a GRIDCell from the storage pool
 {%endblock%}
 {%block help_body%}
-<p>Help about removing storage- needs customisation…</p>
+<p> This screen allows you to choose a GRIDCell that you want to remove from the storage pool. You would normally remove the GRIDCell from the storage pool in order to do some planned maintanance. A GRIDCell can only be removed if it does not have any data from an active volume residing on it. If there is a volume, whose data is on a GRIDCell that you want to remove, then use the "Replace GRIDCell" functionality to migrate the volume data onto another GRIDCell before removing it from the storage pool.</p>
 {%endblock%}

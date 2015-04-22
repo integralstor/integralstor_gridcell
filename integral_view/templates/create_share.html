@@ -64,7 +64,7 @@ function select_guest_ok() {
               <td>
                 <select id="id_vol" name="vol" class="form-control">
                 {% for choice in form.vol.field.choices %} 
-                  <option value="{{choice.0}}" {%if form.initial.ad_schema_mode == choice.0%} selected="selected" {%endif%}>{{choice.1}}</option>
+                  <option value="{{choice.0}}" {%if form.initial.vol == choice.0%} selected="selected" {%endif%}>{{choice.1}}</option>
                 {%endfor%}
                 </select>
               </td>
@@ -260,5 +260,16 @@ document.getElementById("pathdiv").style.display = "block";
 {%endblock%}
 
 {%block help_body%}
-  <p>Help about creating shares…</p>
+  <p>Shares are used to provide access to a certain directory within a certain volume to end users. Shares are used only for CIFS access. Users accessing the system via NFS can directly mount the directory within the volume using NFS mount points.</p>
+  <p>You can set various options on shares : </p>
+  <ul>
+  <li> Share name : This is the name which will show up on Windows systems when you browse to the network storage.</li>
+  <li>Volume name : The IntegralStor volume which contains the directory being exported through this share.</li>
+  <li>Directory : The directory under the selected volume which is to be exported as the share. You can the browse button to select the directory. If you want to create a new directory under the volume to export, then please use the Create a directory option and then use this screen to create a share for that directory. </li>
+  <li>Description : An explanatory note for the administrator's use.</li>
+  <li>Read only : Setting this prevents all changes to files within this share.</li>
+  <li>Browseable : Setting this will result in this share being displayed when someone browses the IntegralStor storage.</li>
+  <li>Guest ok : Setting this will allow anyone to view and make changes to the contents of this share.</li>
+  <li>Permitted users : The list of users who have access to this share. If the authentication method is set to Active Directory then this list is pulled from Active Directory itself. If the authentication method is set to Local Users then this list is pulled from the list of local users created on IntegralView. </li>
+  <li>Permitted groups : The list of groups who have access to this share. If the authentication method is set to Active Directory then this list is pulled from Active Directory itself. </li>
 {%endblock%}
