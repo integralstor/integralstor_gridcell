@@ -368,11 +368,20 @@ def establish_default_configuration(client, si):
 
     print "Setting appropriate rc.local files."
     r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/rc.local'])
+    r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/rc.d/rc.local'])
     r2 = client.cmd('*', 'cmd.run_all', ['cp %s/rc_local/primary_and_secondary/rc.local /etc/rc.local'%fractalio.common.get_defaults_dir()])
     if r2:
       for node, ret in r2.items():
         if ret["retcode"] != 0:
           errors = "Error setting the appropriate rc.local file on %s"%node
+          print errors
+          print "Exiting now.."
+          return -1
+    r2 = client.cmd('*', 'cmd.run_all', ['cp %s/rc_local/primary_and_secondary/rc.local /etc/rc.d/rc.local'%fractalio.common.get_defaults_dir()])
+    if r2:
+      for node, ret in r2.items():
+        if ret["retcode"] != 0:
+          errors = "Error setting the appropriate rc.d/rc.local file on %s"%node
           print errors
           print "Exiting now.."
           return -1
