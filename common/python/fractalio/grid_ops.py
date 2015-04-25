@@ -716,7 +716,6 @@ def add_nodes_to_grid(remote_addr,pending_minions, first_time = False, accessing
 
       ret, rc = _regenerate_manifest_and_status(first_time)
 
-      print "Regenerated manifest and status"
 
       if rc != 0:
         if errors:
@@ -725,6 +724,8 @@ def add_nodes_to_grid(remote_addr,pending_minions, first_time = False, accessing
           errors = "Error regenerating the new configuration : "
         errors += ",".join(command.get_output_list(ret))
         errors += ",".join(command.get_error_list(ret))
+      else:
+        print "Regenerated manifest and status"
 
   return (success, failed, errors)
 
