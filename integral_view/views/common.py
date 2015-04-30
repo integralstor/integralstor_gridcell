@@ -43,14 +43,27 @@ def create_gluster_dir(vol_name,path,mode=0775):
   if production:
     hostname = "127.0.0.1"
   else:
-    hostname = "192.168.1.244"
+    hostname = "fractalio-pri.fractalio.lan"
   vol = gfapi.Volume(hostname, vol_name)
   vol_mnt = vol.mount()
-  vol_dir = vol.mkdir(path,mode)
+  vol_dir = vol.mkdirs(path,mode)
   try:
     vol_grp = vol.chown(path,uid=0,gid=501)
   except Exception as e:
     print e
+  if vol_dir == 0:
+    return True
+  else:
+    return False
+
+def create_gluster_dirs(vol_name,path,mode=0775):
+  if production:
+    hostname = "127.0.0.1"
+  else:
+    hostname = "fractalio-pri.fractalio.lan"
+  vol = gfapi.Volume(hostname, vol_name)
+  vol_mnt = vol.mount()
+  vol_dir = vol.mkdirs(path,mode)
   if vol_dir == 0:
     return True
   else:

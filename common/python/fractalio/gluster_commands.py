@@ -3,7 +3,7 @@ import tempfile, socket, time, random, json, sys, os
 
 import fractalio
 from fractalio import command, xml_parse, common, ctdb
-
+from glusterfs import gfapi
 devel_files_path = common.get_devel_files_path()
 production = common.is_production()
 
@@ -278,6 +278,18 @@ def build_create_or_expand_volume_command(command, si, anl, vol_type, ondisk_sto
           first_node = second_node
           second_node = second_node + 1
 
+def create_gluster_dirs(vol_name,path,mode=0775):
+  if production:
+    hostname = "127.0.0.1"
+  else:
+    hostname = "fractalio-pri.fractalio.lan"
+  vol = gfapi.Volume(hostname, vol_name)
+  vol_mnt = vol.mount()
+  vol_dir = vol.makedirs(path,mode)
+  if vol_dir == 0:
+    return True
+  else:
+    return False
 
 
 

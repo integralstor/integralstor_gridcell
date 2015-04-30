@@ -27,7 +27,7 @@ def display_shares(request):
         elif request.GET["action"] == "created":
           conf = "Share successfully created"
         elif request.GET["action"] == "deleted":
-          conf = "Share successfully delete"
+          conf = "Share successfully deleted"
         return_dict["conf"] = conf
       return_dict["shares_list"] = shares_list
       template = "view_shares_list.html"
@@ -264,8 +264,12 @@ def create_share(request):
       if form.is_valid():
         cd = form.cleaned_data
         name = cd["name"]
-        path = "%s"%cd["path"]
-        display_path = cd["path"]
+        path = "%s"%cd["display_path"]
+        display_path = cd["display_path"]
+        if not display_path or display_path is None:
+          return_dict["path_error"] = "Please choose a path."
+          return django.shortcuts.render_to_response("create_share.html", return_dict, context_instance = django.template.context.RequestContext(request))
+        
         if "comment" in cd:
           comment = cd["comment"]
         else:
@@ -437,17 +441,18 @@ def save_samba_server_settings(request):
         if len(nsl) < 2:
           raise Exception("Could not detect the IP addresses of the primary and secondary GRIDCells")
         ipinfo = networking.get_ip_info('bond0')
-        rc = networking.generate_default_primary_named_conf(nsl[0], ipinfo['netmask'], nsl[1], True, cd['password_server_ip'], False)
-        if rc != 0:
-          raise Exception("Error updating the DNS configuration on the primary GRIDCell")
+        if cd["security"] == "ads":
+          rc = networking.generate_default_primary_named_conf(nsl[0], ipinfo['netmask'], nsl[1], True, cd['password_server_ip'], False)
+          if rc != 0:
+            raise Exception("Error updating the DNS configuration on the primary GRIDCell")
 
-        # ... and on the secondary
-        client = salt.client.LocalClient()
-        r2 = client.cmd('roles:secondary', 'cmd.run_all', ['python /opt/fractalio/scripts/python/create_secondary_named_config.py %s %s %s %s'%(nsl[0], nsl[1], ipinfo['netmask'], cd['password_server_ip'])], expr_form='grain')
-        if r2:
-          for node, ret in r2.items():
-            if ret["retcode"] != 0:
-              raise Exception("Error updating the DNS configuration on the primary GRIDCell")
+          # ... and on the secondary
+          client = salt.client.LocalClient()
+          r2 = client.cmd('roles:secondary', 'cmd.run_all', ['python /opt/fractalio/scripts/python/create_secondary_named_config.py %s %s %s %s'%(nsl[0], nsl[1], ipinfo['netmask'], cd['password_server_ip'])], expr_form='grain')
+          if r2:
+            for node, ret in r2.items():
+              if ret["retcode"] != 0:
+                raise Exception("Error updating the DNS configuration on the primary GRIDCell")
 
         #print '2'
       except Exception, e:
@@ -485,7 +490,7 @@ def save_samba_server_settings(request):
               raise Exception("AD join failure")
         except Exception, e:
           return_dict["error"] = "Error joining Active Directory - %s" %e
-      #samba_settings.restart_samba_services()
+      samba_settings.restart_samba_services()
       #print '6'
       if "error" in return_dict:
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
