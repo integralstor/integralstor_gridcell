@@ -343,6 +343,14 @@ def configure_networking():
         print "Error restarting network services."
         raw_input('Press enter to return to the main menu')
         return -1
+      r, rc = command.execute_with_rc('service salt-minion restart')
+      if rc == 0:
+        print "Salt minion service restarted succesfully."
+      else:
+        print "Error restarting salt minion services."
+        raw_input('Press enter to return to the main menu')
+        return -1
+      '''
       r, rc = command.execute_with_rc('service named restart')
       if rc == 0:
         print "DNS service restarted succesfully."
@@ -352,6 +360,7 @@ def configure_networking():
         print "Error restarting DNS services."
         raw_input('Press enter to return to the main menu')
         return -1
+      '''
   except Exception, e:
     print "Error configuring network settings : %s"%e
     return -1

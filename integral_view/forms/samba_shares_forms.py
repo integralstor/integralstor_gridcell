@@ -83,8 +83,8 @@ class PasswordChangeForm(forms.Form):
 class ShareForm(forms.Form):
   share_id =  forms.IntegerField(widget=forms.HiddenInput, required = False)
   name = forms.CharField()
-  path = forms.CharField()
-  display_path = forms.CharField()
+  path = forms.CharField(required=False)
+  display_path = forms.CharField(required=False)
   comment = forms.CharField(required=False)
   browseable = forms.BooleanField(required=False)
   read_only = forms.BooleanField(required=False)

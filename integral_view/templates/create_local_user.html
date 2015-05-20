@@ -1,9 +1,15 @@
 {% extends 'logged_in_base.html' %}
 
+{%block page-header%}
+ File Access 
+  <br /><small>
+     Local Users
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Create local users
+  </small>
+{%endblock%}
+
 {%block contents%}
-<span id="topic-text">File access -> Local users -> Create a local user</span><br>
-
-
 {{conf_message}}
 
 

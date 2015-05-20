@@ -41,16 +41,14 @@ function select_guest_ok() {
 {%block contents%}
 
 {{conf_message}}
-
 <form class="form-horizontal" role="form"name="create_form" action="" method="post">
-<input type="hidden" name="display_path">
             <table  class="table " style="width:800px">
             <tr>
               <td>
             <label for="id_name">Share name:</label>
               </td>
               <td>
-                <input type="text"  name="name" class="form-control" id="id_name" placeholder="Share name"> 
+                <input type="text"  name="name" class="form-control" id="id_name" placeholder="Share name" value={{form.name.value|default_if_none:""}}> 
               </td>
               <td>
             {{ form.name.errors }}
@@ -85,6 +83,28 @@ function select_guest_ok() {
               </td>
               <td>
                 {{ form.path.errors }}
+                {%if path_error%}
+                  {{path_error}}
+                {%endif%}
+              </td>
+            </tr>
+            <tr>
+              <td>
+            <label for="new_folder">Create Directory in the selected path:</label>
+              </td>
+              <td>
+                <input type="text"  name="new_folder" class="form-control" id="new_folder" placeholder="Create a new folder"> 
+              </td>
+              <td>
+                {{ form.comment.errors }}
+              </td>
+            </tr>
+            <tr>
+              <td>
+            	<label for="final_path">Final Path</label>
+              </td>
+              <td>
+		<input type="text" readonly required name="display_path" id="display_path" class="form-control">
               </td>
             </tr>
             <tr>
@@ -92,7 +112,7 @@ function select_guest_ok() {
             <label for="id_comment">Description:</label>
               </td>
               <td>
-                <input type="text"  name="comment" class="form-control" id="id_comment" placeholder="Description of this share"> 
+                <input type="text"  name="comment" class="form-control" id="id_comment" placeholder="Description of this share" value="{{form.comment.value|default_if_none:""}}"> 
               </td>
               <td>
                 {{ form.comment.errors }}
@@ -189,7 +209,11 @@ $(window).load(function() {
 </script>
   <script src="/static/jstree/dist/jstree.js"></script>
   <script>
+	$("#id_vol").change(function(){
+		location.reload();
+	});
   function displayTree() {
+      document.getElementById("pathdiv").style.display = "block";
       $('#pathdiv').jstree({ 'core' : {
         'multiple':false,
         'data' : {
@@ -206,9 +230,9 @@ $(window).load(function() {
             }
             else
               return { 'dir' : node.text , 'id':node.id, "vol_name": e.options[e.selectedIndex].value};
+            }
           }
         }
-      }
     });
  $(function () {
     $('#pathdiv').on('changed.jstree', function (e, data) {
@@ -222,35 +246,15 @@ $(window).load(function() {
       .jstree();
   });
   }
-
-/*              
-document.getElementById("pathdiv").style.display = "block";
-
-  $(function () {
-    $('#pathdiv').on('load_node.jstree', function (e, data) {
-        var n = data.instance.get_node(data.node["id"]);
-        var txt = data.instance.get_node(n["children_d"][0])["text"];
-        if (txt == "_error_") {
-          alert("Error parsing the volume directories.");
-          document.getElementById("pathdiv").style.display = "none";
-        }
-      return true;
-      })
-  });
-  $(function () {
-    $('#pathdiv').on('changed.jstree', function (e, data) {
-        var i, j, r = [];
-        r = data.instance.get_node(data.selected[0]).text;
-        rfp = data.instance.get_node(data.selected[0]).data["dir"];
-        alert(rfp)
-        document.forms["create_form"].elements["path"].value = rfp;
-        document.forms["create_form"].elements["display_path"].value = rfp;
-        document.getElementById("pathdiv").style.display = "none";
-      })
-      .jstree();
-  });
-}
-*/         
+$("#new_folder").on('input',function(){
+	var final_path = $("#id_path").val()
+	if (final_path === ""){
+		$("#display_path").val("/"+$(this).val())
+	}
+	else{
+		$("#display_path").val(final_path+$(this).val())
+	}
+});
 </script>
 
 {%endblock%}

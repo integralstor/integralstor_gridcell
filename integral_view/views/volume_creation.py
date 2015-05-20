@@ -251,9 +251,14 @@ def create_volume(request):
   
     #Underlying storage created so now create the volume
     d = gluster_commands.run_gluster_command("%s force"%cmd, "%s/create_volume.xml"%fractalio.common.get_devel_files_path(), "Volume creation")
-    rc,ret = fractalio.command.execute("gluster volume set "+request.POST['vol_name']+" storage.owner-gid 501")
-    print rc, ret
     if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
+      rc,ret = fractalio.command.execute("gluster volume set "+request.POST['vol_name']+" storage.owner-gid 501")
+      print rc, ret
+      rc,ret = fractalio.command.execute("gluster volume start "+request.POST['vol_name'])
+      rc,ret = fractalio.command.execute("mount -t glusterfs localhost:/"+request.POST['vol_name']+" /mnt")
+      rc,ret = fractalio.command.execute("chmod 770 /mnt")
+      rc,ret = fractalio.command.execute("umount /mnt")
+      rc,ret = fractalio.command.execute("gluster volume stop "+request.POST['vol_name'])
       #Success so audit the change
       audit_str = "Create "
       if request.POST["vol_type"] in ["replicated"]:
