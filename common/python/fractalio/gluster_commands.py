@@ -278,20 +278,6 @@ def build_create_or_expand_volume_command(command, si, anl, vol_type, ondisk_sto
           first_node = second_node
           second_node = second_node + 1
 
-def create_gluster_dirs(vol_name,path,mode=0775):
-  if production:
-    hostname = "127.0.0.1"
-  else:
-    hostname = "fractalio-pri.fractalio.lan"
-  vol = gfapi.Volume(hostname, vol_name)
-  vol_mnt = vol.mount()
-  vol_dir = vol.makedirs(path,mode)
-  if vol_dir == 0:
-    return True
-  else:
-    return False
-
-
 
 
 
@@ -451,6 +437,21 @@ def create_gluster_dirs(vol_name,path,mode=0775):
   d["count"] = count
   d["node_list"] = node_list
   return d
+
+def create_gluster_dirs(vol_name,path,mode=0775):
+  if production:
+    hostname = "127.0.0.1"
+  else:
+    hostname = "fractalio-pri.fractalio.lan"
+  vol = gfapi.Volume(hostname, vol_name)
+  vol_mnt = vol.mount()
+  vol_dir = vol.makedirs(path,mode)
+  if vol_dir == 0:
+    return True
+  else:
+    return False
+
+
 
 def build_expand_volume_command(vol, si):
 
