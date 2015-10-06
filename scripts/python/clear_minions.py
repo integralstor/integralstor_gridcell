@@ -1,12 +1,15 @@
 import salt.client, salt.wheel
+
 import sys
-import fractalio
-import fractalio.common
+from integralstor_common import common
 
 
 def clear_minions():
   try :
-    opts = salt.config.master_config(fractalio.common.get_salt_master_config())
+    master, err = common.get_salt_master_config()
+    if err:
+      raise Exception(err)
+    opts = salt.config.master_config(master)
     wheel = salt.wheel.Wheel(opts)
     keys = wheel.call_func('key.list_all')
     minions = keys['minions']

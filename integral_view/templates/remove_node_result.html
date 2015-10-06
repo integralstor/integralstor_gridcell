@@ -36,7 +36,7 @@ Successful
 Failed (Errno. {{result_dict.op_status.op_errno}} - {{result_dict.op_status.op_errstr}}, {{result_dict.op_status.output}}{% if result_dict.error_list %}, additional error message - {{result_dict.error_list}} {%endif%})
 {%else%}
 Failed with the following errors :<br>
-{%for error in error_list%}
+{{errors}}
 {{error}}<br>
 {%endfor%}
 {%endif%}

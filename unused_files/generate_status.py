@@ -2,9 +2,8 @@
 
 import salt.client
 import json, os, shutil, datetime, sys, re
-import fractalio
 import pprint
-from fractalio import lock, common
+from integralstor_common import lock, common
 
 def _gen_status_info(path):
 
@@ -188,7 +187,9 @@ def main():
     if num_args > 1:
       path = sys.argv[1]
     else:
-      path = common.get_system_status_path()
+      path, err = common.get_system_status_path()
+      if err:
+        raise Exception(err)
       if not path:
         path = '/tmp'
     print "Generating the status in %s"%path

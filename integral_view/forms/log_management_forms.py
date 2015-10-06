@@ -10,7 +10,7 @@ class SystemLogsForm(forms.Form):
   def __init__(self, *args, **kwargs):
 
     if kwargs:
-      si = kwargs.pop('system_config_list')
+      si = kwargs.pop('system_config')
 
     super(SystemLogsForm, self).__init__(*args, **kwargs)
     ch = []

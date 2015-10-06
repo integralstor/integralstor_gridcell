@@ -2,8 +2,7 @@
 
 import salt.client
 import json, os, datetime, shutil, sys
-import fractalio
-from fractalio import lock, common
+from integralstor_common import lock, common
 import pprint
 
 def _gen_manifest_info():
@@ -81,7 +80,9 @@ def main():
     if num_args > 1:
       path = sys.argv[1]
     else:
-      path = common.get_system_status_path()
+      path, err = common.get_system_status_path()
+      if err:
+        raise Exception(err)
       if not path:
         path = '/tmp'
     print "Generating the manifest in %s"%path

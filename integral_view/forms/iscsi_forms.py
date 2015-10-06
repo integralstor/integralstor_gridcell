@@ -1,7 +1,6 @@
 from django import forms
 
-import fractalio
-import fractalio.networking
+from integralstor_common import networking
 import common_forms
 
 class InitiatorForm(forms.Form):
@@ -34,7 +33,8 @@ class InitiatorForm(forms.Form):
           del cd["auth_network"]
           self._errors["auth_network"] = self.error_class(["CIDR network mask should be between 1 and 31"])
       ip_addr = auth_network[:slash_index]
-      if not networking.is_valid_ip(ip_addr):
+      valid, err = networking.validate_ip(ip_addr):
+      if not valid:
         del cd["auth_network"]
         self._errors["auth_network"] = self.error_class(["Please specify a valid IP address"])
     return cd

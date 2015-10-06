@@ -1,6 +1,5 @@
 from django import forms
-import fractalio
-from fractalio import networking
+from integralstor_common import networking
 
 class AuthADSettingsForm(forms.Form):
   security = forms.CharField(widget=forms.HiddenInput)
@@ -17,7 +16,8 @@ class AuthADSettingsForm(forms.Form):
 
   def clean(self):
     cd = super(AuthADSettingsForm, self).clean()
-    if not networking.is_valid_ip(cd['password_server_ip']):
+    valid_ip, err = networking.validate_ip(cd['password_server_ip'])
+    if not valid_ip:
       del cd["password_server_ip"]
       self._errors["password_server_ip"] = self.error_class(["Please specify a valid IP address"])
     return cd

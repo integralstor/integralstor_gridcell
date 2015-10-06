@@ -5,12 +5,12 @@ echo "Copying salt modules"
 cp -rf /tmp/integral_view/integral-view/salt/_modules /srv/salt/
 
 echo "Copying scripts"
-cp -rf /tmp/integral_view/integral-view/scripts/ /opt/fractalio/
+cp -rf /tmp/integral_view/integral-view/scripts/ /opt/integralstor/integralstor_gridcell/
 
 echo "Copying scripts"
-cp -rf /tmp/integral_view/integral-view/defaults/ /opt/fractalio/
+cp -rf /tmp/integral_view/integral-view/defaults/ /opt/integralstor/integralstor_gridcell/
 
 echo "Updating Integral view -- Django app"
-cp -rf /tmp/integral_view/integral-view/integral_view/ /opt/fractalio/integral_view/
+cp -rf /tmp/integral_view/integral-view/integral_view/ /opt/integralstor/integralstor_gridcell/integral_view/
 
 

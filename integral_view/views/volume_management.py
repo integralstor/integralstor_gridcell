@@ -1,16 +1,18 @@
 import re
 
 import django.http, django
-import salt.client
-
 from  django.contrib import auth
 from django.conf import settings
-import fractalio
-from fractalio import command, volume_info, system_info, audit, gluster_commands, gluster_batch
+
+import salt.client
+
+import integralstor_gridcell
+from integralstor_gridcell import volume_info, system_info, gluster_commands, gluster_batch, iscsi
+import integralstor_common
+from integralstor_common import command, audit
 
 import integral_view
 from integral_view.forms import volume_management_forms
-from integral_view.iscsi import iscsi
 from integral_view.utils import iv_logging
 
 
@@ -21,14 +23,22 @@ def volume_specific_op(request, operation, vol_name=None):
   return_dict = {}
   try:
     if not operation:
-      return_dict["error"] = "Operation not specified."
-      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      raise Exception("Operation not specified.")
   
     return_dict['op'] = operation
     form = None
   
-    vil = volume_info.get_volume_info_all()
-    si = system_info.load_system_config()
+    vil, err = volume_info.get_volume_info_all()
+    if err:
+      raise Exception(err)
+    if not vil:
+      raise Exception('Could not load volume information')
+
+    si, err = system_info.load_system_config()
+    if err:
+      raise Exception(err)
+    if not si:
+      raise Exception('Could not load system information')
  
     if request.method == "GET":
   
@@ -50,7 +60,9 @@ def volume_specific_op(request, operation, vol_name=None):
         if not l:
           return_dict["no_vols"] = True
       elif operation == "vol_options":
-        il = iscsi.load_iscsi_volumes_list(vil)
+        il, err = iscsi.load_iscsi_volumes_list(vil)
+        if err:
+          raise Exception(err)
         l = []
         for v in vil:
           #Ignore ISCSI volumes for this
@@ -101,7 +113,9 @@ def volume_specific_op(request, operation, vol_name=None):
         vol_name = request.POST["vol"]
         path = request.POST["path"]
   
-        vol_creation = integral_view.views.common.create_gluster_dir(vol_name,(path+dir_name),0777)
+        vol_creation, err = gluster_commands.create_gluster_dir(vol_name,(path+dir_name),0777)
+        if err:
+          raise Exception(err)
         if vol_creation:
           return_dict["conf_message"] = "Directory Creation success in path %s for volume %s"%(path+dir_name,vol_name)
           #Reinitialize the form and render back it on the screen.
@@ -124,11 +138,7 @@ def volume_specific_op(request, operation, vol_name=None):
         form = integral_view.forms.volume_management_forms.VolumeNameForm(request.POST, vol_list = l)
       if form.is_valid():
         cd = form.cleaned_data
-        try:
-          vol_name = cd['vol_name']
-        except Exception:
-          return_dict["error"] = "Volume name not specified."
-          return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+        vol_name = cd['vol_name']
         return_dict['vol_name'] = vol_name
         if operation in ['vol_stop', 'vol_delete']:
           return_dict['op_conf_msg'] = op_conf_msg[operation]
@@ -136,7 +146,11 @@ def volume_specific_op(request, operation, vol_name=None):
         elif operation == 'vol_quota':
           init = {}
           init["vol_name"] = vol_name
-          vd = volume_info.get_volume_info(None, vol_name)
+          vd, err = volume_info.get_volume_info(None, vol_name)
+          if err:
+            raise Exception(err)
+          if not vd:
+            raise Exception('Could not retrieve the information for volume %s'%vol_name)
           enable_quota = True
           if "options" in vd :
             for o in vd["options"]:
@@ -154,8 +168,14 @@ def volume_specific_op(request, operation, vol_name=None):
           return_dict["form"] = form
           return django.shortcuts.render_to_response('edit_volume_quota.html', return_dict, context_instance=django.template.context.RequestContext(request))
         elif operation == 'view_snapshots':
-          l = volume_info.get_snapshots(vol_name)
-          vd = volume_info.get_volume_info(vil, vol_name)
+          l, err = volume_info.get_snapshots(vol_name)
+          if err:
+            raise Exception(err)
+          vd, err = volume_info.get_volume_info(vil, vol_name)
+          if err:
+            raise Exception(err)
+          if not vd:
+            raise Exception('Could not retrieve the information for volume %s'%vol_name)
           if vd["status"] == 1:
             return_dict["vol_started"] = True
           else:
@@ -164,7 +184,11 @@ def volume_specific_op(request, operation, vol_name=None):
           return_dict["vol_name"] = vol_name
           return django.shortcuts.render_to_response('view_snapshots.html', return_dict, context_instance=django.template.context.RequestContext(request))
         elif operation == "vol_options":
-          vol_dict = volume_info.get_volume_info(vil, vol_name)
+          vol_dict, err = volume_info.get_volume_info(vil, vol_name)
+          if err:
+            raise Exception(err)
+          if not vol_dict:
+            raise Exception('Could not retrieve the information for volume %s'%vol_name)
           d = {}
           #Set default values
           d["auth_allow"] = '*'
@@ -194,9 +218,13 @@ def volume_specific_op(request, operation, vol_name=None):
           return_dict["form"] = form
           return django.shortcuts.render_to_response('volume_options_form.html', return_dict, context_instance=django.template.context.RequestContext(request))
         elif operation == 'start_rebalance':
-          d = gluster_batch.create_rebalance_command_file(vol_name)
+          d, err = gluster_batch.create_rebalance_command_file(vol_name)
+          if err:
+            raise Exception(err)
           if not "error" in d:
-            audit.audit("vol_rebalance_start", "Scheduled volume rebalance start for volume %s"%vol_name, request.META["REMOTE_ADDR"])
+            ret, err = audit.audit("vol_rebalance_start", "Scheduled volume rebalance start for volume %s"%vol_name, request.META["REMOTE_ADDR"])
+            if err:
+              raise Exception(err)
             return django.http.HttpResponseRedirect('/show/batch_start_conf/%s'%d["file_name"])
           else:
             return_dict["error"] = "Error initiating rebalance : %s"%d["error"]
@@ -218,7 +246,9 @@ def volume_specific_op(request, operation, vol_name=None):
             replica_count = int(vol["replica_count"])
             replicated = True
   
-          d = gluster_commands.build_expand_volume_command(vol, si)
+          d, err = gluster_commands.build_expand_volume_command(vol, si)
+          if err:
+            raise Exception(err)
           if "error" in d:
             return_dict["error"] = "Error expanding the volume : %s"%d["error"]
             return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
@@ -234,20 +264,6 @@ def volume_specific_op(request, operation, vol_name=None):
           else:
             return_dict['vol_type'] = "distributed"
               
-  
-          #form = volume_management_forms.ExpandVolumeForm(vol_name = vol_name, system_config_list = scl, volume_info_list = vil)
-          #List of hosts that are part of this volume
-          #hosts_in_vol_list = []
-          #hosts_in_vol_list = volume_info.get_brick_hostname_list(vol)
-          #return_dict['form'] = form
-          #return_dict['hosts_in_vol_list'] = hosts_in_vol_list
-          #return_dict['system_info'] = si
-          #return_dict['vol_type'] = vol["type"]
-          #return_dict['replica_count'] = replica_count
-          #return_dict['node_list'] = nl
-          #return_dict['colour_dict'] = settings.DISPLAY_COLOURS
-          #for brick in vol["bricks"]:
-          #  hosts_in_vol_list.append(brick["host"])
           return django.shortcuts.render_to_response('expand_volume_form.html', return_dict, context_instance=django.template.context.RequestContext(request))
     # form not valid or called using get so return same form
     return_dict['form'] = form
@@ -269,7 +285,11 @@ def create_snapshot(request):
 
   return_dict = {}
   try:
-    vil = volume_info.get_volume_info_all()
+    vil, err = volume_info.get_volume_info_all()
+    if err:
+      raise Exception(err)
+    if not vil:
+      raise Exception('Error loading volume infomation - no volumes found')
     l = []
     for v in vil:
       l.append(v["name"])
@@ -283,10 +303,14 @@ def create_snapshot(request):
         return_dict["form"] = form
         return django.shortcuts.render_to_response('create_snapshot.html', return_dict, context_instance = django.template.context.RequestContext(request))
       cd = form.cleaned_data
-      d  = gluster_commands.create_snapshot(cd)
+      d, err  = gluster_commands.create_snapshot(cd)
+      if err:
+        raise Exception(err)
       if d and  ("op_status" in d) and d["op_status"]["op_ret"] == 0:
         #Success so audit the change
-        audit.audit("create_snapshot", d["display_command"], request.META["REMOTE_ADDR"])
+        ret, err = audit.audit("create_snapshot", d["display_command"], request.META["REMOTE_ADDR"])
+        if err:
+          raise Exception(err)
         return_dict["op"] = "Create snapshot"
         return_dict["conf"] = d["display_command"]
         return django.shortcuts.render_to_response('snapshot_op_result.html', return_dict, context_instance = django.template.context.RequestContext(request))
@@ -329,7 +353,9 @@ def delete_snapshot(request):
       else:
         #Got a conf from the user so proceed
         snapshot_name = request.POST["snapshot_name"]
-        d = gluster_commands.delete_snapshot(snapshot_name)
+        d, err = gluster_commands.delete_snapshot(snapshot_name)
+        if err:
+          raise Exception(err)
         if d:
           #assert False
           if "op_status" in d:
@@ -337,7 +363,9 @@ def delete_snapshot(request):
               return_dict["conf"] = "Successfully deleted snapshot - %s"%snapshot_name
               return_dict["op"] = "Delete snapshot"
               audit_str = "Deleted snapshot %s."%snapshot_name
-              audit.audit("delete_snapshot", audit_str, request.META["REMOTE_ADDR"])
+              ret, err = audit.audit("delete_snapshot", audit_str, request.META["REMOTE_ADDR"])
+              if err:
+                raise Exception(err)
               template = "snapshot_op_result.html"
             else:
               err = "Error deleting the snapshot :"
@@ -345,9 +373,9 @@ def delete_snapshot(request):
                 err += d["op_status"]["op_errstr"]
               if "error_list" in d:
                 err += " ".join(d["error_list"])
-              return_dict["error"] = err
+              raise Exception(err)
           else:
-            return_dict["error"] = "Could not detect the status of the snapshot deletion. Please try again."
+            raise Exception("Could not detect the status of the snapshot deletion. Please try again.")
   
     return django.shortcuts.render_to_response(template, return_dict, context_instance = django.template.context.RequestContext(request))
   except Exception, e:
@@ -358,9 +386,6 @@ def delete_snapshot(request):
       return_dict["error"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
-    form = None
-    template = "logged_in_error.html"
-  
 
 def restore_snapshot(request):
 
@@ -385,7 +410,9 @@ def restore_snapshot(request):
         #Got a conf from the user so proceed
         snapshot_name = request.POST["snapshot_name"]
         vol_name = request.POST["vol_name"]
-        d = gluster_commands.restore_snapshot(snapshot_name)
+        d, err = gluster_commands.restore_snapshot(snapshot_name)
+        if err:
+          raise Exception(err)
         if d:
           #assert False
           if "op_status" in d:
@@ -393,7 +420,9 @@ def restore_snapshot(request):
               return_dict["conf"] = "Successfully restored snapshot %s onto volume %s"%(snapshot_name, vol_name)
               return_dict["op"] = "Restore snapshot"
               audit_str = "Restored snapshot %s onto volume %s."%(snapshot_name, vol_name)
-              audit.audit("restore_snapshot", audit_str, request.META["REMOTE_ADDR"])
+              ret, err = audit.audit("restore_snapshot", audit_str, request.META["REMOTE_ADDR"])
+              if err:
+                raise Exception(err)
               template = "snapshot_op_result.html"
             else:
               err = "Error restoring the snapshot :"
@@ -401,9 +430,9 @@ def restore_snapshot(request):
                 err += d["op_status"]["op_errstr"]
               if "error_list" in d:
                 err += " ".join(d["error_list"])
-              return_dict["error"] = err
+              raise Exception(err)
           else:
-            return_dict["error"] = "Could not detect the status of the snapshot restoration. Please try again."
+            raise Exception("Could not detect the status of the snapshot restoration. Please try again.")
   
     return django.shortcuts.render_to_response(template, return_dict, context_instance = django.template.context.RequestContext(request))
   except Exception, e:
@@ -424,11 +453,11 @@ def deactivate_snapshot(request):
   
     if request.method == "GET":
       # Disallowed GET method so return error.
-      return_dict["error"] = "Invalid request. Please use the menu options."
+      raise Exception("Invalid request. Please use the menu options.")
     else:
       # POST method processing
       if "snapshot_name" not in request.POST:
-        return_dict["error"] = "Snapshot name not specified. Please use the menu options."
+        raise Exception("Snapshot name not specified. Please use the menu options.")
       elif "conf" not in request.POST:
         #Get a conf from the user before we proceed
         return_dict["snapshot_name"] = request.POST["snapshot_name"]
@@ -436,7 +465,9 @@ def deactivate_snapshot(request):
       else:
         #Got a conf from the user so proceed
         snapshot_name = request.POST["snapshot_name"]
-        d = gluster_commands.deactivate_snapshot(snapshot_name)
+        d, err = gluster_commands.deactivate_snapshot(snapshot_name)
+        if err:
+          raise Exception(err)
         if d:
           #assert False
           if "op_status" in d:
@@ -444,7 +475,9 @@ def deactivate_snapshot(request):
               return_dict["conf"] = "Successfully deactivated snapshot - %s"%snapshot_name
               return_dict["op"] = "Deactivate snapshot"
               audit_str = "Deactivated snapshot %s."%snapshot_name
-              audit.audit("deactivate_snapshot", audit_str, request.META["REMOTE_ADDR"])
+              ret, err = audit.audit("deactivate_snapshot", audit_str, request.META["REMOTE_ADDR"])
+              if err:
+                raise Exception(err)
               template = "snapshot_op_result.html"
             else:
               err = "Error deactivating the snapshot :"
@@ -452,9 +485,9 @@ def deactivate_snapshot(request):
                 err += d["op_status"]["op_errstr"]
               if "error_list" in d:
                 err += " ".join(d["error_list"])
-              return_dict["error"] = err
+              raise Exception(err)
           else:
-            return_dict["error"] = "Could not detect the status of the snapshot deactivation. Please try again."
+            raise Exception("Could not detect the status of the snapshot deactivation. Please try again.")
   
     return django.shortcuts.render_to_response(template, return_dict, context_instance = django.template.context.RequestContext(request))
   except Exception, e:
@@ -481,7 +514,9 @@ def activate_snapshot(request):
         return_dict["error"] = "Snapshot name not specified. Please use the menu options."
       else:
         snapshot_name = request.POST["snapshot_name"]
-        d = gluster_commands.activate_snapshot(snapshot_name)
+        d, err = gluster_commands.activate_snapshot(snapshot_name)
+        if err:
+          raise Exception(err)
         if d:
           #assert False
           if "op_status" in d:
@@ -489,7 +524,9 @@ def activate_snapshot(request):
               return_dict["conf"] = "Successfully activated snapshot - %s"%snapshot_name
               return_dict["op"] = "Activate snapshot"
               audit_str = "Activated snapshot %s."%snapshot_name
-              audit.audit("activate_snapshot", audit_str, request.META["REMOTE_ADDR"])
+              ret, err = audit.audit("activate_snapshot", audit_str, request.META["REMOTE_ADDR"])
+              if err:
+                raise Exception(err)
               template = "snapshot_op_result.html"
             else:
               err = "Error activating the snapshot :"
@@ -497,9 +534,9 @@ def activate_snapshot(request):
                 err += d["op_status"]["op_errstr"]
               if "error_list" in d:
                 err += " ".join(d["error_list"])
-              return_dict["error"] = err
+              raise Exception(err)
           else:
-            return_dict["error"] = "Could not detect the status of the snapshot activation. Please try again."
+            raise Exception("Could not detect the status of the snapshot activation. Please try again.")
   
     return django.shortcuts.render_to_response(template, return_dict, context_instance = django.template.context.RequestContext(request))
   except Exception, e:
@@ -518,19 +555,23 @@ def set_volume_options(request):
   try:
     if request.method == "GET":
       # Disallowed GET method so return error.
-      return_dict["error"] = "Invalid request. Please use the menu options."
-      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      raise Exception("Invalid request. Please use the menu options.")
     form = integral_view.forms.volume_management_forms.VolumeOptionsForm(request.POST)
   
     if not form.is_valid():
       return_dict["form"] = form
       return django.shortcuts.render_to_response('volume_options_form.html', return_dict, context_instance = django.template.context.RequestContext(request))
     cd = form.cleaned_data
-    ol = fractalio.volume_info.set_volume_options(cd)
-    for d in ol:
-      if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
-        #Success so audit the change
-        audit.audit("set_vol_options", d["display_command"], request.META["REMOTE_ADDR"])
+    ol, err = volume_info.set_volume_options(cd)
+    if err:
+      raise Exception(err)
+    if ol:
+      for d in ol:
+        if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
+          #Success so audit the change
+          ret, err = audit.audit("set_vol_options", d["display_command"], request.META["REMOTE_ADDR"])
+          if err:
+            raise Exception(err)
   
     return_dict["result_list"] = ol
     return django.shortcuts.render_to_response('volume_options_result.html', return_dict, context_instance = django.template.context.RequestContext(request))
@@ -548,8 +589,7 @@ def set_volume_quota(request):
   try:
     if request.method == "GET":
       # Disallowed GET method so return error.
-      return_dict["error"] = "Invalid request. Please use the menu options."
-      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      raise Exception("Invalid request. Please use the menu options.")
   
     form = integral_view.forms.volume_management_forms.VolumeQuotaForm(request.POST)
   
@@ -558,18 +598,25 @@ def set_volume_quota(request):
       return django.shortcuts.render_to_response('edit_volume_quota.html', return_dict, context_instance = django.template.context.RequestContext(request))
     cd = form.cleaned_data
     vol_name = cd["vol_name"]
-    vd = volume_info.get_volume_info(None, vol_name)
+    vd, err = volume_info.get_volume_info(None, vol_name)
+    if err:
+      raise Exception(err)
     enable_quota = True
     if "options" in vd :
       for o in vd["options"]:
         if o["name"] == "features.quota" and o["value"] == "on":
           enable_quota = False
           break
-    ol = fractalio.gluster_commands.set_volume_quota(cd["vol_name"], enable_quota, cd["set_quota"], cd["limit"], cd["unit"])
-    for d in ol:
-      if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
-        #Success so audit the change
-        audit.audit("set_vol_quota", d["display_command"], request.META["REMOTE_ADDR"])
+    ol, err = gluster_commands.set_volume_quota(cd["vol_name"], enable_quota, cd["set_quota"], cd["limit"], cd["unit"])
+    if err:
+      raise Exception(err)
+    if ol:
+      for d in ol:
+        if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
+          #Success so audit the change
+          ret, err = audit.audit("set_vol_quota", d["display_command"], request.META["REMOTE_ADDR"])
+          if err:
+            raise Exception(err)
   
     return_dict["result_list"] = ol
     return_dict["app_debug"] = settings.APP_DEBUG
@@ -589,86 +636,81 @@ def delete_volume(request):
   try:
     form = None
   
-    vil = volume_info.get_volume_info_all()
-    si = system_info.load_system_config()
+    vil, err = volume_info.get_volume_info_all()
+    if err:
+      raise Exception(err)
+    if not vil:
+      raise Exception('Could not load volume information')
+    si, err = system_info.load_system_config()
+    if err:
+      raise Exception(err)
+    if not si:
+      raise Exception('Could not load system information')
+
     return_dict['system_config_list'] = si
   
     if request.method == "GET":
-      return_dict["error"] = "Invalid access. Please use the menus to perform functions."
-      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      raise Exception("Invalid access. Please use the menus to perform functions.")
     else:
       if "vol_name" not in request.POST:
-        return_dict["error"] = "Volume not specified. Please use the menus to perform functions."
-        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+        raise Exception("Volume not specified. Please use the menus to perform functions.")
       vol_name = request.POST["vol_name"]
-      v = volume_info.get_volume_info(vil, vol_name)
+      v, err = volume_info.get_volume_info(vil, vol_name)
+      if err:
+        raise Exception(err)
+      if not v:
+        raise Exception('Could not load volume information')
       #assert False
       result_list = []
-      try:
-        d = {}
-        cmd = 'gluster --mode=script volume delete %s '%vol_name
-        d["command"] = "Deleting volume %s"%vol_name
-        d["actual_command"] = cmd
-        (r, rc) = command.execute_with_rc(cmd)
-        if rc == 0:
-          audit.audit("vol_delete", "Deleted volume %s"%(vol_name), request.META["REMOTE_ADDR"])
-          # Now delete the brick directories
-          d["result"] = "Success"
-          result_list.append(d)
-          for bricks in  v["bricks"]:
-            for b in bricks:
-              d = {}
-              l = b.split(':')
-              d["command"] = "Deleting volume storage on GRIDCell %s"%l[0]
-              print "executing command"
-              client = salt.client.LocalClient()
-              cmd_to_run = 'zfs destroy %s'%l[1][1:]
-              print 'Running %s'%cmd_to_run
-              #assert False
-              rc = client.cmd(l[0], 'cmd.run_all', [cmd_to_run])
-              if rc:
-                for hostname, res in rc.items():
-                  #print ret
-                  if res["retcode"] != 0:
-                    errors = "Error destroying the brick path ZFS dataset on %s"%hostname
-                    d["result"] = "Failed with error : %s"%errors
-                  else:
-                    d["result"] = "Success"
-                  result_list.append(d)
-  
-              '''
-              print "/opt/fractal/bin/client %s rcmd rm -rf %s"%(l[0], l[1])
-              d["actual_command"] = "/opt/fractal/bin/client %s rcmd rm -rf %s"%(l[0], l[1])
-              (r, rc) = command.execute_with_rc("/opt/fractal/bin/client %s rcmd rm -rf %s"%(l[0], l[1]))
-              if rc == 0:
-                audit.audit("vol_delete", "Deleted volume data on GRIDCell %s"%(l[0]), request.META["REMOTE_ADDR"])
-                d["result"] = "Success"
+      d = {}
+      cmd = 'gluster --mode=script volume delete %s '%vol_name
+      d["command"] = "Deleting volume %s"%vol_name
+      d["actual_command"] = cmd
+      (r, rc), err = command.execute_with_rc(cmd)
+      if err:
+        raise Exception(err)
+      if rc == 0:
+        ret, err = audit.audit("vol_delete", "Deleted volume %s"%(vol_name), request.META["REMOTE_ADDR"])
+        if err:
+          raise Exception(err)
+        # Now delete the brick directories
+        d["result"] = "Success"
+        result_list.append(d)
+        for bricks in  v["bricks"]:
+          for b in bricks:
+            d = {}
+            l = b.split(':')
+            d["command"] = "Deleting volume storage on GRIDCell %s"%l[0]
+            #print "executing command"
+            client = salt.client.LocalClient()
+            cmd_to_run = 'zfs destroy %s'%l[1][1:]
+            #print 'Running %s'%cmd_to_run
+            #assert False
+            rc = client.cmd(l[0], 'cmd.run_all', [cmd_to_run])
+            if rc:
+              for hostname, res in rc.items():
+                #print ret
+                if res["retcode"] != 0:
+                  errors = "Error destroying the brick path ZFS dataset on %s"%hostname
+                  d["result"] = "Failed with error : %s"%errors
+                else:
+                  d["result"] = "Success"
                 result_list.append(d)
-              else:
-                el = command.get_error_list(r)
-                ol = command.get_output_list(r)
-                estr = ""
-                if el:
-                  estr = " , ".join(el)
-                if ol:
-                  estr += " , ".join(ol)
-                d["result"] = "Failed with error : %s"%estr
-                result_list.append(d)
-              '''
-  
-        else:
-          el = command.get_error_list(r)
-          ol = command.get_output_list(r)
-          estr = ""
-          if el:
-            estr = " , ".join(el)
-          if ol:
-            estr += " , ".join(ol)
-          d["result"] = "Failed with error : %s"%estr
-          result_list.append(d)
-      except Exception, e:
-        return_dict["error"] = "Error deleting volume %s."%e
-        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+ 
+      else:
+        el, err = command.get_error_list(r)
+        if err:
+          raise Exception(err)
+        ol, err = command.get_output_list(r)
+        if err:
+          raise Exception(err)
+        estr = ""
+        if el:
+          estr = " , ".join(el)
+        if ol:
+          estr += " , ".join(ol)
+        d["result"] = "Failed with error : %s"%estr
+        result_list.append(d)
   
       return_dict["result_list"] = result_list
       return_dict["app_debug"] = settings.APP_DEBUG
@@ -688,12 +730,25 @@ def replace_node(request):
   try:
     form = None
   
-    vil = volume_info.get_volume_info_all()
-    si = system_info.load_system_config()
+    vil, err = volume_info.get_volume_info_all()
+    if err:
+      raise Exception(err)
+    if not vil:
+      raise Exception('Could not load volume information')
+    si, err = system_info.load_system_config()
+    if err:
+      raise Exception(err)
+    if not si:
+      raise Exception('Could not load system information')
     return_dict['system_config_list'] = si
   
     
-    d = volume_info.get_replacement_node_info(si, vil)
+    d, err = volume_info.get_replacement_node_info(si, vil)
+    if err:
+      raise Exception(err)
+    if not d:
+      raise Exception('Could not load replacement GRIDCell information')
+      
     if not d["src_node_list"]:
       return_dict["error"] = "There are no GRIDCells eligible to be replaced."
       return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
@@ -721,34 +776,41 @@ def replace_node(request):
           src_node = cd["src_node"]
           dest_node = cd["dest_node"]
   
-          vol_list = get_volumes_on_node(src_node, vil)
+          vol_list, err = get_volumes_on_node(src_node, vil)
+          if err:
+            raise Exception(err)
           client = salt.client.LocalClient()
           revert_list = []
-          for vol in vol_list:
-            #Get the brick path and the data set name
-            if 'bricks' in vol and vol['bricks']:
-              brick1 = vol['bricks'][0]
-              d = volume_info.get_components(brick1)
-              if not d:
-                return_dict["error"] = "Error decoding the brick for the specified volume. Brick name : %s "%brick1
-                return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
-              dataset_cmd = 'zfs create %s/%s/%s'%(d['pool'], d['ondisk_storage'], vol.strip())
-              revert_cmd = 'zfs destroy %s/%s/%s'%(d['pool'], d['ondisk_storage'], vol.strip())
-              r1 = client.cmd(dest_node, 'cmd.run_all', [dataset_cmd])
-              if r1:
-                for node, ret in r1.items():
-                  #print ret
-                 if ret["retcode"] != 0:
-                    errors += ", Error creating the underlying storage brick on %s"%node
-                    print errors
-                 else:
-                    revert_list.append(revert_cmd)
+          if vol_list:
+            for vol in vol_list:
+              #Get the brick path and the data set name
+              if 'bricks' in vol and vol['bricks']:
+                brick1 = vol['bricks'][0]
+                d, err = volume_info.get_components(brick1)
+                if err:
+                  raise Exception(err)
+                if not d:
+                  raise Exception("Error decoding the brick for the specified volume. Brick name : %s "%brick1)
+
+                dataset_cmd = 'zfs create %s/%s/%s'%(d['pool'], d['ondisk_storage'], vol.strip())
+                revert_cmd = 'zfs destroy %s/%s/%s'%(d['pool'], d['ondisk_storage'], vol.strip())
+                r1 = client.cmd(dest_node, 'cmd.run_all', [dataset_cmd])
+                if r1:
+                  for node, ret in r1.items():
+                    #print ret
+                   if ret["retcode"] != 0:
+                      errors += ", Error creating the underlying storage brick on %s"%node
+                      print errors
+                   else:
+                      revert_list.append(revert_cmd)
   
-            else:
-              return_dict["error"] = "No bricks found for the specified volume "
-              return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+              else:
+                raise Exception("No bricks found for the specified volume ")
+
           #What do we do with this revert list?!
-          d = gluster_batch.create_replace_command_file(si, vil, src_node, dest_node)
+          d, err = gluster_batch.create_replace_command_file(si, vil, src_node, dest_node)
+          if err:
+            raise Exception(err)
           if "error" in d:
             if revert_list:
               #Undo the creation of the datasets
@@ -760,10 +822,12 @@ def replace_node(request):
                       if ret["retcode"] != 0:
                         errors += " , Error undoing the creation of the underlying storage brick on %s"%dest_node
                         d["error"].append(errors)
-            return_dict["error"] = "Error initiating replace : %s"%d["error"]
+            raise Exception("Error initiating replace : %s"%d["error"])
             return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
           else:
-            audit.audit("replace_node", "Scheduled replacement of GRIDCell %s with GRIDCell %s"%(src_node, dest_node), request.META["REMOTE_ADDR"])
+            ret, err = audit.audit("replace_node", "Scheduled replacement of GRIDCell %s with GRIDCell %s"%(src_node, dest_node), request.META["REMOTE_ADDR"])
+            if err:
+              raise Exception(err)
             return django.http.HttpResponseRedirect('/show/batch_start_conf/%s'%d["file_name"])
       else:
         form = volume_management_forms.ReplaceNodeForm(request.POST, src_node_list = d["src_node_list"], dest_node_list = d["dest_node_list"])
@@ -793,20 +857,31 @@ def replace_disk(request):
   try:
     form = None
   
-    vil = volume_info.get_volume_info_all()
-    si = system_info.load_system_config()
+    vil, err = volume_info.get_volume_info_all()
+    if err:
+      raise Exception(err)
+    if not vil:
+      raise Exception('Could not load volume information')
+    si, err = system_info.load_system_config()
+    if err:
+      raise Exception(err)
+    if not si:
+      raise Exception('Could not load system information')
     return_dict['system_config_list'] = si
     
     template = 'logged_in_error.html'
   
+    python_scripts_path, err = common.get_python_scripts_path()
+    if err:
+      raise Exception(err)
+    common_python_scripts_path, err = common.get_common_python_scripts_path()
+    if err:
+      raise Exception(err)
     if request.method == "GET":
-      return_dict["error"] = "Incorrect access method. Please use the menus"
+      raise Exception("Incorrect access method. Please use the menus")
     else:
       node = request.POST["node"]
       serial_number = request.POST["serial_number"]
-  
-      if "error" in return_dict:
-        return django.shortcuts.render_to_response(template, return_dict, context_instance = django.template.context.RequestContext(request))
   
       if "conf" in request.POST:
         if "node" not in request.POST or  "serial_number" not in request.POST:
@@ -835,7 +910,7 @@ def replace_disk(request):
                 pool = disk["pool"]
               disk_id = disk["id"]
             if not pool:
-              return_dict["error"] = "Could not find the storage pool on that disk. Please use the menus"
+              raise Exception("Could not find the storage pool on that disk. Please use the menus")
             else:
               '''
               pid = -1
@@ -860,7 +935,7 @@ def replace_disk(request):
               #issue a zpool offline pool disk-id using salt
               client = salt.client.LocalClient()
               cmd_to_run = 'zpool offline %s %s'%(pool, disk_id)
-              print 'Running %s'%cmd_to_run
+              #print 'Running %s'%cmd_to_run
               #assert False
               rc = client.cmd(node, 'cmd.run_all', [cmd_to_run])
               if rc:
@@ -872,7 +947,7 @@ def replace_disk(request):
                       error += ret["stderr"]
                     return_dict["error"] = error
                     return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
-              print rc
+              #print rc
               #if disk_status == "Disk Missing":
               #  #Issue a reboot now, wait for a couple of seconds for it to shutdown and then redirect to the template to wait for reboot..
               #  pass
@@ -895,7 +970,7 @@ def replace_disk(request):
             return_dict["old_id"] = old_id
             old_disks = si[node]["disks"].keys()
             client = salt.client.LocalClient()
-            rc = client.cmd(node, 'fractalio_status.disk_info')
+            rc = client.cmd(node, 'integralstor.disk_info_and_status')
             if rc and node in rc:
               new_disks = rc[node].keys()
               if new_disks:
@@ -905,35 +980,10 @@ def replace_disk(request):
                     return_dict["new_id"] = rc[node][disk]["id"]
                     break
                 if "inserted_disk_serial_number" not in return_dict:
-                  return_dict["error"] = "Could not detect any new disk."
+                  raise Exception("Could not detect any new disk.")
                 else:
                   template = "replace_disk_confirm_new_disk.html"
   
-            '''
-            ret, rc = fractalio.command.execute_with_rc('/opt/fractalio/generate_manifest.py /opt/fractalio/integral_view/integral_view/production/config')
-            #print ret
-            if rc != 0:
-              return_dict["error"] = "Could not regenrate the new hardware configuration. Error generating manifest. Return code %d"%rc
-              print ret
-            else:
-              ret, rc = fractalio.command.execute_with_rc('/opt/fractalio/generate_status.py /opt/fractalio/integral_view/integral_view/production/config')
-              if rc != 0:
-                return_dict["error"] = "Could not regenrate the new hardware configuration. Error generating status. Return code %d"%rc
-                print ret
-              else:
-                si = system_info.load_system_config()
-                return_dict['system_config_list'] = si
-                new_disks = si[node]["disks"].keys()
-                for disk in new_disks:
-                  if disk not in old_disks:
-                    return_dict["inserted_disk_serial_number"] = disk
-                    return_dict["new_id"] = si[node]["disks"][disk]["id"]
-                    break
-                if "inserted_disk_serial_number" not in return_dict:
-                  return_dict["error"] = "Could not detect any new disk."
-                else:
-                  template = "replace_disk_confirm_new_disk.html"
-            '''
   
           elif step == "online_new_disk":
   
@@ -947,11 +997,11 @@ def replace_disk(request):
             new_id = request.POST["new_id"]
             new_serial_number = request.POST["new_serial_number"]
             cmd_to_run = "zpool replace -f %s %s %s"%(pool, old_id, new_id)
-            print 'Running %s'%cmd_to_run
+            #print 'Running %s'%cmd_to_run
             client = salt.client.LocalClient()
             rc = client.cmd(node, 'cmd.run_all', [cmd_to_run])
             if rc:
-              print rc
+              #print rc
               for node, ret in rc.items():
                 #print ret
                 if ret["retcode"] != 0:
@@ -959,11 +1009,10 @@ def replace_disk(request):
                   if "stderr" in ret:
                     error += ret["stderr"]
                   rc = client.cmd(node, 'cmd.run', ['zpool online %s %s'%(pool, old_id)])
-                  return_dict["error"] = error
-                  return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+                  raise Exception(error)
             else:
-              error = "Error replacing the disk on %s : "%(node)
-              return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+              raise Exception("Error replacing the disk on %s : "%(node))
+
             '''
             cmd_to_run = "zpool set autoexpand=on %s"%pool
             print 'Running %s'%cmd_to_run
@@ -983,34 +1032,32 @@ def replace_disk(request):
               disk_id = disk["id"]
             '''
             cmd_to_run = 'zpool online %s %s'%(pool, new_id)
-            print 'Running %s'%cmd_to_run
+            #print 'Running %s'%cmd_to_run
             rc = client.cmd(node, 'cmd.run_all', [cmd_to_run])
             if rc:
-              print rc
+              #print rc
               for node, ret in rc.items():
                 #print ret
                 if ret["retcode"] != 0:
                   error = "Error bringing the new disk online on %s : "%(node)
                   if "stderr" in ret:
                     error += ret["stderr"]
-                  return_dict["error"] = error
-                  return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+                  raise Exception(error)
             else:
-              error = "Error bringing the new disk online on %s : "%(node)
-              return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
-            ret, rc = fractalio.command.execute_with_rc('/opt/fractalio/scripts/python/generate_manifest.py')
+              raise Exception("Error bringing the new disk online on %s : "%(node))
+            ret, rc = command.execute_with_rc('%s/generate_manifest.py'%common_python_scripts_path)
             #print ret
             if rc != 0:
-              return_dict["error"] = "Could not regenrate the new hardware configuration. Error generating manifest. Return code %d"%rc
-              print ret
-              return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+              #print ret
+              raise Exception("Could not regenrate the new hardware configuration. Error generating manifest. Return code %d"%rc)
             else:
-              ret, rc = fractalio.command.execute_with_rc('/opt/fractalio/scripts/python/generate_status.py')
+              ret, rc = command.execute_with_rc('%s/generate_status.py'%common_python_scripts_path)
               if rc != 0:
-                print ret
-                return_dict["error"] = "Could not regenrate the new hardware configuration. Error generating status. Return code %d"%rc
-                return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
-              si = system_info.load_system_config()
+                #print ret
+                raise Exception("Could not regenrate the new hardware configuration. Error generating status. Return code %d"%rc)
+              si, err = system_info.load_system_config()
+              if err:
+                raise Exception(err)
               return_dict["node"] = node
               return_dict["old_serial_number"] = serial_number
               return_dict["new_serial_number"] = new_serial_number
@@ -1020,7 +1067,7 @@ def replace_disk(request):
           
       else:
         if "node" not in request.POST or  "serial_number" not in request.POST:
-          return_dict["error"] = "Incorrect access method. Please use the menus"
+          raise Exception("Incorrect access method. Please use the menus")
         else:
           return_dict["node"] = request.POST["node"]
           return_dict["serial_number"] = request.POST["serial_number"]
@@ -1042,20 +1089,20 @@ def expand_volume(request):
   try:
     form = None
   
-    vil = volume_info.get_volume_info_all()
-    #scl = system_info.load_system_config()
-    #return_dict['system_config_list'] = scl
+    vil, err = volume_info.get_volume_info_all()
+    if err:
+      raise Exception(err)
+    if not vil:
+      raise Exception('Could not load volume information')
   
     if request.method == "GET":
       # Disallowed GET method so return error.
-      return_dict["error"] = "Invalid request. Please use the menu options."
-      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      raise Exception("Invalid request. Please use the menu options.")
     else:
       # POST method processing
   
       if "cmd" not in request.POST or "vol_name" not in request.POST or "count" not in request.POST:
-        return_dict["error"] = "Invalid request. Please use the menu options."
-        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+        raise Exception("Invalid request. Please use the menu options.")
   
       cmd = request.POST['cmd']
       dsl = request.POST.getlist('dataset_list')
@@ -1093,17 +1140,21 @@ def expand_volume(request):
                   #print ret
                   if ret["retcode"] != 0:
                     errors += ", Error undoing the creating the underlying storage brick on %s"%node
-        return_dict["error"] = errors
-        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+        raise Exception(errors)
   
   
       iv_logging.info("Running volume expand : %s"%cmd)
-      d = gluster_commands.run_gluster_command(cmd, "%s/add_brick.xml"%fractalio.common.get_devel_files_path(), "Volume expansion")
+      devel_files_path, err = common.get_devel_files_path()
+      d, err = gluster_commands.run_gluster_command(cmd, "%s/add_brick.xml"%devel_files_path, "Volume expansion")
+      if err:
+        raise Exception(err)
   
       if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
         #Success so audit the change
         audit_str = "Expanded volume %s by adding %s storage units."%(vol_name, count)
-        audit.audit("expand_volume", audit_str, request.META["REMOTE_ADDR"])
+        ret, err = audit.audit("expand_volume", audit_str, request.META["REMOTE_ADDR"])
+        if err:
+          raise Exception(err)
       else:
         if revert_list:
           #Undo the creation of the datasets

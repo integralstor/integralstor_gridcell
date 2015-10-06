@@ -1,55 +1,18 @@
 # Django settings for integral_view project.
-import fractalio
-from fractalio import common
+from integralstor_common import common
 
 DEBUG = False
 ALLOWED_HOSTS = ['*']
 
 APP_DEBUG = False
 
-'''
-PRODUCTION = False
-#DEVEL_APP_ROOT = '/opt/integral_view/integral-view'
-DEVEL_APP_ROOT = '/home/bkrram/fractalio/integral-view'
-PRODUCTION_APP_ROOT = '/opt/fractalio/integral_view'
-SALT_MASTER_CONFIG = '/etc/salt/master'
-APP_NAME = 'integral_view'
-
-if PRODUCTION:
-  BASE_APP_ROOT = PRODUCTION_APP_ROOT
-  BASE_APP_PATH = '%s/%s'%(BASE_APP_ROOT, APP_NAME)
-  BASE_CONF_ROOT = '%s/production'%BASE_APP_PATH
-  KRB5_PATH = '/etc'
-  SMB_CONF_PATH = '/usr/local/samba/etc'
-  NTP_CONF_PATH = '/etc'
-  ALERTS_URL = "integral_view.fractal.lan"
-  AUDIT_URL = "integral_view.fractal.lan"
-else:
-  BASE_APP_ROOT = DEVEL_APP_ROOT
-  BASE_APP_PATH = '%s/%s'%(BASE_APP_ROOT, APP_NAME)
-  BASE_CONF_ROOT = '%s/devel'%BASE_APP_PATH
-  NTP_CONF_PATH = '/etc'
-  ALERTS_URL = "127.0.0.1:8000"
-  AUDIT_URL = "127.0.0.1:8000"
-
-CONFIG_DIR = '%s/config'%BASE_CONF_ROOT
-ADMIN_VOL_NAME = "fractalio_admin_vol"
-
-if not PRODUCTION:
-  KRB5_PATH = CONFIG_DIR
-  SMB_CONF_PATH = CONFIG_DIR
-
-BASE_FILE_PATH = '%s/files'%BASE_CONF_ROOT
-BATCH_COMMANDS_DIR = '%s/batch'%BASE_CONF_ROOT
-AUDIT_TRAIL_DIR = '%s/audit_trail'%BASE_CONF_ROOT
-ALERTS_DIR = '%s/alerts'%BASE_CONF_ROOT
-'''
 
 LOGIN_URL = '/login/'
 
-DB_LOCATION = common.get_db_path()
-STATIC_DIR_PATH = '/opt/fractalio/integral_view/integral_view/static'
-TEMPLATE_DIR_PATH = "/opt/fractalio/integral_view/integral_view/templates"
+platform_root, err = common.get_platform_root()
+DB_LOCATION, err = common.get_db_path()
+STATIC_DIR_PATH = '%s/integral_view/static'%platform_root
+TEMPLATE_DIR_PATH = "%s/integral_view/templates"%platform_root
 
 
 TEMPLATE_DEBUG = DEBUG
@@ -214,7 +177,7 @@ LOGGING = {
         'file': {
           'level': 'DEBUG',
           'class': 'logging.handlers.RotatingFileHandler',
-          'filename': '/var/log/fractalio/integral_view.log',
+          'filename': '/var/log/integralstor/integralstor_gridcell/integral_view.log',
           'maxBytes': 1024*1024*5,
           'backupCount': 5,
           'formatter': 'standard'
@@ -233,3 +196,39 @@ LOGGING = {
         },
     }
 }
+'''
+PRODUCTION = False
+DEVEL_APP_ROOT = '/opt/integralstor/integralstor_gridcell/devel/integral_view'
+PRODUCTION_APP_ROOT = '/opt/integralstor/integralstor_gridcell/integral_view'
+SALT_MASTER_CONFIG = '/etc/salt/master'
+APP_NAME = 'integral_view'
+
+if PRODUCTION:
+  BASE_APP_ROOT = PRODUCTION_APP_ROOT
+  BASE_APP_PATH = '%s/%s'%(BASE_APP_ROOT, APP_NAME)
+  BASE_CONF_ROOT = '%s/production'%BASE_APP_PATH
+  KRB5_PATH = '/etc'
+  SMB_CONF_PATH = '/usr/local/samba/etc'
+  NTP_CONF_PATH = '/etc'
+  ALERTS_URL = "integral_view.fractal.lan"
+  AUDIT_URL = "integral_view.fractal.lan"
+else:
+  BASE_APP_ROOT = DEVEL_APP_ROOT
+  BASE_APP_PATH = '%s/%s'%(BASE_APP_ROOT, APP_NAME)
+  BASE_CONF_ROOT = '%s/devel'%BASE_APP_PATH
+  NTP_CONF_PATH = '/etc'
+  ALERTS_URL = "127.0.0.1:8000"
+  AUDIT_URL = "127.0.0.1:8000"
+
+CONFIG_DIR = '%s/config'%BASE_CONF_ROOT
+ADMIN_VOL_NAME = "fractalio_admin_vol"
+
+if not PRODUCTION:
+  KRB5_PATH = CONFIG_DIR
+  SMB_CONF_PATH = CONFIG_DIR
+
+BASE_FILE_PATH = '%s/files'%BASE_CONF_ROOT
+BATCH_COMMANDS_DIR = '%s/batch'%BASE_CONF_ROOT
+AUDIT_TRAIL_DIR = '%s/audit_trail'%BASE_CONF_ROOT
+ALERTS_DIR = '%s/alerts'%BASE_CONF_ROOT
+'''

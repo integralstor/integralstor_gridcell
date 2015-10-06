@@ -6,7 +6,7 @@ pause(){
  
 configure_networking(){
   #echo "configure networking called"
-  python /opt/fractalio/scripts/python/configure_networking.py
+  python /opt/integralstor/integralstor_gridcell/scripts/python/configure_networking.py
 }
 
 set_as_primary(){
@@ -15,7 +15,7 @@ set_as_primary(){
   ret=$?
   if [ $ret != 0 ]
   then
-    python /opt/fractalio/scripts/python/set_node_type.py primary
+    python /opt/integralstor/integralstor_gridcell/scripts/python/set_node_type.py primary
     pause
   else
     echo 'A primary GRIDCell (with hostname fractalio-pri) seems to already exist in the LAN! A grid cannot have more than one primary.'
@@ -27,7 +27,7 @@ first_time_setup(){
   hn=`hostname`
   if [ $hn == "fractalio-pri" ]
   then
-    /opt/fractalio/scripts/python/first_time_setup.py
+    /opt/integralstor/integralstor_gridcell/scripts/python/first_time_setup.py
     pause
   else
     echo 'This functionality can only initiated from the primary GRIDCell.'
@@ -35,11 +35,11 @@ first_time_setup(){
 }
 
 view_node_status(){
-  python /opt/fractalio/scripts/python/display_node_status.py
+  python /opt/integralstor/integralstor_gridcell/scripts/python/display_node_status.py
   pause
 }
 view_node_config(){
-  python /opt/fractalio/scripts/python/display_node_config.py
+  python /opt/integralstor/integralstor_gridcell/scripts/python/display_node_config.py
   pause
 }
 
@@ -49,7 +49,7 @@ set_as_secondary(){
   ret=$?
   if [ $ret != 0 ]
   then
-    python /opt/fractalio/scripts/python/set_node_type.py secondary
+    python /opt/integralstor/integralstor_gridcell/scripts/python/set_node_type.py secondary
     pause
   else
     echo 'A secondary GRIDCell (with hostname fractalio-sec) seems to already exist in the LAN! A grid cannot have more than one secondary.'
@@ -62,7 +62,7 @@ view_minion_status(){
   echo $hn
   if [ $hn == "fractalio-pri" ]
   then
-    /opt/fractalio/scripts/shell/view_minions.sh
+    /opt/integralstor/integralstor_gridcell/scripts/shell/view_minions.sh
     pause
   else
     echo 'This functionality can only done on a primary GRIDCell'
@@ -71,7 +71,7 @@ view_minion_status(){
 }
 
 reset_minion(){
-  /opt/fractalio/scripts/shell/reset_salt_minion.sh
+  /opt/integralstor/integralstor_gridcell/scripts/shell/reset_salt_minion.sh
   pause
 }
 
@@ -79,7 +79,7 @@ remove_minions(){
   hn=`hostname`
   if [ $hn == "fractalio-pri" ]
   then
-    python /opt/fractalio/scripts/python/clear_minions.py
+    python /opt/integralstor/integralstor_gridcell/scripts/python/clear_minions.py
     pause
   else
     echo 'This functionality can only done on a primary GRIDCell'
@@ -125,7 +125,7 @@ show_menu() {
   fi
   if [ $primary == 1 ]
   then
-    if [ ! -f '/opt/fractalio/first_time_setup_completed' ]
+    if [ ! -f '/opt/integralstor/integralstor_gridcell/first_time_setup_completed' ]
     then
       echo "6. View minion status"
       echo "7. Initiate the first time grid setup"
@@ -161,7 +161,7 @@ read_input(){
   if [ $primary == 1  ]
   then
     #Primary node
-    if [ ! -f '/opt/fractalio/first_time_setup_completed' ]
+    if [ ! -f '/opt/integralstor/integralstor_gridcell/first_time_setup_completed' ]
     then
         #Primary node with first time setup complete
         read -p "Enter choice [1 - 7] " input 

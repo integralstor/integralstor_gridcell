@@ -1,6 +1,5 @@
 import sys
-import fractalio
-from fractalio import networking, command
+from integralstor_common import networking, command
 
 def main():
 
@@ -20,14 +19,20 @@ def main():
       forwarder_ip = sys.argv[4]
 
     if forwarder_ip:
-      rc = networking.generate_default_secondary_named_conf(primary_ip, secondary_netmask, secondary_ip, True, forwarder_ip)
+      rc, err = networking.generate_default_secondary_named_conf(primary_ip, secondary_netmask, secondary_ip, True, forwarder_ip)
     else:
-      rc = networking.generate_default_secondary_named_conf(primary_ip, secondary_netmask, secondary_ip)
+      rc, err = networking.generate_default_secondary_named_conf(primary_ip, secondary_netmask, secondary_ip)
 
-    if rc == 0:
-      r, rc = command.execute_with_rc('service named reload')
+    if err:
+      raise Exception(err)
+    if rc :
+      (r, rc), err = command.execute_with_rc('service named reload')
+      if err:
+        raise Exception(err)
       if rc != 0:
-        print "Error restarting the DNS server"
+        raise Exception("Error restarting the DNS server")
+    else:
+      raise Exception('')
   except Exception, e:
     print "Error creating the secondary named configuration : %s"%e
     return -1

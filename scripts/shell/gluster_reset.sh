@@ -14,7 +14,7 @@ service glusterd restart
 sed -i '/localhost/d' /etc/fstab
 
 echo "Unmounting admin_vol"
-umount /opt/fractalio/mnt/admin_vol 
+umount /opt/integralstor/integralstor_gridcell/config
 
 
 salt '*' saltutil.clear_cache

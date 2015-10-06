@@ -4,70 +4,22 @@ import salt.client, salt.wheel
 
 import django.template, django
 from django.conf import settings
-
-import fractalio
-from fractalio import command, db, common, batch, audit, alerts, ntp, mail, gluster_commands, volume_info, system_info, grid_ops,xml_parse
-
-from integral_view.utils import iv_logging
-
-import integral_view
-from integral_view.iscsi import iscsi
-from integral_view.forms import common_forms
-from integral_view.samba import samba_settings
-from glusterfs import gfapi
 from django.contrib.auth.decorators import login_required
 
-production = fractalio.common.is_production()
+import integralstor_common
+from integralstor_common import db, common, audit, alerts, ntp, mail
+from integralstor_common import cifs as cifs_common
 
-def get_gluster_dir_list(vol,path):
-  path = path
-  vol = vol
-  dir_dict_list = []
-  dirs = vol.listdir(path)
-  if not dirs:
-    d_dict = {'id':path, 'text':"/",'icon':'fa fa-angle-right','children':True,'data':{'dir':path},'parent':"#"}
-    dir_dict_list.append(d_dict)
-  for d in dirs:
-    true = True
-    if vol.isdir(path+d+"/"):
-      if path == "/":
-        parent = "#"
-      else:
-        parent = path
-      d_dict = {'id':path+d+"/", 'text':d,'icon':'fa fa-angle-right','children':True,'data':{'dir':path+d+"/"},'parent':parent}
-      dir_dict_list.append(d_dict)
-      #get_dir_list(vol,path+d+"/")
-  return dir_dict_list
+import integralstor_gridcell
+from integralstor_gridcell import batch, gluster_commands, volume_info, system_info, grid_ops, xml_parse, iscsi
 
-def create_gluster_dir(vol_name,path,mode=0775):
-  if production:
-    hostname = "127.0.0.1"
-  else:
-    hostname = "fractalio-pri.fractalio.lan"
-  vol = gfapi.Volume(hostname, vol_name)
-  vol_mnt = vol.mount()
-  vol_dir = vol.mkdirs(path,mode)
-  try:
-    vol_grp = vol.chown(path,uid=0,gid=501)
-  except Exception as e:
-    print e
-  if vol_dir == 0:
-    return True
-  else:
-    return False
 
-def create_gluster_dirs(vol_name,path,mode=0775):
-  if production:
-    hostname = "127.0.0.1"
-  else:
-    hostname = "fractalio-pri.fractalio.lan"
-  vol = gfapi.Volume(hostname, vol_name)
-  vol_mnt = vol.mount()
-  vol_dir = vol.mkdirs(path,mode)
-  if vol_dir == 0:
-    return True
-  else:
-    return False
+import integral_view
+from integral_view.forms import common_forms
+from integral_view.utils import iv_logging
+
+from glusterfs import gfapi
+
 
 @login_required    
 def show(request, page, info = None):
@@ -77,8 +29,14 @@ def show(request, page, info = None):
 
     assert request.method == 'GET'
 
-    vil = volume_info.get_volume_info_all()
-    si = system_info.load_system_config()
+    vil, err  = volume_info.get_volume_info_all()
+    if err:
+      raise Exception(err)
+    si, err = system_info.load_system_config()
+    if err:
+      raise Exception(err)
+    if not si:
+      raise Exception('Could not obtain system information')
 
     #assert False
     return_dict['system_info'] = si
@@ -88,7 +46,6 @@ def show(request, page, info = None):
     template = "logged_in_error.html"
 
     if page == "dir_contents":
-      production = True
       dir_name = None
       error = False
       path_base = None
@@ -99,90 +56,75 @@ def show(request, page, info = None):
           vol_name = request.GET["vol_name"]
           dir_name = request.GET["dir"]
           first = request.GET["first"]
-          print first
+          #print first
         else:
           raise Exception ("No volume or Directory Specified")
 
-        if production:
-          hostname = "127.0.0.1"
-        else:
-          hostname = "192.168.1.244"
-        vol = gfapi.Volume(hostname, vol_name)
-        vol_mnt = vol.mount()
-        if vol_mnt ==0:
-          dirs = get_gluster_dir_list(vol,dir_name)
-        else:
-          return django.http.HttpResponse("Unable to mount Gluster")
-        import json
+        dirs, err  = gluster_commands.get_gluster_dir_list(vol_name ,dir_name)
+        if err:
+          raise Exception(err)
+
         dir_list = json.dumps(dirs)
       
       except Exception as e:
-        return django.http.HttpResponse("Exception Occured")
+        return django.http.HttpResponse("Exception Occured : %s"%str(e))
         #iv_logging.debug("Exception while getting dir listing : "%e)
       return django.http.HttpResponse(dir_list,mimetype='application/json')
 
     elif page == "ntp_settings":
 
       template = "view_ntp_settings.html"
-      try:
-        ntp_servers = ntp.get_ntp_servers()
-      except Exception, e:
-        return_dict["error"] = str(e)
-      else:
-        return_dict["ntp_servers"] = ntp_servers
+      ntp_servers, err = ntp.get_ntp_servers()
+      if err:
+        raise Exception(err)
+      return_dict["ntp_servers"] = ntp_servers
       if "saved" in request.REQUEST:
         return_dict["saved"] = request.REQUEST["saved"]
 
     elif page == "integral_view_log_level":
 
       template = "view_integral_view_log_level.html"
-      try:
-        log_level = iv_logging.get_log_level_str()
-      except Exception, e:
-        return_dict["error"] = str(e)
-      else:
-        return_dict["log_level_str"] = log_level
+      log_level, err = iv_logging.get_log_level_str()
+      if err:
+        raise Exception(err)     
+      return_dict["log_level_str"] = log_level
       if "saved" in request.REQUEST:
         return_dict["saved"] = request.REQUEST["saved"]
 
     elif page == "email_settings":
 
       #print "here"
-      try:
-        d = mail.load_email_settings()
-        if not d:
-          return_dict["email_not_configured"] = True
+      d, err = mail.load_email_settings()
+      if err:
+        raise Exception(err)
+      if not d:
+        return_dict["email_not_configured"] = True
+      else:
+        if d["tls"]:
+          d["tls"] = True
         else:
-          if d["tls"]:
-            d["tls"] = True
-          else:
-            d["tls"] = False
-          if d["email_alerts"]:
-            d["email_alerts"] = True
-          else:
-            d["email_alerts"] = False
-          return_dict["email_settings"] = d
-        if "saved" in request.REQUEST:
-          return_dict["saved"] = request.REQUEST["saved"]
-        if "not_saved" in request.REQUEST:
-          return_dict["not_saved"] = request.REQUEST["not_saved"]
-        if "err" in request.REQUEST:
-          return_dict["err"] = request.REQUEST["err"]
-        template = "view_email_settings.html"
-      except Exception, e:
-        iv_logging.debug("error loading email settings %s"%e)
-        return_dict["error"] = str(e)
+          d["tls"] = False
+        if d["email_alerts"]:
+          d["email_alerts"] = True
+        else:
+          d["email_alerts"] = False
+        return_dict["email_settings"] = d
+      if "saved" in request.REQUEST:
+        return_dict["saved"] = request.REQUEST["saved"]
+      if "not_saved" in request.REQUEST:
+        return_dict["not_saved"] = request.REQUEST["not_saved"]
+      if "err" in request.REQUEST:
+        return_dict["err"] = request.REQUEST["err"]
+      template = "view_email_settings.html"
 
     elif page == "audit_trail":
 
       al = None
-      try:
-        al = audit.get_lines()
-      except Exception, e:
-        return_dict["error"] = str(e)
-      else:
-        template = "view_audit_trail.html"
-        return_dict["audit_list"] = al
+      al, err = audit.get_lines()
+      if err:
+        raise Exception(err)
+      template = "view_audit_trail.html"
+      return_dict["audit_list"] = al
 
     elif page == "batch_start_conf":
 
@@ -193,79 +135,87 @@ def show(request, page, info = None):
     elif page == "batch_status":
 
       #Load the list of entries from all the files in the start and process directories
-      try :
-        file_list = batch.load_all_files()
-      except Exception, e:
-        return_dict["error"] = "Error loading batch files: %s"%e
-      else:
-        return_dict["file_list"] = file_list
-        template = "view_batch_process_list.html"
+      file_list, err = batch.load_all_files()
+      if err:
+        raise Exception(err)
+      return_dict["file_list"] = file_list
+      template = "view_batch_process_list.html"
 
     elif page == "batch_status_details":
 
-      try:
-        d = batch.load_specific_file(info)
-      except Exception, e:
-        return_dict["error"] = "Error reading batch file: %s"%e
+      d, err = batch.load_specific_file(info)
+      if err:
+        raise Exception(err)
+      if not d:
+        return_dict["error"] = "Unknown process specified"
       else:
-        if not d:
-          return_dict["error"] = "Unknown process specified"
-        else:
-          return_dict["process_info"] = d
-          template = "view_batch_status_details.html"
+        return_dict["process_info"] = d
+        template = "view_batch_status_details.html"
 
     elif page == "volume_info":
 
-      vol = volume_info.get_volume_info(vil, info)
+      vol, err = volume_info.get_volume_info(vil, info)
+      if err:
+        raise Exception(err)
 
-      if vol:
-        template = "view_volume_info.html"
-        return_dict["vol"] = vol
-        data_locations_list = volume_info.get_brick_hostname_list(vol)
-        #print data_locations_list
-        return_dict["data_locations_list"] = data_locations_list
+      if not vol:
+        raise Exception("Could not locate information for volume %s"%info)
 
-        ivl = iscsi.load_iscsi_volumes_list(vil)
-        if ivl and vol["name"] in ivl:
-          return_dict["iscsi"] = True
+      template = "view_volume_info.html"
+      return_dict["vol"] = vol
+      data_locations_list, err = volume_info.get_brick_hostname_list(vol)
+      if err:
+        raise Exception(err)
+      #print data_locations_list
+      return_dict["data_locations_list"] = data_locations_list
 
-        # To accomodate django template quirks
-        if vol["type"] in ["Replicate", "Distributed-Replicate"]:
-          return_dict["replicate"] = True
-        elif vol["type"] in ["Distribute", "Distributed-Replicate"]:
-          return_dict["distribute"] = True
-      else:
-        return_dict["error"] = "Could not locate information for volume %s"%info
+      ivl, err = iscsi.load_iscsi_volumes_list(vil)
+      if err:
+        raise Exception(err)
+      if ivl and vol["name"] in ivl:
+        return_dict["iscsi"] = True
+
+      # To accomodate django template quirks
+      if vol["type"] in ["Replicate", "Distributed-Replicate"]:
+        return_dict["replicate"] = True
+      elif vol["type"] in ["Distribute", "Distributed-Replicate"]:
+        return_dict["distribute"] = True
 
     elif page == "volume_status":
 
-      vol = volume_info.get_volume_info(vil, info)
+      vol, err = volume_info.get_volume_info(vil, info)
+      if err:
+        raise Exception(err)
 
-      if vol:
-        template = "view_volume_status.html"
-        return_dict["vol"] = vol
+      if not vol:
+        raise Exception("Could not locate information for volume %s"%info)
 
-        # To accomodate django template quirks
-        if vol["type"] in ["Replicate", "Distributed-Replicate"]:
-          return_dict["replicate"] = True
-        elif vol["type"] in ["Distribute", "Distributed-Replicate"]:
-          return_dict["distribute"] = True
-      else:
-        return_dict["error"] = "Could not locate information for volume %s"%info
+      template = "view_volume_status.html"
+      return_dict["vol"] = vol
+
+      # To accomodate django template quirks
+      if vol["type"] in ["Replicate", "Distributed-Replicate"]:
+        return_dict["replicate"] = True
+      elif vol["type"] in ["Distribute", "Distributed-Replicate"]:
+        return_dict["distribute"] = True
           
     elif page == "node_status":
       
       template = "view_node_status.html"
+
       if "from" in request.GET:
         frm = request.GET["from"]
         return_dict['frm'] = frm
-      vol_list = volume_info.get_volumes_on_node(info, vil)
+
+      vol_list, err = volume_info.get_volumes_on_node(info, vil)
+      if err:
+        raise Exception(err)
+
       sorted_disks = []
       for key,value in sorted(si[info]["disks"].iteritems(), key=lambda (k,v):v["position"]):
         sorted_disks.append(key)
       si[info]["disk_pos"] = sorted_disks
       return_dict['node'] = si[info]
-      import salt.client
       client = salt.client.LocalClient()
       ctdb = client.cmd(info,'cmd.run',['service ctdb status'])
       winbind = client.cmd(info,'cmd.run',['service winbind status'])
@@ -274,7 +224,6 @@ def show(request, page, info = None):
       return_dict['winbind'] = winbind[info]
       return_dict['gluster'] = gluster[info]
       return_dict['node_name'] = info
-
       return_dict['vol_list'] = vol_list
 
     elif page == "node_info":
@@ -283,23 +232,26 @@ def show(request, page, info = None):
       if "from" in request.GET:
         frm = request.GET["from"]
         return_dict['frm'] = frm
-      vol_list = volume_info.get_volumes_on_node(info, vil)
+
+      vol_list, err = volume_info.get_volumes_on_node(info, vil)
+      if err:
+        raise Exception(err)
+
       return_dict['node'] = si[info]
       return_dict['vol_list'] = vol_list
 
 
     elif page=="manifest":
-      #Basically read a generated manifest file and display the results.
+      #Read a generated manifest file and display the results.
       if "manifest" not in request.GET:
         return_dict['error'] = 'Invalid request. No manifest file specified'
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
       manifest = request.GET["manifest"]
-      try :
-        with open("%s/%s"%(fractalio.common.get_system_status_path(), manifest), "r") as f:
-          nodes = json.load(f)
-      except Exception, e:
-        return_dict['error'] = 'Error loading the new configuratio : %s'%e
-        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
+      ss_path, err = common.get_system_status_path()
+      if err:
+        raise Exception(err)
+      with open("%s/%s"%(ss_path, manifest), "r") as f:
+        nodes = json.load(f)
       
       return_dict["manifest"] = nodes
       return_dict["manifest_file"] = manifest
@@ -308,34 +260,35 @@ def show(request, page, info = None):
           
     elif page == "iscsi_auth_access_info":
       if 'id' not in request.GET:
-        return_dict['error'] = 'Invalid request. No auth access id specified'
-        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
-      else:
-        id = int(request.GET['id'])
-        l = iscsi.load_auth_access_users_info(id)
-        if l:
-          istr = "<b>Authorized access group users : </b>"
-          for i in l:
-            istr += i["user"]
-            istr += ", "
-          #return django.http.HttpResponse("<b>Authorized access details </b><br>User : %s, Peer user : %s"%(d["user"],d["peer_user"] ))
-          return django.http.HttpResponse("%s"%istr)
-        else:
-          return_dict['error'] = 'No auth access information for the id specified'
-          return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
+        raise Exception('Invalid request. No auth access id specified')
+
+      id = int(request.GET['id'])
+      l, err = iscsi.load_auth_access_users_info(id)
+      if err:
+        raise Exception(err)
+
+      if not l:
+        raise Exception('No auth access information for the id specified')
+
+      istr = "<b>Authorized access group users : </b>"
+      for i in l:
+        istr += i["user"]
+        istr += ", "
+      #return django.http.HttpResponse("<b>Authorized access details </b><br>User : %s, Peer user : %s"%(d["user"],d["peer_user"] ))
+      return django.http.HttpResponse("%s"%istr)
 
     elif page == "iscsi_initiator_info":
       if 'id' not in request.GET:
-        return_dict['error'] = 'Invalid request. No initiator access id specified'
-        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
-      else:
-        id = int(request.GET['id'])
-        d = iscsi.load_initiator_info(id)
-        if d:
-          return django.http.HttpResponse("<b>Initiator details</b><br>Initiators : %s, Auth network : %s, Comment : %s"%(d["initiators"],d["auth_network"], d["comment"] ))
-        else:
-          return_dict['error'] = 'No initiator information for the id specified'
-          return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
+        raise Exception('Invalid request. No initiator access id specified')
+
+      id = int(request.GET['id'])
+      d, err = iscsi.load_initiator_info(id)
+      if err:
+        raise Exception(err)
+      if not d:
+        raise Exception('No initiator information for the id specified')
+
+      return django.http.HttpResponse("<b>Initiator details</b><br>Initiators : %s, Auth network : %s, Comment : %s"%(d["initiators"],d["auth_network"], d["comment"] ))
 
     elif page == "system_config":
 
@@ -343,7 +296,6 @@ def show(request, page, info = None):
 
     elif page == "system_status":
      #Disk Status page and system status page has been integrated.
-     #assert False
 
       #Get the disk status
       disk_status = {}
@@ -392,7 +344,7 @@ def show(request, page, info = None):
             if si[key]["pools"][0]["state"] == unicode("ONLINE"):
               background_color == "bg-red"
             disk_new[key]["background_color"] = background_color
-            disk_new[key]["name"] = si[key]["pools"][0]["name"]
+            disk_new[key]["name"] = si[key]["pools"][0]["pool_name"]
             sorted_disks = []
             for key1,value1 in sorted(si[key]["disks"].iteritems(), key=lambda (k,v):v["position"]):
               sorted_disks.append(key1)
@@ -422,7 +374,7 @@ def show(request, page, info = None):
               if si[key]["pools"][0]["state"] == unicode("ONLINE"):
                 background_color == "bg-red"
               disk_status[key]["background_color"] = background_color
-              disk_status[key]["name"] = si[key]["pools"][0]["name"]
+              disk_status[key]["name"] = si[key]["pools"][0]["pool_name"]
               sorted_disks = []
               for key1,value1 in sorted(si[key]["disks"].iteritems(), key=lambda (k,v):v["position"]):
                 sorted_disks.append(key1)
@@ -488,14 +440,18 @@ def show(request, page, info = None):
     elif page == "alerts":
 
       template = "view_alerts.html"
-      alerts_list = alerts.load_alerts()
+      alerts_list, err = alerts.load_alerts()
+      if err:
+        raise Exception(err)
       return_dict['alerts_list'] = alerts_list
 
     elif page == "volume_info_all":
 
       template = "view_volume_info_all.html"
       return_dict['volume_info_list'] = vil
-      ivl = iscsi.load_iscsi_volumes_list(vil)
+      ivl, err = iscsi.load_iscsi_volumes_list(vil)
+      if err:
+        raise Exception(err)
       return_dict['iscsi_volumes'] = ivl
 
     elif page == "volume_status_all":
@@ -512,14 +468,6 @@ def show(request, page, info = None):
       return_dict["error"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
-#this function takes a user argument checks if the user has administrator rights and then returns True.
-#If he does not have the correct permissions, then then it returns a HTttpResponse stating No Permission to access this page.
-#Takes user object as a parameter: request.user
-# def is_superuser(user):
-#   if user.is_superuser:
-#     return True
-#   else:
-#     return False
 
 def admin_login_required(view):
 
@@ -532,39 +480,50 @@ def admin_login_required(view):
   return new_view
 
 def refresh_alerts(request, random=None):
+  ret = None
+  try:
     from datetime import datetime
     cmd_list = []
     #this command will insert or update the row value if the row with the user exists.
     cmd = ["INSERT OR REPLACE INTO admin_alerts (user, last_refresh_time) values (?,?);", (request.user.username, datetime.now())]
     cmd_list.append(cmd)
-    test = db.execute_iud("%s/integral_view_config.db"%fractalio.common.get_db_path(), cmd_list)
-    if alerts.new_alerts():
-      import json
-      new_alerts = json.dumps([dict(alert=pn) for pn in alerts.load_alerts()])
-      return django.http.HttpResponse(new_alerts, mimetype='application/json')
+    db_path, err = common.get_db_path()
+    if err:
+      raise Exception(err)
+    test = db.execute_iud("%s/integral_view_config.db"%db_path, cmd_list)
+    ret, err = alerts.new_alerts()
+    if err:
+      raise Exception(err)
+    if ret:
+      alerts_list, err = alerts.load_alerts()
+      if err:
+        raise Exception(err)
+      new_alerts = json.dumps([dict(alert=pn) for pn in alerts_list])
+      return  django.http.HttpResponse(new_alerts, mimetype='application/json')
     else:
       clss = "btn btn-default btn-sm"
       message = "View alerts"
-      return django.http.HttpResponse("No New Alerts")
+      return  django.http.HttpResponse("No New Alerts")
+  except Exception, e:
+    return_dict["error"] = "An error occurred when processing your request : %s"%str(e)
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
 @login_required
 def raise_alert(request):
 
-  return_dict = {}
-  template = "logged_in_error.html"
-  if "msg" not in request.REQUEST:
-    return_dict["error"] = "No alert message specified."
-  else:
-    try:
-      msg = request.REQUEST["msg"]
-      alerts.raise_alert(msg)
-    except Exception, e:
-      return_dict["error"] = "Error logging alert : %s"%e
-      iv_logging.info("Error logging alert %s"%str(e))
-    else:
-      return django.http.HttpResponse("Raised alert")
+  try:
+    return_dict = {}
+    if "msg" not in request.REQUEST:
+      raise Exception('No alert message specified.')
+    msg = request.REQUEST["msg"]
+    ret, err = alerts.raise_alert(msg)
+    if err:
+      raise Exception(err)
+    return django.http.HttpResponse("Raised alert")
 
-    return django.shortcuts.render_to_response(template, return_dict, context_instance=django.template.context.RequestContext(request))
+  except Exception, e:
+    return_dict["error"] = "An error occurred when processing your request : %s"%str(e)
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
     
 @login_required
@@ -572,8 +531,15 @@ def configure_ntp_settings(request):
 
   return_dict = {}
   try:
+    admin_vol_mountpoint, err = common.get_config_dir()
+    if err:
+      raise Exception(err)
+    if err:
+      raise Exception(err)
     if request.method=="GET":
-      ntp_servers = ntp.get_ntp_servers()
+      ntp_servers, err = ntp.get_ntp_servers()
+      if err:
+        raise Exception(err)
       if not ntp_servers:
         form = common_forms.ConfigureNTPForm()
       else:
@@ -584,56 +550,40 @@ def configure_ntp_settings(request):
       if form.is_valid():
         iv_logging.debug("Got valid request to change NTP settings")
         cd = form.cleaned_data
-        si = system_info.load_system_config()
+        si, err = system_info.load_system_config()
+        if err:
+          raise Exception(err)
+        if not si:
+          raise Exception('Error loading system configuration. System config missing?')
         server_list = cd["server_list"]
         if ',' in server_list:
           slist = server_list.split(',')
         else:
           slist = server_list.split(' ')
-        try:
-          primary_server = "primary.fractalio.lan"
-          secondary_server = "secondary.fractalio.lan"
-          #First create the ntp.conf file for the primary and secondary nodes
-          temp = tempfile.NamedTemporaryFile(mode="w")
-          temp.write("driftfile /var/lib/ntp/drift\n")
-          temp.write("restrict default kod nomodify notrap nopeer noquery\n")
-          temp.write("restrict -6 default kod nomodify notrap nopeer noquery\n")
-          temp.write("includefile /etc/ntp/crypto/pw\n")
-          temp.write("keys /etc/ntp/keys\n")
-          temp.write("\n")
-          for server in slist:
-            temp.write("server %s iburst\n"%server)
-          temp.flush()
-          shutil.move(temp.name, "%s/ntp/primary_ntp.conf"%fractalio.common.get_admin_vol_mountpoint())
-          #client = salt.client.LocalClient()
-          #client.cmd('roles:master', 'cp.get_file', ["salt://tmp/%s"%os.path.basename(temp.name), '%s/ntp.conf'%fractalio.common.get_ntp_conf_path()], expr_form='grain')
-          #client.cmd('roles:master', 'cmd.run_all', ["service ntpd restart"], expr_form='grain')
-          #shutil.copyfile(temp.name, '%s/ntp.conf'%settings.NTP_CONF_PATH)
-          temp1 = tempfile.NamedTemporaryFile(mode="w")
-          temp1.write("server %s iburst\n"%primary_server)
-          temp1.write("server %s iburst\n"%secondary_server)
-          for s in si.keys():
-            temp1.write("peer %s iburst\n"%s)
-          temp1.write("server 127.127.1.0\n")
-          temp1.write("fudge 127.127.1.0 stratum 10\n")
-          temp1.flush()
-          shutil.move(temp1.name, "%s/ntp/secondary_ntp.conf"%fractalio.common.get_admin_vol_mountpoint())
-          #client.cmd('role:secondary', 'cp.get_file', ["salt://tmp/%s"%os.path.basename(temp1.name), '%s/ntp.conf'%fractalio.common.get_ntp_conf_path()], expr_form='grain')
-          #client.cmd('role:secondary', 'cmd.run_all', ["service ntpd restart"], expr_form='grain')
-          #shutil.copyfile(temp.name, '/tmp/ntp.conf')
-  
-          '''
-          lines = ntp.get_non_server_lines()
-          if lines:
-            for line in lines:
-              temp.write("%s\n"%line)
-          '''
-          #ntp.restart_ntp_service()
-        except Exception, e:
-          return_dict["error"] = "Error updating NTP information : %s"%e
-          return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance = django.template.context.RequestContext(request))
-        else:
-          return django.http.HttpResponseRedirect("/show/ntp_settings?saved=1")
+        primary_server = "primary.fractalio.lan"
+        secondary_server = "secondary.fractalio.lan"
+        #First create the ntp.conf file for the primary and secondary nodes
+        temp = tempfile.NamedTemporaryFile(mode="w")
+        temp.write("driftfile /var/lib/ntp/drift\n")
+        temp.write("restrict default kod nomodify notrap nopeer noquery\n")
+        temp.write("restrict -6 default kod nomodify notrap nopeer noquery\n")
+        temp.write("includefile /etc/ntp/crypto/pw\n")
+        temp.write("keys /etc/ntp/keys\n")
+        temp.write("\n")
+        for server in slist:
+          temp.write("server %s iburst\n"%server)
+        temp.flush()
+        shutil.move(temp.name, "%s/ntp/primary_ntp.conf"%admin_vol_mountpoint)
+        temp1 = tempfile.NamedTemporaryFile(mode="w")
+        temp1.write("server %s iburst\n"%primary_server)
+        temp1.write("server %s iburst\n"%secondary_server)
+        for s in si.keys():
+          temp1.write("peer %s iburst\n"%s)
+        temp1.write("server 127.127.1.0\n")
+        temp1.write("fudge 127.127.1.0 stratum 10\n")
+        temp1.flush()
+        shutil.move(temp1.name, "%s/ntp/secondary_ntp.conf"%admin_vol_mountpoint)
+        return django.http.HttpResponseRedirect("/show/ntp_settings?saved=1")
       else:
         #invalid form
         iv_logging.debug("Got invalid request to change NTP settings")
@@ -654,47 +604,44 @@ def configure_ntp_settings(request):
 #@django.views.decorators.csrf.csrf_exempt
 def flag_node(request):
 
-  return_dict = {}
-  if "node" not in request.GET:
-    return_dict["error"] = "Error flagging node. No node specified"
-    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance = django.template.context.RequestContext(request))
+  try:
+    return_dict = {}
+    if "node" not in request.GET:
+      return_dict["error"] = "Error flagging node. No node specified"
+      return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance = django.template.context.RequestContext(request))
 
-  node_name = request.GET["node"]
-  import os
-  import salt.client
+    node_name = request.GET["node"]
 
-  client = salt.client.LocalClient()
-  if production:
+    client = salt.client.LocalClient()
     blink_time = 255
-  else:
-    blink_time = 20 #default = 255
-  ret = client.cmd(node_name,'cmd.run',['ipmitool chassis identify %s' %(blink_time)])
-  print ret
-  if ret[node_name] == 'Chassis identify interval: %s seconds'%(blink_time):
-    return django.shortcuts.render_to_response("node_flagged.html", return_dict, context_instance = django.template.context.RequestContext(request))
-  else:
-    return_dict["error"] = "err"
-    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance = django.template.context.RequestContext(request))
-  # str = "/opt/fractal/bin/client %s ipmitool chassis identify 255"%node_name
-  # iv_logging.debug("Flagging node %s using %s"%(node_name,str))
-  # r, rc = command.execute_with_rc("/opt/fractal/bin/client %s ipmitool chassis identify 255"%node_name)
-  # err = ""
-  # if rc == 0:
-  #   l = command.get_output_list(r)
-  #   if l:
-  #     for ln in l:
-  #       if ln.find("Success"):
-  #         return django.shortcuts.render_to_response("node_flagged.html", return_dict, context_instance = django.template.context.RequestContext(request))
-  #       err += ln
-  #       err += "."
-  # else:
-  #   err = "Error contacting node. Node down?"
+    ret = client.cmd(node_name,'cmd.run',['ipmitool chassis identify %s' %(blink_time)])
+    #print ret
+    if ret and ret[node_name] == 'Chassis identify interval: %s seconds'%(blink_time):
+      return django.shortcuts.render_to_response("node_flagged.html", return_dict, context_instance = django.template.context.RequestContext(request))
+    else:
+      raise Exception('Error flagging GRIDCell %s'%node_name)
+  except Exception, e:
+    s = str(e)
+    return_dict["error"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
     
 @admin_login_required
 def reset_to_factory_defaults(request):
   return_dict = {}
   try:
+    defaults_path, err = common.get_factory_defaults_path()
+    if err:
+      raise Exception(err)
+    ntp_conf_path, err = common.get_ntp_conf_path()
+    if err:
+      raise Exception(err)
+    alerts_path, err = common.get_alerts_path()
+    if err:
+      raise Exception(err)
+    batch_files_path, err = common.get_batch_files_path()
+    if err:
+      raise Exception(err)
     if request.method == "GET":
       #Send a confirmation screen
       return django.shortcuts.render_to_response('reset_factory_defaults_conf.html', return_dict, context_instance = django.template.context.RequestContext(request))
@@ -704,37 +651,30 @@ def reset_to_factory_defaults(request):
   
       #Reset the ntp config file
       try :
-        shutil.copyfile("%s/factory_defaults/ntp.conf"%fractalio.common.get_factory_defaults_path(), '%s/ntp.conf'%fractalio.common.get_ntp_conf_path())
-        pass
+        shutil.copyfile("%s/factory_defaults/ntp.conf"%defaults_path, '%s/ntp.conf'%ntp_conf_path)
       except Exception, e:
         return_dict["error"] = "Error reseting NTP configuration : %s"%e
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
   
       #Remove email settings
-      try:
-        mail.delete_email_settings()
-      except Exception, e:
-        #print str(e)
-        return_dict["error"] = "Error reseting mail configuration : %s."%e
-        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      ret, err = mail.delete_email_settings()
+      if err:
+        raise Exception(err)
   
-      try:
-        audit.rotate_audit_trail()
-      except Exception, e:
-        #print str(e)
-        return_dict["error"] = "Error rotating the audit trail : %s."%e
-        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      ret, err = audit.rotate_audit_trail()
+      if err:
+        raise Exception(err)
   
       #Remove all shares 
       try:
-        samba_settings.delete_all_shares()
+        cifs_common.delete_all_shares()
       except Exception, e:
         #print str(e)
         return_dict["error"] = "Error deleting shares : %s."%e
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
   
       try:
-        samba_settings.delete_auth_settings()
+        cifs_common.delete_auth_settings()
       except Exception, e:
         return_dict["error"] = "Error deleting CIFS authentication settings : %s."%e
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
@@ -748,16 +688,16 @@ def reset_to_factory_defaults(request):
   
       #Reset the alerts file
       try :
-        shutil.copyfile("%s/factory_defaults/alerts.log"%fractalio.common.get_factory_defaults_path(), '%s/alerts.log'%fractalio.common.get_alerts_path())
+        shutil.copyfile("%s/factory_defaults/alerts.log"%defaults_path, '%s/alerts.log'%alerts_path)
       except Exception, e:
         return_dict["error"] = "Error reseting alerts : %s."%e
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
   
       #Reset all batch jobs
       try :
-        l = os.listdir("%s"%fractalio.common.get_batch_files_path())
+        l = os.listdir("%s"%batch_files_path)
         for fname in l:
-          os.remove("%s/%s"%(fractalio.common.get_batch_files_path(), fname))
+          os.remove("%s/%s"%(batch_files_path, fname))
       except Exception, e:
         return_dict["error"] = "Error removing scheduled batch jobs : %s."%e
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
@@ -778,7 +718,9 @@ def reset_to_factory_defaults(request):
         scl = system_info.load_system_config()
         d = gluster_commands.create_factory_defaults_reset_file(scl, vil)
         if not "error" in d:
-          audit.audit("factory_defaults_reset_start", "Scheduled reset of the system to factory defaults.",  request.META["REMOTE_ADDR"])
+          ret, err = audit.audit("factory_defaults_reset_start", "Scheduled reset of the system to factory defaults.",  request.META["REMOTE_ADDR"])
+          if err:
+            raise Exception(err)
           return django.http.HttpResponseRedirect('/show/batch_start_conf/%s'%d["file_name"])
         else:
           return_dict["error"] = "Error initiating a reset to system factory defaults : %s"%d["error"]
@@ -803,7 +745,9 @@ def hardware_scan(request):
     url = 'add_nodes_form.html'
     iv_logging.info("Hardware scan initiated")
   
-    pending_minions = grid_ops.get_pending_minions()
+    pending_minions, err = grid_ops.get_pending_minions()
+    if err:
+      raise Exception(err)
   
     if request.method == 'GET':
       # Return a list of new nodes available to be pulled into the grid
@@ -818,7 +762,7 @@ def hardware_scan(request):
         # User has chosed some nodes to be added so add them.
         cd = form.cleaned_data
         iv_logging.info("Hardware scan initiated")
-        success, failed, errors = grid_ops.add_nodes_to_grid(request.META["REMOTE_ADDR"],cd["nodes"])
+        (success, failed), errors = grid_ops.add_nodes_to_grid(request.META["REMOTE_ADDR"],cd["nodes"])
         url = 'add_nodes_result.html'
         return_dict["success"] = success
         return_dict["failed"] = failed
@@ -886,7 +830,9 @@ def accept_manifest(request):
 def del_email_settings(request):
 
   try:
-    mail.delete_email_settings()
+    ret, err = mail.delete_email_settings()
+    if err:
+      raise Exception(err)
     return django.http.HttpResponse("Successfully cleared email settings.")
   except Exception, e:
     iv_logging.debug("Error clearing email settings %s"%e)

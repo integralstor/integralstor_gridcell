@@ -5,14 +5,15 @@ from django.contrib import auth
 import salt.client
 
 import random
+import integralstor_gridcell
+from integralstor_gridcell import volume_info, system_info, gluster_commands, iscsi
+import integralstor_common
+from integralstor_common import command, common, audit
 
-import fractalio
-from fractalio import command, common, volume_info, system_info, audit, gluster_commands
 from integral_view.utils import iv_logging
 
 import integral_view
 from integral_view.forms import volume_creation_forms
-from integral_view.iscsi import iscsi
 
 def volume_creation_wizard(request, action):
   """ Used to redirect requests to step a user through a wizrd 
@@ -21,16 +22,17 @@ def volume_creation_wizard(request, action):
   return_dict = {}
   try:
     if not action:
-      return_dict["error"] = "Unspecified action. Please try again."
-      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      raise Exception("Unspecified action. Please use the menus.")
   
     if action == "select_vol_name":
-      assert request.method == "GET"
+      if request.method != "GET":
+        raise Exception("Unsupported action. Please use the menus.")
       form = integral_view.forms.volume_creation_forms.VolumeNameForm()
       return_dict['form'] = form
       return django.shortcuts.render_to_response('vol_create_wiz_vol_name.html', return_dict, context_instance=django.template.context.RequestContext(request))
     else:
-      assert request.method == "POST"
+      if request.method != "POST":
+        raise Exception("Unsupported action. Please use the menus.")
   
     if action == "select_vol_type":
       # Previous form to verify
@@ -109,8 +111,7 @@ def volume_creation_wizard(request, action):
       else:
         url = "vol_create_wiz_vol_type.html"
     else:
-      return_dict["error"] = "Unknown action. Please try again."
-      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      raise Exception("Unknown action. Please use the menus.")
   
     return_dict['form'] = form
     return django.shortcuts.render_to_response(url, return_dict, context_instance=django.template.context.RequestContext(request))
@@ -128,30 +129,32 @@ def create_volume_conf(request):
 
   return_dict = {}
   try:
-    scl = system_info.load_system_config()
+    si, err = system_info.load_system_config()
+    if err:
+      raise Exception(err)
+    if not si:
+      raise Exception('Could not load system information')
   
     form = integral_view.forms.volume_creation_forms.VolOndiskStorageForm(request.POST or None)
   
     if form.is_valid():
       cd = form.cleaned_data
-      try:
-        vol_type = cd['vol_type']
-        vol_name = cd['vol_name']
-        ondisk_storage = cd['ondisk_storage']
-        vol_access = cd['vol_access']
+      vol_type = cd['vol_type']
+      vol_name = cd['vol_name']
+      ondisk_storage = cd['ondisk_storage']
+      vol_access = cd['vol_access']
+      repl_count = 2
+      if vol_type == "replicated":
+        # repl_count = int(cd["repl_count"])
+        # Hardcoded to 2 for now till we resolve the hot spare issue
         repl_count = 2
-        if vol_type == "replicated":
-          # repl_count = int(cd["repl_count"])
-          # Hardcoded to 2 for now till we resolve the hot spare issue
-          repl_count = 2
-        transport = "TCP"
-      except Exception as e:
-        return_dict["error"] = "Required information not provided : %s"%str(e)
-        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      transport = "TCP"
   
       iv_logging.info("create volume initiated for vol_type %s, vol_name %s, ondisk_storage %s, vol_access %s"%(vol_type, vol_name, ondisk_storage, vol_access))
-      d = gluster_commands.build_create_volume_command(vol_name, vol_type, ondisk_storage, repl_count, transport, scl)
-      if "error" in d:
+      d, err = gluster_commands.build_create_volume_command(vol_name, vol_type, ondisk_storage, repl_count, transport, si)
+      if err:
+        raise Exception(err)
+      if d and "error" in d:
         return_dict["error"] = "Error creating the volume : %s"%d["error"]
         return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
   
@@ -200,13 +203,12 @@ def create_volume(request):
   
   return_dict = {}
   try:
-    scl = system_info.load_system_config()
-    
   
     if request.method != "POST":
-      return_dict["error"] = "Invalid access method. Please use the menus."
-      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      raise Exception("Invalid access method. Please use the menus.")
   
+    if 'cmd' not in request.POST or 'dataset_list' not in request.POST:
+      raise Exception('Required parameters not passed.')
     cmd = request.POST['cmd']
     dsl = request.POST.getlist('dataset_list')
     dataset_dict = {}
@@ -214,8 +216,6 @@ def create_volume(request):
       tl = ds.split(':')
       dataset_dict[tl[0]] = tl[1]
   
-    if not fractalio.common.is_production():
-      cmd = 'ls -al'
   
     iv_logging.info("create volume command %s"%cmd)
     #First create the datasets on which the bricks will reside
@@ -231,7 +231,7 @@ def create_volume(request):
           #print ret
           if ret["retcode"] != 0:
             errors += ", Error creating the underlying storage brick on %s"%node
-            print errors
+            #print errors
           else:
             revert_list.append({node:dataset_revert_cmd})
   
@@ -246,19 +246,20 @@ def create_volume(request):
                 #print ret
                 if ret["retcode"] != 0:
                   errors += ", Error undoing the creating the underlying storage brick on %s"%node
-      return_dict["error"] = errors
-      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      raise Exception(errors)
   
     #Underlying storage created so now create the volume
-    d = gluster_commands.run_gluster_command("%s force"%cmd, "%s/create_volume.xml"%fractalio.common.get_devel_files_path(), "Volume creation")
+    devel_files_path, err = common.get_devel_files_path()
+    d, errors = gluster_commands.run_gluster_command("%s force"%cmd, "%s/create_volume.xml"%devel_files_path, "Volume creation")
     if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
-      rc,ret = fractalio.command.execute("gluster volume set "+request.POST['vol_name']+" storage.owner-gid 501")
-      print rc, ret
-      rc,ret = fractalio.command.execute("gluster volume start "+request.POST['vol_name'])
-      rc,ret = fractalio.command.execute("mount -t glusterfs localhost:/"+request.POST['vol_name']+" /mnt")
-      rc,ret = fractalio.command.execute("chmod 770 /mnt")
-      rc,ret = fractalio.command.execute("umount /mnt")
-      rc,ret = fractalio.command.execute("gluster volume stop "+request.POST['vol_name'])
+      #print rc, ret
+      #All ok so mount and change the owner and group of the volume to integralstor
+      rc,ret = command.execute("gluster volume set "+request.POST['vol_name']+" storage.owner-gid 501")
+      rc,ret = command.execute("gluster volume start "+request.POST['vol_name'])
+      rc,ret = command.execute("mount -t glusterfs localhost:/"+request.POST['vol_name']+" /mnt")
+      rc,ret = command.execute("chmod 770 /mnt")
+      rc,ret = command.execute("umount /mnt")
+      rc,ret = command.execute("gluster volume stop "+request.POST['vol_name'])
       #Success so audit the change
       audit_str = "Create "
       if request.POST["vol_type"] in ["replicated"]:
@@ -266,9 +267,13 @@ def create_volume(request):
       else:
         audit_str = audit_str + "distributed  "
       audit_str = audit_str + " volume named %s"%request.POST["vol_name"]
-      audit.audit("create_volume", audit_str, request.META["REMOTE_ADDR"])
+      ret, err = audit.audit("create_volume", audit_str, request.META["REMOTE_ADDR"])
+      if err:
+        raise Exception(err)
       if request.POST["vol_access"] == "iscsi":
-        iscsi.add_iscsi_volume(request.POST["vol_name"])
+        ret, err = iscsi.add_iscsi_volume(request.POST["vol_name"])
+        if err:
+          raise Exception(err)
     else:
       if revert_list:
         #Undo the creation of the datasets
@@ -280,6 +285,8 @@ def create_volume(request):
                 #print ret
                 if ret["retcode"] != 0:
                   errors += ", Error undoing the creating the underlying storage brick on %s"%node
+    if errors:
+      raise Exception(errors)
   
     if request.POST['vol_type'] == 'replicated':
       return_dict['repl_count'] = request.POST['repl_count']

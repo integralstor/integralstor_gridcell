@@ -1,177 +1,63 @@
 #!/usr/bin/python
 import urllib, urllib2, sys, os, time
-import salt
-from salt import client
 
-import fractalio
-from fractalio import common, system_info, alerts, lock, lcd_display, volume_info
+from integralstor_common import alerts, lock  
+from integralstor_gridcell import volume_info
 
-production = common.is_production()
 
 import atexit
-atexit.register(lock.release_lock, 'poll_for_alerts')
+atexit.register(lock.release_lock, 'gridcell_poll_for_alerts')
 
-def node_up(node):
-  # Check node status
-  if "node_status" in node:
-    if node["node_status"] != 0:
-      if node["node_status"] < 0:
-        return False 
-  return True
-
-def check_disk_status(client, node, node_name):
-
-  alert_list = []
-  err_pos = []
-  s = ""
-  if "disks" in node:
-    disks = node["disks"]
-    for sn, disk in disks.items():
-      if "status" in disk and disk["status"] != 'PASSED':
-        alert_list.append("Disk with serial number %s on GRIDCell %s has problems."%(sn, node_name))
-        err_pos.append(disk["position"])
-  if err_pos:
-    i = 1
-    while i < 5:
-      if i in err_pos:
-        s += "Err"
-      else:
-        s += "Ok"
-      if i < 4:
-        s += ' '
-      i += 1
-    s1 =  '/opt/fractalio/scripts/python/lcdmsg.py "Disk error slots" "%s"'%s
-    r1 = client.cmd(node_name, 'cmd.run', [s1])
-  else:
-    r1 = client.cmd(node_name, 'cmd.run', ['/opt/fractalio/scripts/shell/nodetype.sh'])
-
-  return alert_list
-
-def check_ipmi_status(node, node_name):
-
-  alert_list = []
-  if "ipmi_status" in node:
-    status_list = node["ipmi_status"]
-    for status_item in status_list:
-      if status_item["status"] != 'ok':
-        m = "The %s of the %s on GRIDCell %s is reporting errors" %(status_item["parameter_name"], status_item["component_name"], node_name)
-        if "reading" in status_item:
-          m += " with a reading of %s."%status_item["reading"]
-        alert_list.append(m)
-  return alert_list
-
-def check_interface_status(node, node_name):
-
-  alert_list = []
-  if "interfaces" in node:
-    interfaces = node["interfaces"]
-    for if_name, interface in interfaces.items():
-      if "status" in interface and interface["status"] != 'up':
-        alert_list.append("The network interface %s  on GRIDCell %s has problems."%(if_name, node_name))
-  return alert_list
-
-def check_pool_status(node, node_name):
-
-  alert_list = []
-  if "pools" in node:
-    pools = node["pools"]
-    for pool in pools:
-      pool_name = pool["name"]
-      if pool["state"] != 'ONLINE':
-        alert_list.append( "The ZFS pool %s on GRIDCell %s has issues. Pool state is %s"%(pool_name, node_name, pool["state"]))
-      if "raid_or_mirror_status" in pool["config"]:
-        if pool["config"]["raid_or_mirror_status"]["state"] != 'ONLINE':
-          alert_list.append( "The RAIDZ status ZFS pool %s on GRIDCell %s has issues. The RAIDZ state is %s"%(pool_name, node_name, pool["config"]["raid_or_mirror_status"]["state"]))
-      if "components" in pool["config"]:
-        for component in pool["config"]["components"]:
-          if component["state"] != 'ONLINE':
-            alert_list.append( "The component %s in the ZFS pool %s on GRIDCell %s has issues. Component state is %s"%(component["name"], pool_name, node_name, component["state"]))
-  return alert_list
-
-def check_load_average(node, node_name):
-
-  alert_list = []
-  if "load_avg" in node:
-    if node["load_avg"]["5_min"] > node["load_avg"]["cpu_cores"]:
-      alert_list.append("The 5 minute load average on GRIDCell %s has been high with a value of %.2f."%(node_name, node["load_avg"]["5_min"]))
-    if node["load_avg"]["15_min"] > node["load_avg"]["cpu_cores"]:
-      alert_list.append("The 15 minute load average on GRIDCell %s has been high with a value of %.2f."%(node_name, node["load_avg"]["15_min"]))
-  return alert_list
 
 def check_quotas():
 
   alert_list = []
-  vil = volume_info.get_volume_info_all()
-  if vil:
-    for v in vil:
-      if "quotas" in v:
-        if '/' in v['quotas']:
-          if v["quotas"]['/']["soft_limit_exceeded"].lower() == "yes":
-            alert_list.append("Exceeded %s of %s quota for volume %s. Current usage is %s"%(v['quotas']['/']['soft_limit'], v['quotas']['/']['limit'], v['name'], v['quotas']['/']['size']))
-          if v["quotas"]['/']["hard_limit_exceeded"].lower() == "yes":
-            alert_list.append("Exceeded complete %s quota for volume %s. All I/O will be disabled. "%(v['quotas']['/']['limit'], v['name']))
-  return alert_list
+  try:
+    vil, err = volume_info.get_volume_info_all()
+    if err:
+      raise Exception(err)
+    if vil:
+      for v in vil:
+        if "quotas" in v:
+          if '/' in v['quotas']:
+            if v["quotas"]['/']["soft_limit_exceeded"].lower() == "yes":
+              alert_list.append("Exceeded %s of %s quota for volume %s. Current usage is %s"%(v['quotas']['/']['soft_limit'], v['quotas']['/']['limit'], v['name'], v['quotas']['/']['size']))
+            if v["quotas"]['/']["hard_limit_exceeded"].lower() == "yes":
+              alert_list.append("Exceeded complete %s quota for volume %s. All I/O will be disabled. "%(v['quotas']['/']['limit'], v['name']))
+  except Exception, e:
+    return None, 'Error checking volume quota status : %s'%str(e)
+  else:
+    return alert_list, None
 
 
 def main():
 
-  if not lock.get_lock('poll_for_alerts'):
-      print 'Generate Status : Could not acquire lock. Exiting.'
-      sys.exit(-1)
 
   try :
-    si = system_info.load_system_config()
-  except Exception, e:
-    print "Error loading system config! Exiting."
-    sys.exit(-1)
+    lck, err = lock.get_lock('gridcell_poll_for_alerts')
+    if err:
+      raise Exception(err)
+    if not lck:
+        print 'Generate Status : Could not acquire lock. Exiting.'
+        sys.exit(-1)
 
-  try :
     alert_list = []
   
-    client = salt.client.LocalClient()
-    for node_name, node in si.items():
-  
-      if not node_up(node):
-        alert_list.append("GRIDCell %s seems to be down."%node_name)
-  
-      # Check disks status
-      l = check_disk_status(client, node, node_name)
+    # Check volume quotas every 5 mins
+    min = time.localtime().tm_min
+    if min%5 == 0:
+      l, err = check_quotas()
+      if err:
+        raise Exception(err)
       if l:
         alert_list.extend(l)
-      
-  
-      # Check ipmi status
-      l = check_ipmi_status(node, node_name)
-      if l:
-        alert_list.extend(l)
-  
-      # Check interface status
-      l = check_interface_status(node, node_name)
-      if l:
-        alert_list.extend(l)
-  
-      # Check zfs pool status
-      l = check_pool_status(node, node_name)
-      if l:
-        alert_list.extend(l)
-  
-      # Check load average
-      min = time.localtime().tm_min
-      if min%15 == 0:
-        l = check_load_average(node, node_name)
-        if l:
-          alert_list.extend(l)
-
-      # Check volume quotas every 5 mins
-      if min%5 == 0:
-        l = check_quotas()
-        if l:
-          alert_list.extend(l)
   
     #print alert_list
     if alert_list:
       alerts.raise_alert(alert_list)
-    lock.release_lock('poll_for_alerts')
+    ret, err = lock.release_lock('gridcell_poll_for_alerts')
+    if err:
+      raise Exception(err)
   except Exception, e:
     print "Error generating alerts : %s ! Exiting."%e
     sys.exit(-1)
@@ -212,4 +98,128 @@ if __name__ == "__main__":
         raise_alert(alert_url, 'Power supply unit %s not functioning. View the front panel tab on the \"System status\" screen  to get a visual picture of the failure.'%psu["name"])
       if "code" in ps and ps["code"] == '0x09':
         raise_alert(alert_url, 'No input to power supply unit %s. View the front panel tab on the \"System status\" screen to get a visual picture of the failure.'%ps["name"])
+'''
+'''
+def node_up(node):
+  ret = False
+  try:
+    if not node:
+      raise Exception('No GRIDCell specified')
+    # Check node status
+    if "node_status" in node:
+      if node["node_status"] != 0:
+        if node["node_status"] < 0:
+          ret =  False 
+    ret = True
+  except Exception, e:
+    return False, 'Error checking GRIDCell status : %s'%str(e)
+  else:
+    return ret, None
+
+def check_disk_status(client, node, node_name):
+
+  alert_list = []
+  try:
+    common_python_scripts_path, err = common.get_common_python_scripts_path()
+    if err:
+      raise Exception(err)
+    shell_scripts_path, err = common.get_shell_scripts_path()
+    if err:
+      raise Exception(err)
+    if (not client) or (not node) or (not node_name):
+      raise Exception('Required parameters missing')
+    err_pos = []
+    s = ""
+    if "disks" in node:
+      disks = node["disks"]
+      for sn, disk in disks.items():
+        if "status" in disk and disk["status"] != 'PASSED':
+          alert_list.append("Disk with serial number %s on GRIDCell %s has problems."%(sn, node_name))
+          err_pos.append(disk["position"])
+    if err_pos:
+      i = 1
+      while i < 5:
+        if i in err_pos:
+          s += "Err"
+        else:
+          s += "Ok"
+        if i < 4:
+          s += ' '
+        i += 1
+      s1 =  '%s/lcdmsg.py "Disk error slots" "%s"'%(common_python_scripts_path, s)
+      r1 = client.cmd(node_name, 'cmd.run', [s1])
+    else:
+      r1 = client.cmd(node_name, 'cmd.run', ['%s/nodetype.sh'%shell_scripts_path])
+  
+  except Exception, e:
+    return None, 'Error checking GRIDCell disk status : %s'%str(e)
+  else:
+    return alert_list, None
+
+def check_ipmi_status(node, node_name):
+
+  alert_list = []
+  try:
+    if "ipmi_status" in node:
+      status_list = node["ipmi_status"]
+      for status_item in status_list:
+        if status_item["status"] != 'ok':
+          m = "The %s of the %s on GRIDCell %s is reporting errors" %(status_item["parameter_name"], status_item["component_name"], node_name)
+          if "reading" in status_item:
+            m += " with a reading of %s."%status_item["reading"]
+          alert_list.append(m)
+  except Exception, e:
+    return None, 'Error checking GRIDCell IPMI status : %s'%str(e)
+  else:
+    return alert_list, None
+
+def check_interface_status(node, node_name):
+
+  alert_list = []
+  try:
+    if "interfaces" in node:
+      interfaces = node["interfaces"]
+      for if_name, interface in interfaces.items():
+        if "status" in interface and interface["status"] != 'up':
+          alert_list.append("The network interface %s  on GRIDCell %s has problems."%(if_name, node_name))
+  except Exception, e:
+    return None, 'Error checking GRIDCell interface status : %s'%str(e)
+  else:
+    return alert_list, None
+
+def check_pool_status(node, node_name):
+
+  alert_list = []
+  try:
+    if "pools" in node:
+      pools = node["pools"]
+      for pool in pools:
+        pool_name = pool["name"]
+        if pool["state"] != 'ONLINE':
+          alert_list.append( "The ZFS pool %s on GRIDCell %s has issues. Pool state is %s"%(pool_name, node_name, pool["state"]))
+        if "raid_or_mirror_status" in pool["config"]:
+          if pool["config"]["raid_or_mirror_status"]["state"] != 'ONLINE':
+            alert_list.append( "The RAIDZ status ZFS pool %s on GRIDCell %s has issues. The RAIDZ state is %s"%(pool_name, node_name, pool["config"]["raid_or_mirror_status"]["state"]))
+        if "components" in pool["config"]:
+          for component in pool["config"]["components"]:
+            if component["state"] != 'ONLINE':
+              alert_list.append( "The component %s in the ZFS pool %s on GRIDCell %s has issues. Component state is %s"%(component["name"], pool_name, node_name, component["state"]))
+  except Exception, e:
+    return None, 'Error checking GRIDCell ZFS pool status : %s'%str(e)
+  else:
+    return alert_list, None
+
+def check_load_average(node, node_name):
+
+  alert_list = []
+  try:
+    if "load_avg" in node:
+      if node["load_avg"]["5_min"] > node["load_avg"]["cpu_cores"]:
+        alert_list.append("The 5 minute load average on GRIDCell %s has been high with a value of %.2f."%(node_name, node["load_avg"]["5_min"]))
+      if node["load_avg"]["15_min"] > node["load_avg"]["cpu_cores"]:
+        alert_list.append("The 15 minute load average on GRIDCell %s has been high with a value of %.2f."%(node_name, node["load_avg"]["15_min"]))
+  except Exception, e:
+    return None, 'Error checking GRIDCell load average status : %s'%str(e)
+  else:
+    return alert_list, None
 '''

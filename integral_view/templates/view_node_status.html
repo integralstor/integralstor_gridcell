@@ -203,175 +203,244 @@
        {%endif%}
     </td>
   </tr>
-  <tr>
-    <td colspan=7>
-     <b>ZFS Status</b>
-    </td>
-  </tr>
-  {% for pool in node.pools %}
-    <tr>
-      <td colspan=1>
-      &nbsp;
-      </td>
-      <td colspan=3>
-        ZFS Pool name
-      </td>
-      <td colspan=5>
-        {{pool.config.pool_status.name}}
-      </td>
-    </tr>
-    <tr>
-      <td colspan=1>
-      &nbsp;
-      </td>
-      <td colspan=3>
-        ZFS Pool type
-      </td>
-      <td colspan=5>
-        {%if pool.config.type == 'normal' %} Non-RAID {%elif pool.config.type == 'raidz1'%} RAID-5 {%endif%}
-      </td>
-    </tr>
-    <tr>
-      <td colspan=1>
-        &nbsp;
-      </td>
-      <td colspan=3>
-        ZFS Pool status
-      </td>
-      <td colspan=5>
-        {{pool.state}} ({{pool.config.pool_status.read}} read errors, {{pool.config.pool_status.write}} write errors, {{pool.config.pool_status.cksum}} checksum errors)
-      </td>
-    </tr>
-    {% if 'zil_status' in pool.config %}
-    <tr>
-      <td colspan=1>
-      &nbsp;
-      </td>
-      <td colspan=3>
-        ZFS Write cache status
-      </td>
-      <td colspan=5>
-         {{pool.config.zil_status.state}} ({{pool.config.zil_status.read}} read errors, {{pool.config.zil_status.write}} write errors, {{pool.config.zil_status.cksum}} checksum errors)
-      </td>
-    </tr>
-    {%endif%}
-    {% if pool.type == 'raidz1' %}
-    <tr>
-      <td colspan=1>
-      &nbsp;
-      </td>
-      <td colspan=3>
-        ZFS Pool RAID status
-      </td>
-      <td colspan=5>
-         {{pool.raid_or_mirror_status.state}} ({{pool.raid_or_mirror_status.read}} read errors, {{pool.raid_or_mirror_status.write}} write errors, {{pool.raid_or_mirror_status.cksum}} checksum errors)
-      </td>
-    </tr>
-    {%endif%}
-    <tr>
-      <td colspan=1>
-      &nbsp;
-      </td>
-      <td colspan=3>
-        ZFS Pool scan status
-      </td>
-      <td colspan=5>
-        {%for scan in pool.scan %}{{scan}}{%endfor%}
-      </td>
-    </tr>
-    <tr>
-      <td colspan=1>
-      &nbsp;
-      </td>
-      <td colspan=3>
-        ZFS Pool errors
-      </td>
-      <td colspan=5>
-        {%for error in pool.errors %}{{error}}{%endfor%}
-      </td>
-    </tr>
-    <tr>
-      <td colspan=8>
-       <b>Disks</b>
-      </td>
-    </tr>
-    <tr>
-      <th>
-        Disk serial number
-      </th>
-      <th>
-        Disk state
-      </th>
-      <th>
-        Disk Read errors
-      </th>
-      <th>
-        Disk write errors
-      </th>
-      <th>
-        Disk checksum errors
-      </th>
-      <th>
-        Action
-      </th>
-      <th>
-        S.M.A.R.T status
-      </th>
-    </tr>
-    {% for component in pool.config.components %}
-      <tr>
-        <td>
-          {%load utilities%}
-          {{component.name|split:"_"}}
-        </td>
-        <td>
-          {{component.state}}
-        </td>
-        <td>
-          {{component.read}}
-        </td>
-        <td>
-          {{component.write}}
-        </td>
-        <td>
-          {{component.cksum}}
-        </td>
-        <td>
-          <form method="POST" action="/replace_disk/">
-            <input type="hidden" name="node" value="{{node_name}}">
-            <input type="hidden" name="serial_number" value="{{component.name|split:"_"}}">
-            <input type="hidden" name="step" value="offline_disk">
-            {% if disk.status != 'PASSED' %}
-              <button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');"> Replace (swap out) this disk </button>
-              {%else%}
-              <button type="submit" class="btn " onClick ="$('#processing').modal('show');"> Replace (swap out) this disk </button>
-            {%endif%}
-          </form>
-        </td>
-        {% for serial_number, disk in node.disks.items %}
-          {%if disk.id == component.name%}
-            <td class="center" id="status_{{disk.status}}">
-              {{disk.status|title}}
-            </td>
-          {%endif%}
-        {%endfor%}
-      </tr>
-    {%endfor%}
-  {%endfor%}
-  <tr>
-    <td colspan=1>
-      &nbsp; 
-     <b>Disk Position</b>
-    </td>
-    <td colspan=8>
+  </table>
+  <h3> Disk Status</h3>
+<br><br>
+
       <img src="/static/images/diskmap1.png" width="900px;" class="img-responsive" />
       <span class="disk-center" id="{{node.disk_pos.1}}"><strong>{{node.disk_pos.1}}</strong></span>
       <span class="disk-center" id="{{node.disk_pos.2}}"><strong>{{node.disk_pos.2}}</strong></span>
       <span class="disk-center" id="{{node.disk_pos.3}}"><strong>{{node.disk_pos.3}}</strong></span>
       <span class="disk-center" id="{{node.disk_pos.4}}"><strong>{{node.disk_pos.4}}</strong></span>
-    </td>
-  </tr>
+<br><br>
+<table class="table table-bordered table-hover table-responsive" style="width:800px">
+<thead>
+<th >
+Disk serial number
+</th>
+<th>
+S.M.A.R.T status
+</th>
+<th>
+Disk replacement
+</th>
+</thead>
+{%for sn, disk in node.disks.items %}
+{%if disk.boot_device %}
+<tr>
+<td>
+{{sn}}  (OS disk) 
+</td>
+<td>
+{{disk.status}} &nbsp;&nbsp;
+{%if disk.status == 'PASSED'%}
+<i class="fa fa-check-circle green fa-2x"></i>
+{%else%}
+<i class="fa fa-remove red fa-2x"></i>
+{%endif%}
+</td>
+<td>
+&nbsp;
+</td>
+</tr>
+{%endif%}
+{%endfor%}
+{%for sn, disk in node.disks.items %}
+{%if not disk.boot_device %}
+<tr>
+<td>
+{{sn}}  (Data disk) 
+</td>
+<td>
+{{disk.status}} &nbsp;&nbsp;
+{%if disk.status == 'PASSED'%}
+<i class="fa fa-check-circle green fa-2x"></i>
+{%else%}
+<i class="fa fa-remove red fa-2x"></i>
+{%endif%}
+</td>
+<td>
+{%if disk.status != 'PASSED'%}
+      {%if disk.pool%}
+      <form method="POST" action="/replace_disk/">
+        <input type="hidden" name="node" value="{{node_name}}">
+        <input type="hidden" name="serial_number" value="{{sn}}">
+        <input type="hidden" name="step" value="offline_disk">
+          <button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');"> Replace (swap out) this disk </button>
+      </form>
+      {%else%}
+        <button  class="btn btn-primary" onClick ="alert('This disk is not part of any ZFS pool so you can go ahead and replace it safely');"> Replace (swap out) this disk </button>
+      {%endif%}
+{%else%}
+Healthy disk. No replacement necessary.
+{%endif%}
+</td>
+</tr>
+{%endif%}
+{%endfor%}
 </table>
+
+
+  <h3> ZFS Status</h3>
+  {%if not node.pools %}
+  No storage pools created
+  {%else%}
+  <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+  <div class="box-group" id="accordion">
+   {%for pool in node.pools %}
+                    <!-- we are adding the .panel class so bootstrap.js collapse plugin detects it -->
+                    <div class="panel box {%if pool.config.pool.root.status.state == 'ONLINE' %} box-success {%else%} box-danger{%endif%}">
+                      <div class="box-header with-border">
+                        <h4 class="box-title">
+                          <a class="" aria-expanded="true" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+                            Pool : {{pool.pool_name}}, State : {{pool.config.pool.root.status.state}} (Click for more details..)
+                          </a> 
+                        </h4>
+                      </div>
+                      <div style="" aria-expanded="true" id="collapseOne" class="panel-collapse collapse">
+                        <div class="box-body">
+
+
+      <h3> Pool name : {{pool.pool_name}} </h3>
+      <table class="table table-bordered table-hover table-responsive" style="width:800px">
+      <thead>
+        <th >
+        Pool type
+        </th>
+        <th>
+          Status details
+        </th>
+        <th>
+          Errors
+        </th>
+        <th>
+          Scan status
+        </th>
+      </thead>
+      <tr>
+        <td>
+          {{pool.config.pool.type}}
+        </td>
+        <td>
+          {{pool.config.pool.root.status.read}} read errors, <br>{{pool.config.pool.root.status.write}} write errors, <br>{{pool.config.pool.root.status.read}} checksum errors 
+        </td>
+        <td>
+          {{pool.errors}}
+        </td>
+        <td>
+          {{pool.scan}}
+        </td>
+      </tr>
+      </table>
+      <h4>Component status :</h4>
+      <h5>Pool status</h5>
+      <ul>
+        <li> Pool Status - State ({{pool.config.pool.root.status.state}}), Read ({{pool.config.pool.root.status.read}}), Write ({{pool.config.pool.root.status.write}}), Checksum ({{pool.config.pool.root.status.chksum}})
+            {%if pool.config.pool.root.status.state == 'ONLINE'%}
+              <i class="fa fa-check-circle green fa-2x"></i>	
+            {%else%}
+              <i class="fa fa-remove red fa-2x"></i>	
+            {%endif%}
+          <ul>
+            
+            {%for child in pool.config.pool.root.children %}
+            <li> Name - {{child.name}}, Type - {{child.type}}, Status - State ({{child.status.state}}), Read ({{child.status.read}}), Write ({{child.status.write}}), Chksum ({{child.status.chksum}})
+            {%if child.status.state == 'ONLINE'%}
+              <i class="fa fa-check-circle green fa-2x"></i>	
+            {%else%}
+              <i class="fa fa-remove red fa-2x"></i>	
+            {%endif%}
+              {%if child.children %}
+              <ul>
+                {%for gr_child in child.children %}
+                  <li> Name - {{gr_child.name}}, Type - {{gr_child.type}}, Status - State ({{gr_child.status.state}}), Read ({{gr_child.status.read}}), Write ({{gr_child.status.write}}), Chksum ({{gr_child.status.chksum}})
+                  {%if gr_child.status.state == 'ONLINE'%}
+                    <i class="fa fa-check-circle green fa-2x"></i>	
+                  {%else%}
+                    <i class="fa fa-remove red fa-2x"></i>	
+                  {%endif%}
+                  {%if gr_child.children %}
+                  <ul>
+                    {%for gr_gr_child in gr_child.children %}
+                      <li> Name - {{gr_gr_child.name}}, Type - {{gr_gr_child.type}}, Status - State ({{gr_gr_child.status.state}}), Read ({{gr_gr_child.status.read}}), Write ({{gr_gr_child.status.write}}), Chksum ({{gr_gr_child.status.chksum}})
+                      {%if gr_gr_child.status.state == 'ONLINE'%}
+                        <i class="fa fa-check-circle green fa-2x"></i>	
+                      {%else%}
+                        <i class="fa fa-remove red fa-2x"></i>	
+                      {%endif%}
+            
+                    {%endfor%}
+                  </ul>
+                  {%endif%}
+                {%endfor%}
+              </ul>
+              {%endif%}
+            {%endfor%}
+          </ul>
+      </ul>
+
+      <h5>Write cache status</h5>
+
+      {% if pool.config.logs %}
+        <ul>
+        {%if pool.config.logs.root.status %}
+        <li>  Write cache Status - State ({{pool.config.logs.root.status.state}}), Read ({{pool.config.logs.root.status.read}}), Write ({{pool.config.logs.root.status.write}}), Checksum ({{pool.config.logs.root.status.chksum}})
+            {%if pool.config.logs.root.status.state == 'ONLINE'%}
+              <i class="fa fa-check-circle green fa-2x"></i>	
+            {%else%}
+              <i class="fa fa-remove red fa-2x"></i>	
+            {%endif%}
+          <ul>
+        {%endif%}
+            
+            {%for child in pool.config.logs.root.children %}
+            <li> Name - {{child.name}}, Type - {{child.type}}, Status - State ({{child.status.state}}), Read ({{child.status.read}}), Write ({{child.status.write}}), Chksum ({{child.status.chksum}})
+            {%if child.status.state == 'ONLINE'%}
+              <i class="fa fa-check-circle green fa-2x"></i>	
+            {%else%}
+              <i class="fa fa-remove red fa-2x"></i>	
+            {%endif%}
+              {%if child.children %}
+              <ul>
+                {%for gr_child in child.children %}
+                  <li> Name - {{gr_child.name}}, Type - {{gr_child.type}}, Status - State ({{gr_child.status.state}}), Read ({{gr_child.status.read}}), Write ({{gr_child.status.write}}), Chksum ({{gr_child.status.chksum}})
+                  {%if gr_child.status.state == 'ONLINE'%}
+                    <i class="fa fa-check-circle green fa-2x"></i>	
+                  {%else%}
+                    <i class="fa fa-remove red fa-2x"></i>	
+                  {%endif%}
+                  {%if gr_child.children %}
+                  <ul>
+                    {%for gr_gr_child in gr_child.children %}
+                      <li> Name - {{gr_gr_child.name}}, Type - {{gr_gr_child.type}}, Status - State ({{gr_gr_child.status.state}}), Read ({{gr_gr_child.status.read}}), Write ({{gr_gr_child.status.write}}), Chksum ({{gr_gr_child.status.chksum}})
+                      {%if gr_gr_child.status.state == 'ONLINE'%}
+                        <i class="fa fa-check-circle green fa-2x"></i>	
+                      {%else%}
+                        <i class="fa fa-remove red fa-2x"></i>	
+                      {%endif%}
+            
+                    {%endfor%}
+                  </ul>
+                  {%endif%}
+                {%endfor%}
+              </ul>
+              {%endif%}
+            {%endfor%}
+        {%if pool.config.logs.root.status %}
+          </ul>
+        {%endif%}
+      </ul>
+      {%endif%}
+                        </div>
+                      </div>
+                    </div>
+    {%endfor%}
+  </div>
+
+
+  {%endif%}
+
+
 
 {%else%}
   GRIDCell is down

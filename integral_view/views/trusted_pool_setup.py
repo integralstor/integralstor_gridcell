@@ -8,8 +8,9 @@ import integral_view
 from integral_view.forms import trusted_pool_setup_forms
 from integral_view.utils import iv_logging
 
-import fractalio
-from fractalio import volume_info, system_info, audit, gluster_commands, grid_ops
+import integralstor_gridcell
+from integralstor_gridcell import volume_info, system_info, gluster_commands, grid_ops
+from integralstor_common import audit
 
 def add_nodes_to_pool(request):
   """ Used to add servers to the trusted pool"""
@@ -18,11 +19,15 @@ def add_nodes_to_pool(request):
   try:
     error_list = []
   
-    si = system_info.load_system_config()
+    si, err = system_info.load_system_config()
+    if err:
+      raise Exception(err)
     return_dict['system_info'] = si
   
     # Get list of possible nodes that are available
-    nl = system_info.get_available_node_list(si)
+    nl, err = system_info.get_available_node_list(si)
+    if err:
+      raise Exception(err)
     if not nl:
       return_dict["no_available_nodes"] = True
       return django.shortcuts.render_to_response('add_servers_form.html', return_dict, context_instance = django.template.context.RequestContext(request))
@@ -52,8 +57,8 @@ def add_nodes_to_pool(request):
       iv_logging.debug("Initiating add nodes for %s"%' '.join(dbg_node_list))
       for node in nl:
         td = {}
-        rc, d, el = grid_ops.add_a_node_to_storage_pool(si, node["hostname"])
-        if rc == 0 and d:
+        d, errors = grid_ops.add_a_node_to_storage_pool(si, node["hostname"])
+        if d:
           if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
             audit.audit("add_storage", d["audit_str"], request.META["REMOTE_ADDR"])
         hostname = node["hostname"]
@@ -61,8 +66,8 @@ def add_nodes_to_pool(request):
         td['d'] = rc
         td['error_list'] = el
         rd[hostname] = td
-        if el:
-          error_list.extend(el)
+        if errors:
+          error_list.append(errors)
 
       return_dict['result_dict'] = rd
       if error_list:
@@ -88,8 +93,12 @@ def remove_node_from_pool(request):
 
   return_dict = {}
   try:
-    vil = volume_info.get_volume_info_all()
-    si = system_info.load_system_config()
+    vil, err = volume_info.get_volume_info_all()
+    if err:
+      raise Exception(err)
+    si, err = system_info.load_system_config()
+    if err:
+      raise Exception(err)
   
     return_dict['system_info'] = si
     nl = []
@@ -114,14 +123,14 @@ def remove_node_from_pool(request):
           cd = form.cleaned_data
           node = cd["node"]
           iv_logging.info("Removing node '%s'"%node)
-          rc, d, error_list = grid_ops.remove_a_node_from_storage_pool(si, node)
+          d, error = grid_ops.remove_a_node_from_storage_pool(si, node)
 
           return_dict['result_code'] = rc
           return_dict['node_name'] = node
           return_dict['result_dict'] = d
-          if error_list:
-            return_dict['error_list'] = error_list
-          if rc == 0:
+          if error:
+            return_dict['errors'] = error
+          if not error:
             audit_str =  "Removed node %s"%node
             audit.audit("remove_storage", audit_str, request.META["REMOTE_ADDR"])
           return_dict["result_dict"] = d

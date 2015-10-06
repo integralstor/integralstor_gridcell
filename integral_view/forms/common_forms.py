@@ -3,14 +3,14 @@ from django import forms
 
 import re
 
-import fractalio
-import fractalio.networking
+from integralstor_common import networking
 
 class MultipleServerField(forms.CharField):
 
   def _is_valid_server(self, server):
     server = server.strip()
-    if fractalio.networking.is_valid_ip_or_hostname(server):
+    valid, err = networking.validate_ip_or_hostname(server)
+    if valid:
       return True
     else:
       return False

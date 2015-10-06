@@ -1,6 +1,5 @@
 import os, socket, re, sys
-import fractalio
-from fractalio import networking, command
+from integralstor_common import networking, command
 
 def configure_networking():
 
@@ -8,7 +7,6 @@ def configure_networking():
     os.system('clear')
     change_ip = False
     change_netmask = False
-    #change_hostname = False
     change_default_gateway = False
     change_dns_primary = False
     change_dns_secondary = False
@@ -16,10 +14,9 @@ def configure_networking():
     change_bonding_type = False
     change_jumbo_frames = False
   
-    ip_info = networking.get_ip_info('bond0')
+    ip_info, err = networking.get_ip_info('bond0')
     if not ip_info :
-      print "No bonding configured! Incorrect configuration. Please contact Fractalio Data"
-      sys.exit(-1)
+      raise Exception("No bonding configured! Incorrect configuration. : %s"%err)
   
     config_changed = False
     ip = ip_info["ipaddr"]
@@ -28,7 +25,8 @@ def configure_networking():
     while not valid_input :
       input = raw_input(str_to_print)
       if input:
-        if networking.is_ip(input):
+        vi, err = networking.validate_ip(input):
+        if vi:
           valid_input = True
           ip = input
           change_ip = True
@@ -45,7 +43,8 @@ def configure_networking():
     while not valid_input:
       input = raw_input(str_to_print)
       if input:
-        if networking.is_ip(input):
+        vi, err = networking.validate_netmask(input):
+        if vi:
           valid_input = True
           netmask = input
           change_netmask = True
@@ -57,26 +56,6 @@ def configure_networking():
     print
   
     hostname = socket.gethostname()
-    '''
-    if not hostname:
-      str_to_print = "Enter hostname (currently no hostname configured, press enter to retain current value) : "
-    else:
-      str_to_print = "Enter hostname without any domain name (currently %s, press enter to retain current value) : "%hostname
-    valid_input = False
-    while not valid_input:
-      input = raw_input(str_to_print)
-      if input:
-        if re.match('^[a-zA-Z0-9-]+$', input):
-          valid_input = True
-          hostname = input
-          change_hostname = True
-          config_changed = True
-      else:
-        valid_input = True
-      if not valid_input:
-        print "Invalid value. Please try again."
-    print
-    '''
   
     default_gateway = None
     if "default_gateway" in ip_info:
@@ -91,7 +70,8 @@ def configure_networking():
     while not valid_input:
       input = raw_input(str_to_print)
       if input:
-        if networking.is_ip(input):
+        vi, err = networking.validate_netmask(input):
+        if vi:
           valid_input = True
           default_gateway = input
           change_default_gateway = True
@@ -102,7 +82,9 @@ def configure_networking():
         print "Invalid value. Please try again."
     print
   
-    dns_list = networking.get_name_servers()
+    dns_list, err = networking.get_name_servers()
+    if err:
+      print 'Error retrieving current name servers : %s'%err
     dns_primary = None
     if not dns_list:
       str_to_print = "Enter the IP address of the Fractalio primary GRIDCell (currently not set, press enter to retain current value) : "
@@ -113,7 +95,8 @@ def configure_networking():
     while not valid_input:
       input = raw_input(str_to_print)
       if input:
-        if networking.is_ip(input):
+        vi, err = networking.validate_ip(input):
+        if vi:
           valid_input = True
           dns_primary = input
           change_dns_primary = True
@@ -134,7 +117,8 @@ def configure_networking():
     while not valid_input:
       input = raw_input(str_to_print)
       if input:
-        if networking.is_ip(input):
+        vi, err = networking.validate_ip(input):
+        if vi:
           valid_input = True
           dns_secondary = input
           change_dns_secondary = True
@@ -156,7 +140,8 @@ def configure_networking():
     while not valid_input:
       input = raw_input(str_to_print)
       if input:
-        if networking.is_ip(input):
+        vi, err = networking.validate_ip(input):
+        if vi:
           valid_input = True
           dns_external = input
           change_dns_external = True
@@ -167,7 +152,7 @@ def configure_networking():
         print "Invalid value. Please try again."
     print
   
-    bonding_type = networking.get_bonding_type('bond0')
+    bonding_type, err = networking.get_bonding_type('bond0')
     print "Ethernet NIC bonding configuration"
     print "----------------------------------"
     print "Ethernet bonding aggregates the bandwidth of all available ethernet ports giving high throughput and failover."
@@ -195,7 +180,7 @@ def configure_networking():
     print
   
     
-    jfe = networking.jumbo_frames_enabled('bond0')
+    jfe, err = networking.jumbo_frames_enabled('bond0')
     if jfe:
       jumbo_frames = 'y'
       jfe_str = "enabled"
@@ -283,39 +268,40 @@ def configure_networking():
         ip_dict["mtu"] = 9000
       else:
         ip_dict["mtu"] = 1500
-      rc = networking.set_bond_ip_info(ip_dict)
-      if rc == -1:
-        errors.append("Error setting IP configuration")
+      rc, err = networking.set_bond_ip_info(ip_dict)
+      if not rc:
+        if err:
+          errors.append("Error setting IP configuration : %s"%err)
+        else:
+          errors.append("Error setting IP configuration ")
       restart_networking = True
+      '''
       #This is done to change the /etc/hosts file to the correct IP
       rc = networking.change_hosts_file_entry(hostname, ip_info['ipaddr'], hostname, ip)
       if rc == -1:
         errors.append("Error setting IP configuration")
+      '''
 
-    '''
-    if change_hostname:
-      rc = networking.set_hostname(hostname)
-      if rc == -1:
-        errors.append("Error setting hostname")
-    '''
   
     if change_dns_primary or change_dns_secondary or change_dns_external: 
       fqdn = socket.getfqdn()
       if fqdn == 'fractalio-pri.fractalio.lan':
         if dns_external:
-          rc = networking.generate_default_primary_named_conf(dns_primary, netmask, dns_secondary, True, dns_external, True)
+          rc, err = networking.generate_default_primary_named_conf(dns_primary, netmask, dns_secondary, True, dns_external, True)
         else:
-          rc = networking.generate_default_primary_named_conf(dns_primary, netmask, dns_secondary)
-        if rc == -1:
+          rc, err = networking.generate_default_primary_named_conf(dns_primary, netmask, dns_secondary)
+        if err:
+          errors.append(err)
+        if not rc :
           errors.append("Error setting DNS server configuration")
-      rc = networking.set_name_servers([dns_primary, dns_secondary, dns_external])
-      if rc == -1:
-        errors.append("Error setting name servers")
+      rc, err = networking.set_name_servers([dns_primary, dns_secondary, dns_external])
+      if not rc:
+        errors.append("Error setting name servers : %s"%err)
   
     if change_bonding_type:
-      networking.set_bonding_type('bond0', bonding_type)
-      if rc == -1:
-        errors.append("Error setting bonding type")
+      rc, err = networking.set_bonding_type('bond0', bonding_type)
+      if not rc:
+        errors.append("Error setting bonding type : %s"%err)
       restart_networking = True
   
     restart = False

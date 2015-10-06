@@ -5,8 +5,9 @@ import django, django.template
 from django.contrib import auth
 from django.conf import settings
 
-import fractalio
-from fractalio import command, common, volume_info, system_info, audit, gluster_commands
+from integralstor_gridcell import gluster_commands, volume_info, system_info
+
+from integralstor_common import command, common, audit
 
 import integral_view
 from integral_view.forms import trusted_pool_setup_forms
@@ -17,8 +18,11 @@ def perform_op(request, op, name1=None, name2= None):
 
   return_dict = {}
   try:
-    scl = system_info.load_system_config()
-    return_dict['system_config_list'] = scl
+    si, err = system_info.load_system_config()
+    if err:
+      raise Exception(err)
+    if not si:
+      raise Exception('Could not load system configuration')
   
     # Actual cmd processing begins
   
@@ -26,8 +30,7 @@ def perform_op(request, op, name1=None, name2= None):
     template = "logged_in_error.html"
   
     if not op:
-      return_dict["error"] = "Operation not specified"
-      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      raise Exception("Operation not specified")
   
     audit_code = None
     audit_str = None
@@ -67,7 +70,6 @@ def perform_op(request, op, name1=None, name2= None):
       cmd = 'gluster volume start %s '%name1
       audit_code = "vol_start"
       audit_str = "Started volume %s"%name1
-  
     elif op == 'rotate_log':
       cmd = 'gluster volume log rotate %s '%name1
       audit_code = "log_rotate"
@@ -75,81 +77,84 @@ def perform_op(request, op, name1=None, name2= None):
     elif op == 'expand_volume':
       cmd = 'gluster volume add brick %s %s'%(name1, urllib.unquote(name2))
     else:
-      return_dict["error"] = "Unknown operation specified"
+      raise Exception("Unknown operation specified")
   
     template = 'render_op_results.html'
-    if "error" not in return_dict:
-      if op in ["vol_stop", "vol_start"]:
+
+    if op in ["vol_stop", "vol_start"]:
+      if op == "vol_stop":
+        d, err = gluster_commands.volume_stop_or_start(name1, "stop")
+        if err:
+          raise Exception(err)
+      elif op == "vol_start":
+        d, err = gluster_commands.volume_stop_or_start(name1, "start")
+        if err:
+          raise Exception(err)
+      if d:
+        if ("op_status" in d) and d["op_status"]["op_ret"] == 0 and d["op_status"]["op_errno"] == 115:
+          if audit_code:
+            ret, err = audit.audit(audit_code, audit_str, request.META["REMOTE_ADDR"])
+            if err:
+              raise Exception(err)
         if op == "vol_stop":
-          d = gluster_commands.volume_stop_or_start(name1, "stop")
+          d["cmd"] = "Stopping volume %s"%name1
         elif op == "vol_start":
-          d = gluster_commands.volume_stop_or_start(name1, "start")
-        if d:
-          if ("op_status" in d) and d["op_status"]["op_ret"] == 0 and d["op_status"]["op_errno"] == 115:
-            if audit_code:
-              audit.audit(audit_code, audit_str, request.META["REMOTE_ADDR"])
-          if op == "vol_stop":
-            d["cmd"] = "Stopping volume %s"%name1
-          elif op == "vol_start":
-            d["cmd"] = "Starting volume %s"%name1
-            fractalio.command.execute("[ ! -d /mnt/perm_vol ] && mkdir /mnt/perm_vol")
-            fractalio.command.execute("umount /mnt/perm_vol/")
-            fractalio.command.execute(" mount -t glusterfs localhost:/"+name1+" /mnt/perm_vol/")
-            fractalio.command.execute("chmod -R 775 /mnt/perm_vol/")
-            fractalio.command.execute("umount /mnt/perm_vol/")
+          d["cmd"] = "Starting volume %s"%name1
+          command.execute("[ ! -d /mnt/perm_vol ] && mkdir /mnt/perm_vol")
+          command.execute("umount /mnt/perm_vol/")
+          command.execute(" mount -t glusterfs localhost:/"+name1+" /mnt/perm_vol/")
+          command.execute("chmod -R 775 /mnt/perm_vol/")
+          command.execute("umount /mnt/perm_vol/")
+
+      return_dict["result_dict"] = d
+      return_dict["op"] = op
+      template = 'render_op_xml_results.html'
   
-        return_dict["result_dict"] = d
-        return_dict["op"] = op
-        template = 'render_op_xml_results.html'
+    else:
+      #Non XML raw results so display raw for now
   
+  
+      return_dict['cmd'] = cmd
+
+      if audit_code:
+        ret, err = audit.audit(audit_code, audit_str, request.META["REMOTE_ADDR"])
+        if err:
+          raise Exception(err)
+      if op in ['vol_stop', 'vol_delete', 'disable_quota']:
+        tup = command.execute_with_conf(cmd)
+        e = command.get_conf_error_list(tup)
+        o = command.get_conf_output_list(tup)
       else:
-        #Non XML raw results so display raw for now
-  
-  
-        return_dict['cmd'] = cmd
-        if not fractalio.common.is_production():
-          cmd = 'ls -al'
-  
-        if audit_code:
-          audit.audit(audit_code, audit_str, request.META["REMOTE_ADDR"])
-        if op in ['vol_stop', 'vol_delete', 'disable_quota']:
-          tup = fractalio.command.execute_with_conf(cmd)
-          e = fractalio.command.get_conf_error_list(tup)
-          o = fractalio.command.get_conf_output_list(tup)
-        else:
-          tup = fractalio.command.execute(cmd)
-          e = fractalio.command.get_error_list(tup)
-          o = fractalio.command.get_output_list(tup)
-        if e:
-          return_dict['cmd_errors'] = e
-        if o:
-          return_dict['cmd_output'] = o
+        tup = command.execute(cmd)
+        e = command.get_error_list(tup)
+        o = command.get_output_list(tup)
+      if e:
+        return_dict['cmd_errors'] = e
+      if o:
+        return_dict['cmd_output'] = o
       
-        if op == 'view_volume_status_all':
-          # Need to execute two cmds for this case!
-          if fractalio.common.is_production():
-            cmd = 'gluster volume status all detail'
-          else:
-            cmd = 'ls -al'
-      
-          tup = fractalio.command.execute(cmd)
-          e1 = fractalio.command.get_error_list(tup)
-          o1 = fractalio.command.get_output_list(tup)
-          if e1:
-            if e:
-              e.extend(e1)
-              return_dict['cmd_errors'] = e
-            else:
-              return_dict['cmd_errors'] = e1
-          if o1:
-            if o:
-              o.extend(o1)
-              return_dict['cmd_output'] = o
-            else:
-              return_dict['cmd_output'] = o1
+      if op == 'view_volume_status_all':
+        # Need to execute two cmds for this case!
+        cmd = 'gluster volume status all detail'
     
-        return_dict['op'] = op
+        tup = command.execute(cmd)
+        e1 = command.get_error_list(tup)
+        o1 = command.get_output_list(tup)
+        if e1:
+          if e:
+            e.extend(e1)
+            return_dict['cmd_errors'] = e
+          else:
+            return_dict['cmd_errors'] = e1
+        if o1:
+          if o:
+            o.extend(o1)
+            return_dict['cmd_output'] = o
+          else:
+            return_dict['cmd_output'] = o1
   
+      return_dict['op'] = op
+
     if settings.APP_DEBUG:
       return_dict['app_debug'] = True 
   

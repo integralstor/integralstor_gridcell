@@ -14,7 +14,7 @@ framework.
 
 """
 import os,sys
-sys.path.append('/opt/fractalio/integral_view')
+sys.path.append('/opt/integralstor/integralstor_gridcell')
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "integral_view.settings")
 

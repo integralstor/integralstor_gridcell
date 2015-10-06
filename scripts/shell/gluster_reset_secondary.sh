@@ -1,5 +1,5 @@
 echo "Unmounting admin_vol"
-umount /opt/fractalio/mnt/admin_vol 
+umount /opt/integralstor/integralstor_gridcell/config
 
 echo "Removing pools ..."
 zfs destroy frzpool/normal/fractalio_admin_vol
