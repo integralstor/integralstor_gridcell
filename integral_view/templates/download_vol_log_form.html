@@ -1,15 +1,11 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'volume_log_base.html' %}
 
-{%block page-header%}
-  Logging
-    <br /><small>
-      Logging
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Download volume logs
-  </small>
+{%block tab_header%}
+  Download volume logs
 {%endblock%}
 
-{%block contents%}
+{%block inside_content%}
+<br><br>
 
 <p id="p-instruction-text"> The requested log will be fetched as a zip file which you can save on your computer.</p>
 <form name="myform"  method="post">
@@ -23,7 +19,7 @@
     </select>
     {{ form.vol_name.errors }}
   </div>
-  <button type="submit" class="btn btn-primary">Download >></button>
+  <button type="submit" class="btn btn-primary">Download</button>
 </div>
 </form>
 
@@ -34,3 +30,9 @@ Download volume logs
 {%block help_body%}
 <p>Volume logs give you information about a specific data volume and can help in tracking down issues about data access. Please select the volume name to download its log in the form of a compressed ZIP file.</p>
 {%endblock%}
+{% block tab_active %}
+  <script>
+    make_tab_active('volume_log_download_tab')
+  </script>
+{% endblock %}
+

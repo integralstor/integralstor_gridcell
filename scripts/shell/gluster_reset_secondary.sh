@@ -2,8 +2,8 @@ echo "Unmounting admin_vol"
 umount /opt/integralstor/integralstor_gridcell/config
 
 echo "Removing pools ..."
-zfs destroy frzpool/normal/fractalio_admin_vol
-rm -rf /frzpool/normal/fractalio_admin_vol
+zfs destroy frzpool/normal/integralstor_admin_vol
+rm -rf /frzpool/normal/integralstor_admin_vol
 
 echo "Editing fstab"
 sed -i '/localhost/d' /etc/fstab

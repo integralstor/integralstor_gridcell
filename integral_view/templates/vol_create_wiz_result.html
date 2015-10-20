@@ -1,16 +1,15 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'volume_base.html' %}
 
-{%block page-header%}
-  Volume Creation Wizard
-  <br /><small>
-      Volumes 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Create a Volume - Results
-  </small>
+
+{%block status_selected%}
+  style="background-color:white;color:white;"
 {%endblock%}
 
-{%block contents%}
-<span id="topic-text"> Configure -> Create a volume - Confirmation</span><br>
+{%block tab_header%}
+  Volume creation wizard - Result
+{%endblock%}
+
+{%block inside_content %}
 
 {% if app_debug %}
 Debug info - begin <br>

@@ -1,22 +1,24 @@
-{% extends 'logged_in_base.html' %}
+{% extends '{{extends_base}}' %}
 
-{%block page-header%}
-  Volumes
-  <br /><small>
-      Volumes 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      {%if op == "vol_stop"%}
+{%block tab_header%}
+    {%if op == "vol_stop"%}
 		Stop a volume - results
 		{%elif op == "vol_start"%}
 		Start a volume - results
-		{%elif op == "vol_start"%}
+		{%elif op == "vol_expand"%}
 		Expand a volume - results
-	{%endif%}
-
-  </small>
+		{%elif op == "rotate_log"%}
+		Rotate volume log - results
+		{%elif op == "check_rebalance"%}
+		Check volume rebalance - results
+		{%elif op == "stop_rebalance"%}
+		Stop volume rebalance - results
+    {%endif%}
 {%endblock%}
 
-{%block contents%}
+{%block inside_content%}
+
+<br><br>
 
 {% if app_debug %}
 Debug info - begin <br>
@@ -36,13 +38,19 @@ Debug info - end <br><br>
 
 {%endblock%}
 {%block help_header%}
-{%if op == "vol_stop"%}
-Start a volume - results 
-{%elif op == "vol_start"%}
-Stop a volume - results
-{%elif op == "expand_volume"%}
-Expand a volume - results
-{%endif%}
+    {%if op == "vol_stop"%}
+		Stop a volume - results
+		{%elif op == "vol_start"%}
+		Start a volume - results
+		{%elif op == "vol_expand"%}
+		Expand a volume - results
+		{%elif op == "rotate_log"%}
+		Rotate volume log - results
+		{%elif op == "check_rebalance"%}
+		Check volume rebalance - results
+		{%elif op == "stop_rebalance"%}
+		Stop volume rebalance - results
+    {%endif%}
 {%endblock%}
 {%block help_body%}
 {%if op == "vol_stop"%}
@@ -51,5 +59,11 @@ Expand a volume - results
 <p>This screen displays the result of starting a volume. Volume data can only be accessed from a started volume.</p>
 {%elif op == "expand_volume"%}
 <p>This screen displays the result of starting a volume to include new GRIDCells. Existing data will need to be rebalanced in order for it to make use of these new GRIDCells.</p>
+{%elif op == "rotate_log"%}
+<p>This screen displays the result of a volume log rotation operation</p>
+{%elif op == "check_rebalance"%}
+<p>This screen displays the result of a volume rebalance</p>
+{%elif op == "stop_rebalance"%}
+<p>This screen displays the result of a stop volume rebalance operation</p>
 {%endif%}
 {%endblock%}

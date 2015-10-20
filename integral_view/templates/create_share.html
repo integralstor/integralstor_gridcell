@@ -1,4 +1,4 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'shares_and_targets_base.html' %}
 
 <script type="text/javascript">
 function set_field_visibility() {
@@ -38,7 +38,7 @@ function select_guest_ok() {
 {%endblock%}
 
 
-{%block contents%}
+{%block inside_content%}
 
 {{conf_message}}
 <form class="form-horizontal" role="form"name="create_form" action="" method="post">
@@ -277,3 +277,10 @@ $("#new_folder").on('input',function(){
   <li>Permitted users : The list of users who have access to this share. If the authentication method is set to Active Directory then this list is pulled from Active Directory itself. If the authentication method is set to Local Users then this list is pulled from the list of local users created on IntegralView. </li>
   <li>Permitted groups : The list of groups who have access to this share. If the authentication method is set to Active Directory then this list is pulled from Active Directory itself. </li>
 {%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('create_a_share_tab')
+  </script>
+{% endblock %}
+

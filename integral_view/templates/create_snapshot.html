@@ -1,15 +1,16 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'snapshot_base.html' %}
 
-{%block page-header%}
-  Snapshot
-  <br /><small>
-      Snapshot
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Create a snapshot
-  </small>
+{%block status_selected%}
+  style="background-color:white;color:white;"
 {%endblock%}
 
-{%block contents%}
+{%block tab_header%}
+  Create a volume snapshot
+{%endblock%}
+
+{%block inside_content %}
+
+<br><br>
 
 <form role="form" action="/create_snapshot/" method="post">
 <div  style=" position:relative;border:0px solid #DDDDDD;width:600px; padding:15px 15px 15px;margin:0px 15px;border-radius:4px 4px 0px 0px">
@@ -26,7 +27,7 @@
   <input type="text"  name="snapshot_name" class="form-control" id="id_comment" placeholder="Enter a name for this snapshot" required>  
     {{ form.snapshot_name.errors }}
   <br>
-  <button type="submit" class="btn btn-primary">Next >></button>
+  <button type="submit" class="btn btn-primary">Next</button>
 </div>
 </form>
 
@@ -38,3 +39,10 @@ Creating snapshots
 <p>Snapshots all you to create a point in time copy of a data volume. These copies are read-only copies. Snapshots are thinly provisioned and take up very little space. The volume continuous to be available when the snapshot is being created except for a few operations being paused for a short while. </p>
 <p> Use this screen to create a snapshot for a particular volume. Each snapshot is identified with a unique name so please enter the name for the snapshot.</p>
 {%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('snapshot_create_tab')
+  </script>
+{% endblock %}
+

@@ -271,6 +271,12 @@ def volume_specific_op(request, operation, vol_name=None):
       return_dict['vil'] = vil
       return django.shortcuts.render_to_response('volume_specific_status.html', return_dict, context_instance=django.template.context.RequestContext(request))
     else:
+      if operation == 'rotate_log':
+        return_dict['base_template'] = 'volume_log_base.html'
+      elif operation == 'view_snapshots':
+        return_dict['base_template'] = 'snapshot_base.html'
+      else:
+        return_dict['base_template'] = 'volume_base.html'
       return django.shortcuts.render_to_response('volume_specific_op_form.html', return_dict, context_instance=django.template.context.RequestContext(request))
   except Exception, e:
     s = str(e)
@@ -743,7 +749,7 @@ def replace_node(request):
     return_dict['system_config_list'] = si
   
     
-    d, err = volume_info.get_replacement_node_info(si, vil)
+    d, err = system_info.get_replacement_node_info(si, vil)
     if err:
       raise Exception(err)
     if not d:
@@ -1174,6 +1180,7 @@ def expand_volume(request):
       if settings.APP_DEBUG:
         return_dict['app_debug'] = True 
   
+      return_dict['base_template'] = 'volume_base.html'
       return django.shortcuts.render_to_response('render_op_xml_results.html', return_dict, context_instance = django.template.context.RequestContext(request))
   except Exception, e:
     s = str(e)

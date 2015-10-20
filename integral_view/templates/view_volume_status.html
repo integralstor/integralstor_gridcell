@@ -1,11 +1,12 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'volume_base.html' %}
 
 
-{%block page-header%}
+{%block tab_header%}
   Volume Status
 {%endblock%}
 
-{%block contents%}
+{%block inside_content %}
+<br><br>
 
 {{vil}}
 <table class="table table-bordered" style="width:80%">
@@ -59,7 +60,6 @@
 </table>
 {%endif%}
 <h4>Space utilization</h4>
-
 <div class="progress" style="width:90%;">
   <div class="progress-bar {% if vol.size_used_percent >= 80 %}progress-bar-danger{%endif%}" role="progressbar" aria-valuenow="{{vol.size_used_percent}}" aria-valuemin="0" aria-valuemax="100" style="width: {{vol.size_used_percent}}%;">
     {{vol.size_used_percent}}% used.

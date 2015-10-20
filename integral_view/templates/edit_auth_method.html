@@ -1,20 +1,13 @@
 
-{% extends 'logged_in_base.html' %}
+{% extends 'services_base.html' %}
 
-{%block page-header%}
-  File Access
-  <br /><small>
-      File Access 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Authentication 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Change Authentication Method
-
-  </small>
+{%block tab_header%}
+      CIFS Authentication Method (Edit)
 {%endblock%}
 
 
-{%block contents%}
+{%block inside_content%}
+<br><br>
 <form id="edit_form" name="edit_form" action="" method="post">
 
 <p id="warning-text"> Warning : This action will result in access control settings being removed from all currently existing shares. </p>
@@ -33,7 +26,7 @@
 <p id="warning-text"> {{error}}</p>
 {%endif%}
   <a href="/auth_server_settings" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
-  <button type="submit" class="btn btn-primary">Change authentication method >></button>
+  <button type="submit" class="btn btn-primary">Change authentication method</button>
 </div>
 </form>
 {%endblock%}
@@ -43,3 +36,10 @@ Selecting an authentication method
 {%block help_body%}
 <p>Use this screen to select the authentication method that you would like to authenticate access to CIFS shares. Please note that if you change the authentication method then you will need to reapply access control to all existing shares.</p>
 {%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('service_cifs_access_tab')
+  </script>
+{% endblock %}
+

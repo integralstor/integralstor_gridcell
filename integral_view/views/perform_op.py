@@ -46,36 +46,47 @@ def perform_op(request, op, name1=None, name2= None):
       cmd = 'gluster volume info all '
     elif op == 'enable_quota':
       cmd = 'gluster volume quota %s enable'%name1
+      return_dict['base_template'] = 'volume_base.html'
     elif op == 'vol_stop':
       cmd = 'gluster volume stop %s force'%name1
       audit_code = "vol_stop"
       audit_str = "Stopped volume %s"%name1
+      return_dict['base_template'] = 'volume_base.html'
     elif op == 'vol_delete':
       cmd = 'gluster volume delete %s force'%name1
+      return_dict['base_template'] = 'volume_base.html'
     elif op == 'start_rebalance':
       cmd = 'gluster volume rebalance %s start'%name1
       audit_code = "vol_rebalance_start"
       audit_str = "Started volume rebalance for volume %s"%name1
+      return_dict['base_template'] = 'volume_base.html'
     elif op == 'stop_rebalance':
       cmd = 'gluster volume rebalance %s stop'%name1
       audit_code = "vol_rebalance_stop"
       audit_str = "Stopped volume rebalance for volume %s"%name1
+      return_dict['base_template'] = 'volume_base.html'
     elif op == 'check_rebalance':
       cmd = 'gluster volume rebalance %s status'%name1
+      return_dict['base_template'] = 'volume_base.html'
     elif op == 'disable_quota':
       cmd = 'gluster volume quota %s disable'%name1
+      return_dict['base_template'] = 'volume_base.html'
     elif op == 'display_disk_level_quota':
       cmd = 'gluster volume quota %s list'%name1
+      return_dict['base_template'] = 'volume_base.html'
     elif op == 'vol_start':
       cmd = 'gluster volume start %s '%name1
       audit_code = "vol_start"
       audit_str = "Started volume %s"%name1
+      return_dict['base_template'] = 'volume_base.html'
     elif op == 'rotate_log':
       cmd = 'gluster volume log rotate %s '%name1
       audit_code = "log_rotate"
       audit_str = "Rotated log for volume %s"%name1
+      return_dict['base_template'] = 'volume_log_base.html'
     elif op == 'expand_volume':
       cmd = 'gluster volume add brick %s %s'%(name1, urllib.unquote(name2))
+      return_dict['base_template'] = 'volume_base.html'
     else:
       raise Exception("Unknown operation specified")
   
@@ -121,13 +132,13 @@ def perform_op(request, op, name1=None, name2= None):
         if err:
           raise Exception(err)
       if op in ['vol_stop', 'vol_delete', 'disable_quota']:
-        tup = command.execute_with_conf(cmd)
-        e = command.get_conf_error_list(tup)
-        o = command.get_conf_output_list(tup)
+        tup, err = command.execute_with_conf(cmd)
+        e, err = command.get_conf_error_list(tup)
+        o, err = command.get_conf_output_list(tup)
       else:
-        tup = command.execute(cmd)
-        e = command.get_error_list(tup)
-        o = command.get_output_list(tup)
+        tup, err = command.execute(cmd)
+        e, err = command.get_error_list(tup)
+        o, err = command.get_output_list(tup)
       if e:
         return_dict['cmd_errors'] = e
       if o:
@@ -137,9 +148,9 @@ def perform_op(request, op, name1=None, name2= None):
         # Need to execute two cmds for this case!
         cmd = 'gluster volume status all detail'
     
-        tup = command.execute(cmd)
-        e1 = command.get_error_list(tup)
-        o1 = command.get_output_list(tup)
+        tup, err = command.execute(cmd)
+        e1, err = command.get_error_list(tup)
+        o1, err = command.get_output_list(tup)
         if e1:
           if e:
             e.extend(e1)

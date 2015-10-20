@@ -1,18 +1,12 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'volume_base.html' %}
 
 
-{%block page-header%}
-  Set volume quota
-  <br /><small>
-      Volumes 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Set volume quota (edit)
-  </small>
+{%block tab_header%}
+  Set volume quota (edit)
 {%endblock%}
 
-
-{%block contents%}
-
+{%block inside_content %}
+<br><br>
 {{conf_message}}
 <form id="edit_form" class="form-inline" name="edit_form" action="/set_volume_quota/" method="post">
 <input name="vol_name" type="hidden" value="{{ form.vol_name.value }}">
@@ -36,7 +30,7 @@
     {{ form.limit.errors }}
   </div>
   <br><br>
-        <a href="{{request.url}}" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
+        <input type="button" class="btn btn-default" value="Cancel" onClick="window.location='/show/volume_info/{{form.vol_name.value}}'"> &nbsp;&nbsp;
         <button type="submit" class="btn btn-primary">Save >></button>
 </div>
 </form>

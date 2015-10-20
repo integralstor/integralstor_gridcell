@@ -1,4 +1,4 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'volume_base.html' %}
 
 <script type="text/javascript">
 function subm() {
@@ -24,17 +24,18 @@ function subm() {
 }
 </script>
 
-
-{%block page-header%}
-  Volume Creation Wizard
-  <br /><small>
-      Volumes 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Create a Volume - Volume Type (Data Storage model)
-  </small>
+{%block status_selected%}
+  style="background-color:white;color:white;"
 {%endblock%}
 
-{%block contents%}
+{%block tab_header%}
+  Volume creation wizard - volume type (data storage model) selection
+{%endblock%}
+
+{%block inside_content %}
+
+<br><br>
+
 <p style="color:red;"> {{error}}</p>
 
 <form  role="form" action="/volume_creation_wizard/select_ondisk_storage_type" method="post" class="margin-left-5">
@@ -57,7 +58,8 @@ function subm() {
     {{ form.vol_type.errors }}
   </div>
 {%endif%}
- <button type="submit" class="btn btn-primary" onClick="subm();return false;" >Next >></button>
+<br>
+ <button type="submit" class="btn btn-primary" onClick="subm();return false;" >Next</button>
 </form>
 
 
@@ -68,3 +70,8 @@ Volume creation help
 {%block help_body%}
 <p>The volume creation wizard guides you through many steps to create a particular type of volume. This step allows you to choose the type of redundancy that you require for the volume data. The IntegralStor system always provides a GRIDCell level RAID-5 protection for all volumes. Over and above that you can choose to have GRIDCell level redundancy (where every file will be stored in two GRIDCells - slower writes, faster reads, more data redundancy) or file distribution (where each file is stored in only one GRIDCell - slower reads, faster writes, less data redundancy). Choose the GRIDCell level redundancy if data protection is crucial.</p>
 {%endblock%}
+{% block tab_active %}
+  <script>
+    make_tab_active('create_volume_tab')
+  </script>
+{% endblock %}

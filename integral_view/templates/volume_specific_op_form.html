@@ -1,43 +1,41 @@
-{% extends 'logged_in_base.html' %}
+{% extends base_template %}
 
-{%block page-header%}
-  Volumes
-  <br /><small>
-      Volumes 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      {% if op == 'vol_delete' %}
-        Delete a volume
-        {% elif op == 'expand_volume' %}
-        Expand a volume
-        {% elif op == 'view_snapshots' %}
-        View snapshots
-        {% elif op == 'vol_quota' %}
-        Set volume quota
-        {% elif op == 'vol_stop' %}
-        Stop a volume
-        {% elif op == 'vol_start' %}
-        Start a volume
-        {% elif op == 'start_rebalance' %}
-        Start volume rebalance
-        {% elif op == 'check_rebalance' %}
-        Check volume rebalance status
-        {% elif op == 'stop_rebalance' %}
-        Stop volume rebalance
-        {% elif op == 'enable_quota' %}
-        Enable volume quota
-        {% elif op == 'vol_options' %}
-        Set volume options
-        {% elif op == 'disable_quota' %}
-        Disable volume quota
-        {% elif op == 'display_disk_level_quota' %}
-        Display disk level quota
-        {% elif op == 'rotate_log' %}
-        Rotate volume log
-        {% endif %}
-  </small>
+{%block tab_header%}
+  {% if op == 'vol_delete' %}
+  Delete a volume
+  {% elif op == 'expand_volume' %}
+  Expand a volume
+  {% elif op == 'view_snapshots' %}
+  View snapshots
+  {% elif op == 'vol_quota' %}
+  Set volume quota
+  {% elif op == 'vol_stop' %}
+  Stop a volume
+  {% elif op == 'vol_start' %}
+  Start a volume
+  {% elif op == 'start_rebalance' %}
+  Start volume rebalance
+  {% elif op == 'check_rebalance' %}
+  Check volume rebalance status
+  {% elif op == 'stop_rebalance' %}
+  Stop volume rebalance
+  {% elif op == 'enable_quota' %}
+  Enable volume quota
+  {% elif op == 'vol_options' %}
+  Set volume options
+  {% elif op == 'disable_quota' %}
+  Disable volume quota
+  {% elif op == 'display_disk_level_quota' %}
+  Display disk level quota
+  {% elif op == 'rotate_log' %}
+  Rotate volume log
+  {% elif op == 'view_snapshots' %}
+  View volume snapshots
+  {% endif %}
 {%endblock%}
 
-{%block contents%}
+{%block inside_content%}
+<br><br>
 
 <!-- Modal -->
 <div class="modal fade" id="processing" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -78,25 +76,25 @@ No volumes detected
     {{ form.vol_name.errors }}
   </div>
 {% if op == 'vol_start' %}
-        <button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Start this volume >></button>
+        <button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Start this volume</button>
 {% elif op == 'vol_stop' %}
-        <button type="submit" class="btn btn-primary">Stop this volume >></button>
+        <button type="submit" class="btn btn-primary">Stop this volume</button>
 {% elif op == 'expand_volume' %}
-        <button type="submit" class="btn btn-primary">Expand this volume >></button>
+        <button type="submit" class="btn btn-primary">Expand this volume</button>
 {% elif op == 'start_rebalance' %}
-        <button type="submit" class="btn btn-primary">Start rebalance >></button>
+        <button type="submit" class="btn btn-primary">Start rebalance</button>
 {% elif op == 'stop_rebalance' %}
-        <button type="submit" class="btn btn-primary">Stop rebalance >></button>
+        <button type="submit" class="btn btn-primary">Stop rebalance</button>
 {% elif op == 'check_rebalance' %}
-        <button type="submit" class="btn btn-primary">Check rebalance >></button>
+        <button type="submit" class="btn btn-primary">Check rebalance</button>
 {% elif op == 'vol_options' %}
-        <button type="submit" class="btn btn-primary">Set options >></button>
+        <button type="submit" class="btn btn-primary">Set options</button>
 {% elif op == 'view_snapshots' %}
-        <button type="submit" class="btn btn-primary">View snapshots >></button>
+        <button type="submit" class="btn btn-primary">View snapshots </button>
 {% elif op == 'rotate_log' %}
-        <button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Rotate log>></button>
+        <button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Rotate log</button>
 {% else  %}
-        <button type="submit" class="btn btn-primary">Next >></button>
+        <button type="submit" class="btn btn-primary">Next</button>
 {% endif %}
 </div>
 </form>
@@ -114,3 +112,10 @@ Volume specific operation
 {%block help_body%}
 <p>This is the launch screen for a volume specific operation. If the intended operation results in data loss or data access disruption, you will be prompted for a confirmation before the actual operation is performed.</p>
 {%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('snapshot_view_tab')
+  </script>
+{% endblock %}
+

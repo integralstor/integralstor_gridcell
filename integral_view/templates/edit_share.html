@@ -1,14 +1,7 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'shares_and_targets_base.html' %}
 
-{%block page-header%}
-  File Access
-  <br /><small>
-      File Access 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Shares 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Edit Share
-  </small>
+{%block tab_header%}
+  Share details - Edit
 {%endblock%}
 
 <script type="text/javascript">
@@ -34,9 +27,9 @@ function select_guest_ok() {
 }
 */
 </script>
+{%block inside_content%}
+<br><br>
 
-
-{%block contents%}
 
 {{conf_message}}
 

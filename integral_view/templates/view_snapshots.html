@@ -1,15 +1,16 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'snapshot_base.html' %}
 
-{%block page-header%}
-  Snapshots
-  <br /><small>
-      Snapshots
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      View Snapshots
-  </small>
+{%block status_selected%}
+  style="background-color:white;color:white;"
 {%endblock%}
-{%block contents%}
 
+{%block tab_header%}
+  Snapshots information
+{%endblock%}
+
+{%block inside_content %}
+
+<br><br>
 {% if conf %}
 <i>{{conf}}</i>
 {%endif%}
@@ -60,18 +61,18 @@ Restore
     {% if d.status == "Started" %}
     <form  role="form" action="/deactivate_snapshot/" method="post">
     <input type="hidden" name="snapshot_name" value="{{d.name}}">
-    <input class="btn btn-primary" type="submit" value="Deactivate >>">
+    <input class="btn btn-primary" type="submit" value="Deactivate">
     {%else%}
     <form  role="form" action="/activate_snapshot/" method="post">
     <input type="hidden" name="snapshot_name" value="{{d.name}}">
-    <input class="btn btn-primary" type="submit" value="Activate >>">
+    <input class="btn btn-primary" type="submit" value="Activate">
     {%endif%}
     </form>
   </td>
   <td>
     <form  role="form" action="/delete_snapshot/" method="post">
     <input type="hidden" name="snapshot_name" value="{{d.name}}">
-    <input class="btn btn-primary" type="submit" value="Delete >>">
+    <input class="btn btn-danger" type="submit" value="Delete">
     </form>
   </td>
   <td>
@@ -79,7 +80,7 @@ Restore
     <input type="hidden" name="snapshot_name" value="{{d.name}}">
     <input type="hidden" name="vol_name" value="{{vol_name}}">
     {% if vol_started %}
-    <input class="btn btn-disabled" disabled type="submit" value="Restore >>">
+    <input class="btn btn-success" disabled type="submit" value="Restore">
     {%else%}
     <input class="btn btn-primary" type="submit" value="Restore >>">
     {%endif%}

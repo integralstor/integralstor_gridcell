@@ -1,19 +1,11 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'volume_base.html' %}
 
-
-{%block page-header%}
-  Volumes
-  <br /><small>
-      Volumes 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Background operations
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Background process status
-  </small>
-
+{%block tab_header%}
+  Background process - status
 {%endblock%}
 
-{%block contents%}
+{%block inside_content %}
+<br><br>
 
 <table class="table table-bordered">
 <tr>

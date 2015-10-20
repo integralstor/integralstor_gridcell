@@ -1,7 +1,7 @@
 # Django settings for integral_view project.
 from integralstor_common import common
 
-DEBUG = False
+DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 APP_DEBUG = False
@@ -12,6 +12,7 @@ LOGIN_URL = '/login/'
 platform_root, err = common.get_platform_root()
 DB_LOCATION, err = common.get_db_path()
 STATIC_DIR_PATH = '%s/integral_view/static'%platform_root
+print STATIC_DIR_PATH
 TEMPLATE_DIR_PATH = "%s/integral_view/templates"%platform_root
 
 
@@ -210,8 +211,8 @@ if PRODUCTION:
   KRB5_PATH = '/etc'
   SMB_CONF_PATH = '/usr/local/samba/etc'
   NTP_CONF_PATH = '/etc'
-  ALERTS_URL = "integral_view.fractal.lan"
-  AUDIT_URL = "integral_view.fractal.lan"
+  ALERTS_URL = "gridcell-pri.integralstor.lan"
+  AUDIT_URL = "gridcell-pri.integralstor.lan"
 else:
   BASE_APP_ROOT = DEVEL_APP_ROOT
   BASE_APP_PATH = '%s/%s'%(BASE_APP_ROOT, APP_NAME)
@@ -221,7 +222,7 @@ else:
   AUDIT_URL = "127.0.0.1:8000"
 
 CONFIG_DIR = '%s/config'%BASE_CONF_ROOT
-ADMIN_VOL_NAME = "fractalio_admin_vol"
+ADMIN_VOL_NAME = "integralstor_admin_vol"
 
 if not PRODUCTION:
   KRB5_PATH = CONFIG_DIR

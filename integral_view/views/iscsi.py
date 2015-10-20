@@ -541,7 +541,7 @@ def iscsi_edit_target_global_config(request):
       if not init:
         init = {}
       if "base_name" not in init or not init["base_name"]:
-        init["base_name"] = "iqn.2014-15.com.fractalio.istgt"
+        init["base_name"] = "iqn.2014-15.com.integralstor.istgt"
       if "discovery_auth_method" not in init or not init["discovery_auth_method"]:
         init["discovery_auth_method"] = "None"
       form = iscsi_forms.TargetGlobalConfigForm(initial=init, auth_access_group_list = aal)

@@ -1,17 +1,12 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'services_base.html' %}
 
-{%block page-header%}
-  Other Services
-  <br /><small>
-      Other Services 
-      <i class="fa fa-angle-double-right smaller-80"></i>
+{%block tab_header%}
       Email Settings
-
-  </small>
 {%endblock%}
 
 
-{%block contents%}
+{%block inside_content%}
+<br><br>
 
 {% if not_saved %}
     <p id="p-error-text"> Error saving email settings. The following errors were reported : {{err}}</p><br>
@@ -102,3 +97,10 @@ Email setting
 {%block help_body%}
 <p>The administrator of an IntegralStor system can configure email settings for an email server and recipient email addresses if (s)he would like email alerts to be sent to them in case of errors in the system. This page provides details of the email settings that have been configured.</p>
 {%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('service_config_email_tab')
+  </script>
+{% endblock %}
+

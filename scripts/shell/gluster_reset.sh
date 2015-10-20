@@ -1,13 +1,13 @@
 echo "Stopping all gluster volumes and services"
-gluster volume stop fractalio_admin_vol
-gluster volume delete fractalio_admin_vol
+gluster volume stop integralstor_admin_vol
+gluster volume delete integralstor_admin_vol
 
 echo "Deleting all the pools"
-zfs destroy frzpool/normal/fractalio_admin_vol
-rm -rf /frzpool/normal/fractalio_admin_vol
+zfs destroy frzpool/normal/integralstor_admin_vol
+rm -rf /frzpool/normal/integralstor_admin_vol
 
 echo "Detaching peers"
-gluster peer detach fractalio-sec.fractalio.lan
+gluster peer detach gridcell-sec.integralstor.lan
 
 service glusterd restart
 "Editing fstab"

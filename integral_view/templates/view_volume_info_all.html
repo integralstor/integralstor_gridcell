@@ -1,20 +1,15 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'volume_base.html' %}
 
 
 {%block status_selected%}
   style="background-color:white;color:white;"
 {%endblock%}
 
-{%block page-header%}
+{%block tab_header%}
   Volume Configuration
-  <br /><small>
-      Volumes
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      View Volume Configuration
-  </small>
 {%endblock%}
 
-{%block contents%}
+{%block inside_content %}
 
 <!-- Modal -->
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -35,13 +30,13 @@
 
   {%if volume_info_list %}
 
-    <table class="table table-bordered table-striped table-hover table-condensed datatable" width="90%">
+    <table class="table table-bordered table-striped table-hover table-condensed datatable" width="100%">
       <thead>
         <tr>
           <th> Volume name </th>
-          <th> Type </th>
           <th> Access Mode </th>
           <th> Status </th>
+          <th> Start/Stop </th>
           <th> Details</th>
         </tr>
       </thead>
@@ -49,11 +44,24 @@
         {% for o in volume_info_list%}
         <tr>
           <td>{{o.name}}</td>
-          <td>{{o.type}}</td>
-          <td>{%if o.name in iscsi_volumes %} ISCSI block access {%else%} NFS/CIFS File based access{%endif%}</td>
+          <td>{%if o.name in iscsi_volumes %} Block access {%else%} File access{%endif%}</td>
           <td>{{o.status_str}}</td>
+          <td>
+            {%if o.status == 1 %}
+            <form action="/volume_specific_op/vol_stop/" method="post">
+            <input type=hidden name="vol_name" value="{{o.name}}">
+            <input type=hidden name="op" value="vol_stop">
+            <button type="submit" class="btn btn-primary">Stop this volume</button>
+            {%else%}
+            <form action="/volume_specific_op/vol_start/" method="post">
+            <input type=hidden name="vol_name" value="{{o.name}}">
+            <input type=hidden name="op" value="vol_start">
+            <button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Start this volume</button>
+            {%endif%}
+            </form>
+          </td>
           <td> 
-                <a href="/show/volume_info/{{o.name}}" role="button" class="btn btn-default">Details.. </a>
+                <a href="/show/volume_info/{{o.name}}" role="button" class="btn btn-primary">Details</a>
           </td>
         </tr>
         {%endfor%}
@@ -83,3 +91,9 @@ Volume information
         aaSorting: [ [0, 'asc'] ],   
     });
 {%endblock%}
+
+{% block tab_active %}
+	<script>
+		make_tab_active('volume_configuration_tab')
+	</script>
+{% endblock %}

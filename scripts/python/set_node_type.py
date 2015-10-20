@@ -54,7 +54,7 @@ def set_as_primary(primary_ip, primary_netmask):
       print
       input = raw_input(str_to_print)
       if input:
-        vi, err = networking.validate_ip(input):
+        vi, err = networking.validate_ip(input)
         if err:
           raise Exception(err)
         if vi:
@@ -68,7 +68,7 @@ def set_as_primary(primary_ip, primary_netmask):
       print
       input = raw_input(str_to_print)
       if input:
-        vi, err = networking.validate_ip(input):
+        vi, err = networking.validate_ip(input)
         if err:
           raise Exception(err)
         if vi:
@@ -83,13 +83,15 @@ def set_as_primary(primary_ip, primary_netmask):
       rc, err = networking.generate_default_primary_named_conf(primary_ip, primary_netmask, secondary_ip, True, external_dns, True)
     else:
       rc, err = networking.generate_default_primary_named_conf(primary_ip, primary_netmask, secondary_ip)
-  
     if err:
       raise Exception(err)
     if not rc:
       raise Exception( "Error generating the DNS configuration file")
       
+    print 'Setting name servers'
     rc, err = networking.set_name_servers([primary_ip, secondary_ip, external_dns])
+    if err:
+      raise Exception(err)
   
     if not rc:
       raise Exception("Error generating the DNS resolve.conf file : %s"%err)
@@ -129,7 +131,7 @@ def set_as_primary(primary_ip, primary_netmask):
     print
     print "Setting hostname.."
     old_hostname = socket.gethostname()
-    rc, err = networking.set_hostname('fractalio-pri', 'fractalio.lan')
+    rc, err = networking.set_hostname('gridcell-pri', 'integralstor.lan')
     if err:
       raise Exception('Error setting hostname : %s'%err)
     print "Setting hostname.. Done."
@@ -201,7 +203,7 @@ def set_as_secondary(secondary_ip, secondary_netmask):
   while not valid_input :
     input = raw_input(str_to_print)
     if input:
-      vi, err = networking.validate_ip(input):
+      vi, err = networking.validate_ip(input)
       if vi:
         valid_input = True
         primary_ip = input
@@ -213,7 +215,7 @@ def set_as_secondary(secondary_ip, secondary_netmask):
     print
     input = raw_input(str_to_print)
     if input:
-      vi, err = networking.validate_ip(input):
+      vi, err = networking.validate_ip(input)
       if vi:
         valid_input = True
         external_dns = input
@@ -242,12 +244,16 @@ def set_as_secondary(secondary_ip, secondary_netmask):
 
   print
   print "Starting the DNS server .."
-  r, rc = command.execute_with_rc('chkconfig named on')
+  (r, rc), err = command.execute_with_rc('chkconfig named on')
+  if err:
+    raise Exception(err)
   if rc != 0:
     print "Error setting the DNS server to start on boot"
     return -1
 
-  r, rc = command.execute_with_rc('service named restart')
+  (r, rc), err = command.execute_with_rc('service named restart')
+  if err:
+    raise Exception(err)
   if rc != 0:
     print "Error starting the DNS server"
     return -1
@@ -272,14 +278,16 @@ def set_as_secondary(secondary_ip, secondary_netmask):
   print
   print "Setting hostname.."
   old_hostname = socket.gethostname()
-  rc, err = networking.set_hostname('fractalio-sec', 'fractalio.lan')
+  rc, err = networking.set_hostname('gridcell-sec', 'integralstor.lan')
   if err:
     raise Exception('Error setting hostname : %s'%err)
   print "Setting hostname.. Done."
 
   print
   print "Restarting salt services.."
-  r, rc = command.execute_with_rc('service salt-minion restart')
+  (r, rc), err = command.execute_with_rc('service salt-minion restart')
+  if err:
+    raise Exception(err)
   if rc != 0:
     print "Error restarting the salt minion"
     return -1
@@ -291,12 +299,16 @@ def set_as_secondary(secondary_ip, secondary_netmask):
   '''
   THE FOLLOWING SHOULD BE DONE ONLY AFTER TESTING SALT FAILOVER AND MAKING APPROPRIATE CHANGES!
 
-  r, rc = command.execute_with_rc('chkconfig salt-master on')
+  (r, rc), err = command.execute_with_rc('chkconfig salt-master on')
+  if err:
+    raise Exception(err)
   if rc != 0:
     print "Error setting the salt master server to start on boot"
     return -1
 
-  r, rc = command.execute_with_rc('service salt-master start')
+  (r, rc), err = command.execute_with_rc('service salt-master start')
+  if err:
+    raise Exception(err)
   if rc != 0:
     print "Error starting the salt master"
     return -1

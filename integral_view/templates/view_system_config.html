@@ -1,4 +1,4 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'storagepool_base.html' %}
 
 {%block page-header%}
   GRIDCell Configuration
@@ -11,7 +11,7 @@
 {%endblock%}
 
 
-{%block contents%}
+{%block inside_content%}
 
 <!-- Modal -->
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -55,4 +55,10 @@ System configuration
 {%block help_body%}
 <p>This page allows displays the list of all GRIDCells that are part of the IntegralStor system. Please select any GRIDCell to view its configuration.</p>
 {%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('add_storage_pool_tab')
+  </script>
+{% endblock %}
 

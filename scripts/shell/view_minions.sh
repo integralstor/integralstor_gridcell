@@ -1,6 +1,6 @@
 #!/bin/bash
 hn=`hostname`
-if [ $hn == "fractalio-pri" ]
+if [ $hn == "gridcell-pri" ]
 then
   echo "Node connection status :"
   salt-key -L

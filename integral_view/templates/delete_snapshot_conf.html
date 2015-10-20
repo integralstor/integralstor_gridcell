@@ -1,15 +1,15 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'snapshot_base.html' %}
 
-{%block page-header%}
-  Volume Creation Wizard
-  <br /><small>
-      Volumes 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Delete snapshot - confirmation
-  </small>
+
+{%block tab_header%}
+  Delete a snapshot - confirmation
 {%endblock%}
 
-{%block contents%}
+{%block inside_content %}
+
+<br><br>
+
+
 <!-- Modal -->
 <div class="modal fade" id="processing" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -32,7 +32,7 @@
   <p > You have chosen to delete the snapshot called "{{snapshot_name}}". </p>
   <p>Deleting a snapshot will erase all the information about the snapshot. Do you still want to continue?</p>
   <input type="button" class="btn btn-default" value="Cancel" onClick="window.location='/volume_specific_op/view_snapshots/'"> &nbsp;&nbsp;
-  <button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Confirm and proceed >></button>
+  <button type="submit" class="btn btn-danger" onClick ="$('#processing').modal('show');">Confirm and proceed</button>
 </form>
 
 

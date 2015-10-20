@@ -1,17 +1,13 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'volume_base.html' %}
 
 
-{%block page-header%}
-  Delete volume
-  <br /><small>
-      Volumes 
-      <i class="fa fa-angle-double-right smaller-80"></i>
+{%block tab_header%}
       Delete volume - results
-  </small>
 {%endblock%}
 
-{%block contents%}
 
+{%block inside_content %}
+<br><br>
 {% if app_debug %}
 Debug info - begin <br>
 {%for result_dict in result_list %}

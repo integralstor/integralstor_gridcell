@@ -116,7 +116,7 @@ class AuthorizedAccessUserForm(forms.Form):
 
 class TargetGlobalConfigForm(forms.Form):
   ch = [('CHAP', 'CHAP'), ('None', 'None')]
-  base_name = forms.CharField(initial="iqn.2014-15.org.fractalio:test")
+  base_name = forms.CharField(initial="iqn.2014-15.org.integralstor:test")
   discovery_auth_method =  forms.ChoiceField(widget=forms.Select, choices=ch)
   io_timeout = forms.IntegerField(min_value=0, max_value=300, initial=30)
   nop_in_interval = forms.IntegerField(min_value=0, max_value=300, initial=20)

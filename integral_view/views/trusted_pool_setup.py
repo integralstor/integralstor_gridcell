@@ -88,6 +88,52 @@ def add_nodes_to_pool(request):
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
 
+def add_a_node_to_pool(request):
+  """ Used to add servers to the trusted pool"""
+
+  return_dict = {}
+  try:
+    error_list = []
+  
+    if request.method != 'POST':
+      raise Exception('Invalid access. Please try using the menus')
+
+    if 'node_name' not in request.POST:
+      raise Exception('Invalid request. Please try using the menus')
+    node_name = request.POST['node_name']
+
+    si, err = system_info.load_system_config()
+    if err:
+      raise Exception(err)
+    return_dict['system_info'] = si
+  
+    # Get list of possible nodes that are available
+    nl, err = system_info.get_available_node_list(si)
+    if err:
+      raise Exception(err)
+    if not nl or node_name not in nl:
+      raise Exception('The specified GRIDCell cannot be added to the storage grid. This could be because it is unhealthy or because it is already part of the grid')
+  
+    d, errors = grid_ops.add_a_node_to_storage_pool(si, node["hostname"])
+    if errors:
+      raise Exception(errors)
+    if d:
+      if  ("op_status" in d) and d["op_status"]["op_ret"] == 0:
+        audit.audit("add_storage", d["audit_str"], request.META["REMOTE_ADDR"])
+      else:
+        err = 'Operation failed : Error number : %s, Error : %s, Output : %s, Additional info : %s'%(d['op_status']['op_errno'], d['op_status']['op_errstr'], d['op_status']['output'], d['op_status']['error_list'])
+        raise Exception(err)
+    else:
+      raise Exception('Could not add the GRIDCell %s to the grid.'%node_name)
+
+    return django.http.HttpResponseRedirect('/show/gridcells?action=added_to_storage_pool')
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
 def remove_node_from_pool(request):
 

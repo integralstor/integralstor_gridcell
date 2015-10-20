@@ -25,7 +25,7 @@ def configure_networking():
     while not valid_input :
       input = raw_input(str_to_print)
       if input:
-        vi, err = networking.validate_ip(input):
+        vi, err = networking.validate_ip(input)
         if vi:
           valid_input = True
           ip = input
@@ -43,7 +43,7 @@ def configure_networking():
     while not valid_input:
       input = raw_input(str_to_print)
       if input:
-        vi, err = networking.validate_netmask(input):
+        vi, err = networking.validate_netmask(input)
         if vi:
           valid_input = True
           netmask = input
@@ -70,7 +70,7 @@ def configure_networking():
     while not valid_input:
       input = raw_input(str_to_print)
       if input:
-        vi, err = networking.validate_netmask(input):
+        vi, err = networking.validate_netmask(input)
         if vi:
           valid_input = True
           default_gateway = input
@@ -95,7 +95,7 @@ def configure_networking():
     while not valid_input:
       input = raw_input(str_to_print)
       if input:
-        vi, err = networking.validate_ip(input):
+        vi, err = networking.validate_ip(input)
         if vi:
           valid_input = True
           dns_primary = input
@@ -117,7 +117,7 @@ def configure_networking():
     while not valid_input:
       input = raw_input(str_to_print)
       if input:
-        vi, err = networking.validate_ip(input):
+        vi, err = networking.validate_ip(input)
         if vi:
           valid_input = True
           dns_secondary = input
@@ -140,7 +140,7 @@ def configure_networking():
     while not valid_input:
       input = raw_input(str_to_print)
       if input:
-        vi, err = networking.validate_ip(input):
+        vi, err = networking.validate_ip(input)
         if vi:
           valid_input = True
           dns_external = input
@@ -285,7 +285,7 @@ def configure_networking():
   
     if change_dns_primary or change_dns_secondary or change_dns_external: 
       fqdn = socket.getfqdn()
-      if fqdn == 'fractalio-pri.fractalio.lan':
+      if fqdn == 'gridcell-pri.integralstor.lan':
         if dns_external:
           rc, err = networking.generate_default_primary_named_conf(dns_primary, netmask, dns_secondary, True, dns_external, True)
         else:

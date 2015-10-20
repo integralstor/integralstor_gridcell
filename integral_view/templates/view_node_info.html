@@ -1,81 +1,172 @@
 
-{% extends 'logged_in_base.html' %}
+{% extends 'gridcell_base.html' %}
 
-{%block page-header%}
-  GRIDCell Configuration
-{%endblock%}
+{%block tab_header%}
+      {{node_name|title}} Status
+        </small>
+         {%endblock%}
 
 
-{%block contents%}
+{%block inside_content%}
+<div class="row">
+  <div class="col-md-6 col-sm-6 col-lg-6">
+    <div class="box box-info box-solid collapsed-box">
+      <div class="box-header with-border">
+        <h3 class="box-title">CPU</h3>
+        <div class="box-tools pull-right">
+          <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i></button>
+        </div><!-- /.box-tools -->
+      </div><!-- /.box-header -->
+      <div style="display: none;" class="box-body">
+        <ul class="nav nav-stacked">           
+        <li>
+          <a href="#">Processer
+          <span class="pull-right badge bg-green"> {{node.cpu_model}} </span>     
+          </a>      
+        </li>
+        </ul>
+      </div>
+    </div>
+  </div>
 
-<table class="table table-bordered table-striped table-hover" style="width:60%">
-<tr>
-  <th>
-    CPU
-  </th>
-  <td>
-    {{node.cpu_model}}
-  </td>
-</tr>
-<tr>
-  <th>
-    Memory
-  </th>
-  <td>
-    {{ node.memory.mem_total.value}} {{node.memory.mem_total.unit}}
-  </td>
-</tr>
-</table>
+  <div class="col-md-6 col-sm-6 col-lg-6">
+    <div class="box box-info box-solid collapsed-box">
+      <div class="box-header with-border">
+        <h3 class="box-title">Memory</h3>
+        <div class="box-tools pull-right">
+          <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i></button>
+          </div><!-- /.box-tools -->
+        </div><!-- /.box-header -->
+        <div style="display: none;" class="box-body">
+          <ul class="nav nav-stacked">           
+          <li>
+            <a href="#">Total
+            <span class="pull-right badge bg-green"> {{ node.memory.mem_total.value}} {{node.memory.mem_total.unit}} </span>          
+            </a> 
+          </li>
+          </ul>
+        </div>
+    </div>
+  </div>
+</div>
 
-<table class="table table-bordered table-striped table-hover" style="width:60%">
-<tr>
-  <th colspan=3>
-    Pool Configuration 
-  </th>
-</tr>
-<tr>
-    <td>
-         TYPE
-    </td> 
-    <td>
-        {{node.pools.0.config.type}}
-    </td>
-</tr>
-</table>
+<div class="row">  
+  <div class="col-md-6 col-sm-6 col-lg-6">
+    <div class="box box-info box-solid collapsed-box">
+      <div class="box-header with-border">
+        <h3 class="box-title">Pool Configuration</h3>
+        <div class="box-tools pull-right">
+          <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i></button>
+          </div><!-- /.box-tools -->
+        </div><!-- /.box-header -->
+        <div style="display: none;" class="box-body">
+          <ul class="nav nav-stacked">           
+          <li>
+            <a href="#">Type
+            <span class="pull-right badge bg-green"> {{node.pools.0.config.type}} </span>    
+            </a>       
+          </li>
+          </ul>
+        </div>
+    </div>
+  </div>
 
-<table class="table table-bordered table-striped table-hover" style="width:60%">
-<tr>
-  <th colspan=3>
-    Disks
-  </th>
-</tr>
-<tr>
-  <th >
-    Name
-  </th>
-  <th >
-    Serial number
-  </th>
-  <th >
-    Capacity
-  </th>
-</tr>
-{% for serial_number, d in  node.disks.items%}
-<tr>
-  <td>
-  {{d.name}}
-  </td>
-  <td>
-  {{serial_number}}
-  </td>
-  <td>
-  {{d.capacity}}
-  </td>
-</tr>
-{%endfor%}
-</table>
+  <div class="col-md-6 col-sm-6 col-lg-6">
+    <div class="box box-info box-solid collapsed-box">
+      <div class="box-header with-border">
+        <h3 class="box-title">Network Interfaces</h3>
+        <div class="box-tools pull-right">
+          <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i></button>
+        </div><!-- /.box-tools -->
+      </div><!-- /.box-header -->
+        <div style="display: none;" class="box-body">
+          <table class="table table-bordered table-hover table-responsive" style="width:100%">
+            <thead>
+              <th>
+                Name
+              </th>
+              <th>
+                MAC Address
+              </th>
+              <th>
+                IP Configuration
+              </th>
+            </thead>
+            {% for if_name, inter in  node.interfaces.items%}
+            <tr>
+              <td>
+                {{if_name}}
+              </td>
+              <td>
+                {{inter.hwaddr}}
+              </td>
+              <td>
+                {% for inet in inter.inet %}
+                (IP Address : {{inet.address}}, Netmask : {{inet.netmask}}), 
+                {%endfor%}
+              </td>
+            </tr>
+            {% endfor%}
+          </table>
+        </div>
+    </div>
+  </div>
+</div>
 
-<table class="table table-bordered table-striped table-hover" style="width:60%">
+<div class="row">
+  <div class="col-md-6 col-sm-12 col-lg-12">
+    <div class="box box-info box-solid collapsed-box">
+      <div class="box-header with-border">
+        <h3 class="box-title">Disks</h3>
+        <div class="box-tools pull-right">
+          <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i></button>
+          </div><!-- /.box-tools -->
+        </div><!-- /.box-header -->
+        <div style="display: none;" class="box-body">
+          <table class="table table-bordered table-hover table-responsive" style="width:800px">
+            <thead>
+              <th>
+                Name
+              </th>
+              <th>
+                Serial Number
+              </th>
+              <th>
+                Capacity
+              </th>
+            </thead>
+            {% for serial_number, d in  node.disks.items%}
+            <tr>
+              <td>
+                {{d.name}}
+              </td>
+              <td>
+                {{serial_number}}
+              </td>
+              <td>
+                {{d.capacity}}
+              </td>
+            </tr>
+            {% endfor%}
+          </table>
+        </div>
+    </div>
+  </div>
+</div>
+<br>
+{%if frm and frm == "remove_node" %}
+<a href="/remove_node_from_pool" role="button" class="btn btn-primary">Back</a> &nbsp;&nbsp;
+{%elif frm == "add_nodes"%}
+<a href="/add_nodes_to_pool/" role="button" class="btn btn-primary">Back</a> &nbsp;&nbsp;
+{%else%}
+<a href="/show/gridcells/" role="button" class="btn btn-primary">Back</a> &nbsp;&nbsp;
+{%endif%}
+
+
+
+
+
+<!-- <table class="table table-bordered table-striped table-hover" style="width:60%">
 <tr>
   <th colspan=3>
     Network interfaces
@@ -110,12 +201,12 @@
 </table>
 <br>
 {%if frm and frm == "remove_node" %}
-<a href="/remove_node_from_pool" role="button" class="btn btn-default"><< Back </a> &nbsp;&nbsp;
+<a href="/remove_node_from_pool" role="button" class="btn btn-primary">Back</a> &nbsp;&nbsp;
 {%elif frm == "add_nodes"%}
-<a href="/add_nodes_to_pool/" role="button" class="btn btn-default"><< Back </a> &nbsp;&nbsp;
+<a href="/add_nodes_to_pool/" role="button" class="btn btn-primary">Back</a> &nbsp;&nbsp;
 {%else%}
-<a href="/show/system_config/" role="button" class="btn btn-default"><< Back </a> &nbsp;&nbsp;
-{%endif%}
+<a href="/show/gridcells/" role="button" class="btn btn-primary">Back</a> &nbsp;&nbsp;
+{%endif%} -->
 
 {%endblock%}
 
@@ -125,3 +216,10 @@ GRIDCell configuration
 {%block help_body%}
 <p>This page displays the hardware configuration a particular GRIDCell for informational purposes.</p>
 {%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('gridcell_list_tab')
+  </script>
+{% endblock %}
+

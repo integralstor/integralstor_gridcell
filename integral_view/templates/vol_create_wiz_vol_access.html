@@ -1,5 +1,4 @@
-{% extends 'logged_in_base.html' %}
-
+{% extends 'volume_base.html' %}
 <script type="text/javascript">
 function subm() {
 
@@ -24,16 +23,18 @@ function subm() {
 }
 </script>
 
-{%block page-header%}
-  Volume Creation Wizard
-  <br /><small>
-      Volumes 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Create a Volume - Data Access Method
-  </small>
+
+{%block status_selected%}
+  style="background-color:white;color:white;"
 {%endblock%}
 
-{%block contents%}
+{%block tab_header%}
+  Volume creation wizard - data access method selection
+{%endblock%}
+
+{%block inside_content %}
+
+
 
 <p style="color:red;"> {{error}}</p>
 
@@ -49,7 +50,7 @@ function subm() {
     {{ form.vol_access.errors }}
   </div>
 <br>
- <button type="submit" class="btn btn-primary" onClick="subm();return false;" >Next >></button>
+ <button type="submit" class="btn btn-primary" onClick="subm();return false;" >Next</button>
 </form>
 
 

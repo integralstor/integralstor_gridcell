@@ -1,4 +1,4 @@
-import json, time, os, shutil, tempfile, os.path, re, subprocess, sys, shutil
+import json, time, os, shutil, tempfile, os.path, re, subprocess, sys, shutil, socket
 
 import salt.client, salt.wheel
 
@@ -294,6 +294,30 @@ def show(request, page, info = None):
 
       template = "view_system_config.html"
 
+    elif page == 'gridcells':
+      if 'action' in request.GET:
+        if action == 'added_to_storage_pool':
+          return_dict['message'] = 'Successfully added GRIDCell to the storage pool'
+      nl, err = system_info.get_available_node_list(si)
+      if err:
+        raise Exception(err)
+      if nl:
+        return_dict['gluster_addable_nodes'] = nl
+      rnl = []
+      localhost = socket.getfqdn().strip()
+      for hostname in si.keys():
+        if hostname == localhost:
+          continue
+        if si[hostname]["in_cluster"] and (not si[hostname]["volume_list"]):
+          rnl.append(hostname)
+      if rnl:
+        return_dict['gluster_removable_nodes'] = rnl
+      pending_minions, err = grid_ops.get_pending_minions()
+      if err:
+        raise Exception(err)
+      if pending_minions:
+        return_dict['pending_minions'] = pending_minions
+      template = 'view_gridcells.html'
     elif page == "system_status":
      #Disk Status page and system status page has been integrated.
 
@@ -560,8 +584,8 @@ def configure_ntp_settings(request):
           slist = server_list.split(',')
         else:
           slist = server_list.split(' ')
-        primary_server = "primary.fractalio.lan"
-        secondary_server = "secondary.fractalio.lan"
+        primary_server = "gridcell-pri.integralstor.lan"
+        secondary_server = "gridcell-sec.integralstor.lan"
         #First create the ntp.conf file for the primary and secondary nodes
         temp = tempfile.NamedTemporaryFile(mode="w")
         temp.write("driftfile /var/lib/ntp/drift\n")
@@ -714,8 +738,8 @@ def reset_to_factory_defaults(request):
   
       try:
         # Create commands to stop and delete volumes. Remove peers from cluster.
-        vil = volume_info.get_volume_info_all()
-        scl = system_info.load_system_config()
+        vil, err = volume_info.get_volume_info_all()
+        scl, err = system_info.load_system_config()
         d = gluster_commands.create_factory_defaults_reset_file(scl, vil)
         if not "error" in d:
           ret, err = audit.audit("factory_defaults_reset_start", "Scheduled reset of the system to factory defaults.",  request.META["REMOTE_ADDR"])

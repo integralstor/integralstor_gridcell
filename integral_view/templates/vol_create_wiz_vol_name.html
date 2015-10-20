@@ -1,15 +1,15 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'volume_base.html' %}
 
-{%block page-header%}
-  Volume Creation Wizard
-  <br /><small>
-      Volumes 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Create a Volume - Volume Name
-  </small>
+
+{%block status_selected%}
+  style="background-color:white;color:white;"
 {%endblock%}
 
-{%block contents%}
+{%block tab_header%}
+  Volume creation wizard - volume name selection
+{%endblock%}
+
+{%block inside_content %}
 
 	<form role="form" action="/volume_creation_wizard/select_vol_type" method="post">
 	<div  style=" position:relative;border:0px solid #DDDDDD;width:600px; padding:15px 15px 15px;margin:0px 15px;border-radius:4px 4px 0px 0px">
@@ -18,7 +18,7 @@
 	    <input type="text"  name="volume_name" class="form-control" id="id_volume_name" placeholder="Enter volume name" required> 
 	    {{ form.volume_name.errors }}
 	  </div>
-	  <button type="submit" class="btn btn-primary">Next >></button>
+	  <button type="submit" class="btn btn-primary">Next</button>
 	</div>
 	</form>
 

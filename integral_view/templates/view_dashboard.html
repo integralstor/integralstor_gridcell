@@ -1,39 +1,13 @@
 {% extends 'logged_in_base.html' %}
 
 
-{%block page-header%}
-  Dash Board
-  <br /><small>
-      Home 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Dashboard
-  </small>
-{%endblock%}
-
-<!-- Modal -->
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
-      </div>
-      <div class="modal-body" id="myModalBody">
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 {%block contents%}
-
+{%load utilities%}
 <div class="row margin-left-1">
-  <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+  <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
     <div class="box">
       <div class="box-header">
-          <h3 class="box-title">Platform Status</h3>
+          <h3 class="box-title">GRIDCell Status</h3>
           <div class="box-tools pull-right">
               <button data-original-title="Collapse" class="btn btn-default btn-sm" data-widget="collapse" data-toggle="tooltip" title=""><i class="fa fa-minus"></i></button>
           </div>
@@ -45,63 +19,35 @@
           <table>
             <thead>
               <th> GRIDCell Name</th>
-              <th> Status </th>
+              <th> GRIDCell Status </th>
+              <th> Pool Status </th>
             </thead>
             <tbody>
                {%for k,v in nodes.items%}
                 <tr>
                     <td><a href="/show/node_status/{{k}}" class="text">{{k}}</a> </td>
                     <td> {%if v == 0%}<small class="label label-success white"><i class="fa fa-check-circle-o "></i> Online</small>{%else%}<small class="label label-danger white"><i class="fa fa-remove"></i> Degraded</small>{%endif%} </td>
-                  </tr>
+                     <td> {%if storage_pool|get_item:k == "Peer in Cluster"%}<small class="label label-success white"><i class="fa fa-check-circle-o "></i> Healthy</small>{%else%}<small class="label label-danger white"><i class="fa fa-remove"></i> Offline</small>{%endif%} </td>
                 {%endfor%}
+              </tr>
+
             </tbody>
           </table>
         </p>
       </div><!-- /.box-body -->
       <div class="box-footer">
-          <a href="/show/system_status" role="button" {%if num_nodes_bad > 0 %}class="btn btn-warning">More Details<i class="fa fa-bell-o"></i> {%else%}class="btn btn-success">More Details <i class="fa fa-arrow-right"></i>{%endif%} </a>
-      </div><!-- /.box-footer-->
-    </div>
-  </div>
-  <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-    <div class="box">
-      <div class="box-header">
-          <h3 class="box-title">Storage Pool Status</h3>
-          <div class="box-tools pull-right">
-              <button data-original-title="Collapse" class="btn btn-default btn-sm" data-widget="collapse" data-toggle="tooltip" title=""><i class="fa fa-minus"></i></button>
-          </div>
-      </div>
-      <div class="box-body">
-        <p>
-        <br />
-        {% if num_pools_bad > 0 %} <i class="fa fa-bell faa-ring animated orange"></i> {{num_pools_bad}} GRIDCell(s) have problems{%endif%}
-          <table>
-            <thead>
-              <th>Storage Pool On</th>
-              <th> Status </th>
-            </thead>
-            <tbody>
-              {%for k,v in storage_pool.items%}
-                <tr>
-                    <td><a href="/show/node_status/{{k}}" class="text">{{k}}</a> </td>
-                    <td> {%if v == "Peer in Cluster"%}<small class="label label-success white"><i class="fa fa-check-circle-o "></i> Healthy</small>{%else%}<small class="label label-danger white"><i class="fa fa-remove"></i> Offline</small>{%endif%} </td>
-                  </tr>
-              {%endfor%}  
-            </tbody>
-          </table>
-        </p>
-      </div><!-- /.box-body -->
-      <div class="box-footer">
-          <a href="/show/pool_status" role="button" {%if num_nodes_bad > 0 %}class="btn btn-warning">More Details<i class="fa fa-bell-o"></i> {%else%}class="btn btn-success">More Details <i class="fa fa-arrow-right"></i>{%endif%} </a>
+        <span class="pull-right">
+          <a href="/show/gridcells" role="button" {%if num_nodes_bad > 0 %}class="btn btn-warning">More Details<i class="fa fa-bell-o"></i> {%else%}class="btn btn-success">More Details <i class="fa fa-arrow-right"></i>{%endif%} </a>
+        </span>
       </div><!-- /.box-footer-->
     </div>
   </div>
 </div>
 <div class="row margin-left-1">
-  <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+  <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
     <div class="box">
       <div class="box-header">
-          <h3 class="box-title">Volume Status<h3>
+          <h3 class="box-title">Volume Status</h3>
           <div class="box-tools pull-right">
               <button data-original-title="Collapse" class="btn btn-default btn-sm" data-widget="collapse" data-toggle="tooltip" title=""><i class="fa fa-minus"></i></button>
           </div>
@@ -110,15 +56,15 @@
         {% if num_vols_bad > 0 %} <i class="fa fa-bell faa-ring animated orange"></i> {{num_vols_bad}} Volumes(s) have problems{%endif%}
         <div class="row">
           {% for v in volume_info_list %}
-            <div class="col-lg-4 col-md-6 col-sm-6 col-xs-12">
+            <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
               <div class="chart" data-percent="{{v.size_used_percent}}"></div>
-              &nbsp;&nbsp;&nbsp;<a href="/show/volume_status/{{v.name}}/"><div class="label label-primary white">{{v.name}} &nbsp; {{v.size_used_percent}}%</div></a>
+              <span class="col-md-offset-4 col-lg-offset-4">&nbsp;&nbsp;&nbsp;<a href="/show/volume_info/{{v.name}}/"><div class="label label-info white">{{v.name}} &nbsp; {{v.size_used_percent}}%</div></a></span>
             </div>
           {%endfor%}
       </div>
       </div><!-- /.box-body -->
       <div class="box-footer">
-          <a href="/show/volume_status_all" role="button" {%if num_vols_bad > 0 %}class="btn btn-warning">More Details<i class="fa fa-bell-o"></i> {%else%}class="btn btn-success">More Details <i class="fa fa-arrow-right"></i>{%endif%} </a>
+          <a href="/show/volume_info_all" role="button" {%if num_vols_bad > 0 %}class="btn btn-warning">More Details<i class="fa fa-bell-o"></i> {%else%}class="btn btn-success">More Details <i class="fa fa-arrow-right"></i>{%endif%} </a>
       </div><!-- /.box-footer-->
     </div>
   </div>
@@ -134,14 +80,14 @@ $(function() {
                           return '#008D4C'
                         else if (percent >50 && percent <= 75)
                           return '#F39C12'
-                        else 
+                        else
                           return '#F56954'
                       },
       lineCap : 'round',
-      lineWidth : 15,
+      lineWidth : 5,
       trackColor: '#eee',
       animate : true,
-      size : 150,
+      size : 100,
     });
 });
 </script>
@@ -153,3 +99,8 @@ Dashboard
 <p>The IntegralView dashboard is a one stop page that gives you an overall view of the status and health of the IntegralStor system. From this page, you can get an idea of the health of each GRIDCell, the storage pool and of all the data volumes.</p>
 {%endblock%}
 
+{% block menu_active %}
+<script>
+  make_side_menu_active("dashboard_menu")
+</script>
+{% endblock%}

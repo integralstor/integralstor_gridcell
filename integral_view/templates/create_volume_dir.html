@@ -1,17 +1,16 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'volume_base.html' %}
 
 
-{%block page-header%}
-  Volume
-  <br /><small>
-      Volumes
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Create Directory
-  </small>
+{%block status_selected%}
+  style="background-color:white;color:white;"
 {%endblock%}
 
+{%block tab_header%}
+  Create a directory within a volume
+{%endblock%}
 
-{%block contents%}
+{%block inside_content %}
+<br><br>
 
 {%if conf_message%}
 <div class="alert alert-success alert-dismissable">
@@ -42,7 +41,7 @@
         <td>
           <select id="id_vol" name="vol" class="form-control">
           {% for choice in form.vol_name.field.choices %} 
-            <option value="{{choice.0}}" {%if form.initial.ad_schema_mode == choice.0%} selected="selected" {%endif%}>{{choice.1}}</option>
+            <option value="{{choice.0}}" {%if form.initial.vol_name == choice.0%} selected="selected" {%endif%}>{{choice.1}}</option>
           {%endfor%}
           </select>
         </td>
@@ -65,7 +64,7 @@
         </td>
       </tr>
     </table>
-    <button type="submit" class="btn btn-primary" onClick="document.getElementById('id_path').disabled = false;return true;")> Create >> </button>
+    <button type="submit" class="btn btn-primary" onClick="document.getElementById('id_path').disabled = false;return true;")> Create</button>
   </form>
 
   <script src="/static/jstree/dist/jstree.js"></script>
@@ -113,3 +112,8 @@
 {%block help_body%}
   <p>Use this screen to browse a volume and create a directory at any point in the directory tree.</p>
 {%endblock%}
+{% block tab_active %}
+  <script>
+    make_tab_active('create_volume_dir_tab')
+  </script>
+{% endblock %}

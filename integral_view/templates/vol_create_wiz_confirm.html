@@ -1,29 +1,16 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'volume_base.html' %}
 
-{%block page-header%}
-  Volume Creation Wizard
-  <br /><small>
-      Volumes 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Create a Volume - Volume Type (Final confirmation)
-  </small>
+
+{%block status_selected%}
+  style="background-color:white;color:white;"
 {%endblock%}
 
-{%block contents%}
-<!-- Modal -->
-<div class="modal fade" id="processing" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-body" id="myModalBody">
-        <br><br><br>
-        <i class="fa fa-spinner fa-spin bigger-250"></i>
-        <br><br><br>
-        <p id="p-node-text">Processing.. Please wait.
-        <br><br><br>
-      </div>
-    </div>
-  </div>
-</div>
+{%block tab_header%}
+  Volume creation wizard - confirmation prompt
+{%endblock%}
+
+{%block inside_content %}
+
 
 <form  action = "/create_volume/" method="post">
 <input type=hidden name="vol_type" value="{{vol_type}}">
@@ -41,6 +28,7 @@
 <input type=hidden name="node_list_str" value="{{node_list_str}}">
 
 
+<br><br>
 
 You have chosen to create a volume with the following parameters. <br>
 The disk choices are automatically determined by the system and are displayed for information only.
@@ -96,7 +84,7 @@ The disk choices are automatically determined by the system and are displayed fo
             <tr align="center">
               <td  colspan=2 style="text-align:center;">
                 <input type="button" class="btn btn-default" value="Cancel" onClick="window.location='/show/volume_info_all'"> &nbsp;&nbsp;
-                <button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Create >></button>
+                <button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Create</button>
               </td>
             </tr>
             </table>
@@ -110,3 +98,8 @@ Volume creation help
 {%block help_body%}
 <p>The volume creation wizard guides you through many steps to create a particular type of volume. This is the final step of the wizard and is a prompt for final confirmation of all selected parameters. Please check to see if all the information is as desired and if so, continue to actually create the volume.</p>
 {%endblock%}
+{% block tab_active %}
+  <script>
+    make_tab_active('create_volume_tab')
+  </script>
+{% endblock %}

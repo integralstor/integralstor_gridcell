@@ -1,18 +1,11 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'shares_and_targets_base.html' %}
 
-{%block page-header%}
-  File Access
-  <br /><small>
-      File Access 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Shares
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      View Shares
-
-  </small>
+{%block tab_header%}
+  View Shares
 {%endblock%}
 
-{%block contents%}
+{%block inside_content%}
+<br><br>
 
 {% if conf %}
 <p><i>{{conf}}</i></p>
@@ -56,7 +49,7 @@ Description
     {{d.comment}}
   </td>
   <td>
-    <a href="/view_share?access_mode=by_id&index={{d.share_id}}" role="button" class="btn btn-default"> Details</a>
+    <a href="/view_share?access_mode=by_id&index={{d.share_id}}" role="button" class="btn btn-primary"> Details</a>
   </td>
 </tr>
 {%endfor%}
@@ -71,3 +64,9 @@ View all shares
 {%block help_body%}
   <p> This screen provides the list of all the shares that have been created on this IntegralStor system. To view details about a particular share, please select the the desired share from the list.</p>
 {%endblock%}
+{% block tab_active %}
+  <script>
+    make_tab_active('view_share_tab')
+  </script>
+{% endblock %}
+

@@ -1,20 +1,14 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'system_log_base.html' %}
 
-{%block page-header%}
-  Logging
-    <br /><small>
-      Logging
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      {% if historical %}
-		View historical alerts
-	  {%else %}
-		View alerts
-	  {%endif%}
-  </small>
+{%block tab_header%}
+  {%if historical%} Historical {%endif%} System alerts
+{%endblock%}
 
- {%endblock%}
 
-{%block contents%}
+
+{%block inside_content%}
+
+<br><br>
 
 {% if alerts_list %}
 <table class="table table-bordered table-hover">
@@ -29,9 +23,12 @@
 </tr>
 {%endfor%}
 </table>
+{%if alerts_list and not historical%}
+<a href="/rotate_log/alerts" class="btn btn-primary">Rotate Alert Logs </a>
+{%endif%}
 <br>
 {% if historical %}
-<a href="/view_rotated_log_list/alerts/" role="button" class="btn btn-default"> << Back to log list</a>
+<a href="/view_rotated_log_list/alerts/" role="button" class="btn btn-primary">Back to log list</a>
 {%endif%}
 {%else %}
 No alerts to display
@@ -44,3 +41,10 @@ View alerts
 {%block help_body%}
 <p>The IntegralStor system constantly monitors the health of all GRIDCells. If any problems are found in any components of the GRIDCells, then an alert is generated. This page lists all the alerts that have been raised. If an email server setting has been configured in IntegralView then the alerts will also be emailed to the specified addresses.</p>
 {%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('volume_log_alert_tab')
+  </script>
+{% endblock %}
+

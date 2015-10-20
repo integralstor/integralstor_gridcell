@@ -1,14 +1,15 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'snapshot_base.html' %}
 
-{%block page-header%}
-  Snapshots
-  <br /><small>
-      Snapshots
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      {{op}} -- results
-  </small>
+{%block status_selected%}
+  style="background-color:white;color:white;"
 {%endblock%}
-{%block contents%}
+
+{%block tab_header%}
+  {{op}} - result
+{%endblock%}
+
+{%block inside_content %}
+<br><br>
 
 	{{conf}}
 

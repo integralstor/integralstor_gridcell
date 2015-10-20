@@ -1,13 +1,10 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'volume_base.html' %}
 
-{%block page-header%}
-  Volumes
-    <br /><small>
-      Expand volume
-  </small>
-
- {%endblock%}
-{%block contents%}
+{%block tab_header%}
+      Expand a volume
+{%endblock%}
+{%block inside_content %}
+<br><br>
 <!-- Modal -->
 <div class="modal fade" id="processing" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">

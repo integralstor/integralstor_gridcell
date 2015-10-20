@@ -1,0 +1,119 @@
+{% extends 'gridcell_base.html' %}
+
+
+{%block status_selected%}
+  style="background-color:white;color:white;"
+{%endblock%}
+
+{%block tab_header%}
+  GRIDCells information
+{%endblock%}
+
+{%block inside_content %}
+
+{% if message %}
+<p><i>{{message}}</i></p>
+{%endif%}
+
+  {%if system_info %}
+    {%if pending_minions %}
+    <i> GRIDCells that are not part of the grid have been detected on the network. <br> </i>
+    <a href="/hardware_scan" role="button" class="btn btn-default">Add GRIDCells to the grid</a>
+    <br>
+    {%endif%}
+    <table class="table table-bordered table-striped table-hover table-condensed datatable" width="100%">
+      <thead>
+        <tr>
+          <th> Name </th>
+          <th> Status </th>
+          <th> Storage pool status</th>
+          <th> GRIDCell details</th>
+          <th> Add to storage pool</th>
+          <th> Remove from storage pool</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for node_name, node in system_info.items%}
+        <tr>
+          <td>{{node_name}}</td>
+          <td>
+            {%if node.node_status == 0%}
+            <i class="fa fa-check-circle green fa-1x"></i>
+            {%elif node.node_status == 1%}
+      	    <i class="fa fa-remove orange fa-1x"></i>	
+            {%else%}
+      	    <i class="fa fa-remove red fa-1x"></i>	
+            {%endif%}<br>
+            ({{node.node_status_str}})
+          </td>
+          <td>
+            {%if node.cluster_status == 1%}
+            <i class="fa fa-check-circle green fa-1x"></i>
+            {%else%}
+      	    <i class="fa fa-remove red fa-1x"></i>	
+            {%endif%}<br>
+            ({{node.cluster_status_str}})
+          </td>
+          <td> 
+            <a href="/show/node_status/{{node_name}}" role="button" class="btn btn-primary">Details..</a>
+          </td>
+          <td>
+            {%if gluster_addable_nodes and node_name in gluster_addable_nodes %}
+            <form action="/add_a_node_to_pool" method="POST">
+            <input type="hidden" name="node_name" value="{{node_name}}>
+            <button type="submit" class="btn btn-primary" disabled>Add to storage pool</button>
+            </form>
+            {%elif node.cluster_status == 1 %}
+            In storage pool.<sup>*</sup>
+            {%else%}
+            Unhealthy GRIDCell.<sup>*</sup>
+            {%endif%}
+          </td>
+          <td>
+            {%if gluster_removable_nodes and node_name in gluster_removable_nodes %}
+            <form action="/remove_a_node_from_pool" method="POST">
+            <input type="hidden" name="node_name" value="{{node_name}}>
+            <button type="submit" class="btn btn-primary" disabled>Remove from storage pool</button>
+            </form>
+            {%else%}
+            Cannot be removed. <sup>#</sup>
+            {%endif%}
+          </td>
+        </tr>
+        {%endfor%}
+      </tbody>
+    </table>
+  {%else %}
+    No GRIDCells in the grid
+  {% endif %}
+
+  <br>
+  <sup>*</sup> - Gridcells can only be added to the storage pools if they are healthy and are not already a part of the storage pool.<br>
+  <sup>#</sup> - GRIDCells can only be removed from the storage pools if there is no volume data present in them. Check the volumes tab to see data locations.
+{%endblock%}
+
+{%block help_header%}
+GRIDCell information
+{%endblock%}
+
+{%block help_body%}
+  <p>This page lists all the GRIDCells that are part of the grid and GRIDCells that are available to be added to the GRID. Click on the appropriate buttons for more details about individual hardware configuration or status details.</p>
+{%endblock%}
+
+{%block datatables%}
+      $('.datatable').DataTable({
+        ordering: true,
+        paging: false,
+        responsive: true,
+        aoColumnDefs: [
+          { aTargets: [4], bSortable: false }
+        ],
+        aaSorting: [ [0, 'asc'] ],   
+    });
+{%endblock%}
+
+{% block tab_active %}
+	<script>
+		make_tab_active('gridcell_list_tab')
+	</script>
+{% endblock %}

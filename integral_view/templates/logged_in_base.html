@@ -6,6 +6,7 @@
   <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.css" type="text/css" />
   <link rel="stylesheet" href="/static/bootstrap/css/bootstrap-responsive.min.css"/>
   <link rel="stylesheet" type="text/css" href="/static/css/AdminLTE.css">
+  <link rel="stylesheet" type="text/css" href="/static/css/skin-purple.css">
   <link rel="stylesheet" type="text/css" href="/static/css/fractalio.css">
   <title> 
 		{%block title%}
@@ -34,28 +35,26 @@ function ()
 {%block header_scripts%}
 {%endblock%}
 </head>
-<body class="skin-blue fixed">
+<body class="skin-purple fixed">
+  <div class="wrapper">
     <!-- Top Menu-->
-    <header class="header">
+    <header class="main-header">
             <a href="/show/dashboard/" class="logo">
-                <!-- Add the class icon to your logo image or logo icon to add the margining -->
-                <!-- <img src="/static/images/logo.jpg"  width="60" height="60"/> -->
-
-                 <img src="/static/images/LOGO-transparent.png" height="45" width="45" alt="Fractalio Data" class="pull-left margin-left-1"/>
-                 <img src="/static/images/fractalio name-white.png" height="45" width="175" alt="Fractalio Data" class="margin-left-minus10"/>
+                <!-- Add the class icon to your logo image or logo icon to add the margining -->         
+                 <img src="/static/images/LOGO-transparent.png" height="45" width="45" alt="Fractalio Data" class="pull-left margin-left-40"/>
             </a>
             <!-- Header Navbar: style can be found in header.less -->
             <nav class="navbar navbar-static-top" role="navigation">
                 <!-- Sidebar toggle button-->
-                <a href="#" class="navbar-btn sidebar-toggle" data-toggle="offcanvas" role="button">
+                <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
                     <span class="sr-only">Toggle navigation</span>
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </a>
-                <a href="/show/dashboard" class="white margin-left-30 hidden-phone"><img src="/static/images/integralview-white.png" height="45" width="100"/><sub style="bottom: -1.25em;">Beta</sub></a>
+                <a href="/show/dashboard" class="white margin-left-30 hidden-phone"><img src="/static/images/integralview-white.png" height="45" width="100"/></a>
                  
-                <div class="navbar-right">
+                <div class="navbar-custom-menu">
                     <ul class="nav navbar-nav">
                         <!-- User Account: style can be found in dropdown.less -->
                         <li class="dropdown messages-menu" id="alerts-dropdown">
@@ -65,7 +64,6 @@ function ()
                                 </span>
                             </a>
                             <ul class="dropdown-menu" id="alerts_dropdown">
-                                <!-- <li class="header">You have 4 Alerts</li> -->
                                 <li>
                                     <!-- inner menu: contains the actual data -->
                                     <div style="position: relative; overflow: hidden; width: auto; height: 200px;" class="slimScrollDiv">
@@ -84,7 +82,7 @@ function ()
                             </a>
                             <ul class="dropdown-menu">
                                 <!-- User image -->
-                                <li class="user-header bg-light-blue">
+                                <li class="user-header">
                                     <img src="/static/images/LOGO-transparent.png" class="img-circle" alt="User Image">
                                     <p>
                                         {{request.user.username|default:'admin'}}
@@ -122,69 +120,45 @@ function ()
 <!-- end of top menu -->
 
 <!-- Side Menu -->
-        <div style="min-height: 590px;" class="wrapper row-offcanvas row-offcanvas-left">
             <!-- Left side column. contains the logo and sidebar -->
-            <aside style="min-height: 590px;" class="left-side sidebar-offcanvas">
+            <aside style="min-height: 890px;" class="main-sidebar">
                 <!-- sidebar: style can be found in sidebar.less -->
                 <section class="sidebar">
+                  <div class="user-panel">
+                    <div class="pull-left image">
+                      <a href="/dashboard/cpu" class="white hidden-phone"><img src="/static/images/fractalio name-white.png" width="170" height="45"/></a>
+                   </div>
+                  </div>
 
                     <!-- sidebar menu: : style can be found in sidebar.less -->
                     <ul class="sidebar-menu">
-                        <li class="active">
+                        <li id="dashboard_menu">
                             <a href="/show/dashboard/">
                                 <i class="fa fa-dashboard"></i> <span>Dashboard</span>
                             </a>
                         </li>
-                        <li class="treeview">
-                            <a href="#">
+                        <li class="treeview" id="gridcell_menu">
+                            <a href="/show/gridcells">
                                 <i class="fa fa-th"></i>
                                 <span>GRIDCells</span>
-                                <i class="fa fa-angle-left pull-right"></i>
                             </a>
-                            <ul class="treeview-menu">
-                                <li>
-                                  <a href="/show/system_status" data-toggle="tooltip" title="View current system status" >
-                                      <i class="fa fa-angle-double-right"></i>GRIDCell status
-                                  </a>
-                                </li>
-                                <li>
-                                  <a href="/show/system_config/" data-toggle="tooltip" title="View current system Configuration">
-                                    <i class="fa fa-angle-double-right"></i>GRIDCell configuration
-                                  </a>
-                                </li>
-                                
-                                <li>
-                                  <a href="/hardware_scan/" >
-                                    <i class="fa fa-angle-double-right"></i> Add new GRIDCells
-                                  </a>
-                                </li>
-                                <li>
-                                  <a href="/replace_node/">
-                                    <i class="fa fa-angle-double-right"></i>Replace a GRIDCell
-                                  </a>
-                                </li>
-                            </ul>
                         </li>
-                        <li class="treeview">
-                          <a href="#">
-                              <i class="fa fa-database"></i>
-                              <span>Storage Pool</span>
-                              <i class="fa fa-angle-left pull-right"></i>
-                          </a>
-                            <ul class="treeview-menu">
-                                <li>
-                                  <a href="/add_nodes_to_pool" data-toggle="tooltip" title="Add IntegralStor GRIDCells to the storgae pool">    
-                                    <i class="fa fa-angle-double-right"></i>
-                                    Add to storage pool
-                                  </a>
-                                </li>
-                                <li>
-                                  <a href="/remove_node_from_pool" date-toggle="tooltip" title="Remove storage from the pool">
-                                    <i class="fa fa-angle-double-right"></i> Remove from storage pool
-                                  </a>
-                                </li>
-                            </ul>
+                        <!--
+                        <li class="treeview" id="storagepool_menu">
+                            <a href="/add_nodes_to_pool">
+                                <i class="fa fa-database"></i>
+                                <span>Storage Pool</span>
+                            </a>
                         </li>
+                        -->
+
+                        <li clss="treeview" id="volume_menu">
+                            <a href="/show/volume_info_all">
+                              <i class="fa fa-gear"></i>
+                              <span>Volumes</span>
+                            </a>
+                        </li>
+                <!--
                         <li class="treeview">
                             <a href="#">
                               <i class="fa fa-gear"></i>
@@ -250,18 +224,52 @@ function ()
                                 </li>
                               </ul>
                         </li>
-                        <li class="treeview">
-                          <a href="#" class="treeview-toggle" data-toggle="treeview">
-                            <i class="fa fa-files-o"></i> CIFS access <i class="fa fa-angle-left pull-right"></i>
-                            </a>
-                          <ul class="treeview-menu">
-                            <li><a href="/auth_server_settings"> <i class="fa fa-angle-double-right"></i> Authentication settings</a></li>
-                            <li><a href="/edit_auth_method"><i class="fa fa-angle-double-right"></i> Change authentication method</a></li>
-                            <li><a href="/view_local_users"><i class="fa fa-angle-double-right"></i> Local users</a></li>
-                            <li><a href="/display_shares"><i class="fa fa-angle-double-right"></i> View shares</a></li>
-                            <li><a href="/create_share"><i class="fa fa-angle-double-right"></i> Create a share</a></li>
-                          </ul>
+                        -->
+
+                        <li class="treeview" id="users_menu">
+                          <a href="/view_local_users">
+                            <i class="fa fa-files-o"></i>
+                              <span>User management</span>
+                          </a>
                         </li>
+                        <li class="treeview" id="cifs_access_menu">
+                          <a href="/display_shares">
+                            <i class="fa fa-files-o"></i>
+                              <span>Shares and targets</span>
+                          </a>
+                        </li>
+
+                        <li class="treeview" id="snapshots_menu">
+                          <a href="/volume_specific_op/view_snapshots/">
+                            <i class="fa fa-desktop"></i>
+                              <span>Snapshots</span>
+                          </a>
+                        </li>
+                        
+                        <li class="treeview" id="other_services_menu">
+                          <a href="/show/ntp_settings/">
+                            <i class="fa fa-laptop"></i>
+                              <span>Services</span>
+                          </a>
+                        </li>
+                        
+                        <li id="system_log_menu">
+                          <a href="/show/audit_trail">
+                            <i class="fa fa-file-code-o"></i>
+                              <span>System Logs</span>
+                          </a>
+                        </li>
+
+                        <li id="volume_log_menu">
+                          <a href="/volume_specific_op/rotate_log">
+                            <i class="fa fa-file-code-o"></i>
+                              <span>Volume Logs</span>
+                          </a>
+                        </li>
+
+                        
+
+
 			<!--
                         <li class="treeview">
                           <a href="#" class="treeview-toggle" data-toggle="treeview">
@@ -276,37 +284,6 @@ function ()
                           </ul>
                         </li>
                         -->
-                        <li class="treeview">
-                          <a href="#" class="treeview-toggle" data-toggle="treeview"> 
-                            <i class="fa fa-desktop"></i> Snapshots <i class="fa fa-angle-left pull-right"></i>
-                          </a>
-                          <ul class="treeview-menu">
-                            <li><a href="/volume_specific_op/view_snapshots/"><i class="fa fa-angle-double-right"></i> View snapshots</a></li>
-                            <li><a href="/create_snapshot/"><i class="fa fa-angle-double-right"></i> Create a snapshot</a></li>
-                          </ul>
-                        </li>
-                        <li class="treeview">
-                          <a href="#" class="treeview-toggle" data-toggle="treeview">
-                            <i class="fa fa-history"></i> Other services <i class="fa fa-angle-left pull-right"></i>
-                          </a>
-                          <ul class="treeview-menu">
-                            <li>
-                              <a href="/show/ntp_settings/">
-                                  <i class="fa fa-angle-double-right"></i>Configure NTP
-                              </a>
-                            </li>
-                            <li>
-                              <a href="/show/email_settings/">
-                                <i class="fa fa-angle-double-right"></i> Configure Email 
-                              </a>
-                            </li>
-                            <li>
-                              <a href="/show/batch_status">
-                                <i class="fa fa-angle-double-right"></i> Background processes
-                              </a>
-                            </li>
-                          </ul>
-                        </li>
                         <!--
                         <li class="treeview">
                           <a href="#" class="treeview-toggle" data-toggle="treeview">
@@ -320,39 +297,14 @@ function ()
                           </ul>
                         </li>
                         -->
-                        <li class="treeview">
-                          <a href="#" class="treeview-toggle" data-toggle="treeview">
-                            <i class="fa fa-file-code-o"></i> Logging <i class="fa fa-angle-left pull-right"></i>
-                          </a>
-                          <ul class="treeview-menu">
-                            <li class="treeview-header"><span>Volume logs</span></li>
-                            <li><a href="/volume_specific_op/rotate_log"><i class="fa fa-angle-double-right"></i> Rotate volume log</a></li>
-                            <li><a href="/download_vol_log"><i class="fa fa-angle-double-right"></i> Download volume logs</a></li>
-                            <li class="divider-vertical"></li>
-                            <li class="treeview-header"><span>System logs</span></li>
-                            <li><a href="/download_sys_log"> <i class="fa fa-angle-double-right"></i> Download system logs</a></li>
-                            <li class="divider-vertical"></li>
-                            <li class="treeview-header"><span>Alerts</span></li>
-                            <li><a href="/show/alerts"><i class="fa fa-angle-double-right"></i> View current alerts</a></li>
-                            <li><a href="/rotate_log/alerts"><i class="fa fa-angle-double-right"></i> Rotate alerts log</a></li>
-                            <li><a href="/view_rotated_log_list/alerts"><i class="fa fa-angle-double-right"></i> View older alerts</a></li>
-                            <li class="divider-vertical"></li>
-                            <li class="treeview-header"><span>Audit trail</span></li>
-                            <li><a href="/show/audit_trail/"><i class="fa fa-angle-double-right"></i> View current audit trail</a></li>
-                            <li><a href="/rotate_log/audit_trail"><i class="fa fa-angle-double-right"></i> Rotate audit trail</a></li>
-                            <li><a href="/view_rotated_log_list/audit_trail"><i class="fa fa-angle-double-right"></i> View older audit trails</a></li>
-                            <li class="divider-vertical"></li>
 
-                            <li class="treeview-header"><span>Integral View Logging</span></li>
-                            <li><a href="/show/integral_view_log_level/"><i class="fa fa-angle-double-right"></i> View IntegralView log level</a></li>
-                          </ul>
-                        </li>
-                        <li class="treeview">
-                          <a href="#" class="treeview-toggle" data-toggle="treeview">
-                            <i class="fa fa-cogs"></i> Admin <i class="fa fa-angle-left pull-right"></i>
+                        <li class="treeview" id="admin_menu">
+                          <a href="/change_admin_password">
+                            <i class="fa fa-cogs"></i>
+                              <span>Admin</span>
                           </a>
-                          <ul class="treeview-menu">
-                            <li><a href="/change_admin_password/"><i class="fa fa-angle-double-right"></i> Change admin password</a></li>
+                        </li>
+
                            {%if request.user.is_superuser%} <li><a href="/reset_to_factory_defaults/"><i class="fa fa-angle-double-right"></i> Reset to factory defaults</a></li>{%endif%}
                           </ul>
                         </li>
@@ -362,31 +314,10 @@ function ()
             </aside>
 
             <!-- Right side column. Contains the navbar and content of the page -->
-            <aside class="right-side">
-                <!-- Content Header (Page header) -->
-                <section class="content-header">
-                    <h1>
-                        <div class="row">
-                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
-                        {%block page-header%}
-                          DashBoard
-                          <br /><small>
-                            Home
-                            <i class="fa fa-angle-double-right smaller-80"></i>
-                            Dashboard
-                          </small>
-                        {%endblock%}
-</div>
-<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
-			                  <button id="refresh_page" class="btn btn-primary btn-flat pull-right" value="Refresh this page"> Refresh page</button>
-                        <a href="#help" data-toggle="modal" class="btn btn-primary btn-flat pull-right">Help!</a>
-</div>
-</div>
-                    </h1>
-                </section>
-
+            <aside class="content-wrapper">
                 <!-- Main content -->
                 <section id="contents" class="content">
+
                       {%block contents%}
 
                       {%endblock%}                      
@@ -412,9 +343,9 @@ function ()
           </h3>
       </div>
       <div class="modal-body" >
-      {%block help_body%}
+        {%block help_body%}
 
-      {%endblock%}
+        {%endblock%}
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -422,9 +353,18 @@ function ()
     </div>
   </div>
 </div>
-
+<div class="lightbox" id="wait_lightbox">
+  <div class="row">
+    <div class="col-lg-12" style="margin-top:15%;color:#fff">
+      <h1>
+        {% block light-box-text %}
+        Processing . . . . 
+        {% endblock %}
+      </h1>
+    </div>
+  </div>
+</div>
 </body>
-<link rel="stylesheet" type="text/css" href="/static/css/modify_bootstrap.css">
 <link rel="stylesheet" type="text/css" href="/static/font-awesome-4.2.0/css/font-awesome.css">
 <link rel="stylesheet" type="text/css" href="/static/font-awesome-4.2.0/css/font-awesome-animation.min.css">
 <link rel="stylesheet" type="text/css" href="/static/datatables/css/jquery.dataTables.css">
@@ -433,7 +373,10 @@ function ()
 <script src="/static/datatables/js/jquery.dataTables.js"></script>
 <script src="/static/datatables/js/dataTables.bootstrap.js"></script>
 <script src="/static/datatables/js/dataTables.responsive.js"></script>
+<script src="/static/js/jquery.slimscroll.min.js"></script>
 <script src="/static/js/app.js"></script>
+<script src="/static/js/fractalio.js"></script>
+<link rel="stylesheet" type="text/css" href="/static/css/modify_bootstrap.css">
 
   <script>
     $(document).ready(function(){
@@ -457,5 +400,17 @@ function ()
       location.reload();
     })
   </script>
+  {% block menu_active %}
+    <script>
+      make_side_menu_active(null)
+    </script>
+  {% endblock %}
+  {% block tab_active %}
+    <script>
+      make_tab_active(null)
+    </script>
+  {% endblock%}
+  {% block js %}
+  {% endblock %}
 </html>
 

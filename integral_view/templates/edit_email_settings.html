@@ -1,16 +1,11 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'services_base.html' %}
 
-{%block page-header%}
-  Other Services
-  <br /><small>
-      Other Services 
-      <i class="fa fa-angle-double-right smaller-80"></i>
+{%block tab_header%}
       Email Settings (Edit)
-
-  </small>
 {%endblock%}
 
-{%block contents%}
+{%block inside_content%}
+<br><br>
 
 {{conf_message}}
 
@@ -82,3 +77,9 @@ Email settings
 {%block help_body%}
 <p>You can configure the IntegralStor systems to send emails for every alert that the system generates. For this to happen, use this screen to enter details about the SMTP server that the system should use to send emails. The SMTP server should be accessible to the IntegralStor system in order for the emails to go through properly. A test email will be sent once you enter all the details and save. You can enter multiple email recipients by entering a comma separated list of email addresses in the recipient list.</p>
 {%endblock%}
+{% block tab_active %}
+  <script>
+    make_tab_active('service_config_email_tab')
+  </script>
+{% endblock %}
+

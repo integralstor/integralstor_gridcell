@@ -1,39 +1,14 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'gridcell_base.html' %}
 
 
-{%block page-header%}
-  Platform
-    <br /><small>
-      Platform 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      GRIDCell Status
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      {{node_name}}
+{%block tab_header%}
+      {{node_name|title}} Status
   </small>
  {%endblock%}
 
-{%block contents%}
-<table class="table table-bordered table-striped table-hover" style="width:60%">
-<tr>
-  <th>
-    CPU
-  </th>
-  <td>
-    {{node.cpu_model}}
-  </td>
-</tr>
-<tr>
-  <th>
-    Memory
-  </th>
-  <td>
-    Total : {{ node.memory.mem_total.value}} {{node.memory.mem_total.unit}} <br />
-    Free : {{ node.memory.mem_free.value}} {{node.memory.mem_free.unit}}
-  </td>
-</tr>
-</table>
-
+{%block inside_content%}
 {% if node.errors %}
+<h3> GRIDCell errors </h3>
 <table class="table table-bordered table-striped table-hover red" style="width:60%">
 <tr>
   <th colspan=3>
@@ -43,7 +18,7 @@
 <tr>
     <td>
 	<ul>
-        {% for err in node.errors %}	
+        {% for err in node.errors %}
 		<li>{{err}}</li>
         {%endfor%}
 	</ul>
@@ -51,415 +26,490 @@
 </tr>
 </table>
 {% endif %}
+
+<br /> <br />
+
 {% if node.node_status != -1 %}
-  <table class="table table-bordered table-hover table-responsive" style="width:800px">
-  <thead>
-    <th colspan=1>
-      Component Type
-    </th>
-    <th colspan=3>
-      Component Detail
-    </th>
-    <th colspan=5>
-      Status
-    </th>
-  </thead>
-  <tr>
-  </tr>
-  <tr>
-    <td colspan=8>
-     <b>System</b>
-    </td>
-  </tr>
-{%for ipmi in node.ipmi_status%}
-  <tr>
-    <td colspan=1>
-      {{ipmi.component_name}}
-    </td>
-    <td colspan=3>
-      {{ipmi.parameter_name}}
-    </td>
-    <td colspan=2>
-	{{ipmi.reading}} 
-    </td>
-    <td colspan=2>
-	{% if ipmi.status == "ok" %}
-		<i class="fa fa-check-circle green fa-2x"></i>	
-        {%else%}
-   		<i class="fa fa-remove red fa-2x"></i>	
-        {%endif%}
-    </td>
-  </tr>
-{%if ipmi.component_name == 'CPU'%}
-<tr>
-
-    <td colspan=1>
-      &nbsp; 
-    </td>
-    <td colspan=3>
-      Load averages
-    </td>
-    <td colspan=2>
-      15 minute average <br>5 minute average  <br> 1 minute average 
-    </td>
-    <td colspan=2>
-      {{node.load_avg.15_min}}<br>{{node.load_avg.5_min}}<br>{{node.load_avg.1_min}}
-    </td>
-</tr>
-{%endif%}
-{%endfor%}
-<tr>
-
-    <td colspan=1>
-      Cluster
-    </td>
-    <td colspan=3>
-      Cluster Status
-    </td>
-    <td colspan=5>
-      {%if node.cluster_status == 1%}
-      <i class="fa fa-check-circle green fa-2x"></i>
-      {%else%}
-	<i class="fa fa-remove red fa-2x"></i>	
-      {%endif%}
-    </td>
-  <tr>
-    <td colspan=7>
-     <b>Interfaces</b>
-    </td>
-  </tr>
-
-  {% for if_name, interface in  node.interfaces.items%}
-  <tr>
-    <td colspan=1>
-    &nbsp;
-    </td>
-    <td colspan=3>
-    Interface name : {{if_name}}
-    <td colspan=5>
-    {% if interface.status == "up"%}
-       <i class="fa fa-check-circle green fa-2x"></i>	
-    {%else%}
-      <i class="fa fa-remove red fa-2x"></i>	
-    {%endif%}
-    </td>
-  </tr>
-  {%endfor%}
-  {% for k, v in  node.fan_status.items%}
-  <tr>
-    <td>
-     FFFan {{k}}
-    </td>
-    <td>
-    {{v.status}}
-    </td>
-  </tr>
-  {%endfor%}
-
-  <tr>
-    <td colspan=7>
-     <b> System Service Status</b>
-    </td>
-  </tr>
-  <tr>
-    <td colspan=1>
-    </td>
-    <td colspan=3>
-       CTDB Service
-    </td>
-    <td colspan=7>
-       {%if ctdb|slice:"-13:" == "is running..."%}
-          <i class="fa fa-check-circle green fa-2x"></i>	
-       {%else%}
-          <i class="fa fa-remove red fa-2x"></i>	
-       {%endif%}
-    </td>
-  </tr>
-  <tr>
-    <td colspan=1>
-    </td>
-    <td colspan=3>
-       Winbind Service
-    </td>
-    <td colspan=7>
-       {%if winbind|slice:"-13:" == "is running..."%}
-          <i class="fa fa-check-circle green fa-2x"></i>	
-       {%else%}
-          <i class="fa fa-remove red fa-2x"></i>	
-       {%endif%}
-    </td>
-  </tr>
-  <tr>
-    <td colspan=1>
-    </td>
-    <td colspan=3>
-       Gluster Service
-    </td>
-    <td colspan=7>
-       {%if gluster|slice:"-13:" == "is running..."%}
-          <i class="fa fa-check-circle green fa-2x"></i>	
-       {%else%}
-          <i class="fa fa-remove red fa-2x"></i>	
-       {%endif%}
-    </td>
-  </tr>
-  </table>
-  <h3> Disk Status</h3>
-<br><br>
-
-      <img src="/static/images/diskmap1.png" width="900px;" class="img-responsive" />
-      <span class="disk-center" id="{{node.disk_pos.1}}"><strong>{{node.disk_pos.1}}</strong></span>
-      <span class="disk-center" id="{{node.disk_pos.2}}"><strong>{{node.disk_pos.2}}</strong></span>
-      <span class="disk-center" id="{{node.disk_pos.3}}"><strong>{{node.disk_pos.3}}</strong></span>
-      <span class="disk-center" id="{{node.disk_pos.4}}"><strong>{{node.disk_pos.4}}</strong></span>
-<br><br>
-<table class="table table-bordered table-hover table-responsive" style="width:800px">
-<thead>
-<th >
-Disk serial number
-</th>
-<th>
-S.M.A.R.T status
-</th>
-<th>
-Disk replacement
-</th>
-</thead>
-{%for sn, disk in node.disks.items %}
-{%if disk.boot_device %}
-<tr>
-<td>
-{{sn}}  (OS disk) 
-</td>
-<td>
-{{disk.status}} &nbsp;&nbsp;
-{%if disk.status == 'PASSED'%}
-<i class="fa fa-check-circle green fa-2x"></i>
-{%else%}
-<i class="fa fa-remove red fa-2x"></i>
-{%endif%}
-</td>
-<td>
-&nbsp;
-</td>
-</tr>
-{%endif%}
-{%endfor%}
-{%for sn, disk in node.disks.items %}
-{%if not disk.boot_device %}
-<tr>
-<td>
-{{sn}}  (Data disk) 
-</td>
-<td>
-{{disk.status}} &nbsp;&nbsp;
-{%if disk.status == 'PASSED'%}
-<i class="fa fa-check-circle green fa-2x"></i>
-{%else%}
-<i class="fa fa-remove red fa-2x"></i>
-{%endif%}
-</td>
-<td>
-{%if disk.status != 'PASSED'%}
-      {%if disk.pool%}
-      <form method="POST" action="/replace_disk/">
-        <input type="hidden" name="node" value="{{node_name}}">
-        <input type="hidden" name="serial_number" value="{{sn}}">
-        <input type="hidden" name="step" value="offline_disk">
-          <button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');"> Replace (swap out) this disk </button>
-      </form>
-      {%else%}
-        <button  class="btn btn-primary" onClick ="alert('This disk is not part of any ZFS pool so you can go ahead and replace it safely');"> Replace (swap out) this disk </button>
-      {%endif%}
-{%else%}
-Healthy disk. No replacement necessary.
-{%endif%}
-</td>
-</tr>
-{%endif%}
-{%endfor%}
-</table>
-
-
-  <h3> ZFS Status</h3>
-  {%if not node.pools %}
-  No storage pools created
-  {%else%}
-  <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-  <div class="box-group" id="accordion">
-   {%for pool in node.pools %}
-                    <!-- we are adding the .panel class so bootstrap.js collapse plugin detects it -->
-                    <div class="panel box {%if pool.config.pool.root.status.state == 'ONLINE' %} box-success {%else%} box-danger{%endif%}">
-                      <div class="box-header with-border">
-                        <h4 class="box-title">
-                          <a class="" aria-expanded="true" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
-                            Pool : {{pool.pool_name}}, State : {{pool.config.pool.root.status.state}} (Click for more details..)
-                          </a> 
-                        </h4>
-                      </div>
-                      <div style="" aria-expanded="true" id="collapseOne" class="panel-collapse collapse">
-                        <div class="box-body">
-
-
-      <h3> Pool name : {{pool.pool_name}} </h3>
-      <table class="table table-bordered table-hover table-responsive" style="width:800px">
-      <thead>
-        <th >
-        Pool type
-        </th>
-        <th>
-          Status details
-        </th>
-        <th>
-          Errors
-        </th>
-        <th>
-          Scan status
-        </th>
-      </thead>
-      <tr>
-        <td>
-          {{pool.config.pool.type}}
-        </td>
-        <td>
-          {{pool.config.pool.root.status.read}} read errors, <br>{{pool.config.pool.root.status.write}} write errors, <br>{{pool.config.pool.root.status.read}} checksum errors 
-        </td>
-        <td>
-          {{pool.errors}}
-        </td>
-        <td>
-          {{pool.scan}}
-        </td>
-      </tr>
+<div class="row">
+  <div class="col-md-6 col-sm-6 col-lg-6">
+    <div class="box box-success box-solid collapsed-box">
+      <div class="box-header with-border">
+        <h3 class="box-title">Memory</h3>
+        <div class="box-tools pull-right">
+          <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i></button>
+        </div><!-- /.box-tools -->
+      </div><!-- /.box-header -->
+      <div style="display: none;" class="box-body">
+        <ul class="nav nav-stacked">
+          <li>
+            <a href="#"> CPU
+                <span class="pull-right badge bg-green"> {{node.cpu_model}} </span>
+            </a>
+          </li>
+          <li>
+            <a href="#"> Total
+                <span class="pull-right badge bg-green"> {{ node.memory.mem_total.value}} {{node.memory.mem_total.unit}} </span>
+            </a>
+          </li>
+          <li>
+            <a href="#"> Free
+                <span class="pull-right badge bg-green">{{ node.memory.mem_free.value}} {{node.memory.mem_free.unit}}</span>
+              </a>
+          </li>
+        </ul>
+      </div><!-- /.box-body -->
+    </div>
+  </div>
+  <div class="col-md-6 col-sm-6 col-lg-6">
+    <div class="box box-success box-solid collapsed-box">
+      <div class="box-header with-border">
+        <h3 class="box-title">Load Average</h3>
+        <div class="box-tools pull-right">
+          <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i></button>
+        </div><!-- /.box-tools -->
+      </div><!-- /.box-header -->
+      <div style="display: none;" class="box-body">
+        <ul class="nav nav-stacked">
+          <li>
+            <a href="#"> 15 min Load Average
+                <span class="pull-right badge bg-green"> {{node.load_avg.15_min}} </span>
+          </a>
+          </li>
+          <li>
+            <a href="#"> 5 min Load Average
+                <span class="pull-right badge bg-green"> {{node.load_avg.5_min}} </span>
+              </a>
+          </li>
+          <li>
+            <a href="#"> 1 min Load Average
+                <span class="pull-right badge bg-green"> {{node.load_avg.1_min}} </span>
+            </a>
+          </li>
+        </ul>
+      </div><!-- /.box-body -->
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-6 col-sm-6 col-lg-6">
+    <div class="box box-success box-solid collapsed-box">
+      <div class="box-header with-border">
+        <h3 class="box-title">Network Status</h3>
+        <div class="box-tools pull-right">
+          <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i></button>
+        </div><!-- /.box-tools -->
+      </div><!-- /.box-header -->
+      <div style="display: none;" class="box-body">
+        <table class="table table-bordered table-hover table-responsive" style="width:100%">
+          <thead>
+            <th>
+              Name
+            </th>
+            <th>
+              MAC Address
+            </th>
+          </thead>
+        {% for if_name,interface in node.interfaces.items %}
+        <ul class="nav nav-stacked">
+          <tr>
+            <td>
+              {{if_name}}
+            </td>
+            <td>
+              {{interface.hwaddr}}
+            </td>
+            <td>
+            {% if interface.status == "up"%}
+              <span class="pull-right badge bg-green">
+                <i class="fa fa-check fa-2x"></i>
+              </span>
+            {%else%}
+              <span class="pull-right badge bg-red">
+                <i class="fa fa-remove fa-2x"></i>
+              </span>
+            {%endif%}
+            </td>
+          </tr>
+        </ul>
+        {%endfor%}
       </table>
-      <h4>Component status :</h4>
-      <h5>Pool status</h5>
-      <ul>
-        <li> Pool Status - State ({{pool.config.pool.root.status.state}}), Read ({{pool.config.pool.root.status.read}}), Write ({{pool.config.pool.root.status.write}}), Checksum ({{pool.config.pool.root.status.chksum}})
-            {%if pool.config.pool.root.status.state == 'ONLINE'%}
-              <i class="fa fa-check-circle green fa-2x"></i>	
-            {%else%}
-              <i class="fa fa-remove red fa-2x"></i>	
-            {%endif%}
-          <ul>
-            
-            {%for child in pool.config.pool.root.children %}
-            <li> Name - {{child.name}}, Type - {{child.type}}, Status - State ({{child.status.state}}), Read ({{child.status.read}}), Write ({{child.status.write}}), Chksum ({{child.status.chksum}})
-            {%if child.status.state == 'ONLINE'%}
-              <i class="fa fa-check-circle green fa-2x"></i>	
-            {%else%}
-              <i class="fa fa-remove red fa-2x"></i>	
-            {%endif%}
-              {%if child.children %}
-              <ul>
-                {%for gr_child in child.children %}
-                  <li> Name - {{gr_child.name}}, Type - {{gr_child.type}}, Status - State ({{gr_child.status.state}}), Read ({{gr_child.status.read}}), Write ({{gr_child.status.write}}), Chksum ({{gr_child.status.chksum}})
-                  {%if gr_child.status.state == 'ONLINE'%}
-                    <i class="fa fa-check-circle green fa-2x"></i>	
-                  {%else%}
-                    <i class="fa fa-remove red fa-2x"></i>	
-                  {%endif%}
-                  {%if gr_child.children %}
-                  <ul>
-                    {%for gr_gr_child in gr_child.children %}
-                      <li> Name - {{gr_gr_child.name}}, Type - {{gr_gr_child.type}}, Status - State ({{gr_gr_child.status.state}}), Read ({{gr_gr_child.status.read}}), Write ({{gr_gr_child.status.write}}), Chksum ({{gr_gr_child.status.chksum}})
-                      {%if gr_gr_child.status.state == 'ONLINE'%}
-                        <i class="fa fa-check-circle green fa-2x"></i>	
-                      {%else%}
-                        <i class="fa fa-remove red fa-2x"></i>	
-                      {%endif%}
-            
-                    {%endfor%}
-                  </ul>
-                  {%endif%}
-                {%endfor%}
-              </ul>
-              {%endif%}
-            {%endfor%}
-          </ul>
-      </ul>
-
-      <h5>Write cache status</h5>
-
-      {% if pool.config.logs %}
-        <ul>
-        {%if pool.config.logs.root.status %}
-        <li>  Write cache Status - State ({{pool.config.logs.root.status.state}}), Read ({{pool.config.logs.root.status.read}}), Write ({{pool.config.logs.root.status.write}}), Checksum ({{pool.config.logs.root.status.chksum}})
-            {%if pool.config.logs.root.status.state == 'ONLINE'%}
-              <i class="fa fa-check-circle green fa-2x"></i>	
-            {%else%}
-              <i class="fa fa-remove red fa-2x"></i>	
-            {%endif%}
-          <ul>
-        {%endif%}
-            
-            {%for child in pool.config.logs.root.children %}
-            <li> Name - {{child.name}}, Type - {{child.type}}, Status - State ({{child.status.state}}), Read ({{child.status.read}}), Write ({{child.status.write}}), Chksum ({{child.status.chksum}})
-            {%if child.status.state == 'ONLINE'%}
-              <i class="fa fa-check-circle green fa-2x"></i>	
-            {%else%}
-              <i class="fa fa-remove red fa-2x"></i>	
-            {%endif%}
-              {%if child.children %}
-              <ul>
-                {%for gr_child in child.children %}
-                  <li> Name - {{gr_child.name}}, Type - {{gr_child.type}}, Status - State ({{gr_child.status.state}}), Read ({{gr_child.status.read}}), Write ({{gr_child.status.write}}), Chksum ({{gr_child.status.chksum}})
-                  {%if gr_child.status.state == 'ONLINE'%}
-                    <i class="fa fa-check-circle green fa-2x"></i>	
-                  {%else%}
-                    <i class="fa fa-remove red fa-2x"></i>	
-                  {%endif%}
-                  {%if gr_child.children %}
-                  <ul>
-                    {%for gr_gr_child in gr_child.children %}
-                      <li> Name - {{gr_gr_child.name}}, Type - {{gr_gr_child.type}}, Status - State ({{gr_gr_child.status.state}}), Read ({{gr_gr_child.status.read}}), Write ({{gr_gr_child.status.write}}), Chksum ({{gr_gr_child.status.chksum}})
-                      {%if gr_gr_child.status.state == 'ONLINE'%}
-                        <i class="fa fa-check-circle green fa-2x"></i>	
-                      {%else%}
-                        <i class="fa fa-remove red fa-2x"></i>	
-                      {%endif%}
-            
-                    {%endfor%}
-                  </ul>
-                  {%endif%}
-                {%endfor%}
-              </ul>
-              {%endif%}
-            {%endfor%}
-        {%if pool.config.logs.root.status %}
-          </ul>
-        {%endif%}
-      </ul>
-      {%endif%}
-                        </div>
-                      </div>
-                    </div>
-    {%endfor%}
+      </div><!-- /.box-body -->
+    </div>
   </div>
 
+  <div class="col-md-6 col-sm-6 col-lg-6">
+    <div class="box box-success box-solid collapsed-box">
+      <div class="box-header with-border">
+        <h3 class="box-title">Hardware Components</h3>
+        <div class="box-tools pull-right">
+          <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i></button>
+        </div><!-- /.box-tools -->
+      </div><!-- /.box-header -->
+      <div style="display: none;" class="box-body">
+        <ul class="nav nav-stacked">
+          {%for ipmi in node.ipmi_status%}
+          <li>
+            <a href="#">{{ipmi.parameter_name}}
+                <span class="pull-right badge {% if ipmi.status == "ok" %}bg-green{%else%}bg-red{%endif%}">
+                  {{ipmi.reading}}
+                </span>
+            </a>
+          </li>
+          {%endfor%}
+      </ul>
+      </div><!-- /.box-body -->
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-6 col-sm-6 col-lg-6">
+    <div class="box box-success box-solid collapsed-box">
+      <div class="box-header with-border">
+        <h3 class="box-title">Services status</h3>
+        <div class="box-tools pull-right">
+          <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i></button>
+        </div><!-- /.box-tools -->
+      </div><!-- /.box-header -->
+      <div style="display: none;" class="box-body">
+        <ul class="nav nav-stacked">
+          <li>
+            <a href="#"> CTDB
+                  {%if ctdb|slice:"-13:" == "is running..."%}
+                    <span class="pull-right badge bg-green">
+                       <i class="fa fa-check fa-2x"></i>
+                    </span>
+                  {%else%}
+                    <span class="pull-right badge bg-red">
+                      <i class="fa fa-remove fa-2x"></i>
+                    </span>
+                  {%endif%}
+              </a>
+          </li>
+          <li>
+            <a href="#"> CIFS - Winbind
+                  {%if winbind|slice:"-13:" == "is running..."%}
+                    <span class="pull-right badge bg-green">
+                      <i class="fa fa-check fa-2x"></i>
+                    </span>
+                  {%else%}
+                    <span class="pull-right badge bg-red">
+                      <i class="fa fa-remove fa-2x"></i>
+                    </span>
+                  {%endif%}
+              </a>
+          </li>
+          <li>
+            <a href="#"> Gluster
+                  {%if gluster|slice:"-13:" == "is running..."%}
+                    <span class="pull-right badge bg-green">
+                      <i class="fa fa-check fa-2x"></i>
+                    </span>
+                  {%else%}
+                    <span class="pull-right badge bg-red">
+                      <i class="fa fa-remove fa-2x"></i>
+                    </span>
+                  {%endif%}
+              </a>
+          </li>
+        </ul>
+      </div><!-- /.box-body -->
+    </div>
+  </div>
+  <div class="col-md-6 col-sm-6 col-lg-6">
+    <div class="box box-success box-solid collapsed-box">
+      <div class="box-header with-border">
+        <h3 class="box-title">Storage cluster</h3>
+        <div class="box-tools pull-right">
+          <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i></button>
+        </div><!-- /.box-tools -->
+      </div><!-- /.box-header -->
+      <div style="display: none;" class="box-body">
+        <ul class="nav nav-stacked">
+          <li>
+            <a href="#"> Cluster Status
+                <span class="pull-right badge bg-green">
+                  {%if node.cluster_status == 1%}
+                    <i class="fa fa-check fa-2x"></i>
+                  {%else%}
+            	       <i class="fa fa-remove fa-2x"></i>
+                  {%endif%}
+                </span>
+              </a>
+          </li>
+        </ul>
+      </div><!-- /.box-body -->
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-12 col-sm-12 col-lg-12">
+    <div class="box box-success box-solid collapsed-box">
+      <div class="box-header with-border">
+        <h3 class="box-title">Disks status</h3>
+        <div class="box-tools pull-right">
+          <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i></button>
+        </div><!-- /.box-tools -->
+      </div><!-- /.box-header -->
+      <div style="display: none;" class="box-body">
+        <img src="/static/images/diskmap1.png" width="900px;" class="img-responsive" />
+        <span class="disk-center" id="{{node.disk_pos.1}}"><strong>{{node.disk_pos.1}}</strong></span>
+        <span class="disk-center" id="{{node.disk_pos.2}}"><strong>{{node.disk_pos.2}}</strong></span>
+        <span class="disk-center" id="{{node.disk_pos.3}}"><strong>{{node.disk_pos.3}}</strong></span>
+        <span class="disk-center" id="{{node.disk_pos.4}}"><strong>{{node.disk_pos.4}}</strong></span>
+        <br><br>
+        <table class="table table-bordered table-hover table-responsive" style="width:800px">
+          <thead>
+            <th >
+              Disk serial number
+            </th>
+            <th>
+              S.M.A.R.T status
+            </th>
+            <th>
+              Capacity
+            </th>
+            <th>
+              Disk replacement
+            </th>
+          </thead>
+          {%for sn, disk in node.disks.items %}
+            {%if disk.boot_device %}
+              <tr>
+                <td>
+                  {{sn}}  (OS disk)
+                </td>
+                <td>
+                  {{disk.status}} &nbsp;&nbsp;
+                  {%if disk.status == 'PASSED'%}
+                    <i class="fa fa-check green fa-2x"></i>
+                  {%else%}
+                    <i class="fa fa-remove red fa-2x"></i>
+                  {%endif%}
+                </td>
+                <td>
+                  &nbsp;
+                </td>
+              </tr>
+          {%endif%}
+        {%endfor%}
+        {%for sn, disk in node.disks.items %}
+          {%if not disk.boot_device %}
+            <tr>
+              <td>
+                {{sn}}  (Data disk)
+              </td>
+              <td>
+                {{disk.status}} &nbsp;&nbsp;
+                {%if disk.status == 'PASSED'%}
+                  <i class="fa fa-check green fa-2x"></i>
+                {%else%}
+                  <i class="fa fa-remove red fa-2x"></i>
+                  {%endif%}
+              </td>
+              <td>
+                {{disk.capacity}}
+              </td>
+              <td>
+                {%if disk.status != 'PASSED'%}
+                    {%if disk.pool%}
+                    <form method="POST" action="/replace_disk/">
+                      <input type="hidden" name="node" value="{{node_name}}">
+                      <input type="hidden" name="serial_number" value="{{sn}}">
+                      <input type="hidden" name="step" value="offline_disk">
+                        <button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');"> Replace (swap out) this disk </button>
+                    </form>
+                    {%else%}
+                      <button  class="btn btn-primary" onClick ="alert('This disk is not part of any ZFS pool so you can go ahead and replace it safely');"> Replace (swap out) this disk </button>
+                    {%endif%}
+              {%else%}
+                Healthy disk. No replacement necessary.
+              {%endif%}
+              </td>
+            </tr>
+          {%endif%}
+        {%endfor%}
+        </table>
+      </div><!-- /.box-body -->
+    </div>
+  </div>
+</div>
 
-  {%endif%}
+<div class="row">
+  <div class="col-md-12 col-sm-12 col-lg-12">
+    <div class="box box-success box-solid collapsed-box">
+      <div class="box-header with-border">
+        <h3 class="box-title">Ondisk file system (ZFS) Status</h3>
+        <div class="box-tools pull-right">
+          <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i></button>
+        </div><!-- /.box-tools -->
+      </div><!-- /.box-header -->
+      <div style="display: none;" class="box-body">
+        {%if not node.pools %}
+         No storage pools created
+        {%else%}
+           {%for pool in node.pools %}
+              <h4> Pool name : {{pool.pool_name}} </h4>
+              <table class="table table-bordered table-hover table-responsive" style="width:800px">
+              <thead>
+                <th >
+                Pool type
+                </th>
+                <th>
+                  Status details
+                </th>
+                <th>
+                  Errors
+                </th>
+                <th>
+                  Scan status
+                </th>
+              </thead>
+              <tr>
+                <td>
+                  {{pool.config.pool.type}}
+                </td>
+                <td>
+                  {{pool.config.pool.root.status.read}} read errors, <br>{{pool.config.pool.root.status.write}} write errors, <br>{{pool.config.pool.root.status.read}} checksum errors
+                </td>
+                <td>
+                  {{pool.errors}}
+                </td>
+                <td>
+                  {{pool.scan}}
+                </td>
+              </tr>
+              </table>
+              <h4>Component status :</h4>
+              <h5>Pool status</h5>
+              <ul>
+                <li> Pool Status - State ({{pool.config.pool.root.status.state}}), Read ({{pool.config.pool.root.status.read}}), Write ({{pool.config.pool.root.status.write}}), Checksum ({{pool.config.pool.root.status.chksum}})
+                    {%if pool.config.pool.root.status.state == 'ONLINE'%}
+                      <i class="fa fa-check green fa-2x"></i>
+                    {%else%}
+                      <i class="fa fa-remove red fa-2x"></i>
+                    {%endif%}
+                  <ul>
+                  {%for child in pool.config.pool.root.children %}
+                    <li> Name - {{child.name}}, Type - {{child.type}}, Status - State ({{child.status.state}}), Read ({{child.status.read}}), Write ({{child.status.write}}), Chksum ({{child.status.chksum}})
+                    {%if child.status.state == 'ONLINE'%}
+                      <i class="fa fa-check green fa-2x"></i>
+                    {%else%}
+                      <i class="fa fa-remove red fa-2x"></i>
+                    {%endif%}
+                      {%if child.children %}
+                      <ul>
+                        {%for gr_child in child.children %}
+                          <li> Name - {{gr_child.name}}, Type - {{gr_child.type}}, Status - State ({{gr_child.status.state}}), Read ({{gr_child.status.read}}), Write ({{gr_child.status.write}}), Chksum ({{gr_child.status.chksum}})
+                          {%if gr_child.status.state == 'ONLINE'%}
+                            <i class="fa fa-check green fa-2x"></i>
+                          {%else%}
+                            <i class="fa fa-remove red fa-2x"></i>
+                          {%endif%}
+                          {%if gr_child.children %}
+                          <ul>
+                            {%for gr_gr_child in gr_child.children %}
+                              <li> Name - {{gr_gr_child.name}}, Type - {{gr_gr_child.type}}, Status - State ({{gr_gr_child.status.state}}), Read ({{gr_gr_child.status.read}}), Write ({{gr_gr_child.status.write}}), Chksum ({{gr_gr_child.status.chksum}})
+                              {%if gr_gr_child.status.state == 'ONLINE'%}
+                                <i class="fa fa-check green fa-2x"></i>
+                              {%else%}
+                                <i class="fa fa-remove red fa-2x"></i>
+                              {%endif%}
 
+                            {%endfor%}
+                          </ul>
+                          {%endif%}
+                        {%endfor%}
+                      </ul>
+                      {%endif%}
+                    {%endfor%}
+                  </ul>
+              </ul>
 
+              {% if pool.config.logs %}
+              <h5>Write cache status</h5>
+                <ul>
+                {%if pool.config.logs.root.status %}
+                <li>  Write cache Status - State ({{pool.config.logs.root.status.state}}), Read ({{pool.config.logs.root.status.read}}), Write ({{pool.config.logs.root.status.write}}), Checksum ({{pool.config.logs.root.status.chksum}})
+                    {%if pool.config.logs.root.status.state == 'ONLINE'%}
+                      <i class="fa fa-check green fa-2x"></i>
+                    {%else%}
+                      <i class="fa fa-remove red fa-2x"></i>
+                    {%endif%}
+                  <ul>
+                {%endif%}
+
+                    {%for child in pool.config.logs.root.children %}
+                    <li> Name - {{child.name}}, Type - {{child.type}}, Status - State ({{child.status.state}}), Read ({{child.status.read}}), Write ({{child.status.write}}), Chksum ({{child.status.chksum}})
+                    {%if child.status.state == 'ONLINE'%}
+                      <i class="fa fa-check green fa-2x"></i>
+                    {%else%}
+                      <i class="fa fa-remove red fa-2x"></i>
+                    {%endif%}
+                      {%if child.children %}
+                      <ul>
+                        {%for gr_child in child.children %}
+                          <li> Name - {{gr_child.name}}, Type - {{gr_child.type}}, Status - State ({{gr_child.status.state}}), Read ({{gr_child.status.read}}), Write ({{gr_child.status.write}}), Chksum ({{gr_child.status.chksum}})
+                          {%if gr_child.status.state == 'ONLINE'%}
+                            <i class="fa fa-check green fa-2x"></i>
+                          {%else%}
+                            <i class="fa fa-remove red fa-2x"></i>
+                          {%endif%}
+                          {%if gr_child.children %}
+                          <ul>
+                            {%for gr_gr_child in gr_child.children %}
+                              <li> Name - {{gr_gr_child.name}}, Type - {{gr_gr_child.type}}, Status - State ({{gr_gr_child.status.state}}), Read ({{gr_gr_child.status.read}}), Write ({{gr_gr_child.status.write}}), Chksum ({{gr_gr_child.status.chksum}})
+                              {%if gr_gr_child.status.state == 'ONLINE'%}
+                                <i class="fa fa-check green fa-2x"></i>
+                              {%else%}
+                                <i class="fa fa-remove red fa-2x"></i>
+                              {%endif%}
+
+                            {%endfor%}
+                          </ul>
+                          {%endif%}
+                        {%endfor%}
+                      </ul>
+                      {%endif%}
+                    {%endfor%}
+                {%if pool.config.logs.root.status %}
+                  </ul>
+                {%endif%}
+              </ul>
+              {%endif%}
+            {%endfor%}
+          {%endif%}
+      </div><!-- /.box-body -->
+    </div>
+  </div>
+</div>
 
 {%else%}
-  GRIDCell is down
+  <div class="row">
+    <div class="col-sm-12 col-md-6 col-lg-6 col-md-offset-3 col-lg-offset-3">
+      <div class="callout callout-danger">
+          <h4>Oops ! Something seems snoopy here ...! </h4>
+          <p>Looks like this GRIDCell is down. Please identify it using the "ACtivate LED button below".
+            <br />
+            Dont panic tough, you should be back soon. Check our manual for more info on what to do.
+        </div>
+    </div>
+  </div>
 {%endif%}
 
-<div id="message" style="display:none; width:90%;font-size:16px;">  
+<!-- End of the base if -->
+
+<div id="message" style="display:none; width:90%;font-size:16px;">
   <div class="alert alert-dismissable">
       <i class="fa fa-check"></i>
       <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
       <div id="message_content">
-        
+
       </div>
   </div>
 </div>
 
-<a href="/show/system_status/" role="button" class="btn btn-warning"> 
-  <i class="fa fa-arrow-circle-left"></i>  Back
-</a> &nbsp;&nbsp;
-<a role="button" class="btn btn-info" id="activate_led">Activate GRIDCell identification LED </a> 
+<a href="/show/gridcells/" role="button" class="btn btn-default">Back</a> &nbsp;&nbsp;
+<a role="button" class="btn btn-info" id="activate_led">Activate GRIDCell identification LED </a>
 <br><br>
 <p class="text-green"> Activating the GRIDCell identification LED will cause a blue LED on that GRIDCell to blink for 4 minutes, to help you physically identify this GRIDCell.</p>
 
@@ -485,6 +535,11 @@ Healthy disk. No replacement necessary.
       }
     });
   });
+  // This code will find all the fa-remove and add a warning to it respective parent classes.
+  $(".fa-remove").each(function(){
+    var ele = $(this).closest('div')
+    console.log(($(ele).parent()).removeClass('box-success').addClass('box-warning'))
+  })
 </script>
 {%endblock%}
 {%block help_header%}
@@ -494,3 +549,8 @@ View GRIDCell status
 <p>This page displays the status of all the components in the selected GRIDCell. Details of any problems with any faulty component in the GRIDCell are also displayed here.</p>
 {%endblock%}
 
+{% block tab_active %}
+  <script>
+    make_tab_active('gridcell_list_tab')
+  </script>
+{% endblock %}

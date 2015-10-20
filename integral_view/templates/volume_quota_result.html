@@ -1,17 +1,11 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'volume_base.html' %}
 
-
-{%block page-header%}
-  Set volume quota
-  <br /><small>
-      Volumes 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Set volume quota - results
-  </small>
+{%block tab_header%}
+  Set volume quota - results
 {%endblock%}
 
-
-{%block contents%}
+{%block inside_content %}
+<br><br>
 
 {% if app_debug %}
 Debug info - begin <br>

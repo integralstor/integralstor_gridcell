@@ -1,19 +1,13 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'volume_base.html' %}
 
-{%block page-header%}
-  Other Services
-  <br /><small>
-      Other Services
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Background Processes List
-
-  </small>
+{%block tab_header%}
+  Background processes
 {%endblock%}
 
-{%block contents%}
+{%block inside_content%}
+<br><br>
 
-<span id="topic-text"> Other services -> Background processes -> Background processes list</span><br>
-<div style="position: relative; margin: 15px 0px; padding: 39px 19px 14px; background-color: rgb(255, 255, 255); border: 1px solid rgb(221, 221, 221); border-radius: 4px 4px 4px 4px;">
+{%if file_list %}
 <table class="table table-condensed table-hover">
 <thead>
 <tr>
@@ -51,7 +45,9 @@ Click for details
 </tr>
 {%endfor%}
 </table>
-</div>
+{%else%}
+<br><br>No background processes in scheduled.
+{%endif%}
 
 {%endblock%}
 {%block help_header%}
@@ -60,3 +56,9 @@ Batch processes list
 {%block help_body%}
   <p>Anytime an action is performed from IntegralView that requires potentially large movement of data, a background process is scheduled in order to perform this action. The background processes are processed every minute. This page lists all such background processes that have been scheduled. You can click on any particular process entry to view the details of that process.</p>
 {%endblock%}
+{% block tab_active %}
+  <script>
+    make_tab_active('volume_background_tab')
+  </script>
+{% endblock %}
+

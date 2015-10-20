@@ -136,6 +136,8 @@ def download_vol_log(request):
       form = volume_management_forms.VolumeNameForm(vol_list = l)
     # either a get or an invalid form so send back form
     return_dict['form'] = form
+    return_dict['base_template'] = 'volume_log_base.html'
+    return_dict['op'] = 'download_log'
     return django.shortcuts.render_to_response('download_vol_log_form.html', return_dict, context_instance=django.template.context.RequestContext(request))
   except Exception, e:
     s = str(e)
@@ -229,77 +231,67 @@ def download_sys_log(request):
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
   
-  
-def rotate_log(request, log_type):
-
+def rotate_log(request, log_type=None):
   return_dict = {}
   try:
-    if not log_type:
-      raise Exception('Unspecified log type')
     if log_type not in ["alerts", "audit_trail"]:
-      raise Exception('Unrecognized log type')
+      raise Exception("Unknown log type")
+      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
     if log_type == "alerts":
+      return_dict['tab'] = 'view_current_alerts_tab'
+      return_dict["page_title"] = 'Rotate system alerts log'
       ret, err = alerts.rotate_alerts()
       if err:
         raise Exception(err)
-      return_dict["page_header"] = "Logging"
-      return_dict["page_sub_header"] = "Rotate alerts log"
       return_dict["message"] = "Alerts log successfully rotated."
+      return django.http.HttpResponseRedirect("/view_rotated_log_list/alerts?success=true")
     elif log_type == "audit_trail":
+      return_dict['tab'] = 'view_current_audit_tab'
+      return_dict["page_title"] = 'Rotate system audit trail'
       ret, err = audit.rotate_audit_trail()
       if err:
         raise Exception(err)
-      return_dict["page_header"] = "Logging"
-      return_dict["page_sub_header"] = "Rotate audit log"
       return_dict["message"] = "Audit trail successfully rotated."
-    return django.shortcuts.render_to_response('logged_in_result.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      return django.http.HttpResponseRedirect("/view_rotated_log_list/audit_trail/?success=true")
   except Exception, e:
-    s = str(e)
-    if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
-    else:
-      return_dict["error"] = "An error occurred when processing your request : %s"%s
+    return_dict['base_template'] = "logging_base.html"
+    return_dict["error"] = 'Error rotating log'
+    return_dict["error_details"] = str(e)
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
-
   
-      
+  
 def view_rotated_log_list(request, log_type):
 
   return_dict = {}
   try:
-    if not log_type:
-      raise Exception('Unspecified log type')
-
     if log_type not in ["alerts", "audit_trail"]:
-      raise Exception('Unrecognized log type')
-  
+      raise Exception("Unknown log type")
     l = None
     if log_type == "alerts":
-      #return_dict["topic"] = "Logging -> View historical alerts log"
+      return_dict["page_title"] = 'View rotated alerts logs'
+      return_dict['tab'] = 'view_rotated_alert_log_list_tab'
       return_dict["page_header"] = "Logging"
       return_dict["page_sub_header"] = "View historical alerts log"
       l, err = alerts.get_log_file_list()
       if err:
         raise Exception(err)
     elif log_type == "audit_trail":
-      #return_dict["topic"] = "Logging -> View historical audit log"
+      return_dict["page_title"] = 'View rotated audit trail logs'
+      return_dict['tab'] = 'view_rotated_audit_log_list_tab'
       return_dict["page_header"] = "Logging"
       return_dict["page_sub_header"] = "View historical audit log"
       l, err = audit.get_log_file_list()
       if err:
         raise Exception(err)
-  
+
     return_dict["type"] = log_type
     return_dict["log_file_list"] = l
     return django.shortcuts.render_to_response('view_rolled_log_list.html', return_dict, context_instance = django.template.context.RequestContext(request))
   except Exception, e:
-    s = str(e)
-    if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
-    else:
-      return_dict["error"] = "An error occurred when processing your request : %s"%s
+    return_dict['base_template'] = "logging_base.html"
+    return_dict["error"] = 'Error displaying rotated log list'
+    return_dict["error_details"] = str(e)
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
-
 
 def view_rotated_log_file(request, log_type):
 

@@ -1,115 +1,40 @@
-{% extends 'logged_in_base.html' %}
-{%block page-header%}
+{% extends base_template %}
+{%block tab_header%}
 {% if op == 'add_server' %}
-Storage pool 
-  <br /><small>
-      Storage pool 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Add a GRIDCell 
-  </small>
+    Add a GRIDCell 
 {% elif op == 'remove_server' %}
-Storage pool 
-  <br /><small>
-      Storage pool 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Remove a GRIDCell
-  </small>
+    Remove a GRIDCell
 {% elif op == 'view_server_status' %}
-Storage pool 
-  <br /><small>
-      Storage pool 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-       View status
-  </small>
+    View status
 {% elif op == 'vol_start' %}
-Start a volume 
-  <br /><small>
-      Volumes 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Start a volume - results
-  </small>
+    Start a volume - results
 {% elif op == 'start_rebalance' %}
-Start volume rebalance
-  <br /><small>
-      Volumes 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Start a volume rebalance - results
-  </small>
+    Start a volume rebalance - results
 {% elif op == 'stop_rebalance' %}
-Start volume rebalance
-  <br /><small>
-      Volumes 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Start volume rebalance - results
-  </small>
+    Stop volume rebalance - results
 {% elif op == 'check_rebalance' %}
-Check volume rebalance status
-Volume management -> Check volume rebalance status</b> <br><br>
-  <br /><small>
-      Volumes 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Check volume rebalance status - results
-  </small>
+    Check volume rebalance status - results
 {% elif op == 'vol_stop' %}
-Stop a volume 
-  <br /><small>
-      Volumes 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Stop a volume - results
-  </small>
+    Stop a volume - results
 {% elif op == 'vol_delete' %}
-Delete a volume 
-  <br /><small>
-      Volumes 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Delete a volume - results
-  </small>
+    Delete a volume - results
 {% elif op == 'view_volume_status_all' %}
-View the status of all volumes
-  <br /><small>
-      Volumes 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      View the status of all volumes
-  </small>
+    View the status of all volumes
 {% elif op == 'view_volume_info_all' %}
-View the information about all volumes
-  <br /><small>
-      Volumes 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      View the information about all volumes
-  </small>
+    View the information about all volumes
 {% elif op == 'enable_quota' %}
-Enable volume quotas
-  <br /><small>
-      Volumes 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Enable volume quotas - results
-  </small>
+    Enable volume quotas - results
 {% elif op == 'disable_quota' %}
-Disable volume quotas
-  <br /><small>
-      Volumes 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Disable volume quotas - results
-  </small>
+    Disable volume quotas - results
 {% elif op == 'rotate_log' %}
-Rotate volume log
-  <br /><small>
-      Logging 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Rotate volume log - results
-  </small>
+    Rotate volume log - results
 {% elif op == 'expand_volume' %}
-Expand volume
-  <br /><small>
-      Volumes 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Expand volume - results
-  </small>
+    Expand volume - results
 {% endif%}
 {%endblock%}
 
-{%block contents%}
+{%block inside_content%}
+<br><br>
 {% if app_debug %}
 Executed the following command : "{{cmd}}". <br><br>
 {% endif %}

@@ -6,7 +6,7 @@ import salt.client
 
 import integral_view
 from integral_view.forms import samba_shares_forms
-from integralstor_gridcell import volume_info, system_info, local_users
+from integralstor_gridcell import volume_info, system_info, local_users, gluster_commands
 from integralstor_gridcell import cifs as cifs_gridcell
 from integralstor_common import networking, audit
 from integralstor_common import cifs as cifs_common
@@ -71,7 +71,7 @@ def view_share(request):
     if valid_users_list:
       return_dict["valid_users_list"] = valid_users_list
   
-    return django.shortcuts.render_to_response('view_shares.html', return_dict, context_instance=django.template.context.RequestContext(request))
+    return django.shortcuts.render_to_response('view_share.html', return_dict, context_instance=django.template.context.RequestContext(request))
   except Exception, e:
     s = str(e)
     if "Another transaction is in progress".lower() in s.lower():

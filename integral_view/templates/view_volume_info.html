@@ -1,12 +1,14 @@
 
-{% extends 'logged_in_base.html' %}
+{% extends 'volume_base.html' %}
 
 
-{%block page-header%}
-  Volume Configuration
+{%block tab_header%}
+  Volume details
 {%endblock%}
 
-{%block contents%}
+{%block inside_content %}
+<br><br>
+<h3>Basic Inormation</h3>
 <table class="table table-bordered">
 <tr>
   <td>
@@ -36,15 +38,120 @@
   {%endif%}
   </td>
 </tr>
+</table>
+<h3>Data location information</h3>
+<table class="table table-bordered">
 <tr>
   <td>
-  <b> Status</b>
+  <b> Number of data locations used</b>
   </td>
   <td>
-  {{vol.status_str}}
+  {{vol.brick_count}}
   </td>
 </tr>
+{% if replicate %}
+<tr>
+  <td>
+  <b> Number of data copies</b>
+  </td>
+  <td>
+    {{vol.replica_count}}
+  </td>
+</tr>
+{% elif distribute %}
+<tr>
+  <td>
+  <b> Data distributed across </b>
+  </td>
+  <td>
+    {{vol.brick_count}} GRIDCell{% if vol.brick_count != '1' %}s{%endif%}
+  </td>
+</tr>
+{%endif%}
+<tr>
+  <td>
+  <b> Data locations</b>
+  </td>
+  <td>
+    <ul>
+    {%for l in vol.bricks%}
+      {%if l|length > 1 %}
+      <li> <ul>
+      {%endif%}
+      {%for i in l %}
+       <li>{{i}}
+      {%endfor%}
+      {%if l|length > 1 %}
+      </ul></li>
+      {%endif%}
+    {%endfor%}
+    </ul>
+  </td>
+</tr>
+</table>
+{%if vol.options %}
+<h3>Volume options information</h3>
+<table class="table table-bordered">
+<tr>
+  <td>
+  <b> Extra options</b>
+  </td>
+  <td>
+    <ul>
+    {%for o in vol.options%}
+       {% if o.name == "auth.reject" %} 
+       <li>Disallowed hosts (all access methods) : {{o.value}}</li>
+       {% elif o.name == "auth.allow" %} 
+       <li>Permitted hosts (all access methods) : {{o.value}}</li>
+       {% elif o.name == "nfs.rpc-auth-reject" %} 
+       <li>Disallowed hosts (NFS only) : {{o.value}}</li>
+       {% elif o.name == "nfs.rpc-auth-allow" %} 
+       <li>Permitted hosts (NFS only) : {{o.value}}</li>
+       {%else%}
+       <li> {{o.name}}:{{o.value}}</li>
+       {%endif%}
+    {%endfor%}
+    </ul>
+  </td>
+</tr>
+</table>
+{%endif%}
+<h3>Space utilization</h3>
+<div class="progress" style="width:90%;">
+  <div class="progress-bar {% if vol.size_used_percent >= 80 %}progress-bar-danger{%endif%}" role="progressbar" aria-valuenow="{{vol.size_used_percent}}" aria-valuemin="0" aria-valuemax="100" style="width: {{vol.size_used_percent}}%;">
+    {{vol.size_used_percent}}% used.
+  </div>
+</div>
+<br>
+<table class="table table-bordered" style="width:80%">
+<tr>
+<th>
+Total usable capacity 
+</th>
+<td>
+{{vol.size_total}}
+</td>
+</tr>
+<tr>
+<th>
+Space used
+</th>
+<td>
+{{vol.size_used}}
+</td>
+</tr>
+<tr>
+<th>
+Space free 
+</th>
+<td>
+{{vol.size_free}}
+</td>
+</tr>
+</table>
 {% if vol.quotas %}
+<h3>Quota information</h3>
+<table class="table table-bordered">
 <tr>
   <td>
   <b> Quota Limit</b>
@@ -73,81 +180,153 @@
   </td>
 </tr>
 {%endif%}
-<tr>
-  <td>
-  <b> Number of data pools used</b>
-  </td>
-  <td>
-  {{vol.brick_count}}
-  </td>
-</tr>
-{% if replicate %}
-<tr>
-  <td>
-  <b> Number of data copies</b>
-  </td>
-  <td>
-    {{vol.replica_count}}
-  </td>
-</tr>
-{% elif distribute %}
-<tr>
-  <td>
-  <b> Data spead across </b>
-  </td>
-  <td>
-    {{vol.brick_count}} GRIDCell{% if vol.brick_count != '1' %}s{%endif%}
-  </td>
-</tr>
+</table>
+{%if vol.quotas %}
+<h4>Quota Status </h4>
+{%load utilities %}
+<table class="table table-bordered" style="width:80%">
+<tbody>
+{% for key,value in vol.quotas.items%}
+  {% for k,v in value.items %}
+  <tr>
+    <th>{{k|human_readable_title:"_"|title}}</th>
+    <td>{{v}}</td>
+  </tr>
+  {%endfor%}
+{%endfor%}
+</tbody>
+</table>
 {%endif%}
+
+
+{% if vol.data_access_status_code and vol.data_access_status_code != 0 %}
+
+<p>The following data locations are having issues :</p>
+<table class="table table-bordered" style="width:70%">
 <tr>
-  <td>
-  <b> Data locations</b>
-  </td>
-  <td>
-    <ul>
-    {%for l in vol.bricks%}
-      {%if l|length > 1 %}
-      <li> <ul>
-      {%endif%}
-      {%for i in l %}
-       <li>{{i}}
-      {%endfor%}
-      {%if l|length > 1 %}
-      </ul></li>
-      {%endif%}
-    {%endfor%}
-    </ul>
-  </td>
+  <th> Problem GRIDCell </th>
+  <th> GRIDCell status
 </tr>
-{%if vol.options %}
-<tr>
-  <td>
-  <b> Extra options</b>
-  </td>
-  <td>
-    <ul>
-    {%for o in vol.options%}
-       {% if o.name == "auth.reject" %} 
-       <li>Disallowed hosts (all access methods) : {{o.value}}</li>
-       {% elif o.name == "auth.allow" %} 
-       <li>Permitted hosts (all access methods) : {{o.value}}</li>
-       {% elif o.name == "nfs.rpc-auth-reject" %} 
-       <li>Disallowed hosts (NFS only) : {{o.value}}</li>
-       {% elif o.name == "nfs.rpc-auth-allow" %} 
-       <li>Permitted hosts (NFS only) : {{o.value}}</li>
-       {%else%}
-       <li> {{o.name}}:{{o.value}}</li>
-       {%endif%}
-    {%endfor%}
-    </ul>
-  </td>
-</tr>
+{% for k, v in vol.brick_status.items %}
+  {%if vol.brick_status.k.status != 1 %}
+  <tr>
+    <td>
+      {{v.hostname}}
+    </td>
+    <td>
+      <button class="btn btn-warning " onClick="load_node_status('{{v.hostname}}', '{{v.hostname}}');"> Details..</button>
+    </td>
+  </tr>
+  {%endif%}
+{%endfor%}
 {%endif%}
 </table>
-<br>
 
-<a href="/show/volume_info_all/" role="button" class="btn btn-default"><< Back </a> &nbsp;&nbsp;
+<h3> Overall volume status </h3>
+<table class="table table-bordered" style="width:90%">
+<tr>
+  <td>
+  <b> Status</b>
+  </td>
+  <td>
+  {{vol.status_str}}
+  </td>
+</tr>
+<tr>
+  <td>
+  <b> Data access status</b>
+  </td>
+  <td>
+  {{vol.data_access_status}}
+  </td>
+</tr>
+</table>
+
+
+<h3>Status of processes in data locations</h3>
+<table class="table table-bordered" style="width:90%">
+<tr>
+<th>
+Data location
+</th>
+<th>
+Process
+</th>
+<th>
+Status
+</th>
+</tr>
+{%for br, st in vol.brick_status.items %}
+{% if st.self_heal_deamon_status or st.nfs_status %}
+{%if "replicate" in vol.type.lower %}
+<tr>
+<td>
+{{st.hostname}}
+</td>
+<td>
+Self heal deamon
+</td>
+<td>
+{% if st.self_heal_deamon_status == 1 %} Healthy {%else%} Down {%endif%}
+</td>
+</tr>
+{%endif%}
+<tr>
+<td>
+{{st.hostname}}
+</td>
+<td>
+NFS Server
+</td>
+<td>
+{% if st.nfs_status == 1 %} Healthy {%else%} Down {%endif%}
+</td>
+</tr>
+{%endif%}
+{%endfor%}
+</table>
+<br>
+<a href="/show/volume_info_all/" role="button" class="btn btn-default"><< Back </a> 
+{%if vol.status == 1 %}
+<form action="/volume_specific_op/vol_stop/" method="post">
+<input type=hidden name="vol_name" value="{{vol.name}}">
+<input type=hidden name="op" value="vol_stop">
+<button type="submit" class="btn btn-primary">Stop this volume</button>
+</form>
+{%else %}
+<form action="/volume_specific_op/vol_start/" method="post">
+<input type=hidden name="vol_name" value="{{vol.name}}">
+<input type=hidden name="op" value="vol_start">
+<button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Start this volume</button>
+</form>
+{%endif%}
+<form action="/volume_specific_op/vol_delete/" method="post">
+<input type=hidden name="vol_name" value="{{vol.name}}">
+<input type=hidden name="op" value="vol_delete">
+<button type="submit" class="btn btn-primary" {% if vol.status == 1 %} disabled {%endif%}>Delete this volume</button>
+</form>
+<form action="/volume_specific_op/expand_volume/" method="post">
+<input type=hidden name="vol_name" value="{{vol.name}}">
+<input type=hidden name="op" value="expand_volume">
+<button type="submit" class="btn btn-primary" {% if vol.status != 1 %} disabled {%endif%}>Expand this volume</button>
+</form>
+<form action="/volume_specific_op/vol_options/" method="post">
+<input type=hidden name="vol_name" value="{{vol.name}}">
+<input type=hidden name="op" value="vol_options">
+<button type="submit" class="btn btn-primary">Change volume options</button>
+</form>
+<form action="/volume_specific_op/vol_quota/" method="post">
+<input type=hidden name="vol_name" value="{{vol.name}}">
+<input type=hidden name="op" value="vol_quota">
+<button type="submit" class="btn btn-primary" {% if vol.status != 1 %} disabled {%endif%}>Change/set volume quota</button>
+</form>
+{%if distribute %}
+<form action="/volume_specific_op/start_rebalance/" method="POST">
+<input type=hidden name="vol_name" value="{{vol.name}}">
+<input type=hidden name="op" value="start_rebalance">
+<button type="submit" class="btn btn-primary" {% if vol.status != 1 %} disabled {%endif%}>Start volume rebalance</button>
+</form>
+{%endif%}
 
 {%endblock%}
 {%block help_header%}
@@ -156,3 +335,9 @@ Volume configuration
 {%block help_body%}
 <p>This page provides details configuration information about the selected data volume including all options that have been set for the volume and its quota, if set.</p>
 {%endblock%}
+{% block tab_active %}
+  <script>
+    make_tab_active('volume_configuration_tab')
+  </script>
+{% endblock %}
+

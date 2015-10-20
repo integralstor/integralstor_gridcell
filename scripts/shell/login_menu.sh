@@ -11,21 +11,21 @@ configure_networking(){
 
 set_as_primary(){
   #echo "set as primary called"
-  ping -c 1 fractalio-pri.fractalio.lan > /dev/null 2> /dev/null
+  ping -c 1 gridcell-pri.integralstor.lan > /dev/null 2> /dev/null
   ret=$?
   if [ $ret != 0 ]
   then
     python /opt/integralstor/integralstor_gridcell/scripts/python/set_node_type.py primary
     pause
   else
-    echo 'A primary GRIDCell (with hostname fractalio-pri) seems to already exist in the LAN! A grid cannot have more than one primary.'
+    echo 'A primary GRIDCell (with hostname gridcell-pri) seems to already exist in the LAN! A grid cannot have more than one primary.'
     pause
   fi
 }
 
 first_time_setup(){
   hn=`hostname`
-  if [ $hn == "fractalio-pri" ]
+  if [ $hn == "gridcell-pri" ]
   then
     /opt/integralstor/integralstor_gridcell/scripts/python/first_time_setup.py
     pause
@@ -45,14 +45,14 @@ view_node_config(){
 
 set_as_secondary(){
   #echo "set as secondary called"
-  ping -c 1 fractalio-sec.fractalio.lan > /dev/null 2> /dev/null
+  ping -c 1 gridcell-sec.integralstor.lan > /dev/null 2> /dev/null
   ret=$?
   if [ $ret != 0 ]
   then
     python /opt/integralstor/integralstor_gridcell/scripts/python/set_node_type.py secondary
     pause
   else
-    echo 'A secondary GRIDCell (with hostname fractalio-sec) seems to already exist in the LAN! A grid cannot have more than one secondary.'
+    echo 'A secondary GRIDCell (with hostname gridcell-sec) seems to already exist in the LAN! A grid cannot have more than one secondary.'
     pause
   fi
 }
@@ -60,7 +60,7 @@ set_as_secondary(){
 view_minion_status(){
   hn=`hostname`
   echo $hn
-  if [ $hn == "fractalio-pri" ]
+  if [ $hn == "gridcell-pri" ]
   then
     /opt/integralstor/integralstor_gridcell/scripts/shell/view_minions.sh
     pause
@@ -77,7 +77,7 @@ reset_minion(){
 
 remove_minions(){
   hn=`hostname`
-  if [ $hn == "fractalio-pri" ]
+  if [ $hn == "gridcell-pri" ]
   then
     python /opt/integralstor/integralstor_gridcell/scripts/python/clear_minions.py
     pause
@@ -90,7 +90,7 @@ remove_minions(){
  
 
 goto_shell() {
-  su -l fractalio
+  su -l integralstor
   pause
 }
 
@@ -208,19 +208,19 @@ trap '' SIGINT SIGQUIT SIGTSTP
  
 while true
 do
-  echo "fractal menu is started" > /tmp/out
+  echo "The Integralstor menu has started" > /tmp/out
   primary=0
   secondary=0
   hn=`hostname`
-  if [ $hn == "fractalio-pri" ]
+  if [ $hn == "gridcell-pri" ]
   then
     primary=1
   fi
-  if [ $hn == "fractalio-sec" ]
+  if [ $hn == "gridcell-sec" ]
   then
     secondary=1
   fi
   show_menu $primary $secondary
   read_input $primary $secondary
-  echo "fractal menu is stoped" >> /tmp/out
+  echo "The Integralstor menu has stopped" >> /tmp/out
 done

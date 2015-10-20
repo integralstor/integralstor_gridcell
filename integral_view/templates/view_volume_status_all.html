@@ -1,20 +1,10 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'volume_base.html' %}
 
 
-{%block status_selected%}
-style="background-color:white;color:white;"
+{%block tab_header%}
+  View Volume Status
 {%endblock%}
 
-{%block page-header%}
-  Volume Status
-  <br /><small>
-      Volumes
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      View Volume Status
-  </small>
-{%endblock%}
-
-{%block contents%}
 <script type="text/javascript">
 function load_volume_status(name) {
   url='/show/volume_status/' + encodeURIComponent(name);
@@ -23,6 +13,8 @@ function load_volume_status(name) {
   $('#myModal').modal();
 }
 </script>
+{%block inside_content %}
+<br><br>
 
 <!-- Modal -->
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">

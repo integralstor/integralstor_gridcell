@@ -15,11 +15,11 @@ def scan_for_nodes():
       raise Exception(err)
     if not tmp_pending_nodes:
       raise Exception("No GRIDCells found")
-    if 'fractalio-pri.fractalio.lan' not in tmp_pending_nodes:
+    if 'gridcell-pri.integralstor.lan' not in tmp_pending_nodes:
       raise Exception("A primary GRIDCell was not detected. Please verify that one of the GRIDCells has been configured to be a primary.")
-    if 'fractalio-sec.fractalio.lan' not in tmp_pending_nodes:
+    if 'gridcell-sec.integralstor.lan' not in tmp_pending_nodes:
       raise Exception( "A secondary GRIDCell was not detected. Please verify that one of the GRIDCells has been configured to be a secondary.")
-    pending_nodes = ['fractalio-pri.fractalio.lan', 'fractalio-sec.fractalio.lan']
+    pending_nodes = ['gridcell-pri.integralstor.lan', 'gridcell-sec.integralstor.lan']
     print "Found the primary and secondary GRIDCells."
     print
     success, failed, err = grid_ops.add_nodes_to_grid("System setup process",pending_nodes, first_time = True, print_progress = True)
@@ -855,7 +855,7 @@ def create_storage_pool():
   try :
     print "Creating an initial storage pool with the primary and secondary GRIDCells..."
     print
-    d = gluster_commands.run_gluster_command('gluster peer probe %s --xml'%secondary, '', 'Adding nodes to cluster')
+    d, err = gluster_commands.run_gluster_command('gluster peer probe %s --xml'%secondary, '', 'Adding nodes to cluster')
     if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
       print "Creating an initial storage pool with the primary and secondary GRIDCells... Done"
       print

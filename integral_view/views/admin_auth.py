@@ -1,8 +1,8 @@
 
-import django, django.template
+import django
+import django.template
 from django.contrib import auth
 from django.contrib.sessions.models import Session
-
 import json
 
 import integral_view
@@ -14,6 +14,7 @@ from integralstor_common import audit, mail
 
 
 def login(request):
+
   """ Used to login a user into the management utility"""
 
   try:
@@ -34,11 +35,16 @@ def login(request):
         # Try to authenticate
         user = django.contrib.auth.authenticate(username=username, password=password)
         if user is not None and user.is_active:
-          # Clear the session if the user has been logged in anywhere else.
-          sessions = Session.objects.all()
-          for s in sessions:
-            if s.get_decoded() and (s.get_decoded()['_auth_user_id'] == user.id):
-              s.delete()
+          production, err = integralstor_common.common.is_production()
+          if err:
+            raise Exception(err)
+          if production:
+            # Clear the session if the user has been logged in anywhere else.
+            sessions = Session.objects.all()
+            for s in sessions:
+              if s.get_decoded() and (s.get_decoded()['_auth_user_id'] == user.id):
+                #s.delete()
+                pass
           # authentication succeeded! Login and send to home screen
           django.contrib.auth.login(request, user)
           iv_logging.info("Login request from user '%s' succeeded"%username)
@@ -59,17 +65,17 @@ def login(request):
           return_dict['session_active'] = True
 
     return_dict['form'] = form
-  
+
     if authSucceeded:
-      return django.http.HttpResponseRedirect('/show/dashboard/')
-  
+      return django.http.HttpResponseRedirect('/show/dashboard')
+
     # For all other cases, return to login screen with return_dict 
     # appropriately populated
     return django.shortcuts.render_to_response('login_form.html', return_dict, context_instance = django.template.context.RequestContext(request))
   except Exception, e:
     s = str(e)
     return_dict["error"] = "An error occurred when processing your request : %s"%s
-    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+    return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
 
 
@@ -85,16 +91,20 @@ def logout(request):
     django.contrib.auth.logout(request)
     return django.http.HttpResponseRedirect('/login/')
   except Exception, e:
-    s = str(e)
-    return_dict["error"] = "An error occurred when processing your request : %s"%s
-    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+    return_dict['base_template'] = "dashboard_base.html"
+    return_dict["page_title"] = 'Logout'
+    return_dict['tab'] = 'disks_tab'
+    return_dict["error"] = 'Error logging out'
+    return_dict["error_details"] = str(e)
+    return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+
 
 def change_admin_password(request):
   """ Used to change a user's password for the management utility"""
 
   try:
     return_dict = {}
-  
+
     if request.user and request.user.is_authenticated():
       if request.method == 'POST':
         iv_logging.debug("Admin password change posted")
@@ -114,9 +124,7 @@ def change_admin_password(request):
               return_dict['success'] = True
               iv_logging.info("Admin password change request successful.")
               audit_str = "Changed admin password"
-              ret, err = audit.audit("modify_admin_password", audit_str, request.META["REMOTE_ADDR"])
-              if err:
-                raise Exception(err)
+              audit.audit("modify_admin_password", audit_str, request.META["REMOTE_ADDR"])
             else:
   	          return_dict['error'] = 'New passwords do not match'
         # else invalid form or error so existing form data to return_dict and 
@@ -133,9 +141,12 @@ def change_admin_password(request):
       #User not authenticated so return a login screen
       return django.http.HttpResponseRedirect('/login/')
   except Exception, e:
-    s = str(e)
-    return_dict["error"] = "An error occurred when processing your request : %s"%s
-    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+    return_dict['base_template'] = "admin_base.html"
+    return_dict["page_title"] = 'Change admininistrator password'
+    return_dict['tab'] = 'change_admin_pswd_tab'
+    return_dict["error"] = 'Error changing administrator password'
+    return_dict["error_details"] = str(e)
+    return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
 
   
@@ -183,7 +194,7 @@ def configure_email_settings(request):
         ret, err = mail.save_email_settings(d)
         if err:
           raise Exception(err)
-  
+
         ret, err = mail.send_mail(cd["email_server"], cd["email_server_port"], cd["username"], cd["pswd"], cd["tls"], cd["rcpt_list"], "Test email from IntegralStor", "This is a test email sent by the IntegralStor system in order to confirm that your email settings are working correctly.")
         if err:
           raise Exception(err)
@@ -194,9 +205,12 @@ def configure_email_settings(request):
     return_dict["form"] = form
     return django.shortcuts.render_to_response(url, return_dict, context_instance = django.template.context.RequestContext(request))
   except Exception, e:
-    s = str(e)
-    return_dict["error"] = "An error occurred when processing your request : %s"%s
-    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+    return_dict['base_template'] = "system_base.html"
+    return_dict["page_title"] = 'Change email notification settings'
+    return_dict['tab'] = 'email_tab'
+    return_dict["error"] = 'Error changing email notification settings'
+    return_dict["error_details"] = str(e)
+    return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
 
 

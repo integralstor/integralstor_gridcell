@@ -1,17 +1,17 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'volume_base.html' %}
 
 
-{%block page-header%}
-  Volume Creation Wizard
-  <br /><small>
-      Volumes 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Create a Volume - Data Storage model
-  </small>
+{%block status_selected%}
+  style="background-color:white;color:white;"
 {%endblock%}
 
+{%block tab_header%}
+  Volume creation wizard - ondisk storage type selection
+{%endblock%}
 
-{%block contents%}
+{%block inside_content %}
+
+
 <p style="color:red;"> {{error}}</p>
 
 <form  role="form" action="/create_volume_conf/" method="post" class="margin-left-5">
@@ -28,7 +28,7 @@
     {%endfor%}
     {{ form.ondisk_storage.errors }}
   </div>
- <button type="submit" class="btn btn-primary"  >Next >></button>
+ <button type="submit" class="btn btn-primary"  >Next</button>
 </form>
 
 
@@ -39,3 +39,8 @@ Volume creation help
 {%block help_body%}
 <p>The volume creation wizard guides you through many steps to create a particular type of volume. This step of the wizrd prompts you for on disk storage options on each GRIDCell. You can choose from either compressed storage, deduplicated storage (within the GRIDCell) or neither. Please note that selecting either compressed or dedplicated would result in a small performance penalty. Use these options for volumes that do not have any performance constraints.</p>
 {%endblock%}
+{% block tab_active %}
+  <script>
+    make_tab_active('create_volume_tab')
+  </script>
+{% endblock %}

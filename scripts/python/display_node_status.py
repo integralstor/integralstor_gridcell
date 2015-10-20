@@ -7,7 +7,7 @@ def display_status():
 
   try :
     hostname = socket.gethostname()
-    if hostname and hostname in ['fractalio-pri', 'fractalio-sec']:
+    if hostname and hostname in ['gridcell-pri', 'gridcell-sec']:
       print "DNS service status :"
       (r, rc), err = command.execute_with_rc('service named status')
       if err:

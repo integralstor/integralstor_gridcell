@@ -1,19 +1,14 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'gridcell_base.html' %}
 
 <script type="text/javascript" src="static/js/bootstrap-confirmation.js"></script>
 
 </script>
 
-
-{%block page-header%}
+{%block tab_header%}
   GRIDCell Disk Status
-    <br /><small>
-      GRIDCell
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      GRIDCell Status
-  </small>
- {%endblock%}
-{%block contents%}
+{%endblock%}
+
+{%block inside_content %}
 
 {%if disk_new%}
 <div class="box box-solid box-warning">
@@ -96,3 +91,9 @@ GRIDCell status
 {%block help_body%}
 <p>This page displays the status of all the components in a particular GRIDCell. It also provides details about any particular error that a component may be facing along with position details for faulty disks. You can initiate the physical identification of a GRIDCell by triggering an LED to blink on the GRIDCell from this page.</p>
 {%endblock%}
+
+  {% block tab_active %}
+    <script>
+  	make_tab_active('gridcell_status_tab')
+    </script>
+  {% endblock%}
