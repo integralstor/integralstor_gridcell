@@ -231,7 +231,7 @@ def set_as_secondary(secondary_ip, secondary_netmask):
 
   if err:
     raise Exception(err)
-  if rc != 0:
+  if not rc:
     raise Exception("Error generating the DNS configuration file")
 
   rc, err = networking.set_name_servers([primary_ip, secondary_ip, external_dns])

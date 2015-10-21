@@ -1,15 +1,5 @@
-{% extends 'storagepool_base.html' %}
+{% extends 'gridcell_base.html' %}
 
-{%block page-header%}
-  Add IntegralStor GRIDCells
-  <br /><small>
-      Storage Pool
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Add IntegralStor GRIDCells
-  </small>
-{%endblock%}
-
-{%block inside_content %}
 <script type="text/javascript">
 function load_node_info(hostname, str) {
   url='/show/node_info/' + encodeURIComponent(hostname);
@@ -18,6 +8,12 @@ function load_node_info(hostname, str) {
   $('#myModal').modal();
 }
 </script>
+{%block tab_header%}
+  Add IntegralStor GRIDCells
+{%endblock%}
+
+{%block inside_content %}
+<br><br>
 
 {%if no_available_nodes %}
 
