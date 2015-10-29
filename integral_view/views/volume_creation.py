@@ -5,9 +5,7 @@ from django.contrib import auth
 import salt.client
 
 import random
-import integralstor_gridcell
 from integralstor_gridcell import volume_info, system_info, gluster_commands, iscsi
-import integralstor_common
 from integralstor_common import command, common, audit
 
 from integral_view.utils import iv_logging
@@ -254,12 +252,12 @@ def create_volume(request):
     if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
       #print rc, ret
       #All ok so mount and change the owner and group of the volume to integralstor
-      rc,ret = command.execute("gluster volume set "+request.POST['vol_name']+" storage.owner-gid 501")
-      rc,ret = command.execute("gluster volume start "+request.POST['vol_name'])
-      rc,ret = command.execute("mount -t glusterfs localhost:/"+request.POST['vol_name']+" /mnt")
-      rc,ret = command.execute("chmod 770 /mnt")
-      rc,ret = command.execute("umount /mnt")
-      rc,ret = command.execute("gluster volume stop "+request.POST['vol_name'])
+      (ret, rc), err = command.execute_with_rc("gluster volume set "+request.POST['vol_name']+" storage.owner-gid 501")
+      (ret, rc), err = command.execute_with_rc("gluster volume start "+request.POST['vol_name'])
+      (ret, rc), err = command.execute_with_rc("mount -t glusterfs localhost:/"+request.POST['vol_name']+" /mnt")
+      (ret, rc), err = command.execute_with_rc("chmod 770 /mnt")
+      (ret, rc), err = command.execute_with_rc("umount /mnt")
+      (ret, rc), err = command.execute_with_conf_and_rc("gluster volume stop "+request.POST['vol_name'])
       #Success so audit the change
       audit_str = "Create "
       if request.POST["vol_type"] in ["replicated"]:

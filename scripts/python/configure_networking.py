@@ -322,14 +322,18 @@ def configure_networking():
           print "Invalid value. Please try again."
       print
     if restart:
-      r, rc = command.execute_with_rc('service network restart')
+      (r, rc), err = command.execute_with_rc('service network restart')
+      if err:
+        raise Exception(err)
       if rc == 0:
         print "Network service restarted succesfully."
       else:
         print "Error restarting network services."
         raw_input('Press enter to return to the main menu')
         return -1
-      r, rc = command.execute_with_rc('service salt-minion restart')
+      (r, rc), err = command.execute_with_rc('service salt-minion restart')
+      if err:
+        raise Exception(err)
       if rc == 0:
         print "Salt minion service restarted succesfully."
       else:
@@ -337,7 +341,9 @@ def configure_networking():
         raw_input('Press enter to return to the main menu')
         return -1
       '''
-      r, rc = command.execute_with_rc('service named restart')
+      (r, rc), err = command.execute_with_rc('service named restart')
+      if err:
+        raise Exception(err)
       if rc == 0:
         print "DNS service restarted succesfully."
         raw_input('Press enter to return to the main menu')
