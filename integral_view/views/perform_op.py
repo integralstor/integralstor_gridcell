@@ -133,12 +133,24 @@ def perform_op(request, op, name1=None, name2= None):
           raise Exception(err)
       if op in ['vol_stop', 'vol_delete', 'disable_quota']:
         tup, err = command.execute_with_conf(cmd)
+        if err:
+          raise Exception(err)
         e, err = command.get_conf_error_list(tup)
+        if err:
+          raise Exception(err)
         o, err = command.get_conf_output_list(tup)
+        if err:
+          raise Exception(err)
       else:
         tup, err = command.execute(cmd)
+        if err:
+          raise Exception(err)
         e, err = command.get_error_list(tup)
+        if err:
+          raise Exception(err)
         o, err = command.get_output_list(tup)
+        if err:
+          raise Exception(err)
       if e:
         return_dict['cmd_errors'] = e
       if o:
@@ -150,7 +162,11 @@ def perform_op(request, op, name1=None, name2= None):
     
         tup, err = command.execute(cmd)
         e1, err = command.get_error_list(tup)
+        if err:
+          raise Exception(err)
         o1, err = command.get_output_list(tup)
+        if err:
+          raise Exception(err)
         if e1:
           if e:
             e.extend(e1)

@@ -445,7 +445,7 @@ def iscsi_edit_auth_access_user(request):
     user_id = int(request.REQUEST["user_id"])
     return_dict["user_id"] = user_id
 
-    auth_access = iscsi.load_auth_access_user_info(int(user_id))
+    auth_access, err = iscsi.load_auth_access_user_info(int(user_id))
     if err:
       raise Exception(err)
     if not auth_access:

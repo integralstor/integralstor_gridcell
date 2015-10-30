@@ -514,7 +514,9 @@ def refresh_alerts(request, random=None):
     db_path, err = common.get_db_path()
     if err:
       raise Exception(err)
-    test = db.execute_iud("%s/integral_view_config.db"%db_path, cmd_list)
+    test, err = db.execute_iud("%s/integral_view_config.db"%db_path, cmd_list)
+    if err:
+      raise Exception(err)
     ret, err = alerts.new_alerts()
     if err:
       raise Exception(err)
@@ -739,8 +741,14 @@ def reset_to_factory_defaults(request):
       try:
         # Create commands to stop and delete volumes. Remove peers from cluster.
         vil, err = volume_info.get_volume_info_all()
+        if err:
+          raise Exception(err)
         scl, err = system_info.load_system_config()
-        d = gluster_commands.create_factory_defaults_reset_file(scl, vil)
+        if err:
+          raise Exception(err)
+        d, err = gluster_commands.create_factory_defaults_reset_file(scl, vil)
+        if err:
+          raise Exception(err)
         if not "error" in d:
           ret, err = audit.audit("factory_defaults_reset_start", "Scheduled reset of the system to factory defaults.",  request.META["REMOTE_ADDR"])
           if err:

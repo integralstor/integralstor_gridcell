@@ -252,7 +252,7 @@ def create_volume(request):
     if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
       #print rc, ret
       #All ok so mount and change the owner and group of the volume to integralstor
-      (ret, rc), err = command.execute_with_rc("gluster volume set "+request.POST['vol_name']+" storage.owner-gid 501")
+      (ret, rc), err = command.execute_with_rc("gluster volume set "+request.POST['vol_name']+" storage.owner-gid 500")
       (ret, rc), err = command.execute_with_rc("gluster volume start "+request.POST['vol_name'])
       (ret, rc), err = command.execute_with_rc("mount -t glusterfs localhost:/"+request.POST['vol_name']+" /mnt")
       (ret, rc), err = command.execute_with_rc("chmod 770 /mnt")

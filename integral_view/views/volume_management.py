@@ -1051,13 +1051,17 @@ def replace_disk(request):
                   raise Exception(error)
             else:
               raise Exception("Error bringing the new disk online on %s : "%(node))
-            ret, rc = command.execute_with_rc('%s/generate_manifest.py'%common_python_scripts_path)
+            (ret, rc), err = command.execute_with_rc('%s/generate_manifest.py'%common_python_scripts_path)
+            if err:
+              raise Exception(err)
             #print ret
             if rc != 0:
               #print ret
               raise Exception("Could not regenrate the new hardware configuration. Error generating manifest. Return code %d"%rc)
             else:
-              ret, rc = command.execute_with_rc('%s/generate_status.py'%common_python_scripts_path)
+              (ret, rc), err = command.execute_with_rc('%s/generate_status.py'%common_python_scripts_path)
+              if err:
+                raise Exception(err)
               if rc != 0:
                 #print ret
                 raise Exception("Could not regenrate the new hardware configuration. Error generating status. Return code %d"%rc)
