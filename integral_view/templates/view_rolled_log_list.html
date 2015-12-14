@@ -56,9 +56,9 @@ View historical logs
     $("#topic-text").text("Log rotated successully")    
   }
   {% if 'alerts' in request.path %}
-    make_tab_active("volume_log_view_older_alerts_tab")
+    make_tab_active("system_log_view_older_alerts_tab")
   {% else%}
-    make_tab_active("volume_log_view_older_audit_tab")
+    make_tab_active("system_log_view_older_audit_tab")
   {% endif %}
 </script>
 {% endblock %}

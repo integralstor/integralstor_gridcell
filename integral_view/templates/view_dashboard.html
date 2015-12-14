@@ -53,6 +53,7 @@
           </div>
       </div>
       <div class="box-body">
+	{% if volume_info_list %}
         {% if num_vols_bad > 0 %} <i class="fa fa-bell faa-ring animated orange"></i> {{num_vols_bad}} Volumes(s) have problems{%endif%}
         <div class="row">
           {% for v in volume_info_list %}
@@ -66,6 +67,9 @@
       <div class="box-footer">
           <a href="/show/volume_info_all" role="button" {%if num_vols_bad > 0 %}class="btn btn-warning">More Details<i class="fa fa-bell-o"></i> {%else%}class="btn btn-success">More Details <i class="fa fa-arrow-right"></i>{%endif%} </a>
       </div><!-- /.box-footer-->
+	{%else%}
+	No volumes created.
+	{%endif%}
     </div>
   </div>
 </div>

@@ -32,7 +32,8 @@ def volume_specific_op(request, operation, vol_name=None):
     if err:
       raise Exception(err)
     if not vil:
-      raise Exception('Could not load volume information')
+      if operation != "view_snapshots":
+        raise Exception('Could not load volume information')
 
     si, err = system_info.load_system_config()
     if err:
@@ -295,7 +296,8 @@ def create_snapshot(request):
     if err:
       raise Exception(err)
     if not vil:
-      raise Exception('Error loading volume infomation - no volumes found')
+      return_dict['no_volumes'] = True
+      return django.shortcuts.render_to_response('create_snapshot.html', return_dict, context_instance = django.template.context.RequestContext(request))
     l = []
     for v in vil:
       l.append(v["name"])

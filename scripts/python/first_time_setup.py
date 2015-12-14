@@ -348,6 +348,7 @@ def establish_default_configuration(client, si):
     r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/rc.local'])
     r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/rc.d/rc.local'])
     r2 = client.cmd('*', 'cmd.run_all', ['cp %s/rc_local/primary_and_secondary/rc.local /etc/rc.local'%defaults_dir])
+    r2 = client.cmd('*', 'cmd.run_all', ['chmod 755 /etc/rc.local'])
     if r2:
       for node, ret in r2.items():
         if ret["retcode"] != 0:

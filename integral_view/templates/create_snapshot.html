@@ -12,6 +12,9 @@
 
 <br><br>
 
+{%if no_volumes %}
+No volumes seem to be created. Snapshots can only be taken on exiting volumes.
+{%else%}
 <form role="form" action="/create_snapshot/" method="post">
 <div  style=" position:relative;border:0px solid #DDDDDD;width:600px; padding:15px 15px 15px;margin:0px 15px;border-radius:4px 4px 0px 0px">
   <div class="form-group" >
@@ -30,7 +33,7 @@
   <button type="submit" class="btn btn-primary">Next</button>
 </div>
 </form>
-
+{%endif%}
 {%endblock%}
 {%block help_header%}
 Creating snapshots

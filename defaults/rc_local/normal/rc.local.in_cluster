@@ -9,7 +9,7 @@ modprobe ipmi_devintf
 /bin/bash /opt/integralstor/integralstor_gridcell/scripts/shell/nodetype.sh
 /bin/bash /opt/integralstor/integralstor_gridcell/scripts/shell/gluster-check.sh
 sleep 10
-mount -t glusterfs fractalio-pri:fractalio_admin_vol /opt/integralstor/integralstor_gridcell/config
+mount -t glusterfs gridcell-pri:integralstor_admin_vol /opt/integralstor/integralstor_gridcell/config
 rm /etc/samba/smb.conf
 ln -s /opt/integralstor/integralstor_gridcell/config/lock/smb.conf /etc/samba/smb.conf
 rm /etc/ctdb/nodes

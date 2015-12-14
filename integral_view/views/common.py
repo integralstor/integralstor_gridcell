@@ -43,7 +43,6 @@ def show(request, page, info = None):
     return_dict['volume_info_list'] = vil
 
     #By default show error page
-    template = "logged_in_error.html"
 
     if page == "dir_contents":
       dir_name = None
@@ -76,6 +75,10 @@ def show(request, page, info = None):
       template = "view_ntp_settings.html"
       ntp_servers, err = ntp.get_ntp_servers()
       if err:
+        return_dict['base_template'] = "services_base.html"
+        return_dict["page_title"] = 'View NTP settings'
+        return_dict['tab'] = 'service_ntp_tab'
+        return_dict["error"] = 'Error viewing NTP settings'
         raise Exception(err)
       return_dict["ntp_servers"] = ntp_servers
       if "saved" in request.REQUEST:
@@ -96,6 +99,10 @@ def show(request, page, info = None):
       #print "here"
       d, err = mail.load_email_settings()
       if err:
+        return_dict['base_template'] = "services_base.html"
+        return_dict["page_title"] = 'View Email settings'
+        return_dict['tab'] = 'service_config_email_tab'
+        return_dict["error"] = 'Error loading Email settings'
         raise Exception(err)
       if not d:
         return_dict["email_not_configured"] = True
@@ -122,17 +129,31 @@ def show(request, page, info = None):
       al = None
       al, err = audit.get_lines()
       if err:
+        return_dict['base_template'] = "system_log_base.html"
+        return_dict["page_title"] = 'View audit trail'
+        return_dict['tab'] = 'system_log_view_current_audit_tab'
+        return_dict["error"] = 'Error loading audit trail'
         raise Exception(err)
       template = "view_audit_trail.html"
       return_dict["audit_list"] = al
 
     elif page == "batch_start_conf":
 
+      return_dict['base_template'] = "volume_base.html"
+      return_dict["page_title"] = 'View batch job'
+      return_dict['tab'] = 'volume_background_tab'
+      return_dict["error"] = 'Error displaying batch job creation confirmation'
+
       #Display a confirmation that the batch job has been scheduled. info contains the filename of the batch job
       template = "batch_start_conf.html"
       return_dict["fname"] = info
 
     elif page == "batch_status":
+
+      return_dict['base_template'] = "volume_base.html"
+      return_dict["page_title"] = 'View batch jobs'
+      return_dict['tab'] = 'volume_background_tab'
+      return_dict["error"] = 'Error loading batch jobs'
 
       #Load the list of entries from all the files in the start and process directories
       file_list, err = batch.load_all_files()
@@ -143,16 +164,26 @@ def show(request, page, info = None):
 
     elif page == "batch_status_details":
 
+      return_dict['base_template'] = "volume_base.html"
+      return_dict["page_title"] = 'View batch job status'
+      return_dict['tab'] = 'volume_background_tab'
+      return_dict["error"] = 'Error loading batch job status'
+
       d, err = batch.load_specific_file(info)
       if err:
         raise Exception(err)
       if not d:
-        return_dict["error"] = "Unknown process specified"
+        raise Exception('Unknown batch job specified')
       else:
         return_dict["process_info"] = d
         template = "view_batch_status_details.html"
 
     elif page == "volume_info":
+
+      return_dict['base_template'] = "volume_base.html"
+      return_dict["page_title"] = 'View volume information'
+      return_dict['tab'] = 'volume_configuration_tab'
+      return_dict["error"] = 'Error loading volume information'
 
       vol, err = volume_info.get_volume_info(vil, info)
       if err:
@@ -487,9 +518,9 @@ def show(request, page, info = None):
   except Exception, e:
     s = str(e)
     if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
     else:
-      return_dict["error"] = "An error occurred when processing your request : %s"%s
+      return_dict["error_details"] = s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
 
