@@ -40,17 +40,19 @@ function subm() {
 
 <form  role="form" action="/volume_creation_wizard/select_vol_type" method="post">
 {{ form.vol_name }}
-  <label for="id_vol_access">How will the data in this volume be accessed?</label>
-  <div class="form-group" >
-    {% for choice in form.vol_access.field.choices %} 
-        <label class="radio">
-          <input type="radio" name="vol_access" id="id_{{choice.0}}" value="{{choice.0}}" {%if choice.0 == form.initial.vol_access %} checked{%endif%} />{{choice.1}}
-        </label>
-    {%endfor%}
-    {{ form.vol_access.errors }}
-  </div>
-<br>
- <button type="submit" class="btn btn-primary" onClick="subm();return false;" >Next</button>
+
+	<div  style=" position:relative;border:0px solid #DDDDDD;width:600px; padding:15px 15px 15px;margin:0px 15px;border-radius:4px 4px 0px 0px">
+          <div class="form-group" >
+            <label for="id_vol_access">How will the data in this volume be accessed?</label>
+            {% for choice in form.vol_access.field.choices %} 
+                <label class="radio">
+                  <input type="radio" name="vol_access" id="id_{{choice.0}}" value="{{choice.0}}" {%if choice.0 == form.initial.vol_access %} checked{%endif%} />{{choice.1}}
+                </label>
+            {%endfor%}
+            {{ form.vol_access.errors }}
+          </div>
+          <button type="submit" class="btn btn-primary" onClick="subm();return false;" >Next</button>
+	</div>
 </form>
 
 

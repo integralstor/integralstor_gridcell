@@ -79,7 +79,7 @@ def iscsi_edit_initiator(request):
   return_dict = {}
   try:
     if "id" not in request.REQUEST:
-    raise Exception("Unknown initiator specified")
+      raise Exception("Unknown initiator specified")
 
     id = int(request.REQUEST["id"])
 
@@ -445,7 +445,7 @@ def iscsi_edit_auth_access_user(request):
     user_id = int(request.REQUEST["user_id"])
     return_dict["user_id"] = user_id
 
-    auth_access, err = iscsi.load_auth_access_user_info(int(user_id))
+    auth_access = iscsi.load_auth_access_user_info(int(user_id))
     if err:
       raise Exception(err)
     if not auth_access:
@@ -626,11 +626,11 @@ def iscsi_create_target(request):
 
     if not igl  or not aal or not vl:
       if not igl:
-        raise Exception("Please create an initiator before creating a target"
+        raise Exception("Please create an initiator before creating a target")
       if not vl:
-        raise Exception("Please create an ISCSI access enabled volume before creating a target"
+        raise Exception("Please create an ISCSI access enabled volume before creating a target")
       if not aal:
-        raise Exception("Please create an authorized access before creating a target"
+        raise Exception("Please create an authorized access before creating a target")
 
     if request.method == "GET":
       #Return the form

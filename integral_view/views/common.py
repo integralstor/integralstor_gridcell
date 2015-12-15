@@ -342,6 +342,10 @@ def show(request, page, info = None):
         if si[hostname]["in_cluster"] and (not si[hostname]["volume_list"]):
           rnl.append(hostname)
       if rnl:
+        if 'gridcell-sec.integralstor.lan' in rnl:
+          rnl.remove('gridcell-sec.integralstor.lan')
+        if 'gridcell-pri.integralstor.lan' in rnl:
+          rnl.remove('gridcell-pri.integralstor.lan')
         return_dict['gluster_removable_nodes'] = rnl
       pending_minions, err = grid_ops.get_pending_minions()
       if err:

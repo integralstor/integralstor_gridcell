@@ -1,5 +1,5 @@
 from django.conf.urls import patterns, include, url
-#from integral_view.views.iscsi import iscsi_display_global_config, iscsi_display_initiators, iscsi_display_targets, iscsi_view_initiator, iscsi_edit_initiator, iscsi_create_initiator, iscsi_delete_initiator, iscsi_display_auth_access_group_list, iscsi_create_auth_access_group, iscsi_view_auth_access_group, iscsi_delete_auth_access_group, iscsi_edit_auth_access_user, iscsi_edit_target_global_config, iscsi_view_target_global_config, iscsi_create_target,iscsi_view_target , iscsi_edit_target, iscsi_delete_target, iscsi_delete_auth_access_user, iscsi_create_auth_access_user
+from integral_view.views.iscsi import iscsi_display_global_config, iscsi_display_initiators, iscsi_display_targets, iscsi_view_initiator, iscsi_edit_initiator, iscsi_create_initiator, iscsi_delete_initiator, iscsi_display_auth_access_group_list, iscsi_create_auth_access_group, iscsi_view_auth_access_group, iscsi_delete_auth_access_group, iscsi_edit_auth_access_user, iscsi_edit_target_global_config, iscsi_view_target_global_config, iscsi_create_target,iscsi_view_target , iscsi_edit_target, iscsi_delete_target, iscsi_delete_auth_access_user, iscsi_create_auth_access_user
 from integral_view.views.admin_auth  import login, logout, change_admin_password, configure_email_settings 
 from integral_view.views.trusted_pool_setup  import add_nodes_to_pool, remove_node_from_pool
 from integral_view.views.volume_creation import volume_creation_wizard, create_volume, create_volume_conf
@@ -77,6 +77,7 @@ urlpatterns = patterns('',
     url(r'^view_rotated_log_list/([A-Za-z_]+)', login_required(view_rotated_log_list)),
     url(r'^view_rotated_log_file/([A-Za-z_]+)', login_required(view_rotated_log_file)),
     url(r'^first_login/', login_required(hardware_scan)),
+    url(r'^iscsi_create_target/', login_required(iscsi_create_target)),
     #url(r'^sys_log/([A-Za-z]+)', sys_log),
     #url(r'^pull_node_status/([A-Za-z_\-0-9]+)', login_required(pull_node_status)),
     #url(r'^node_status/', node_status),
@@ -101,7 +102,6 @@ urlpatterns = patterns('',
 '''
     url(r'^iscsi_display_targets/', login_required(iscsi_display_targets)),
     url(r'^iscsi_view_target/', login_required(iscsi_view_target)),
-    url(r'^iscsi_create_target/', login_required(iscsi_create_target)),
     url(r'^iscsi_edit_target/', login_required(iscsi_edit_target)),
     url(r'^iscsi_delete_target/', login_required(iscsi_delete_target)),
     url(r'^iscsi_display_initiators/', login_required(iscsi_display_initiators)),

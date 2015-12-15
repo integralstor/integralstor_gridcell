@@ -1,4 +1,4 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'gridcell_base.html' %}
 
 
 <!-- Modal -->
@@ -18,18 +18,13 @@
   </div>
 </div>
 
-{%block page-header%}
-  GRIDCells
-  <br /><small>
-      GRIDCells
-      <i class="fa fa-angle-double-right smaller-80"></i>
+{%block tab_header%}
       Scan for new GRIDCells
   </small>
-{%endblock%}
+ {%endblock%}
 
-
-{%block contents%}
-
+{%block inside_content%}
+<br><br>
 {% if no_new_nodes %}
 The hardware scan did not detect any new GRIDCells.
 {%else%}
@@ -46,3 +41,8 @@ Scan for new hardware help
 <p> If you find that a particular unused/new GRIDCell is not showing up on this screen then please ensure that it is powered on and connected to the network before running this process again.</p> 
 {%endblock%}
 
+{% block tab_active %}
+  <script>
+    make_tab_active('scan_for_gridcells_tab')
+  </script>
+{% endblock %}

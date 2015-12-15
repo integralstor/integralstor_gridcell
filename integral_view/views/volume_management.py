@@ -741,8 +741,6 @@ def replace_node(request):
     vil, err = volume_info.get_volume_info_all()
     if err:
       raise Exception(err)
-    if not vil:
-      raise Exception('Could not load volume information')
     si, err = system_info.load_system_config()
     if err:
       raise Exception(err)
@@ -755,7 +753,7 @@ def replace_node(request):
     if err:
       raise Exception(err)
     if not d:
-      raise Exception('Could not load replacement GRIDCell information')
+      raise Exception("There are no GRIDCells eligible to be replaced.")
       
     if not d["src_node_list"]:
       return_dict["error"] = "There are no GRIDCells eligible to be replaced."
