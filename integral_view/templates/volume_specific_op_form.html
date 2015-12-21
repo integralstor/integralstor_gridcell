@@ -52,7 +52,6 @@
   </div>
 </div>
 
-<p style="color:red;"> {{error}}</p>
 
 {% if no_vols %}
 {% if op == "vol_stop" or op == "expand_volume" or op ==  "start_rebalance" %}
@@ -115,7 +114,13 @@ Volume specific operation
 
 {% block tab_active %}
   <script>
+  {% if op == 'vol_delete' or op ==  'expand_volume' or op == 'vol_quota' or op ==  'vol_stop' or op == 'vol_start' or op == 'start_rebalance' or op == 'check_rebalance' or op ==  'stop_rebalance' or op ==  'enable_quota' or op == 'vol_options' or op ==  'disable_quota'%}
+    make_tab_active('volume_configuration_tab')
+  {% elif op == 'rotate_log' %}
+    make_tab_active('volume_log_rotate_tab')
+  {% elif op == 'view_snapshots' %}
     make_tab_active('snapshot_view_tab')
+  {% endif %}
   </script>
 {% endblock %}
 

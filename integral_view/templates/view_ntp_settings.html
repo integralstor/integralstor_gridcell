@@ -7,16 +7,11 @@
 {%block inside_content%}
 <br><br>
 
-{% if error %}
-
-<p id="p-error-text"> Error loading NTP settings : {{error}}. You have perhaps not configured NTP.</p><br>
-<a href="/configure_ntp_settings/" role="button" class="btn btn-default">Configure NTP settings</a>
-
-{%elif not ntp_servers %}
+{%if not ntp_servers %}
 <p id="p-instructional-text"> You have not configured NTP.</p><br>
 <a href="/configure_ntp_settings/" role="button" class="btn btn-default">Configure NTP settings</a>
-
 {%else%}
+
 {% if saved %}
 <p id="p-instructional-text"> NTP settings have successfully been updated. </p><br>
 {%endif%}
@@ -39,8 +34,8 @@
 
 <a href="/configure_ntp_settings/" role="button" class="btn btn-primary">Modify</a>
 
-{%endif%}
 
+{%endif%}
 
 {%endblock%}
 {%block help_header%}

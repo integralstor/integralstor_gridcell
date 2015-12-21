@@ -31,8 +31,7 @@ def edit_integral_view_log_level(request):
         try:
           iv_logging.set_log_level(log_level)
         except Exception, e:
-          return_dict['error'] = 'Error setting log level : %s'%e
-          return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
+          raise Exception('Error setting log level : %s'%e)
         iv_logging.debug("Trying to change Integral View Log settings - changed log level")
         return django.http.HttpResponseRedirect("/show/integral_view_log_level?saved=1")
     else:
@@ -54,6 +53,11 @@ def download_vol_log(request):
 
   return_dict = {}
   try:
+    return_dict['base_template'] = "volume_log_base.html"
+    return_dict["page_title"] = 'Download volume logs'
+    return_dict['tab'] = 'volume_log_download_tab'
+    return_dict["error"] = 'Error downloading volume logs'
+
     vil, err = volume_info.get_volume_info_all()
     if err:
       raise Exception(err)
@@ -79,20 +83,16 @@ def download_vol_log(request):
           if err:
             raise Exception(err)
           if not v:
-            return_dict["error"] = "Could not retrieve volume info"
-            return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+            raise Exception("Could not retrieve volume info")
           brick = v["bricks"][0][0]
           if not brick:
-            return_dict["error"] = "Could not retrieve volume log location - no brick"
-            return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+            raise Exception("Could not retrieve volume log location - no brick")
           l = brick.split(':')
           if not l:
-            return_dict["error"] = "Could not retrieve volume log location - malformed brick 1"
-            return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+            raise Exception("Could not retrieve volume log location - malformed brick 1")
           l1 = l[1].split('/')
           if not l1:
-            return_dict["error"] = "Could not retrieve volume log location - malformed brick 2"
-            return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+            raise Exception("Could not retrieve volume log location - malformed brick 2")
           file_name = '/var/log/glusterfs/bricks/%s-%s-%s.log'%(l1[1], l1[2], vol_name)
         else:
           # this will return the same file that you are viewing now for download.
@@ -115,8 +115,7 @@ def download_vol_log(request):
           zf.write(file_name, arcname = display_name)
           zf.close()
         except Exception as e:
-          return_dict["error"] = "Error generating zip file : %s"%str(e)
-          return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+          raise Exception("Error generating zip file : %s"%str(e))
   
         response = django.http.HttpResponse()
         response['Content-disposition'] = 'attachment; filename=integralstor_gridcell_volume_%s_log_%s.zip'%(vol_name, dt_str)
@@ -155,6 +154,10 @@ def download_sys_log(request):
 
   return_dict = {}
   try:
+    return_dict['base_template'] = "system_log_base.html"
+    return_dict["page_title"] = 'Download system logs'
+    return_dict['tab'] = 'system_log_download_tab'
+    return_dict["error"] = 'Error downloading system logs'
     si, err = system_info.load_system_config()
     if err:
       raise Exception(err)
@@ -234,11 +237,12 @@ def download_sys_log(request):
 def rotate_log(request, log_type=None):
   return_dict = {}
   try:
+    return_dict['base_template'] = "system_log_base.html"
+    return_dict["error"] = 'Error rotating logs'
     if log_type not in ["alerts", "audit_trail"]:
       raise Exception("Unknown log type")
-      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
     if log_type == "alerts":
-      return_dict['tab'] = 'view_current_alerts_tab'
+      return_dict['tab'] = 'system_log_alert_tab'
       return_dict["page_title"] = 'Rotate system alerts log'
       ret, err = alerts.rotate_alerts()
       if err:
@@ -246,7 +250,7 @@ def rotate_log(request, log_type=None):
       return_dict["message"] = "Alerts log successfully rotated."
       return django.http.HttpResponseRedirect("/view_rotated_log_list/alerts?success=true")
     elif log_type == "audit_trail":
-      return_dict['tab'] = 'view_current_audit_tab'
+      return_dict['tab'] = 'system_log_view_current_audit_tab'
       return_dict["page_title"] = 'Rotate system audit trail'
       ret, err = audit.rotate_audit_trail()
       if err:
@@ -254,8 +258,6 @@ def rotate_log(request, log_type=None):
       return_dict["message"] = "Audit trail successfully rotated."
       return django.http.HttpResponseRedirect("/view_rotated_log_list/audit_trail/?success=true")
   except Exception, e:
-    return_dict['base_template'] = "logging_base.html"
-    return_dict["error"] = 'Error rotating log'
     return_dict["error_details"] = str(e)
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
   
@@ -264,12 +266,13 @@ def view_rotated_log_list(request, log_type):
 
   return_dict = {}
   try:
+    return_dict['base_template'] = "system_log_base.html"
     if log_type not in ["alerts", "audit_trail"]:
       raise Exception("Unknown log type")
     l = None
     if log_type == "alerts":
       return_dict["page_title"] = 'View rotated alerts logs'
-      return_dict['tab'] = 'view_rotated_alert_log_list_tab'
+      return_dict['tab'] = 'system_log_view_older_alerts_tab'
       return_dict["page_header"] = "Logging"
       return_dict["page_sub_header"] = "View historical alerts log"
       l, err = alerts.get_log_file_list()
@@ -277,7 +280,7 @@ def view_rotated_log_list(request, log_type):
         raise Exception(err)
     elif log_type == "audit_trail":
       return_dict["page_title"] = 'View rotated audit trail logs'
-      return_dict['tab'] = 'view_rotated_audit_log_list_tab'
+      return_dict['tab'] = 'system_log_view_older_audit_tab'
       return_dict["page_header"] = "Logging"
       return_dict["page_sub_header"] = "View historical audit log"
       l, err = audit.get_log_file_list()
@@ -288,7 +291,6 @@ def view_rotated_log_list(request, log_type):
     return_dict["log_file_list"] = l
     return django.shortcuts.render_to_response('view_rolled_log_list.html', return_dict, context_instance = django.template.context.RequestContext(request))
   except Exception, e:
-    return_dict['base_template'] = "logging_base.html"
     return_dict["error"] = 'Error displaying rotated log list'
     return_dict["error_details"] = str(e)
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
@@ -297,6 +299,8 @@ def view_rotated_log_file(request, log_type):
 
   return_dict = {}
   try:
+    return_dict['base_template'] = "volume_log_base.html"
+    return_dict["page_title"] = 'View rotated log files'
     if not log_type:
       raise Exception('Unspecified log type')
 
@@ -315,6 +319,7 @@ def view_rotated_log_file(request, log_type):
       l, err = alerts.load_alerts(file_name)
       if err:
         raise Exception(err)
+      return_dict['tab'] = 'system_log_view_older_alerts_tab'
       return_dict["alerts_list"] = l
       return_dict["historical"] = True
       return django.shortcuts.render_to_response('view_alerts.html', return_dict, context_instance = django.template.context.RequestContext(request))
@@ -322,10 +327,12 @@ def view_rotated_log_file(request, log_type):
       d, err = audit.get_lines(file_name)
       if err:
         raise Exception(err)
+      return_dict['tab'] = 'system_log_view_older_audit_tab'
       return_dict["audit_list"] = d
       return_dict["historical"] = True
       return django.shortcuts.render_to_response('view_audit_trail.html', return_dict, context_instance = django.template.context.RequestContext(request))
   except Exception, e:
+    return_dict["error"] = 'Error viewing rotated log files'
     s = str(e)
     if "Another transaction is in progress".lower() in s.lower():
       return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"

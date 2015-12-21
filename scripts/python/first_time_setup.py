@@ -309,18 +309,20 @@ def establish_default_configuration(client, si):
 
     # The initial add_nodes created the initial nodes file. So move this into the admin vol and link it all          
 
+    print "Linking CTDB nodes files"
     shutil.move('/etc/ctdb/nodes', '%s/lock/nodes'%config_dir)
-    r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/ctdb/nodes'])
+    r2 = client.cmd('*', 'cmd.run_all', ['rm -f /etc/ctdb/nodes'])
     r2 = client.cmd('*', 'cmd.run_all', ['ln -s %s/lock/nodes /etc/ctdb/nodes'%config_dir])
     if r2:
       for node, ret in r2.items():
         if ret["retcode"] != 0:
           errors = "Error linking to the CTDB nodes file on %s"%node
           raise Exception(errors)
+    print "Linking CTDB nodes files. Done.."
 
     print "Linking smb.conf files"
     shutil.copyfile('%s/samba/smb.conf'%defaults_dir,'%s/lock/smb.conf'%config_dir)
-    r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/samba/smb.conf'])
+    r2 = client.cmd('*', 'cmd.run_all', ['rm -f /etc/samba/smb.conf'])
     r2 = client.cmd('*', 'cmd.run_all', ['ln -s %s/lock/smb.conf /etc/samba/smb.conf'%config_dir])
     if r2:
       for node, ret in r2.items():

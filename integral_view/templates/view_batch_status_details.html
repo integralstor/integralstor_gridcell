@@ -123,3 +123,9 @@ Batch processes details
 {%block help_body%}
   <p>Anytime an action is performed from IntegralView that requires potentially large movement of data, a background process is scheduled in order to perform this action. The background processes are processed every minute. This page lists the details and status of one such background processes. </p>
 {%endblock%}
+{% block tab_active %}
+  <script>
+    make_tab_active('volume_background_tab')
+  </script>
+{% endblock %}
+

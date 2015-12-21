@@ -52,3 +52,8 @@ Volume specific operation - confirmation
 {%block help_body%}
 <p> This confirmation screen is being displayed because this operation will either cause a data access disruption or removal of data. Please ensure that this is the intended operation before proceeding. </p>
 {%endblock%}
+{% block tab_active %}
+  <script>
+    make_tab_active('volume_configuration_tab')
+  </script>
+{% endblock %}

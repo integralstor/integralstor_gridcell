@@ -1,4 +1,4 @@
-{% extends '{{extends_base}}' %}
+{% extends base_template %}
 
 {%block tab_header%}
     {%if op == "vol_stop"%}
@@ -67,3 +67,12 @@ Debug info - end <br><br>
 <p>This screen displays the result of a stop volume rebalance operation</p>
 {%endif%}
 {%endblock%}
+{% block tab_active %}
+  <script>
+{% if op == 'vol_start' or op == 'start_rebalance' or op == 'stop_rebalance' or op == 'check_rebalance' or op == 'vol_stop' or op == 'vol_delete' or op == 'enable_quota' or op == 'disable_quota' or op == 'vol_expand'%}
+    make_tab_active('volume_configuration_tab')
+{% elif op == 'rotate_log' %}
+    make_tab_active('volume_log_rotate_tab')
+{% endif%}
+  </script>
+{% endblock %}

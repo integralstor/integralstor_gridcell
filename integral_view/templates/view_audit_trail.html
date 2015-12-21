@@ -67,6 +67,10 @@ Audit trail
 {%endblock%}
 {% block tab_active %}
   <script>
+  {%if historical %}
+    make_tab_active('system_log_view_older_audit_tab')
+  {%else%}
     make_tab_active('system_log_view_current_audit_tab')
+  {%endif%}
   </script>
 {% endblock %}

@@ -69,3 +69,15 @@ Volume operations - result
 {%block help_body%}
 <p>This screen provides the results specific volume operations.</p>
 {%endblock%}
+
+{% block tab_active %}
+  <script>
+{% if op == 'add_server' or op ==  'remove_server' or op ==  'view_server_status' %}
+    make_tab_active('gridcell_list_tab')
+{% elif op == 'vol_start' or op == 'start_rebalance' or op == 'stop_rebalance' or op ==  'check_rebalance' or op ==  'vol_stop' or op ==  'vol_delete' or op ==  'enable_quota' or op == 'disable_quota' or op ==  'expand_volume' %}
+    make_tab_active('volume_configuration_tab')
+{% elif op == 'rotate_log' %}
+    make_tab_active('volume_log_rotate_tab')
+{% endif%}
+  </script>
+{% endblock %}

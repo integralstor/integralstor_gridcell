@@ -17,6 +17,10 @@ def add_nodes_to_pool(request):
 
   return_dict = {}
   try:
+    return_dict['base_template'] = "gridcell_base.html"
+    return_dict["page_title"] = 'Add GRIDCells to the storage pool'
+    return_dict['tab'] = 'gridcell_list_tab'
+    return_dict["error"] = 'Error adding GRIDCells to the storage pool'
     error_list = []
   
     si, err = system_info.load_system_config()
@@ -82,9 +86,9 @@ def add_nodes_to_pool(request):
   except Exception, e:
     s = str(e)
     if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
     else:
-      return_dict["error"] = "An error occurred when processing your request : %s"%s
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
 
@@ -93,6 +97,11 @@ def add_a_node_to_pool(request):
 
   return_dict = {}
   try:
+    return_dict['base_template'] = "gridcell_base.html"
+    return_dict["page_title"] = 'Add a GRIDCell to the storage pool'
+    return_dict['tab'] = 'gridcell_list_tab'
+    return_dict["error"] = 'Error adding a GRIDCell to the storage pool'
+
     error_list = []
   
     if request.method != 'POST':
@@ -130,15 +139,20 @@ def add_a_node_to_pool(request):
   except Exception, e:
     s = str(e)
     if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
     else:
-      return_dict["error"] = "An error occurred when processing your request : %s"%s
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
 def remove_node_from_pool(request):
 
   return_dict = {}
   try:
+    return_dict['base_template'] = "gridcell_base.html"
+    return_dict["page_title"] = 'Remove a GRIDCell from the storage pool'
+    return_dict['tab'] = 'gridcell_list_tab'
+    return_dict["error"] = 'Error removing a GRIDCell from the storage pool'
+
     vil, err = volume_info.get_volume_info_all()
     if err:
       raise Exception(err)
@@ -200,9 +214,9 @@ def remove_node_from_pool(request):
   except Exception, e:
     s = str(e)
     if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
     else:
-      return_dict["error"] = "An error occurred when processing your request : %s"%s
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
 

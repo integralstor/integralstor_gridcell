@@ -72,13 +72,13 @@ def show(request, page, info = None):
 
     elif page == "ntp_settings":
 
+      return_dict['base_template'] = "services_base.html"
+      return_dict["page_title"] = 'View NTP settings'
+      return_dict['tab'] = 'service_ntp_tab'
+      return_dict["error"] = 'Error viewing NTP settings'
       template = "view_ntp_settings.html"
       ntp_servers, err = ntp.get_ntp_servers()
       if err:
-        return_dict['base_template'] = "services_base.html"
-        return_dict["page_title"] = 'View NTP settings'
-        return_dict['tab'] = 'service_ntp_tab'
-        return_dict["error"] = 'Error viewing NTP settings'
         raise Exception(err)
       return_dict["ntp_servers"] = ntp_servers
       if "saved" in request.REQUEST:
@@ -214,6 +214,11 @@ def show(request, page, info = None):
 
     elif page == "volume_status":
 
+      return_dict['base_template'] = "volume_base.html"
+      return_dict["page_title"] = 'View volume status'
+      return_dict['tab'] = 'volume_configuration_tab'
+      return_dict["error"] = 'Error loading volume status'
+
       vol, err = volume_info.get_volume_info(vil, info)
       if err:
         raise Exception(err)
@@ -232,6 +237,11 @@ def show(request, page, info = None):
           
     elif page == "node_status":
       
+      return_dict['base_template'] = "gridcell_base.html"
+      return_dict["page_title"] = 'View GRIDCell status'
+      return_dict['tab'] = 'gridcell_list_tab'
+      return_dict["error"] = 'Error loading GRIDCell status'
+
       template = "view_node_status.html"
 
       if "from" in request.GET:
@@ -242,22 +252,32 @@ def show(request, page, info = None):
       if err:
         raise Exception(err)
 
-      sorted_disks = []
-      for key,value in sorted(si[info]["disks"].iteritems(), key=lambda (k,v):v["position"]):
-        sorted_disks.append(key)
-      si[info]["disk_pos"] = sorted_disks
       return_dict['node'] = si[info]
       client = salt.client.LocalClient()
       ctdb = client.cmd(info,'cmd.run',['service ctdb status'])
       winbind = client.cmd(info,'cmd.run',['service winbind status'])
       gluster = client.cmd(info,'cmd.run',['service glusterd status'])
-      return_dict['ctdb'] = ctdb[info]
-      return_dict['winbind'] = winbind[info]
-      return_dict['gluster'] = gluster[info]
+      if ctdb:
+        return_dict['ctdb'] = ctdb[info]
+      else:
+        return_dict['ctdb'] = None
+      if winbind:
+        return_dict['winbind'] = winbind[info]
+      else:
+        return_dict['winbind'] = None
+      if gluster:
+        return_dict['gluster'] = gluster[info]
+      else:
+        return_dict['gluster'] = None
       return_dict['node_name'] = info
       return_dict['vol_list'] = vol_list
 
     elif page == "node_info":
+
+      return_dict['base_template'] = "gridcell_base.html"
+      return_dict["page_title"] = 'View GRIDCell information'
+      return_dict['tab'] = 'gridcell_list_tab'
+      return_dict["error"] = 'Error loading GRIDCell information'
 
       template = "view_node_info.html"
       if "from" in request.GET:
@@ -275,8 +295,7 @@ def show(request, page, info = None):
     elif page=="manifest":
       #Read a generated manifest file and display the results.
       if "manifest" not in request.GET:
-        return_dict['error'] = 'Invalid request. No manifest file specified'
-        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance=django.template.context.RequestContext(request))
+        raise Exception('Invalid request. No manifest file specified')
       manifest = request.GET["manifest"]
       ss_path, err = common.get_system_status_path()
       if err:
@@ -290,6 +309,11 @@ def show(request, page, info = None):
       
           
     elif page == "iscsi_auth_access_info":
+      return_dict['base_template'] = "shares_and_targets_base.html"
+      return_dict["page_title"] = 'View ISCSI authorized access info'
+      return_dict['tab'] = 'volume_configuration_tab'
+      return_dict["error"] = 'Error loading ISCSI authorized access info'
+
       if 'id' not in request.GET:
         raise Exception('Invalid request. No auth access id specified')
 
@@ -309,6 +333,10 @@ def show(request, page, info = None):
       return django.http.HttpResponse("%s"%istr)
 
     elif page == "iscsi_initiator_info":
+      return_dict['base_template'] = "shares_and_targets_base.html"
+      return_dict["page_title"] = 'View ISCSI initiator info'
+      return_dict['tab'] = 'volume_configuration_tab'
+      return_dict["error"] = 'Error loading ISCSI initiator info'
       if 'id' not in request.GET:
         raise Exception('Invalid request. No initiator access id specified')
 
@@ -326,6 +354,12 @@ def show(request, page, info = None):
       template = "view_system_config.html"
 
     elif page == 'gridcells':
+
+      return_dict['base_template'] = "gridcell_base.html"
+      return_dict["page_title"] = 'View GRIDCell information'
+      return_dict['tab'] = 'gridcell_list_tab'
+      return_dict["error"] = 'Error loading GRIDCell information'
+
       if 'action' in request.GET:
         if action == 'added_to_storage_pool':
           return_dict['message'] = 'Successfully added GRIDCell to the storage pool'
@@ -353,8 +387,14 @@ def show(request, page, info = None):
       if pending_minions:
         return_dict['pending_minions'] = pending_minions
       template = 'view_gridcells.html'
+
     elif page == "system_status":
-     #Disk Status page and system status page has been integrated.
+
+      return_dict['base_template'] = "gridcell_base.html"
+      return_dict["page_title"] = 'View system status'
+      return_dict['tab'] = 'gridcell_list_tab'
+      return_dict["error"] = 'Error loading system status'
+      #Disk Status page and system status page has been integrated.
 
       #Get the disk status
       disk_status = {}
@@ -498,6 +538,11 @@ def show(request, page, info = None):
 
     elif page == "alerts":
 
+      return_dict['base_template'] = "system_log_base.html"
+      return_dict["page_title"] = 'View alerts'
+      return_dict['tab'] = 'system_log_alert_tab'
+      return_dict["error"] = 'Error loading system alerts'
+
       template = "view_alerts.html"
       alerts_list, err = alerts.load_alerts()
       if err:
@@ -505,6 +550,10 @@ def show(request, page, info = None):
       return_dict['alerts_list'] = alerts_list
 
     elif page == "volume_info_all":
+      return_dict['base_template'] = "volume_base.html"
+      return_dict["page_title"] = 'View volume info'
+      return_dict['tab'] = 'volume_configuration_tab'
+      return_dict["error"] = 'Error loading volume info'
 
       template = "view_volume_info_all.html"
       return_dict['volume_info_list'] = vil
@@ -514,6 +563,11 @@ def show(request, page, info = None):
       return_dict['iscsi_volumes'] = ivl
 
     elif page == "volume_status_all":
+
+      return_dict['base_template'] = "volume_base.html"
+      return_dict["page_title"] = 'View volume status'
+      return_dict['tab'] = 'volume_configuration_tab'
+      return_dict["error"] = 'Error loading volume status'
 
       template = "view_volume_status_all.html"
       return_dict['volume_info_list'] = vil
@@ -566,7 +620,7 @@ def refresh_alerts(request, random=None):
       message = "View alerts"
       return  django.http.HttpResponse("No New Alerts")
   except Exception, e:
-    return_dict["error"] = "An error occurred when processing your request : %s"%str(e)
+    return_dict["error_details"] = "An error occurred when processing your request : %s"%str(e)
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
 @login_required
@@ -592,6 +646,11 @@ def configure_ntp_settings(request):
 
   return_dict = {}
   try:
+    return_dict['base_template'] = "services_base.html"
+    return_dict["page_title"] = 'Configure NTP settings'
+    return_dict['tab'] = 'service_ntp_tab'
+    return_dict["error"] = 'Error configuring NTP settings'
+
     admin_vol_mountpoint, err = common.get_config_dir()
     if err:
       raise Exception(err)
@@ -654,9 +713,9 @@ def configure_ntp_settings(request):
   except Exception, e:
     s = str(e)
     if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
     else:
-      return_dict["error"] = "An error occurred when processing your request : %s"%s
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
 
@@ -667,9 +726,13 @@ def flag_node(request):
 
   try:
     return_dict = {}
+    return_dict['base_template'] = "gridcell_base.html"
+    return_dict["page_title"] = 'Activate GRIDCell identification light'
+    return_dict['tab'] = 'gridcell_list_tab'
+    return_dict["error"] = 'Error activating GRIDCell identification light'
+
     if "node" not in request.GET:
-      return_dict["error"] = "Error flagging node. No node specified"
-      return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance = django.template.context.RequestContext(request))
+      raise Exception("Error flagging node. No node specified")
 
     node_name = request.GET["node"]
 
@@ -683,7 +746,7 @@ def flag_node(request):
       raise Exception('Error flagging GRIDCell %s'%node_name)
   except Exception, e:
     s = str(e)
-    return_dict["error"] = "An error occurred when processing your request : %s"%s
+    return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
     
@@ -714,8 +777,7 @@ def reset_to_factory_defaults(request):
       try :
         shutil.copyfile("%s/factory_defaults/ntp.conf"%defaults_path, '%s/ntp.conf'%ntp_conf_path)
       except Exception, e:
-        return_dict["error"] = "Error reseting NTP configuration : %s"%e
-        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+        raise Exception("Error reseting NTP configuration : %s"%e)
   
       #Remove email settings
       ret, err = mail.delete_email_settings()
@@ -731,28 +793,24 @@ def reset_to_factory_defaults(request):
         cifs_common.delete_all_shares()
       except Exception, e:
         #print str(e)
-        return_dict["error"] = "Error deleting shares : %s."%e
-        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+        raise Exception("Error deleting shares : %s."%e)
   
       try:
         cifs_common.delete_auth_settings()
       except Exception, e:
-        return_dict["error"] = "Error deleting CIFS authentication settings : %s."%e
-        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+        raise Exception("Error deleting CIFS authentication settings : %s."%e)
       try:
         request.user.set_password("admin");
         request.user.save()
       except Exception, e:
-        return_dict["error"] = "Error resetting admin password: %s."%e
-        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+        raise Exception("Error resetting admin password: %s."%e)
   
   
       #Reset the alerts file
       try :
         shutil.copyfile("%s/factory_defaults/alerts.log"%defaults_path, '%s/alerts.log'%alerts_path)
       except Exception, e:
-        return_dict["error"] = "Error reseting alerts : %s."%e
-        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+        raise Exception("Error reseting alerts : %s."%e)
   
       #Reset all batch jobs
       try :
@@ -760,8 +818,7 @@ def reset_to_factory_defaults(request):
         for fname in l:
           os.remove("%s/%s"%(batch_files_path, fname))
       except Exception, e:
-        return_dict["error"] = "Error removing scheduled batch jobs : %s."%e
-        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+        raise Exception("Error removing scheduled batch jobs : %s."%e)
   
       try:
         iscsi.reset_global_target_conf()
@@ -770,8 +827,7 @@ def reset_to_factory_defaults(request):
         iscsi.delete_all_auth_access_groups()
         iscsi.delete_all_auth_access_users()
       except Exception, e:
-        return_dict["error"] = "Error resetting ISCSI configuration : %s."%e
-        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+        raise Exception("Error resetting ISCSI configuration : %s."%e)
   
       try:
         # Create commands to stop and delete volumes. Remove peers from cluster.
@@ -793,8 +849,7 @@ def reset_to_factory_defaults(request):
           return_dict["error"] = "Error initiating a reset to system factory defaults : %s"%d["error"]
           return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
       except Exception, e:
-        return_dict["error"] = "Error creating factory defaults reset batch file : %s."%e
-        return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+        raise Exception("Error creating factory defaults reset batch file : %s."%e)
   except Exception, e:
     s = str(e)
     if "Another transaction is in progress".lower() in s.lower():
@@ -809,6 +864,10 @@ def hardware_scan(request):
 
   return_dict = {}
   try:
+    return_dict['base_template'] = "gridcell_base.html"
+    return_dict["page_title"] = 'Scan for new GRIDCells'
+    return_dict['tab'] = 'gridcell_list_tab'
+    return_dict["error"] = 'Error scanning for new GRIDCells'
     url = 'add_nodes_form.html'
     iv_logging.info("Hardware scan initiated")
   

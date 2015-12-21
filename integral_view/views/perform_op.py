@@ -18,6 +18,26 @@ def perform_op(request, op, name1=None, name2= None):
 
   return_dict = {}
   try:
+    # Now only handles the following ops : vol_start, rotate_log, check_rebalance, stop_rebalance, vol_stop
+
+    if not op:
+      raise Exception("Operation not specified")
+
+    if op in ['vol_start', 'vol_stop', 'check_rebalance', 'stop_rebalance']:
+      return_dict['base_template'] = "volume_base.html"
+      return_dict['tab'] = 'volume_configuration_tab'
+      if op == 'vol_start':
+        return_dict["page_title"] = 'Start a volume'
+        return_dict["error"] = 'Error starting volume'
+      elif op == 'vol_stop':
+        return_dict["page_title"] = 'Stop a volume'
+        return_dict["error"] = 'Error stopping volume'
+    elif op == 'rotate_log':
+      return_dict['base_template'] = "volume_log_base.html"
+      return_dict['tab'] = 'volume_log_rotate_tab'
+      return_dict["page_title"] = 'Rotate volume log'
+      return_dict["error"] = 'Error rotating volume log'
+
     si, err = system_info.load_system_config()
     if err:
       raise Exception(err)
@@ -26,14 +46,10 @@ def perform_op(request, op, name1=None, name2= None):
   
     # Actual cmd processing begins
   
-    #By default show error page
-    template = "logged_in_error.html"
-  
-    if not op:
-      raise Exception("Operation not specified")
   
     audit_code = None
     audit_str = None
+    '''
     if op == 'add_server':
       cmd = 'gluster peer probe '+hostname
     elif op == 'remove_server':
@@ -47,11 +63,6 @@ def perform_op(request, op, name1=None, name2= None):
     elif op == 'enable_quota':
       cmd = 'gluster volume quota %s enable'%name1
       return_dict['base_template'] = 'volume_base.html'
-    elif op == 'vol_stop':
-      cmd = 'gluster volume stop %s force'%name1
-      audit_code = "vol_stop"
-      audit_str = "Stopped volume %s"%name1
-      return_dict['base_template'] = 'volume_base.html'
     elif op == 'vol_delete':
       cmd = 'gluster volume delete %s force'%name1
       return_dict['base_template'] = 'volume_base.html'
@@ -60,6 +71,21 @@ def perform_op(request, op, name1=None, name2= None):
       audit_code = "vol_rebalance_start"
       audit_str = "Started volume rebalance for volume %s"%name1
       return_dict['base_template'] = 'volume_base.html'
+    elif op == 'disable_quota':
+      cmd = 'gluster volume quota %s disable'%name1
+      return_dict['base_template'] = 'volume_base.html'
+    elif op == 'display_disk_level_quota':
+      cmd = 'gluster volume quota %s list'%name1
+      return_dict['base_template'] = 'volume_base.html'
+    elif op == 'expand_volume':
+      cmd = 'gluster volume add brick %s %s'%(name1, urllib.unquote(name2))
+      return_dict['base_template'] = 'volume_base.html'
+    '''
+    if op == 'vol_stop':
+      cmd = 'gluster volume stop %s force'%name1
+      audit_code = "vol_stop"
+      audit_str = "Stopped volume %s"%name1
+      return_dict['base_template'] = 'volume_base.html'
     elif op == 'stop_rebalance':
       cmd = 'gluster volume rebalance %s stop'%name1
       audit_code = "vol_rebalance_stop"
@@ -67,12 +93,6 @@ def perform_op(request, op, name1=None, name2= None):
       return_dict['base_template'] = 'volume_base.html'
     elif op == 'check_rebalance':
       cmd = 'gluster volume rebalance %s status'%name1
-      return_dict['base_template'] = 'volume_base.html'
-    elif op == 'disable_quota':
-      cmd = 'gluster volume quota %s disable'%name1
-      return_dict['base_template'] = 'volume_base.html'
-    elif op == 'display_disk_level_quota':
-      cmd = 'gluster volume quota %s list'%name1
       return_dict['base_template'] = 'volume_base.html'
     elif op == 'vol_start':
       cmd = 'gluster volume start %s '%name1
@@ -84,9 +104,6 @@ def perform_op(request, op, name1=None, name2= None):
       audit_code = "log_rotate"
       audit_str = "Rotated log for volume %s"%name1
       return_dict['base_template'] = 'volume_log_base.html'
-    elif op == 'expand_volume':
-      cmd = 'gluster volume add brick %s %s'%(name1, urllib.unquote(name2))
-      return_dict['base_template'] = 'volume_base.html'
     else:
       raise Exception("Unknown operation specified")
   
@@ -131,7 +148,8 @@ def perform_op(request, op, name1=None, name2= None):
         ret, err = audit.audit(audit_code, audit_str, request.META["REMOTE_ADDR"])
         if err:
           raise Exception(err)
-      if op in ['vol_stop', 'vol_delete', 'disable_quota']:
+      #if op in ['vol_stop', 'vol_delete', 'disable_quota']:
+      if op == 'vol_stop':
         tup, err = command.execute_with_conf(cmd)
         if err:
           raise Exception(err)
@@ -156,6 +174,7 @@ def perform_op(request, op, name1=None, name2= None):
       if o:
         return_dict['cmd_output'] = o
       
+      '''
       if op == 'view_volume_status_all':
         # Need to execute two cmds for this case!
         cmd = 'gluster volume status all detail'
@@ -179,6 +198,7 @@ def perform_op(request, op, name1=None, name2= None):
             return_dict['cmd_output'] = o
           else:
             return_dict['cmd_output'] = o1
+      '''
   
       return_dict['op'] = op
 
@@ -189,9 +209,10 @@ def perform_op(request, op, name1=None, name2= None):
     return django.shortcuts.render_to_response(template, return_dict, context_instance = django.template.context.RequestContext(request))
   except Exception, e:
     s = str(e)
+    print s
     if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
     else:
-      return_dict["error"] = "An error occurred when processing your request : %s"%s
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 

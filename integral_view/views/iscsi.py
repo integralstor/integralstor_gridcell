@@ -522,7 +522,11 @@ def iscsi_view_target_global_config(request):
     if "Another transaction is in progress".lower() in s.lower():
       return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
     else:
+      return_dict['base_template'] = "logged_in_base.html"
+      return_dict["page_title"] = 'Modify ownership/permissions on a directory'
+      return_dict['tab'] = 'dir_permissions_tab'
       return_dict["error"] = "An error occurred when processing your request : %s"%s
+      return_dict["error_details"] = str(e)
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
     
@@ -545,7 +549,6 @@ def iscsi_edit_target_global_config(request):
       if "discovery_auth_method" not in init or not init["discovery_auth_method"]:
         init["discovery_auth_method"] = "None"
       form = iscsi_forms.TargetGlobalConfigForm(initial=init, auth_access_group_list = aal)
-      print init
       return_dict["form"] = form
       return django.shortcuts.render_to_response('edit_iscsi_target_global_config.html', return_dict, context_instance=django.template.context.RequestContext(request))
     else:

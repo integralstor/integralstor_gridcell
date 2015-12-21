@@ -18,3 +18,8 @@ Batch process confirmation help
 {%block help_body%}
   <p>Batch processes are initiated for operations that are not immediate and may involve large data movement. These processes are scheduled from IntegralView and a backend process will initiate the job within a minute. This is just a confirmation that the process has been scheduled for initiation.</p>
 {%endblock%}
+{% block tab_active %}
+  <script>
+    make_tab_active('volume_background_tab')
+  </script>
+{% endblock %}

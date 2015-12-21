@@ -22,8 +22,53 @@ def volume_specific_op(request, operation, vol_name=None):
 
   return_dict = {}
   try:
+    return_dict['base_template'] = "volume_base.html"
+    return_dict['tab'] = 'volume_configuration_tab'
+
     if not operation:
       raise Exception("Operation not specified.")
+
+    if operation == 'vol_start':
+      return_dict["page_title"] = 'Start a volume'
+      return_dict["error"] = 'Error starting a volume'
+    elif operation == 'vol_delete':
+      return_dict["page_title"] = 'Delete a volume'
+      return_dict["error"] = 'Error deleting a volume'
+    elif operation == 'vol_stop':
+      return_dict["page_title"] = 'Stop a volume'
+      return_dict["error"] = 'Error stopping a volume'
+    elif operation == 'expand_volume':
+      return_dict["page_title"] = 'Expand a volume'
+      return_dict["error"] = 'Error expanding a volume'
+    elif operation == 'start_rebalance':
+      return_dict["page_title"] = 'Start a volume rebalance'
+      return_dict["error"] = 'Error starting a volume rebalance'
+    elif operation == 'check_rebalance':
+      return_dict["page_title"] = 'Check a volume rebalance'
+      return_dict["error"] = 'Error checking a volume rebalance'
+    elif operation == 'stop_rebalance':
+      return_dict["page_title"] = 'Stop a volume rebalance'
+      return_dict["error"] = 'Error stopping a volume rebalance'
+    elif operation == 'vol_quota':
+      return_dict["page_title"] = 'Set volume quota'
+      return_dict["error"] = 'Error setting volume quota'
+    elif operation == 'vol_options':
+      return_dict["page_title"] = 'Set volume options'
+      return_dict["error"] = 'Error setting volume options'
+    elif operation == 'create_volume_dir':
+      return_dict["page_title"] = 'Create a directory in a volume'
+      return_dict["error"] = 'Error creatiing a directory in volume'
+      return_dict['tab'] = 'create_volume_dir_tab'
+    elif operation == 'rotate_log':
+      return_dict['base_template'] = "volume_log_base.html"
+      return_dict['tab'] = 'volume_log_rotate_tab'
+      return_dict["page_title"] = 'Rotate volume log'
+      return_dict["error"] = 'Error rotating volume log'
+    elif operation == 'view_snapshots':
+      return_dict['base_template'] = "snapshot_base.html"
+      return_dict['tab'] = 'snapshot_view_tab'
+      return_dict["page_title"] = 'View volume snapshots'
+      return_dict["error"] = 'Error viewing volume snapshots'
   
     return_dict['op'] = operation
     form = None
@@ -130,8 +175,7 @@ def volume_specific_op(request, operation, vol_name=None):
           
           return django.shortcuts.render_to_response('create_volume_dir.html', return_dict, context_instance=django.template.context.RequestContext(request))  
         else:
-          return_dict["error"] = "Directory creation error %s. Please try again"%(path+dir_name)
-          return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+          raise Exception("Directory creation error %s. Please try again"%(path+dir_name))
       else:
         l = []
         for v in vil:
@@ -228,8 +272,7 @@ def volume_specific_op(request, operation, vol_name=None):
               raise Exception(err)
             return django.http.HttpResponseRedirect('/show/batch_start_conf/%s'%d["file_name"])
           else:
-            return_dict["error"] = "Error initiating rebalance : %s"%d["error"]
-            return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+            raise Exception("Error initiating rebalance : %s"%d["error"])
   
         elif operation in ['vol_start', 'rotate_log', 'check_rebalance', 'stop_rebalance']:
           return django.http.HttpResponseRedirect('/perform_op/%s/%s'%(operation, vol_name))
@@ -251,8 +294,7 @@ def volume_specific_op(request, operation, vol_name=None):
           if err:
             raise Exception(err)
           if "error" in d:
-            return_dict["error"] = "Error expanding the volume : %s"%d["error"]
-            return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+            raise Exception("Error expanding the volume : %s"%d["error"])
           iv_logging.debug("Expand volume node list %s for volume %s"%(d['node_list'], vol["name"]))
   
           return_dict['cmd'] = d['cmd']
@@ -282,9 +324,9 @@ def volume_specific_op(request, operation, vol_name=None):
   except Exception, e:
     s = str(e)
     if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
     else:
-      return_dict["error"] = "An error occurred when processing your request : %s"%s
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
 
@@ -292,6 +334,10 @@ def create_snapshot(request):
 
   return_dict = {}
   try:
+    return_dict['base_template'] = "snapshot_base.html"
+    return_dict['tab'] = 'snapshot_create_tab'
+    return_dict["page_title"] = 'Create a volume snapshot'
+    return_dict["error"] = 'Error creating volume snapshot'
     vil, err = volume_info.get_volume_info_all()
     if err:
       raise Exception(err)
@@ -333,20 +379,24 @@ def create_snapshot(request):
               err += d["op_status"]["op_errstr"]
         else:
           err += "The snapshot command did not return a result. Please try again."
-      return_dict["error"] = err
-      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+        raise Exception(err)
   except Exception, e:
     s = str(e)
     if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
     else:
-      return_dict["error"] = "An error occurred when processing your request : %s"%s
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
 def delete_snapshot(request):
 
   return_dict = {}
   try:
+    return_dict['base_template'] = "snapshot_base.html"
+    return_dict['tab'] = 'snapshot_view_tab'
+    return_dict["page_title"] = 'Delete a volume snapshot'
+    return_dict["error"] = 'Error deleting a volume snapshot'
+
     if request.method == "GET":
       # Disallowed GET method so return error.
       return_dict["error"] = "Invalid request. Please use the menu options."
@@ -389,9 +439,9 @@ def delete_snapshot(request):
   except Exception, e:
     s = str(e)
     if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
     else:
-      return_dict["error"] = "An error occurred when processing your request : %s"%s
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
 
@@ -399,8 +449,11 @@ def restore_snapshot(request):
 
   return_dict = {}
   try:
+    return_dict['base_template'] = "snapshot_base.html"
+    return_dict['tab'] = 'snapshot_view_tab'
+    return_dict["page_title"] = 'Restore a volume snapshot'
+    return_dict["error"] = 'Error restoring a volume snapshot'
     form = None
-    template = "logged_in_error.html"
   
     if request.method == "GET":
       # Disallowed GET method so return error.
@@ -446,9 +499,9 @@ def restore_snapshot(request):
   except Exception, e:
     s = str(e)
     if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
     else:
-      return_dict["error"] = "An error occurred when processing your request : %s"%s
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
           
@@ -456,8 +509,11 @@ def deactivate_snapshot(request):
 
   return_dict = {}
   try:
+    return_dict['base_template'] = "snapshot_base.html"
+    return_dict['tab'] = 'snapshot_view_tab'
+    return_dict["page_title"] = 'Deactivate a volume snapshot'
+    return_dict["error"] = 'Error deactivating a volume snapshot'
     form = None
-    template = "logged_in_error.html"
   
     if request.method == "GET":
       # Disallowed GET method so return error.
@@ -501,17 +557,20 @@ def deactivate_snapshot(request):
   except Exception, e:
     s = str(e)
     if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
     else:
-      return_dict["error"] = "An error occurred when processing your request : %s"%s
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
 def activate_snapshot(request):
 
   return_dict = {}
   try:
+    return_dict['base_template'] = "snapshot_base.html"
+    return_dict['tab'] = 'snapshot_view_tab'
+    return_dict["page_title"] = 'Activate a volume snapshot'
+    return_dict["error"] = 'Error activating a volume snapshot'
     form = None
-    template = "logged_in_error.html"
   
     if request.method == "GET":
       # Disallowed GET method so return error.
@@ -550,9 +609,9 @@ def activate_snapshot(request):
   except Exception, e:
     s = str(e)
     if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
     else:
-      return_dict["error"] = "An error occurred when processing your request : %s"%s
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
 
@@ -561,6 +620,11 @@ def set_volume_options(request):
 
   return_dict = {}
   try:
+    return_dict['base_template'] = "volume_base.html"
+    return_dict['tab'] = 'volume_configuration_tab'
+    return_dict["page_title"] = 'Set volume options'
+    return_dict["error"] = 'Error setting volume options'
+
     if request.method == "GET":
       # Disallowed GET method so return error.
       raise Exception("Invalid request. Please use the menu options.")
@@ -586,15 +650,19 @@ def set_volume_options(request):
   except Exception, e:
     s = str(e)
     if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
     else:
-      return_dict["error"] = "An error occurred when processing your request : %s"%s
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
 
 def set_volume_quota(request):
   return_dict = {}
   try:
+    return_dict['base_template'] = "volume_base.html"
+    return_dict['tab'] = 'volume_configuration_tab'
+    return_dict["page_title"] = 'Set volume quota'
+    return_dict["error"] = 'Error setting volume quota'
     if request.method == "GET":
       # Disallowed GET method so return error.
       raise Exception("Invalid request. Please use the menu options.")
@@ -618,6 +686,7 @@ def set_volume_quota(request):
     ol, err = gluster_commands.set_volume_quota(cd["vol_name"], enable_quota, cd["set_quota"], cd["limit"], cd["unit"])
     if err:
       raise Exception(err)
+    print ol, err
     if ol:
       for d in ol:
         if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
@@ -632,9 +701,9 @@ def set_volume_quota(request):
   except Exception, e:
     s = str(e)
     if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
     else:
-      return_dict["error"] = "An error occurred when processing your request : %s"%s
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
   
@@ -642,6 +711,10 @@ def delete_volume(request):
 
   return_dict = {}
   try:
+    return_dict['base_template'] = "volume_base.html"
+    return_dict['tab'] = 'volume_configuration_tab'
+    return_dict["page_title"] = 'Delete a volume'
+    return_dict["error"] = 'Error deleting a volume'
     form = None
   
     vil, err = volume_info.get_volume_info_all()
@@ -726,9 +799,9 @@ def delete_volume(request):
   except Exception, e:
     s = str(e)
     if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
     else:
-      return_dict["error"] = "An error occurred when processing your request : %s"%s
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
 
@@ -736,6 +809,10 @@ def replace_node(request):
 
   return_dict = {}
   try:
+    return_dict['base_template'] = "gridcell_base.html"
+    return_dict['tab'] = 'replace_gridcell_tab'
+    return_dict["page_title"] = 'Replace a GRIDCell'
+    return_dict["error"] = 'Error replacing a GRIDCell'
     form = None
   
     vil, err = volume_info.get_volume_info_all()
@@ -756,11 +833,9 @@ def replace_node(request):
       raise Exception("There are no GRIDCells eligible to be replaced.")
       
     if not d["src_node_list"]:
-      return_dict["error"] = "There are no GRIDCells eligible to be replaced."
-      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      raise Exception("There are no GRIDCells eligible to be replaced.")
     if not d["dest_node_list"]:
-      return_dict["error"] = "There are no eligible replacement GRIDCells."
-      return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      raise Exception("There are no eligible replacement GRIDCells.")
   
     return_dict["src_node_list"] = d["src_node_list"]
     return_dict["dest_node_list"] = d["dest_node_list"]
@@ -829,7 +904,6 @@ def replace_node(request):
                         errors += " , Error undoing the creation of the underlying storage brick on %s"%dest_node
                         d["error"].append(errors)
             raise Exception("Error initiating replace : %s"%d["error"])
-            return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
           else:
             ret, err = audit.audit("replace_node", "Scheduled replacement of GRIDCell %s with GRIDCell %s"%(src_node, dest_node), request.META["REMOTE_ADDR"])
             if err:
@@ -850,9 +924,9 @@ def replace_node(request):
   except Exception, e:
     s = str(e)
     if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
     else:
-      return_dict["error"] = "An error occurred when processing your request : %s"%s
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
 
@@ -861,6 +935,10 @@ def replace_disk(request):
 
   return_dict = {}
   try:
+    return_dict['base_template'] = "gridcell_base.html"
+    return_dict['tab'] = 'gridcell_list_tab'
+    return_dict["page_title"] = 'Replace a disk in a GRIDCell'
+    return_dict["error"] = 'Error replacing a disk in a GRIDCell'
     form = None
   
     vil, err = volume_info.get_volume_info_all()
@@ -875,7 +953,6 @@ def replace_disk(request):
       raise Exception('Could not load system information')
     return_dict['system_config_list'] = si
     
-    template = 'logged_in_error.html'
   
     python_scripts_path, err = common.get_python_scripts_path()
     if err:
@@ -951,8 +1028,7 @@ def replace_disk(request):
                     error = "Error bringing the disk with serial number %s offline on %s : "%(serial_number, node)
                     if "stderr" in ret:
                       error += ret["stderr"]
-                    return_dict["error"] = error
-                    return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+                    raise Exception(error)
               #print rc
               #if disk_status == "Disk Missing":
               #  #Issue a reboot now, wait for a couple of seconds for it to shutdown and then redirect to the template to wait for reboot..
@@ -1030,8 +1106,7 @@ def replace_disk(request):
                   error = "Error setting pool autoexpand on %s : "%(node)
                   if "stderr" in ret:
                     error += ret["stderr"]
-                  return_dict["error"] = error
-                  return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
+                  raise Exception(error)
             print rc
             if new_serial_number in si[node]["disks"]:
               disk = si[node]["disks"][new_serial_number]
@@ -1086,9 +1161,9 @@ def replace_disk(request):
   except Exception, e:
     s = str(e)
     if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
     else:
-      return_dict["error"] = "An error occurred when processing your request : %s"%s
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
   
@@ -1097,6 +1172,10 @@ def expand_volume(request):
 
   return_dict = {}
   try:
+    return_dict['base_template'] = "volume_base.html"
+    return_dict['tab'] = 'volume_configuration_tab'
+    return_dict["page_title"] = 'Expand a volume'
+    return_dict["error"] = 'Error expanding a volume'
     form = None
   
     vil, err = volume_info.get_volume_info_all()
@@ -1189,9 +1268,9 @@ def expand_volume(request):
   except Exception, e:
     s = str(e)
     if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
     else:
-      return_dict["error"] = "An error occurred when processing your request : %s"%s
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
 

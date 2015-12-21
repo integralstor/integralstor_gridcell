@@ -19,6 +19,10 @@ def volume_creation_wizard(request, action):
 
   return_dict = {}
   try:
+    return_dict['base_template'] = "volume_base.html"
+    return_dict["page_title"] = 'Create a volume'
+    return_dict['tab'] = 'create_volume_tab'
+    return_dict["error"] = 'Error creating a volume'
     if not action:
       raise Exception("Unspecified action. Please use the menus.")
   
@@ -116,9 +120,9 @@ def volume_creation_wizard(request, action):
   except Exception, e:
     s = str(e)
     if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
     else:
-      return_dict["error"] = "An error occurred when processing your request : %s"%s
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
       
@@ -127,6 +131,10 @@ def create_volume_conf(request):
 
   return_dict = {}
   try:
+    return_dict['base_template'] = "volume_base.html"
+    return_dict["page_title"] = 'Create a volume - confirmation'
+    return_dict['tab'] = 'create_volume_tab'
+    return_dict["error"] = 'Error getting information for creating a volume'
     si, err = system_info.load_system_config()
     if err:
       raise Exception(err)
@@ -190,9 +198,9 @@ def create_volume_conf(request):
   except Exception, e:
     s = str(e)
     if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
     else:
-      return_dict["error"] = "An error occurred when processing your request : %s"%s
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
   
@@ -201,6 +209,10 @@ def create_volume(request):
   
   return_dict = {}
   try:
+    return_dict['base_template'] = "volume_base.html"
+    return_dict["page_title"] = 'Create a volume'
+    return_dict['tab'] = 'create_volume_tab'
+    return_dict["error"] = 'Error creating a volume'
   
     if request.method != "POST":
       raise Exception("Invalid access method. Please use the menus.")
@@ -259,6 +271,11 @@ def create_volume(request):
       (ret, rc), err = command.execute_with_rc("umount /mnt")
       (ret, rc), err = command.execute_with_conf_and_rc("gluster volume stop "+request.POST['vol_name'])
       #Success so audit the change
+      print request.POST['vol_access']
+      if request.POST["vol_access"] == "iscsi":
+        ret, err = iscsi.add_iscsi_volume(request.POST["vol_name"])
+        if err:
+          raise Exception(err)
       audit_str = "Create "
       if request.POST["vol_type"] in ["replicated"]:
         audit_str = audit_str + "replicated (count %d) "%int(request.POST["repl_count"])
@@ -268,10 +285,6 @@ def create_volume(request):
       ret, err = audit.audit("create_volume", audit_str, request.META["REMOTE_ADDR"])
       if err:
         raise Exception(err)
-      if request.POST["vol_access"] == "iscsi":
-        ret, err = iscsi.add_iscsi_volume(request.POST["vol_name"])
-        if err:
-          raise Exception(err)
     else:
       if revert_list:
         #Undo the creation of the datasets
@@ -298,9 +311,9 @@ def create_volume(request):
   except Exception, e:
     s = str(e)
     if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
     else:
-      return_dict["error"] = "An error occurred when processing your request : %s"%s
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
 

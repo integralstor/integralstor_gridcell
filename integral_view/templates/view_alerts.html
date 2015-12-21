@@ -44,7 +44,11 @@ View alerts
 
 {% block tab_active %}
   <script>
+  {%if historical %}
+    make_tab_active('system_log_view_older_alerts_tab')
+  {%else%}
     make_tab_active('system_log_alert_tab')
+  {%endif%}
   </script>
 {% endblock %}
 
