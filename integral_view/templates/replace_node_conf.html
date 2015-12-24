@@ -1,10 +1,16 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'gridcell_base.html' %}
 
-{%block contents%}
-<span id="topic-text"> Volumes -> Background operations -> Replace a GRIDCell  - confirmation</span>
-<br>
 
-<p style="color:red;"> {{error}}</p>
+{%block status_selected%}
+  style="background-color:white;color:white;"
+{%endblock%}
+
+{%block tab_header%}
+  Replace a GRIDCell 
+{%endblock%}
+
+{%block inside_content %}
+<br><br>
 
 <form action="" method="post">
   <input type=hidden name="conf" value="1">
@@ -23,3 +29,8 @@ Replacing a GRIDCell - confirmation
 {%block help_body%}
 <p>This screen is a confirmation screen based on the choices made in the previous screens. Please ensure that the information is correct before proceeding.</p>
 {%endblock%}
+{% block tab_active %}
+	<script>
+		make_tab_active('replace_gridcell_tab')
+	</script>
+{% endblock %}

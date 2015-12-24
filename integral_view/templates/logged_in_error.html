@@ -1,13 +1,14 @@
-{% extends base_template %}
+{% extends base_template|default:'logged_in_base.html' %}
 {%block tab_header %}
 {{page_title}}
 {%endblock%}
 
-{%block inside_content %}
+{%block contents %}
 
 <br>
 <hr>
-<span id="error-heading"> {{error}}<span><br><br>
+
+<span id="error-heading"> {{error|default:'Error processing request'}}<span><br><br>
 Error Details : {{error_details}}
 <br><br>
 <hr>

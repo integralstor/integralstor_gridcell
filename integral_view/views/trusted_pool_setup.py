@@ -120,10 +120,14 @@ def add_a_node_to_pool(request):
     nl, err = system_info.get_available_node_list(si)
     if err:
       raise Exception(err)
-    if not nl or node_name not in nl:
-      raise Exception('The specified GRIDCell cannot be added to the storage grid. This could be because it is unhealthy or because it is already part of the grid')
+    if nl:
+      anl = []
+      for n in nl:
+        anl.append(n['hostname'])
+      if not anl or node_name not in anl:
+        raise Exception('The specified GRIDCell cannot be added to the storage grid. This could be because it is unhealthy or because it is already part of the grid')
   
-    d, errors = grid_ops.add_a_node_to_storage_pool(si, node["hostname"])
+    d, errors = grid_ops.add_a_node_to_storage_pool(si, node_name)
     if errors:
       raise Exception(errors)
     if d:
@@ -153,10 +157,11 @@ def remove_node_from_pool(request):
     return_dict['tab'] = 'gridcell_list_tab'
     return_dict["error"] = 'Error removing a GRIDCell from the storage pool'
 
-    vil, err = volume_info.get_volume_info_all()
+    si, err = system_info.load_system_config()
     if err:
       raise Exception(err)
-    si, err = system_info.load_system_config()
+    '''
+    vil, err = volume_info.get_volume_info_all()
     if err:
       raise Exception(err)
   
@@ -170,11 +175,34 @@ def remove_node_from_pool(request):
         nl.append(hostname)
     return_dict['node_list'] = nl
     iv_logging.debug("Remove node node list %s"%' '.join(nl))
+    '''
   
     if request.method == "GET":
+      if 'node_name' not in request.GET:
+        raise Exception('GRIDCell not chosen. Please use the menus')
+      return_dict['node_name'] = request.GET['node_name']
+      url = 'remove_node_from_grid_conf.html'
+      
+      '''
       form = trusted_pool_setup_forms.RemoveNodeForm(node_list = nl)
       url = 'remove_node_form.html'
+      '''
     else:
+      if 'node_name' not in request.POST:
+        raise Exception('GRIDCell not specified. Please use the menus')
+      node_name = request.POST['node_name']
+      d, error = grid_ops.remove_a_node_from_storage_pool(si, node_name)
+      #if error:
+      #  raise Exception(error)
+      return_dict['node_name'] = node_name
+      return_dict['error'] = error
+      return_dict['result_dict'] = d
+      if not error:
+        audit_str =  "Removed GRIDCell from the storage pool %s"%node_name
+        audit.audit("remove_storage", audit_str, request.META["REMOTE_ADDR"])
+      return_dict["result_dict"] = d
+      url = 'remove_node_result.html'
+      '''
       if "conf" in request.POST:
         #got final conf so process
         form = trusted_pool_setup_forms.RemoveNodeConfForm(request.POST)
@@ -206,8 +234,9 @@ def remove_node_from_pool(request):
         else:
           #invalid form so send back
           url = 'remove_node_form.html'
+      '''
   
-    return_dict['form'] = form
+    #return_dict['form'] = form
     if settings.APP_DEBUG:
       return_dict['app_debug'] = True
     return django.shortcuts.render_to_response(url, return_dict, context_instance=django.template.context.RequestContext(request))

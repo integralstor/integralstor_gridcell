@@ -1,0 +1,113 @@
+{% extends 'logged_in_base.html' %}
+<style type="text/css">
+<link rel="stylesheet" href="/static/jstree/dist/themes/default/style.min.css" />
+</style>
+{%block page-header%}
+  ISCSI Access
+  <br /><small>
+      ISCSI Access 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Authorized Access Group 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Create Authorized Access Group
+  </small>
+{%endblock%}
+
+
+{%block contents%}
+
+{{conf_message}}
+
+
+<form class="form-horizontal" role="form" name="create_form" action="" method="post">
+{% if form.initial.auth_access_group_id %}
+<input type="hidden" name="auth_access_group_id" value="{{form.initial.auth_access_group_id}}">
+{%endif%}
+  <table  class="table " style="width:80%">
+    <tr>
+      <td>
+        <label for="id_user">User:</label>
+      </td>
+      <td>
+        <input type="text"  name="user" class="form-control" id="id_user" placeholder="Username on the server for CHAP authentication" value="{{form.data.user}}"> 
+      </td>
+      <td>
+    {{ form.user.errors }}
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <label for="id_secret">Secret:</label>
+      </td>
+      <td>
+        <input type="password"  name="secret" class="form-control" id="id_secret" placeholder="Password to be associated with the user" value="{{form.data.secret}}"> 
+      </td>
+      <td>
+    {{ form.secret.errors }}
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <label for="id_secret_conf">Secret (Confirm):</label>
+      </td>
+      <td>
+        <input type="password"  name="secret_conf" class="form-control" id="id_secret_conf" placeholder="Confirmation of password to be associated with the user" value="{{form.data.secret_conf}}"> 
+      </td>
+      <td>
+    {{ form.secret_conf.errors }}
+      </td>
+    </tr>
+
+
+
+<!--
+    <tr>
+      <td>
+        <label for="id_peer_user">Peer user:</label>
+      </td>
+      <td>
+        <input type="text"  name="peer_user" class="form-control" id="id_peer_user" placeholder="Only input when configuring mutual CHAP;" value="{{form.data.peer_user}}"> 
+      </td>
+      <td>
+    {{ form.peer_user.errors }}
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <label for="id_peer_secret">Secret:</label>
+      </td>
+      <td>
+        <input type="password"  name="peer_secret" class="form-control" id="id_peer_secret" placeholder="Mutual secret password which must be different than the Secret; required if the Peer User is set" value="{{form.data.peer_secret}}"> 
+      </td>
+      <td>
+    {{ form.peer_secret.errors }}
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <label for="id_peer_secret_conf">Secret (Confirm):</label>
+      </td>
+      <td>
+        <input type="password"  name="peer_secret_conf" class="form-control" id="id_peer_secret_conf" placeholder="Confirmation of mutual secret password " value="{{form.data.peer_secret_conf}}"> 
+      </td>
+      <td>
+    {{ form.peer_secret_conf.errors }}
+      </td>
+    </tr>
+
+-->
+
+
+    </table>
+
+<a href="/iscsi_display_auth_access_group_list" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
+<button type="submit" class="btn btn-primary"> Create >> </button>
+</form>
+
+{%endblock%}
+{%block help_header%}
+Create ISCSI authorized access group help
+{%endblock%}
+{%block help_body%}
+<p>Help about creating ISCSI authorized access group…</p>
+{%endblock%}

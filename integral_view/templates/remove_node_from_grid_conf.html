@@ -1,0 +1,44 @@
+{% extends 'gridcell_base.html' %}
+
+
+
+{%block tab_header%}
+  Remove a GRIDCell from the storage pool
+{%endblock%}
+
+{%block inside_content %}
+<br><br>
+
+
+<!-- Modal -->
+<div class="modal fade" id="processing" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-body" id="myModalBody">
+        <br><br><br>
+        <i class="fa fa-spinner fa-spin fa-4 blue"></i>
+        <br><br><br>
+        <p id="p-node-text">Processing.. Please wait.
+        <br><br><br>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<form action="" method="post">
+  <input type=hidden name="conf" value="1">
+  <input type=hidden name="node_name" value="{{node_name}}">
+
+  <p > You have chosen to remove GRIDCell {{node_name}} from the storage pool.</p><br>
+      <button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Confirm and proceed >></button>
+</form>
+
+
+{%endblock%}
+{%block help_header%}
+Remove a GRIDCell from the storage pool
+{%endblock%}
+{%block help_body%}
+<p> This screen is a confirmation prompt before removing the chosen GRIDCell from the storage pool. You would normally remove the GRIDCell from the storage pool in order to do some planned maintanance.</p>
+{%endblock%}

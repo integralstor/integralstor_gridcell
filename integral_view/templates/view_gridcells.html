@@ -10,11 +10,11 @@
 {%endblock%}
 
 {%block inside_content %}
+<br><br>
 
 {% if message %}
 <p><i>{{message}}</i></p>
 {%endif%}
-
   {%if system_info %}
     {%if pending_minions %}
     <i> GRIDCells that are not part of the grid have been detected on the network. <br> </i>
@@ -58,10 +58,10 @@
             <a href="/show/node_status/{{node_name}}" role="button" class="btn btn-primary">Details..</a>
           </td>
           <td>
-            {%if gluster_addable_nodes and node_name in gluster_addable_nodes %}
-            <form action="/add_a_node_to_pool" method="POST">
-            <input type="hidden" name="node_name" value="{{node_name}}>
-            <button type="submit" class="btn btn-primary" disabled>Add to storage pool</button>
+            {%if gluster_addable_nodes  and node_name in gluster_addable_nodes%}
+            <form action="/add_a_node_to_pool/" method="POST">
+            <input type="hidden" name="node_name" value="{{node_name}}">
+            <button type="submit" class="btn btn-primary" >Add to storage pool</button>
             </form>
             {%elif node.cluster_status == 1 %}
             In storage pool.<sup>*</sup>
@@ -71,9 +71,9 @@
           </td>
           <td>
             {%if gluster_removable_nodes and node_name in gluster_removable_nodes %}
-            <form action="/remove_a_node_from_pool" method="POST">
-            <input type="hidden" name="node_name" value="{{node_name}}>
-            <button type="submit" class="btn btn-primary" disabled>Remove from storage pool</button>
+            <form action="/remove_node_from_pool" method="GET">
+            <input type="hidden" name="node_name" value="{{node_name}}">
+            <button type="submit" class="btn btn-primary" >Remove from storage pool</button>
             </form>
             {%else%}
             Cannot be removed. <sup>#</sup>

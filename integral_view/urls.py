@@ -1,7 +1,8 @@
 from django.conf.urls import patterns, include, url
-from integral_view.views.iscsi import iscsi_display_global_config, iscsi_display_initiators, iscsi_display_targets, iscsi_view_initiator, iscsi_edit_initiator, iscsi_create_initiator, iscsi_delete_initiator, iscsi_display_auth_access_group_list, iscsi_create_auth_access_group, iscsi_view_auth_access_group, iscsi_delete_auth_access_group, iscsi_edit_auth_access_user, iscsi_edit_target_global_config, iscsi_view_target_global_config, iscsi_create_target,iscsi_view_target , iscsi_edit_target, iscsi_delete_target, iscsi_delete_auth_access_user, iscsi_create_auth_access_user
+#from integral_view.views.iscsi import iscsi_display_global_config, iscsi_display_initiators, iscsi_display_targets, iscsi_view_initiator, iscsi_edit_initiator, iscsi_create_initiator, iscsi_delete_initiator, iscsi_display_auth_access_group_list, iscsi_create_auth_access_group, iscsi_view_auth_access_group, iscsi_delete_auth_access_group, iscsi_edit_auth_access_user, iscsi_edit_target_global_config, iscsi_view_target_global_config, iscsi_create_target,iscsi_view_target , iscsi_edit_target, iscsi_delete_target, iscsi_delete_auth_access_user, iscsi_create_auth_access_user
+from integral_view.views.stgt_iscsi_management import view_targets, view_target, create_iscsi_target, delete_iscsi_target, add_iscsi_user_authentication, remove_iscsi_user_authentication, create_iscsi_lun, delete_iscsi_lun, add_iscsi_acl, remove_iscsi_acl
 from integral_view.views.admin_auth  import login, logout, change_admin_password, configure_email_settings 
-from integral_view.views.trusted_pool_setup  import add_nodes_to_pool, remove_node_from_pool
+from integral_view.views.trusted_pool_setup  import add_nodes_to_pool, remove_node_from_pool, add_a_node_to_pool
 from integral_view.views.volume_creation import volume_creation_wizard, create_volume, create_volume_conf
 from integral_view.views.volume_management import volume_specific_op , expand_volume, replace_node, set_volume_options, set_volume_quota, delete_volume, replace_disk, deactivate_snapshot, activate_snapshot, create_snapshot, delete_snapshot, restore_snapshot
 from integral_view.views import perform_op
@@ -11,19 +12,10 @@ from integral_view.views.log_management import download_vol_log, download_sys_lo
 #from integral_view.views.share_management import samba_server_settings_basic, save_samba_server_settings_basic, samba_server_settings_security, save_samba_server_settings_security, display_shares, create_share, view_samba_share, edit_samba_share, display_users, edit_samba_user, create_user, create_unix_user, samba_server_settings, save_samba_server_settings, samba_server_settings, view_share, edit_share
 from integral_view.views.share_management import display_shares, create_share, samba_server_settings, save_samba_server_settings, view_share, edit_share, delete_share, edit_auth_method, view_local_users, create_local_user, change_local_user_password, delete_local_user
 from django.contrib.auth.decorators import login_required
-# Uncomment the next two lines to enable the admin:
 from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    # Examples:
-    # url(r'^$', 'integral_view.views.home', name='home'),
-    # url(r'^integral_view/', include('integral_view.foo.urls')),
-
-    # Uncomment the admin/doc line below to enable admin documentation:
-    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
-    # Uncomment the next line to enable the admin:
     url(r'^admin/', include(admin.site.urls)),
     url(r'^login/', login),
     url(r'^$', login),
@@ -62,8 +54,8 @@ urlpatterns = patterns('',
     url(r'^refresh_alerts/([0-9_]*)', login_required(refresh_alerts)),
     url(r'^logout/', logout,name="logout"),
     url(r'^perform_op/([A-Za-z_]+)/([A-Za-z0-9_\-]*)/([A-Za-z0-9_\.\-\:\/]*)', login_required(perform_op.perform_op)),
-    #url(r'^server_op/([A-Za-z_]+)', login_required(server_op)),
     url(r'^add_nodes_to_pool/', login_required(add_nodes_to_pool),name="add_nodes"),
+    url(r'^add_a_node_to_pool/', login_required(add_a_node_to_pool),name="add_a_node"),
     url(r'^volume_creation_wizard/([A-Za-z_]+)', login_required(volume_creation_wizard)),
     url(r'^create_volume/', login_required(create_volume)),
     url(r'^delete_volume/', login_required(delete_volume)),
@@ -77,6 +69,41 @@ urlpatterns = patterns('',
     url(r'^view_rotated_log_list/([A-Za-z_]+)', login_required(view_rotated_log_list)),
     url(r'^view_rotated_log_file/([A-Za-z_]+)', login_required(view_rotated_log_file)),
     url(r'^first_login/', login_required(hardware_scan)),
+
+
+    url(r'^view_iscsi_targets/', login_required(view_targets)),
+    url(r'^view_iscsi_target/', login_required(view_target)),
+    url(r'^create_iscsi_target/', login_required(create_iscsi_target)),
+    url(r'^delete_iscsi_target/', login_required(delete_iscsi_target)),
+    url(r'^create_iscsi_lun/', login_required(create_iscsi_lun)),
+    url(r'^delete_iscsi_lun/', login_required(delete_iscsi_lun)),
+    url(r'^add_iscsi_user_authentication/', login_required(add_iscsi_user_authentication)),
+    url(r'^add_iscsi_acl/', login_required(add_iscsi_acl)),
+    url(r'^remove_iscsi_acl/', login_required(remove_iscsi_acl)),
+    url(r'^remove_iscsi_user_authentication/', login_required(remove_iscsi_user_authentication)),
+)
+
+"""
+    #url(r'^server_op/([A-Za-z_]+)', login_required(server_op)),
+    #url(r'^sys_log/([A-Za-z]+)', sys_log),
+    #url(r'^pull_node_status/([A-Za-z_\-0-9]+)', login_required(pull_node_status)),
+    #url(r'^node_status/', node_status),
+    ## url(r'^view_log/([A-Za-z_]*)/([0-9]*)/([0-9]*)', login_required(view_log)),
+    ## url(r'^view_log/([A-Za-z_]*)', login_required(view_log)),
+    #url(r'^download_vol_log/([A-Za-z0-9_\-\:\/]*)', login_required(download_vol_log)),
+    #url(r'^display_users/', login_required(display_users)),
+    #url(r'^create_user/', login_required(create_user)),
+    #url(r'^create_unix_user/', login_required(create_unix_user)),
+    #url(r'^perform_op/([A-Za-z_]+)/([A-Za-z0-9_\-]*)', login_required(perform_op.perform_op)),
+    #url(r'^edit_samba_user/', login_required(edit_samba_user)),
+    #url(r'^launch_swat/', login_required(launch_swat)),
+    #url(r'^create_volume_get_num_bricks/([A-Za-z_]+)', login_required(get_num_bricks)),
+    #url(r'^samba_server_settings_basic/', login_required(samba_server_settings_basic)),
+    #url(r'^save_samba_server_settings_security/', login_required(save_samba_server_settings_security)),
+    #url(r'^samba_server_settings_security/', login_required(samba_server_settings_security)),
+    #url(r'^save_samba_server_settings_basic/', login_required(save_samba_server_settings_basic)),
+    #url(r'^edit_samba_share/', login_required(edit_samba_share)),
+    #url(r'^view_samba_share/', login_required(view_samba_share)),
     # ISCSI Initiator
     url(r'^iscsi_create_initiator/', login_required(iscsi_create_initiator)),
     url(r'^iscsi_display_initiators/', login_required(iscsi_display_initiators)),
@@ -102,23 +129,4 @@ urlpatterns = patterns('',
     url(r'^iscsi_edit_target_global_config/', login_required(iscsi_edit_target_global_config)),
     url(r'^iscsi_view_target_global_config/', login_required(iscsi_view_target_global_config)),
 
-    #url(r'^sys_log/([A-Za-z]+)', sys_log),
-    #url(r'^pull_node_status/([A-Za-z_\-0-9]+)', login_required(pull_node_status)),
-    #url(r'^node_status/', node_status),
-    ## url(r'^view_log/([A-Za-z_]*)/([0-9]*)/([0-9]*)', login_required(view_log)),
-    ## url(r'^view_log/([A-Za-z_]*)', login_required(view_log)),
-    #url(r'^download_vol_log/([A-Za-z0-9_\-\:\/]*)', login_required(download_vol_log)),
-    #url(r'^display_users/', login_required(display_users)),
-    #url(r'^create_user/', login_required(create_user)),
-    #url(r'^create_unix_user/', login_required(create_unix_user)),
-    #url(r'^perform_op/([A-Za-z_]+)/([A-Za-z0-9_\-]*)', login_required(perform_op.perform_op)),
-    #url(r'^edit_samba_user/', login_required(edit_samba_user)),
-    #url(r'^launch_swat/', login_required(launch_swat)),
-    #url(r'^create_volume_get_num_bricks/([A-Za-z_]+)', login_required(get_num_bricks)),
-    #url(r'^samba_server_settings_basic/', login_required(samba_server_settings_basic)),
-    #url(r'^save_samba_server_settings_security/', login_required(save_samba_server_settings_security)),
-    #url(r'^samba_server_settings_security/', login_required(samba_server_settings_security)),
-    #url(r'^save_samba_server_settings_basic/', login_required(save_samba_server_settings_basic)),
-    #url(r'^edit_samba_share/', login_required(edit_samba_share)),
-    #url(r'^view_samba_share/', login_required(view_samba_share)),
-)
+"""

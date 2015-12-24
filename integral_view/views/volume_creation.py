@@ -234,7 +234,7 @@ def create_volume(request):
     errors = ""
     for node, dataset in dataset_dict.items():
       dataset_cmd = 'zfs create %s'%dataset
-      dataset_revert_cmd = 'zfs destory %s'%dataset
+      dataset_revert_cmd = 'zfs destroy %s'%dataset
       r1 = client.cmd(node, 'cmd.run_all', [dataset_cmd])
       if r1:
         for node, ret in r1.items():
@@ -246,6 +246,7 @@ def create_volume(request):
             revert_list.append({node:dataset_revert_cmd})
   
     if errors != "":
+      #print errors
       if revert_list:
         #Undo the creation of the datasets
         for revert in revert_list:
@@ -260,7 +261,9 @@ def create_volume(request):
   
     #Underlying storage created so now create the volume
     devel_files_path, err = common.get_devel_files_path()
+    #print cmd
     d, errors = gluster_commands.run_gluster_command("%s force"%cmd, "%s/create_volume.xml"%devel_files_path, "Volume creation")
+    #print d, errors
     if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
       #print rc, ret
       #All ok so mount and change the owner and group of the volume to integralstor
@@ -286,6 +289,8 @@ def create_volume(request):
       if err:
         raise Exception(err)
     else:
+      if not errors:
+        errors = ""
       if revert_list:
         #Undo the creation of the datasets
         for revert in revert_list:
@@ -293,7 +298,7 @@ def create_volume(request):
             r1 = client.cmd(node, 'cmd.run_all', [dsr_cmd])
             if r1:
               for node, ret in r1.items():
-                #print ret
+                print ret
                 if ret["retcode"] != 0:
                   errors += ", Error undoing the creating the underlying storage brick on %s"%node
     if errors:

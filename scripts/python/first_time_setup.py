@@ -288,7 +288,7 @@ def establish_default_configuration(client, si):
       if "interfaces" in node_info and "bond0" in node_info["interfaces"] and "inet" in node_info["interfaces"]["bond0"] and len(node_info["interfaces"]["bond0"]["inet"]) == 1:
         ip_list.append("%s"%node_info["interfaces"]["bond0"]["inet"][0]["address"])
 
-    rc, errors = ctdb.add_to_nodes_file(ip_list)
+    rc, errors = ctdb.add_to_nodes_file(client, ip_list)
     if not rc:
       if errors:
         raise Exception(errors)
@@ -525,7 +525,7 @@ def initiate_setup():
     except Exception, e:
       raise Exception("Error retrieving IPs of primary and/or secondary GRIDCell(s)")
 
-    rc, err = ctdb.add_to_nodes_file(ipl)
+    rc, err = ctdb.add_to_nodes_file(client, ipl)
     if not rc :
       if err:
         raise Exception("Error adding IPs of the GRIDCell(s) to the CTDB nodes file : %s"%err)

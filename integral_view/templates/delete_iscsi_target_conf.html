@@ -1,41 +1,33 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'shares_and_targets_base.html' %}
+{%block tab_header %}
+Delete an ISCSI target - confirmation
+{%endblock%}
 
-{%block contents%}
+{% block inside_content %}
+<br><br>
+
 
 <!-- Modal -->
-<div class="modal fade" id="processing" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-body" id="myModalBody">
-        <br><br><br>
-        <i class="fa fa-spinner fa-spin fa-4 blue"></i>
-        <br><br><br>
-        <p id="p-node-text">Processing.. Please wait.
-        <br><br><br>
-      </div>
-    </div>
-  </div>
-</div>
 
-<span id="topic-text"> ISCSI Access -> Delete an ISCSI target </span><br>
-
-
-<p id="p-warning-text">Are you sure you want to delete the target with id "{{id}}"? </p>
+<p id="p-warning-text">Are you sure you want to delete the ISCSI target "{{target_name}}"? </p>
 <br>
-<form action="/iscsi_delete_target/" method="POST">
-<input type=hidden name="id" value="{{id}}">
-<input type="button" class="btn btn-default" value="Cancel" onClick="window.location='/iscsi_view_target?access_mode=by_id&id={{id}}'"> &nbsp;&nbsp;
-<button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Confirm and delete >></button>
+<form action="/delete_iscsi_target/" method="POST">
+<input type=hidden name="target_name" value="{{target_name}}">
+<input type="button" class="btn btn-default" value="Cancel" onClick="window.location='/view_iscsi_targets'"> &nbsp;&nbsp;
+<button type="submit" class="btn btn-danger" onClick ="$('#processing').modal('show');">Confirm and delete</button>
 </form>
-
-
-
 
 
 {%endblock%}
 {%block help_header%}
-ISCSI target delete conf help
+Remove an ISCSI target
 {%endblock%}
 {%block help_body%}
-<p>Help about ISCSI target delete conf - needs customisation…</p>
+<p>Confirming this operation results in the specified ISCSI target being deleted. Please ensure that this is actually intended before continuing.</p>
 {%endblock%}
+
+{% block tab_active %}
+  <script>
+   make_tab_active("view_iscsi_targets_tab")
+  </script>
+{% endblock %}

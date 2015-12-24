@@ -10,6 +10,7 @@
 {%endblock%}
 
 {%block inside_content %}
+<br><br>
 
 {% if app_debug %}
 Debug info - begin <br>
@@ -40,3 +41,8 @@ Volume creation - results
 {%block help_body%}
 <p>The volume creation wizard guides you through many steps to create a particular type of volume. This screen displays the result of the whole process.</p>
 {%endblock%}
+{% block tab_active %}
+  <script>
+    make_tab_active('create_volume_tab')
+  </script>
+{% endblock %}

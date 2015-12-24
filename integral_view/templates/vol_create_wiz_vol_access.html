@@ -62,3 +62,8 @@ Volume creation help
 {%block help_body%}
 <p>The volume creation wizard guides you through many steps to create a particular type of volume. Use this screen to decide whether you want the volume for file based access of block access.</p>
 {%endblock%}
+{% block tab_active %}
+  <script>
+    make_tab_active('create_volume_tab')
+  </script>
+{% endblock %}

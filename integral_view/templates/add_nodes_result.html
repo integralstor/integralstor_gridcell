@@ -1,21 +1,15 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'gridcell_base.html' %}
 
 
-{%block page-header%}
-  Admin
-  <br /><small>
-      GRIDCells
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Add new GRIDCells -- Results
+
+
+{%block tab_header%}
+      Scan for new GRIDCells
   </small>
-{%endblock%}
+ {%endblock%}
 
-
-{%block contents%}
-
-{% if errors %}
-<p id="p-warning-text">{{errors}}</p>
-{%endif%}
+{%block inside_content%}
+<br><br>
 
 <table style="width:60%" class="table table-condensed table-bordered" >
 <tr>
@@ -47,6 +41,10 @@ Result
 </td>
 </tr>
 {%endfor%}
+
+{%if errors %}
+{{errors}}
+{%endif%}
 </table>
 
 {%endblock%}
@@ -59,3 +57,8 @@ Add GRIDCells - results
 {%block help_body%}
 This screen displays the results of adding new GRIDCells to the grid. The process of adding new GRIDCells to the grid involves multiple operations like key exchanges, internal DNS additions, GRIDCell initialization and GRIDCell configuration and status population. A failure in adding a new GRIDCell could be from any one of these steps. </p>
 {%endblock%}
+{% block tab_active %}
+  <script>
+    make_tab_active('scan_for_gridcells_tab')
+  </script>
+{% endblock %}

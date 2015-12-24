@@ -20,6 +20,7 @@ from integral_view.utils import iv_logging
 
 from glusterfs import gfapi
 
+base_template = 'logged_in_base.html'
 
 @login_required    
 def show(request, page, info = None):
@@ -27,6 +28,7 @@ def show(request, page, info = None):
   return_dict = {}
   try:
 
+    return_dict['base_template'] = base_template
     assert request.method == 'GET'
 
     vil, err  = volume_info.get_volume_info_all()
@@ -361,13 +363,16 @@ def show(request, page, info = None):
       return_dict["error"] = 'Error loading GRIDCell information'
 
       if 'action' in request.GET:
-        if action == 'added_to_storage_pool':
+        if request.REQUEST['action'] == 'added_to_storage_pool':
           return_dict['message'] = 'Successfully added GRIDCell to the storage pool'
       nl, err = system_info.get_available_node_list(si)
       if err:
         raise Exception(err)
       if nl:
-        return_dict['gluster_addable_nodes'] = nl
+        anl = []
+        for n in nl:
+          anl.append(n['hostname'])
+        return_dict['gluster_addable_nodes'] = anl
       rnl = []
       localhost = socket.getfqdn().strip()
       for hostname in si.keys():
@@ -594,6 +599,7 @@ def admin_login_required(view):
 
 def refresh_alerts(request, random=None):
   ret = None
+  return_dict = {}
   try:
     from datetime import datetime
     cmd_list = []
@@ -603,7 +609,7 @@ def refresh_alerts(request, random=None):
     db_path, err = common.get_db_path()
     if err:
       raise Exception(err)
-    test, err = db.execute_iud("%s/integral_view_config.db"%db_path, cmd_list)
+    test, err = db.execute_iud("%s"%db_path, cmd_list)
     if err:
       raise Exception(err)
     ret, err = alerts.new_alerts()
@@ -885,10 +891,13 @@ def hardware_scan(request):
     else:
       form = common_forms.AddNodesForm(request.POST, pending_minions_list = pending_minions)
       if form.is_valid():
+        #print 'form valid'
         # User has chosed some nodes to be added so add them.
         cd = form.cleaned_data
         iv_logging.info("Hardware scan initiated")
         (success, failed), errors = grid_ops.add_nodes_to_grid(request.META["REMOTE_ADDR"],cd["nodes"])
+        #print 'done adding'
+        #print success, failed, errors
         url = 'add_nodes_result.html'
         return_dict["success"] = success
         return_dict["failed"] = failed

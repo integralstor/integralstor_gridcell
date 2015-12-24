@@ -1,15 +1,13 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'gridcell_base.html' %}
 
-{%block page-header%}
-  Remove IntegralStor Node
-  <br /><small>
-      Storage Pool 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Remove Storage - results
-  </small>
+
+
+{%block tab_header%}
+  Remove a GRIDCell from the storage pool
 {%endblock%}
 
-{%block contents%}
+{%block inside_content %}
+<br><br>
 
 <table style="width:60%" class="table table-condensed table-bordered" >
 <tr>
@@ -29,16 +27,14 @@ Removing GRIDCell {{node_name}} from storage pool
 {%endif%}
 </td>
 <td>
-{% if result_code == 0  %}
-Successful
-{%else%}
-{% if result_dict %}
-Failed (Errno. {{result_dict.op_status.op_errno}} - {{result_dict.op_status.op_errstr}}, {{result_dict.op_status.output}}{% if result_dict.error_list %}, additional error message - {{result_dict.error_list}} {%endif%})
-{%else%}
+{%if errors%}
 Failed with the following errors :<br>
 {{errors}}
-{{error}}<br>
-{%endfor%}
+{%else%}
+{% if result_dict  and result_dict.op_status.op_errno == 0%}
+Success
+{%else%}
+Failed (Errno. {{result_dict.op_status.op_errno}} - {{result_dict.op_status.op_errstr}}, {{result_dict.op_status.output}}{% if result_dict.error_list %}, additional error message - {{result_dict.error_list}} {%endif%})
 {%endif%}
 {%endif%}
 </td>

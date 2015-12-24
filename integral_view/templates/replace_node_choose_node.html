@@ -1,18 +1,17 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'gridcell_base.html' %}
 
 
-{%block page-header%}
-  Volumes
-  <br /><small>
-      Volumes 
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Background operations -> Replace a GRIDCell 
-
-  </small>
+{%block status_selected%}
+  style="background-color:white;color:white;"
 {%endblock%}
 
+{%block tab_header%}
+  Replace a GRIDCell 
+{%endblock%}
 
-{%block contents%}
+{%block inside_content %}
+<br><br>
+
 <script type="text/javascript">
 function select(showid, hideid) {
   document.getElementById(hideid).style.display = 'none';
@@ -64,9 +63,6 @@ function load_node_info(hostname, str) {
     GRIDCell name
   </th>
   <th>
-    Details
-  </th>
-  <th>
     Select a GRIDCell
   </th>
 </tr>
@@ -74,9 +70,6 @@ function load_node_info(hostname, str) {
   <tr>
     <td>
       {{hostname}}
-    </td>
-    <td>
-      <a href="#" role="button" class="btn active" onClick="load_node_info('{{hostname}}', '{{hostname}}');"> Details.. </a>
     </td>
     <td>
       <input type="radio"  value="{{ hostname }}" name="src_node">
@@ -98,9 +91,6 @@ function load_node_info(hostname, str) {
     GRIDCell name
   </th>
   <th>
-    Details
-  </th>
-  <th>
     Select a GRIDCell
   </th>
 </tr>
@@ -108,9 +98,6 @@ function load_node_info(hostname, str) {
   <tr>
     <td>
       {{hostname}}
-    </td>
-    <td>
-      <a href="#" role="button" class="btn active" onClick="load_node_info('{{hostname}}', '{{hostname}}');"> Details.. </a>
     </td>
     <td>
       <input type="radio"  value="{{ hostname }}" name="dest_node">
@@ -132,3 +119,8 @@ Replace a GRIDCell
 {%block help_body%}
 <p>A GRIDCell needs to be replaced when there is a need for planned maintanance. This replacement process involves the migration of data that is on the selected GRIDCell onto the replacement GRIDCell. This is a process that involves data movement and hence it will initiate a background process that will handle this data migration. This screen is prompting you to choose the GRIDCell to be replaced and the replacement GRIDCell.</p>
 {%endblock%}
+{% block tab_active %}
+	<script>
+		make_tab_active('replace_gridcell_tab')
+	</script>
+{% endblock %}

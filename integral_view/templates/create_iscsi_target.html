@@ -1,145 +1,43 @@
-{% extends 'logged_in_base.html' %}
-<style type="text/css">
-<link rel="stylesheet" href="/static/jstree/dist/themes/default/style.min.css" />
-</style>
+{% extends 'shares_and_targets_base.html' %}
 
-{%block contents%}
-<span id="topic-text">ISCSI access -> Targets -> Create an ISCSI Target</span><br>
-
-
+{%block tab_header %}
+Create an ISCSI target
+{%endblock%}
+{% block inside_content %}
+<br><br>
 {{conf_message}}
 
+
 {{form.errors}}
-
 <form class="form-horizontal" role="form" name="create_form" action="" method="post">
-<div  style=" position:relative;border:0px solid #DDDDDD;width:600px; padding:15px 15px 15px;margin:0px 15px;border-radius:4px 4px 0px 0px">
-  <div class="form-group" >
-    <label for="id_vol_name">Volume name: </label>
-    <select id="id_vol_name" name="vol_name" class="form-control" >
-    {% for choice in form.vol_name.field.choices %} 
-          <option value="{{choice.0}}" {%if choice.0 == form.initial.vol_name %} selected{%endif%} >{{choice.1}}</option>
-    {%endfor%}
-    </select>
-    {{ form.vol_name.errors }}
-  </div>
-<!--
-  <div class="form-group" >
-    <label for="id_target_name" >Target name:</label>
-    <input type="text"  name="target_name" class="form-control" id="id_target_name" value="{{form.initial.target_name}}" placeholder="Enter target name"> 
-    {{ form.target_name.errors }}
-  </div>
--->
-  <div class="form-group" >
-    <label for="id_target_alias" >Target alias:</label>
-    <input type="text"  name="target_alias" class="form-control" id="id_target_alias" value="{{form.initial.target_alias}}" placeholder="Enter target alias"> 
-    {{ form.target_alias.errors }}
-  </div>
-  <div class="form-group" >
-    <label for="id_lun_size" >LUN size (in GB):</label>
-    <input type="text"  name="lun_size" class="form-control" id="id_lun_size" value="{{form.initial.lun_size}}" placeholder="Enter size of LUN in GB"> 
-    {{ form.lun_size.errors }}
-  </div>
-  <!--
-  <div class="form-group" >
-    <label for="id_target_flags">Target access mode: </label>
-    <select id="id_target_flags" name="target_flags" class="form-control" >
-    {% for choice in form.target_flags.field.choices %} 
-          <option value="{{choice.0}}" {%if choice.0 == form.initial.target_flags %} selected{%endif%} >{{choice.1}}</option>
-    {%endfor%}
-    </select>
-    {{ form.target_flags.errors }}
-  </div>
-  -->
-  <div class="form-group" >
-    <label for="id_auth_method">Auth method: </label>
-    <select id="id_auth_method" name="auth_method" class="form-control" >
-    {% for choice in form.auth_method.field.choices %} 
-          <option value="{{choice.0}}" {%if choice.0 == form.initial.auth_method %} selected{%endif%} >{{choice.1}}</option>
-    {%endfor%}
-    </select>
-    {{ form.auth_method.errors }}
-  </div>
-  <div class="form-group" >
-    <label for="id_init_group_id">Initiator group: </label>
-    <select id="id_init_group_id" name="init_group_id" class="form-control" onChange="display_initiator_info('id_init_group_id', 'id_init_group_info');">
-    {% for choice in form.init_group_id.field.choices %} 
-          <option value="{{choice.0}}" {%if choice.0 == form.initial.init_group_id %} selected{%endif%} >{{choice.1}}</option>
-    {%endfor%}
-    </select>
-    {{ form.init_group_id.errors }}
-  </div>
-  <div id="id_init_group_info" style="display:block" class="alert alert-info">
-  </div>
-  <div class="form-group" >
-    <label for="id_auth_group_id">Auth access group: </label>
-    <select id="id_auth_group_id" name="auth_group_id" class="form-control" onChange="display_access_info('id_auth_group_id', 'id_auth_group_info');">
-    {% for choice in form.auth_group_id.field.choices %} 
-          <option value="{{choice.0}}" {%if choice.0 == form.initial.auth_group_id %} selected{%endif%} >{{choice.1}}</option>
-    {%endfor%}
-    </select>
-    {{ form.auth_group_id.errors }}
-  </div>
-  <div id="id_auth_group_info" style="display:block" class="alert alert-info">
-  </div>
-  <div class="form-group" >
-    <label for="id_queue_depth" >Queue depth :</label>
-    <input type="text"  name="queue_depth" class="form-control" id="id_queue_depth" value="{{form.initial.queue_depth}}" placeholder="Enter Queue depth"> 
-    {{ form.queue_depth.errors }}
-  </div>
-<!--
-  <div class="form-group" >
-    <label for="id_block_size" >Block size:</label>
-    <input type="text"  name="block_size" class="form-control" id="id_block_size" value="{{form.initial.block_size}}" placeholder="Enter block size"> 
-    {{ form.block_size.errors }}
-  </div>
--->
-</div>
+  <table  class="table " style="width:80%">
+    <tr>
+      <td>
+        <label for="id_name">Target name:</label>
+      </td>
+      <td>
+        <input type="text"  name="name" class="form-control" id="id_name" value="{%if form.name.value%}{{form.name.value}}{%endif%}" placeholder="Enter a name for ISCSI target"> 
+      </td>
+      <td>
+    {{ form.name.errors }}
+      </td>
+    </tr>
+    </table>
 
-<a href="/iscsi_display_targets" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
-<button type="submit" class="btn btn-primary"> Create >> </button>
-</div>
+<a href="/view_iscsi_targets" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
+<button type="submit" class="btn btn-primary"> Create </button>
 </form>
-<script type="text/javascript">
-function display_initiator_info(select_id, div_id) {
-  var e = document.getElementById(select_id);
-  var v= e.options[e.selectedIndex].value;
-  var path = '/show/iscsi_initiator_info?id='+v;
-  $.ajax({
-    type: "GET",
-    url: path,
-    data: "id=" + v, // appears as $_GET['id'] @ ur backend side
-    success: function(data) {
-          // data is ur summary
-         $('#'+div_id).html(data);
-    }
-  });
-}
-function display_access_info(select_id, div_id) {
-  var e = document.getElementById(select_id);
-  var v= e.options[e.selectedIndex].value;
-  var path = '/show/iscsi_auth_access_info?id='+v;
-  $.ajax({
-    type: "GET",
-    url: path,
-    data: "id=" + v, // appears as $_GET['id'] @ ur backend side
-    success: function(data) {
-          // data is ur summary
-         $('#'+div_id).html(data);
-    }
-  });
-}
-$(window).load(function() {
-  // Handler for .load() called.
-    //alert("loaded");
-    display_access_info('id_auth_group_id', 'id_auth_group_info'); 
-    display_initiator_info('id_init_group_id', 'id_init_group_info'); 
-  });
-</script>
 
 {%endblock%}
 {%block help_header%}
-Create targets help
+Create ISCSI users help
 {%endblock%}
 {%block help_body%}
-<p>Help about creating targets…</p>
+<p>Use ISCSI user authentication when you want ISCSI CHAP access control. For ISCSI authentication, you will need to create ISCSI user accounts using this screen and then deploy access control using these user accounts. These accounts are used only for ISCSI access and not for any other purpose.</p>
 {%endblock%}
+
+{% block tab_active %}
+  <script>
+   make_tab_active("view_iscsi_targets_tab")
+  </script>
+{% endblock %}

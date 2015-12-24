@@ -10,6 +10,7 @@ from integralstor_gridcell import volume_info, system_info, local_users, gluster
 from integralstor_gridcell import cifs as cifs_gridcell
 from integralstor_common import networking, audit
 from integralstor_common import cifs as cifs_common
+from integralstor_common import common
 
 def display_shares(request):
 
@@ -542,13 +543,13 @@ def save_samba_server_settings(request):
         rc, err = cifs_gridcell.kinit("administrator", cd["password"], cd["realm"])
         if err:
           raise Exception(err)
-        if rc != 0:
+        if not rc:
           raise Exception("Kerberos init failure")
       if cd["security"] == "ads":
         rc, err = cifs_gridcell.net_ads_join("administrator", cd["password"], cd["password_server"])
         if err:
           raise Exception(err)
-        if rc != 0:
+        if not rc:
           raise Exception("AD join failure")
       ret, err = cifs_gridcell.restart_samba_services()
       if err:

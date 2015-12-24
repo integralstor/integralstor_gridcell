@@ -1,0 +1,195 @@
+{% extends 'logged_in_base.html' %}
+{%block page-header%}
+  ISCSI Access
+  <br /><small>
+      ISCSI Access 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Global configuration for targets 
+  </small>
+{%endblock%}
+
+
+{%block contents%}
+
+{{conf_message}}
+<table class="table table-bordered table-hover table-condensed" style="width:60%">
+<tr>
+  <th>
+    Base name:
+  </th>
+  <td>
+    {{ igt.base_name }}
+  </td>
+</tr>
+<tr>
+  <th>
+    Discovery auth group :
+  </th>
+  <td>
+    {{ igt.discovery_auth_group }}
+  </td>
+</tr>
+<tr>
+  <th>
+    Discovery auth method :
+  </th>
+  <td>
+    {{ igt.discovery_auth_method }}
+  </td>
+</tr>
+<tr>
+  <th>
+    I/O timeout:
+  </th>
+  <td>
+    {{igt.io_timeout}}
+  </td>
+</tr>
+<tr>
+  <th>
+    NOPIN Interval
+  </th>
+  <td>
+    {{ igt.nop_in_interval }}
+  </td>
+</tr>
+<tr>
+  <th>
+    Max. sessions    
+  </th>
+  <td>
+    {{ igt.max_sessions}}
+  </td>
+</tr>
+<tr>
+  <th>
+    Max connections    
+  </th>
+  <td>
+    {{ igt.max_connections}}
+  </td>
+</tr>
+<tr>
+  <th>
+    Max pre-send R2T    
+  </th>
+  <td>
+    {{ igt.max_presend_r2t}}
+  </td>
+</tr>
+<tr>
+  <th>
+    Max outstanding R2T    
+  </th>
+  <td>
+    {{ igt.max_outstanding_r2t}}
+  </td>
+</tr>
+<tr>
+  <th>
+    First burst length    
+  </th>
+  <td>
+    {{ igt.first_burst_length}}
+  </td>
+</tr>
+<tr>
+  <th>
+    Max burst length    
+  </th>
+  <td>
+    {{ igt.max_burst_length}}
+  </td>
+</tr>
+<tr>
+  <th>
+    Max receive data segment length
+  </th>
+  <td>
+    {{ igt.max_receive_data_segment_length}}
+  </td>
+</tr>
+<tr>
+  <th>
+    Default time to wait
+  </th>
+  <td>
+    {{ igt.default_time_to_wait}}
+  </td>
+</tr>
+<tr>
+  <th>
+    Default time to retain
+  </th>
+  <td>
+    {{ igt.default_time_to_retain}}
+  </td>
+</tr>
+<!--
+<tr>
+  <th>
+    LUC
+  </th>
+  <td>
+    {% if igt.enable_luc %}
+      Enabled
+    {%else%}
+      Disabled
+    {%endif%}
+  </td>
+</tr>
+{% if igt.enable_luc %}
+<tr>
+  <th>
+    Controller IP address    
+  </th>
+  <td>
+    {{ igt.controller_ip_addr}}
+  </td>
+</tr>
+<tr>
+  <th>
+    Controller TCP port    
+  </th>
+  <td>
+    {{ igt.controller_tcp_port}}
+  </td>
+</tr>
+<tr>
+  <th>
+    Controller authorized netmask    
+  </th>
+  <td>
+    {{ igt.controller_auth_netmask}}
+  </td>
+</tr>
+<tr>
+  <th>
+    Controller auth method    
+  </th>
+  <td>
+    {{ igt.controller_auth_method}}
+  </td>
+</tr>
+{%endif%}
+<tr>
+  <th>
+    Controller auth group    
+  </th>
+  <td>
+    {{ igt.controller_auth_group}}
+  </td>
+</tr>
+-->
+</table>
+
+<a href="/iscsi_edit_target_global_config" role="button" class="btn btn-default">Modify..</a>
+
+
+{%endblock%}
+{%block help_header%}
+ISCSI global configuration for targets help
+{%endblock%}
+{%block help_body%}
+<p>Help about ISCSI global configuration for targets info…</p>
+{%endblock%}

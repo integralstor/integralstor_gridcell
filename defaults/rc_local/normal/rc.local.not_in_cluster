@@ -6,4 +6,3 @@
 
 touch /var/lock/subsys/local
 modprobe ipmi_devintf
-/bin/bash /opt/integralstor/integralstor_gridcell/scripts/shell/nodetype.sh

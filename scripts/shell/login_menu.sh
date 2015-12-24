@@ -110,7 +110,7 @@ show_menu() {
   secondary=$2
   clear
   echo "-------------------------------"	
-  echo " Fractalio IntegralStore - Menu"
+  echo " IntegralStor GRIDCell - Menu"
   echo "-------------------------------"
   echo "1. Configure Network Configuration"
   echo "2. Reboot"

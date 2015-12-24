@@ -12,12 +12,14 @@ modprobe ipmi_devintf
 sleep 10
 mount -t glusterfs localhost:integralstor_admin_vol /opt/integralstor/integralstor_gridcell/config
 /usr/bin/uwsgi --emperor /etc/uwsgi/vassals --uid root --gid root &
+rm /etc/krb5.conf
+ln -s /opt/integralstor/integralstor_gridcell/config/lock/krb5.conf /etc/krb5.conf
 rm /etc/samba/smb.conf
 ln -s /opt/integralstor/integralstor_gridcell/config/lock/smb.conf /etc/samba/smb.conf
 rm /etc/ctdb/nodes
 ln -s /opt/integralstor/integralstor_gridcell/config/lock/nodes /etc/ctdb/nodes
 rm /etc/sysconfig/ctdb
 ln -s /opt/integralstor/integralstor_gridcell/config/lock/ctdb /etc/sysconfig/ctdb
-service ctdb start
-service winbind start
-service nginx start
+service winbind restart
+service nginx restart
+service ctdb restart

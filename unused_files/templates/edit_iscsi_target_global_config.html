@@ -1,0 +1,218 @@
+{% extends 'logged_in_base.html' %}
+
+{%block page-header%}
+  ISCSI Access
+  <br /><small>
+      ISCSI Access 
+      <i class="fa fa-angle-double-right smaller-80"></i>
+      Global configuration for targets (edit)
+  </small>
+{%endblock%}
+
+
+{%block contents%}
+<script type="text/javascript">
+function display_access_info(select_id, div_id) {
+  var e = document.getElementById(select_id);
+  var v= e.options[e.selectedIndex].value;
+  var path = '/show/iscsi_auth_access_info?id='+v;
+  $.ajax({
+    type: "GET",
+    url: path,
+    data: "id=" + v, // appears as $_GET['id'] @ ur backend side
+    success: function(data) {
+          // data is ur summary
+         $('#'+div_id).html(data);
+    }
+  });
+}
+</script>
+<span id="topic-text">ISCSI access -> Global configuration for targets (edit) </span><br>
+
+{{conf_message}}
+
+{{form.errors}}
+
+<form id="edit_form" name="edit_form" action="" method="post">
+<input type="hidden" name="base_name" value="{{form.initial.base_name}}">
+<div  style=" position:relative;border:0px solid #DDDDDD;width:600px; padding:15px 15px 15px;margin:0px 15px;border-radius:4px 4px 0px 0px">
+
+  <div class="form-group" >
+    <label for="id_base_name" >Base name:</label>
+    {{form.initial.base_name}}
+
+    <!--
+    <input type="text"  name="base_name" class="form-control" id="id_base_name" value="{{form.initial.base_name}}" placeholder="Enter Base name"> 
+    -->
+    {{ form.base_name.errors }}
+  </div>
+  <label for="id_discovery_auth_method">Discovery auth method: </label>
+  <div class="form-group" >
+    {% for choice in form.discovery_auth_method.field.choices %} 
+        <label class="radio-inline">
+          <input type="radio" name="discovery_auth_method" id="id_{{choice.0}}" value="{{choice.0}}" {%if choice.0 == form.initial.discovery_auth_method %} checked{%endif%} />{{choice.0}}
+        </label>
+    {%endfor%}
+    {{ form.discovery_auth_method.errors }}
+  </div>
+  <div class="form-group" >
+    <label for="id_discovery_auth_group">Discovery auth group: </label>
+    <select id="id_discovery_auth_group" name="discovery_auth_group" class="form-control" onChange="display_access_info('id_discovery_auth_group', 'id_discovery_auth_group_info');">
+    
+    {% for choice in form.discovery_auth_group.field.choices %} 
+          <option value="{{choice.0}}" {%if choice.0 == form.initial.discovery_auth_group %} selected{%endif%} >{{choice.0}}</option>
+    {%endfor%}
+    </select>
+    {{ form.discovery_auth_group.errors }}
+  </div>
+  <div id="id_discovery_auth_group_info" style="display:block" class="alert alert-info">
+  </div>
+  <div class="form-group" >
+    <label for="id_io_timeout" >I/O Timeout:</label>
+    <input type="text"  name="io_timeout" class="form-control" id="id_email_server" value="{{form.initial.io_timeout}}" placeholder="Enter I/O Timeout"> 
+    {{ form.io_timeout.errors }}
+  </div>
+  <div class="form-group" >
+    <label for="id_nop_in_interval" >NOPIN interval:</label>
+    <input type="text"  name="nop_in_interval" class="form-control" id="id_nop_in_interval" value="{{form.initial.nop_in_interval}}" placeholder=""> 
+    {{ form.nop_in_interval.errors }}
+  </div>
+  <div class="form-group" >
+    <label for="id_max_sessions" >Max sessions:</label>
+    <input type="text"  name="max_sessions" class="form-control" id="id_max_sessions" value="{{form.initial.max_sessions}}" placeholder=""> 
+    {{ form.max_sessions.errors }}
+  </div>
+  <div class="form-group" >
+    <label for="id_max_connections" >Max connections:</label>
+    <input type="text"  name="max_connections" class="form-control" id="id_max_connections" value="{{form.initial.max_connections}}" placeholder=""> 
+    {{ form.max_connections.errors }}
+  </div>
+  <div class="form-group" >
+    <label for="id_max_presend_r2t" >Max presend R2T:</label>
+    <input type="text"  name="max_presend_r2t" class="form-control" id="id_max_presend_r2t" value="{{form.initial.max_presend_r2t}}" placeholder=""> 
+    {{ form.max_presend_r2t.errors }}
+  </div>
+  <div class="form-group" >
+    <label for="id_max_outstanding_r2t" >Max outstanding R2T:</label>
+    <input type="text"  name="max_outstanding_r2t" class="form-control" id="id_max_outstanding_r2t" value="{{form.initial.max_outstanding_r2t}}" placeholder=""> 
+    {{ form.max_outstanding_r2t.errors }}
+  </div>
+  <div class="form-group" >
+    <label for="id_first_burst_length" >First burst length:</label>
+    <input type="text"  name="first_burst_length" class="form-control" id="id_first_burst_length" value="{{form.initial.first_burst_length}}" placeholder=""> 
+    {{ form.first_burst_length.errors }}
+  </div>
+  <div class="form-group" >
+    <label for="id_max_burst_length" >Max burst length:</label>
+    <input type="text"  name="max_burst_length" class="form-control" id="id_max_burst_length" value="{{form.initial.max_burst_length}}" placeholder=""> 
+    {{ form.max_burst_length.errors }}
+  </div>
+  <div class="form-group" >
+    <label for="id_max_receive_data_segment_length" >Max receive data segment length:</label>
+    <input type="text"  name="max_receive_data_segment_length" class="form-control" id="id_max_receive_data_segment_length" value="{{form.initial.max_receive_data_segment_length}}" placeholder=""> 
+    {{ form.max_receive_data_segment_length.errors }}
+  </div>
+  <div class="form-group" >
+    <label for="id_default_time_to_wait" >Default time to wait:</label>
+    <input type="text"  name="default_time_to_wait" class="form-control" id="id_default_time_to_wait" value="{{form.initial.default_time_to_wait}}" placeholder=""> 
+    {{ form.default_time_to_wait.errors }}
+  </div>
+  <div class="form-group" >
+    <label for="id_default_time_to_retain" >Default time to retain:</label>
+    <input type="text"  name="default_time_to_retain" class="form-control" id="id_default_time_to_retain" value="{{form.initial.default_time_to_retain}}" placeholder=""> 
+    {{ form.default_time_to_retain.errors }}
+  </div>
+<!--
+  <label for="id_enable_luc">LUC: </label>
+  <div class="checkbox" >
+    <label >
+      <input type="checkbox" name="enable_luc" id="id_enable_luc" {%if form.enable_luc.value %} checked="checked"{%endif%}> Enable LUC
+    </label>
+    {{ form.enable_luc.errors }}
+  </div>
+  <div class="form-group" >
+    <label for="id_controller_ip_addr" >Controller IP address:</label>
+    <input type="text"  name="controller_ip_addr" class="form-control" id="id_controller_ip_addr" value="{{form.initial.controller_ip_addr}}" placeholder=""> 
+    {{ form.controller_ip_addr.errors }}
+  </div>
+  <div class="form-group" >
+    <label for="id_controller_tcp_port" >Controller TCP port:</label>
+    <input type="text"  name="controller_tcp_port" class="form-control" id="id_controller_tcp_port" value="{{form.initial.controller_tcp_port}}" placeholder=""> 
+    {{ form.controller_tcp_port.errors }}
+  </div>
+  <div class="form-group" >
+    <label for="id_controller_auth_netmask" >Controller auth netmask:</label>
+    <input type="text"  name="controller_auth_netmask" class="form-control" id="id_controller_auth_netmask" value="{{form.initial.controller_auth_netmask}}" placeholder=""> 
+    {{ form.controller_auth_netmask.errors }}
+  </div>
+  <label for="id_controller_auth_method">Controller auth method: </label>
+  <div class="form-group" >
+    {% for choice in form.controller_auth_method.field.choices %} 
+        <label class="radio-inline">
+          <input type="radio" name="controller_auth_method" id="optionsRadios1" value="{{choice.0}}" {%if choice.0 == form.initial.controller_auth_method %} checked="checked"{%endif%}>{{choice.0}}
+        </label>
+    {%endfor%}
+    {{ form.controller_auth_method.errors }}
+  </div>
+  <div class="form-group" >
+    <label for="id_controller_auth_group">Controller auth group: </label>
+    <select class="form-control" id="id_controller_auth_group" name="controller_auth_group">
+    {% for choice in form.controller_auth_group.field.choices %} 
+          <option value="{{choice.0}}" {%if choice.0 == form.initial.controller_auth_group %} selected{%endif%} >{{choice.0}}</option>
+    {%endfor%}
+    </select>
+    {{ form.controller_auth_group.errors }}
+  </div>
+  <div id="id_controller_auth_group_info" style="display:block" class="alert alert-info">
+  </div>
+-->
+</div>
+
+        <a href="/iscsi_view_target_global_config" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
+        <button type="submit" class="btn btn-primary">Save >></button>
+</form>
+<script type="text/javascript">
+function set_select_field_disabled(f, val) {
+  for(var i = 0; i < f.length; i++)
+    f[i].disabled = val
+}
+function set_input_field_disabled(f, val) {
+  f.disabled = val;
+}
+$("form input[name='enable_luc']").click(function () { 
+    // Handle the click event here
+    if (document.forms["edit_form"].elements["enable_luc"].checked) {
+      set_input_field_disabled(document.forms["edit_form"].elements["controller_ip_addr"], false);
+      set_input_field_disabled(document.forms["edit_form"].elements["controller_tcp_port"], false);
+      set_input_field_disabled(document.forms["edit_form"].elements["controller_auth_netmask"], false);
+    } else {
+      set_input_field_disabled(document.forms["edit_form"].elements["controller_ip_addr"], true);
+      set_input_field_disabled(document.forms["edit_form"].elements["controller_tcp_port"], true);
+      set_input_field_disabled(document.forms["edit_form"].elements["controller_auth_netmask"],true);
+    }
+    });
+$(window).load(function() {
+  // Handler for .load() called.
+    //alert("loaded");
+    //alert(document.forms["edit_form"].elements["guest_ok"].checked);
+    display_access_info('id_discovery_auth_group', 'id_discovery_auth_group_info'); 
+    display_access_info('id_controller_auth_group', 'id_controller_auth_group_info'); 
+    if (document.forms["edit_form"].elements["enable_luc"].checked) {
+      set_input_field_disabled(document.forms["edit_form"].elements["controller_ip_addr"], false);
+      set_input_field_disabled(document.forms["edit_form"].elements["controller_tcp_port"], false);
+      set_input_field_disabled(document.forms["edit_form"].elements["controller_auth_netmask"], false);
+    } else {
+      set_input_field_disabled(document.forms["edit_form"].elements["controller_ip_addr"], true);
+      set_input_field_disabled(document.forms["edit_form"].elements["controller_tcp_port"], true);
+      set_input_field_disabled(document.forms["edit_form"].elements["controller_auth_netmask"],true);
+    }
+  });
+</script>
+
+{%endblock%}
+{%block help_header%}
+Edit global configuration for ISCSI targets  help
+{%endblock%}
+{%block help_body%}
+<p>Help about editing global configuration for ISCSI targets …</p>
+{%endblock%}

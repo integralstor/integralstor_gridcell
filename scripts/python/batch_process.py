@@ -53,6 +53,7 @@ def process_batch(d, file):
   #Process each batch file
 
   try:
+    print file
     batch_files_path, err = common.get_batch_files_path()
     if err:
       raise Exception(err)
@@ -60,8 +61,8 @@ def process_batch(d, file):
     if not d:
       raise Exception("Error: No JSON info in %s/%s"%(batch_files_path, file))
   
-    if not d["process"] in ["replace_sled", "volume_rebalance", "factory_defaults_reset"]:
-      raise Exception("Error! Unknown process in %s/%s"%(batch_files_path, file))
+    #if not d["process"] in ["replace_sled", "volume_rebalance", "factory_defaults_reset"]:
+    #  raise Exception("Error! Unknown process in %s/%s"%(batch_files_path, file))
   
     if not "start_time" in d:
       #Update when this process was started
@@ -187,7 +188,7 @@ def process_batch(d, file):
         #Commands that have valid XML outputs
         temp = tempfile.TemporaryFile()
         try:
-          #print cd["command"]
+          print cd["command"]
           r, err = command.execute(cd["command"])
           if err:
             raise Exception("Error executing %s"%cd["command"])
@@ -211,7 +212,8 @@ def process_batch(d, file):
   
           root = tree.getroot()
           op_status, err = xml_parse.get_op_status(root)
-          raise Exception("Error parsing xml output from %s : %s"%(cd["type"]), err)
+          if err:
+            raise Exception("Error parsing xml output from %s : %s"%(cd["type"]), err)
   
           if not op_status:
             raise Exception("Could not get status of command %s"%cd["command"])
@@ -279,7 +281,7 @@ def process_batch(d, file):
   
         except Exception, e:
           cd["status_code"] = -1
-          cd["err_msg"] = "Error processing command : %s"%%str(e)
+          cd["err_msg"] = "Error processing command : %s"%str(e)
           break
         finally:
           temp.close()
@@ -320,7 +322,7 @@ def main():
     if err:
       raise Exception(err)
     devel_files_path, err = common.get_devel_files_path()
-    ret, err = lock.get_lock('batch_process'):
+    ret, err = lock.get_lock('batch_process')
     if err:
       raise Exception(err)
     if not ret:
@@ -334,14 +336,11 @@ def main():
           continue
         else:
           with open(os.path.normpath("%s/%s"%(batch_files_path,file)), "r") as f:
-            try :
-              d = json.load(f)
-              process_batch(d, file)
-            except Exception, e:
-              print "Error loading json content for %s/%s : %s"%(batch_files_path, file, e)
+            d = json.load(f)
+            ret, err = process_batch(d, file)
+            if err:
+              print "Error loading json content for %s/%s : %s"%(batch_files_path, file, err)
               continue
-            finally:
-              f.close()
     ret, err = lock.release_lock('batch_process')
     if err:
       raise Exception(err)
