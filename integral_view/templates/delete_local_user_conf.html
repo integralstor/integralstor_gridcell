@@ -31,7 +31,7 @@
 <form action="/delete_local_user/" method="POST">
 <input type=hidden name="userid" value="{{userid}}">
 <input type="button" class="btn btn-default" value="Cancel" onClick="window.location='/view_local_users'"> &nbsp;&nbsp;
-<button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Confirm and delete >></button>
+<button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Confirm and delete </button>
 </form>
 
 
@@ -45,3 +45,10 @@ Deleting local users.
 {%block help_body%}
 <p>Confirming this operation results in a local user of the IntegralStor system being deleted.</p>
 {%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('local_user_tab')
+  </script>
+{% endblock %}
+

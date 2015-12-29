@@ -1,4 +1,4 @@
-{% extends 'snapshot_base.html' %}
+{% extends base_template %}
 
 {%block status_selected%}
   style="background-color:white;color:white;"
@@ -61,7 +61,7 @@ Restore
     {% if d.status == "Started" %}
     <form  role="form" action="/deactivate_snapshot/" method="post">
     <input type="hidden" name="snapshot_name" value="{{d.name}}">
-    <input class="btn btn-primary" type="submit" value="Deactivate">
+    <input class="btn btn-danger" type="submit" value="Deactivate">
     {%else%}
     <form  role="form" action="/activate_snapshot/" method="post">
     <input type="hidden" name="snapshot_name" value="{{d.name}}">
@@ -100,3 +100,10 @@ View snapshots
 {%block help_body%}
   <p>This page displays all snapshots that have been taken for a particular volume. For each snapshot, this page also gives you options to activate, deactivate, delete or restore the particular snapshot.</p>
 {%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('snapshot_view_tab')
+  </script>
+{% endblock %}
+

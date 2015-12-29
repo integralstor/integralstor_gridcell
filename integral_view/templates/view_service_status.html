@@ -1,0 +1,49 @@
+{% extends 'services_base.html' %}
+
+{% block tab_header %}
+	View service status on GRIDCell
+{% endblock %}
+
+{% block inside_content %}
+
+<br />
+<br />
+<div class="row">
+{% for service,nodes in service_status.items %}
+  <div class="col-md-12 col-sm-12 col-lg-12">
+    <div class="box box-success box-solid collapsed-box">
+      <div class="box-header with-border">
+        <h3 class="box-title">{{service}}</h3>
+        <div class="box-tools pull-right">
+          <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i></button>
+        </div><!-- /.box-tools -->
+      </div><!-- /.box-header -->
+      <div style="display: none;" class="box-body">
+        <ul class="nav nav-stacked">
+	{% for node,status in nodes.items %}
+          <li>
+            <a href="#"> {{node}}
+		<span class="pull-right" style="margin-top:-7px;">
+			<form action="/node_service_action/" method="POST">
+			<input type="text" name="node" value="{{node}}" style="display:none;"/>
+			<input type="text" name="service" value="{{service}}" style="display:none;"/>
+		{% if status %}
+			<input type="text" name="action" value="stop" style="display:none;"/>
+                	<button type="submit" class="pull-right btn btn-xs btn-danger"> Stop Service </button>
+		{% else %}
+			<input type="text" name="action" value="start" style="display:none;"/>
+                	<button type="submit" class="pull-right btn btn-xs btn-success"> Start Service </button>
+		{% endif %}
+			</form>
+		</span>
+            </a>
+          </li>
+	{% endfor %}
+        </ul>
+      </div><!-- /.box-body -->
+    </div>
+  </div>
+{% endfor %}
+</div>
+
+{% endblock %}

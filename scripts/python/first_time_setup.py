@@ -22,7 +22,7 @@ def scan_for_nodes():
     pending_nodes = ['gridcell-pri.integralstor.lan', 'gridcell-sec.integralstor.lan']
     print "Found the primary and secondary GRIDCells."
     print
-    success, failed, err = grid_ops.add_nodes_to_grid("System setup process",pending_nodes, first_time = True, print_progress = True)
+    (success, failed), err = grid_ops.add_nodes_to_grid("System setup process",pending_nodes, first_time = True, print_progress = True)
     if err:
       raise Exception(err)
     if (not success) :

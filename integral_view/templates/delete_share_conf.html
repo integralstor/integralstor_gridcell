@@ -28,7 +28,7 @@
 <input type=hidden name="name" value="{{name}}">
 <input type=hidden name="share_id" value="{{share_id}}">
 <input type="button" class="btn btn-default" value="Cancel" onClick="window.location='/view_share?access_mode=by_id&index={{share_id}}'"> &nbsp;&nbsp;
-<button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Confirm and delete >></button>
+<button type="submit" class="btn btn-danger" onClick ="$('#processing').modal('show');">Confirm and delete </button>
 </form>
 
 
@@ -42,3 +42,10 @@ Deleting a share
 {%block help_body%}
 <p>Confirming this operation results in the specified share being deleted from the system. Please ensure that this is actually intended before continuing.</p>
 {%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('view_share_tab')
+  </script>
+{% endblock %}
+

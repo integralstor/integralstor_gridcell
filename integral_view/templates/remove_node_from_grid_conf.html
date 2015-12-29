@@ -42,3 +42,8 @@ Remove a GRIDCell from the storage pool
 {%block help_body%}
 <p> This screen is a confirmation prompt before removing the chosen GRIDCell from the storage pool. You would normally remove the GRIDCell from the storage pool in order to do some planned maintanance.</p>
 {%endblock%}
+{% block tab_active %}
+	<script>
+		make_tab_active('gridcell_list_tab')
+	</script>
+{% endblock %}

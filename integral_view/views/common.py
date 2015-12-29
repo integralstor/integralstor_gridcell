@@ -912,10 +912,27 @@ def hardware_scan(request):
       return_dict["error"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
+@login_required
+def remove_gridcell(request):
+  return_dict = {}
+  if request.method == "GET":
+    gridcells = []
+    si, err = system_info.load_system_config()
+    for name,status in si.items():
+      if not ('gridcell-pri.integralstor.lan' in name or 'gridcell-sec.integralstor.lan' in name) and not (si[name]['in_cluster']):
+        gridcells.append(name)
+    return_dict['gridcells'] = gridcells
+    return django.shortcuts.render_to_response("remove_gridcell.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  if request.method == "POST":
+    gridcell  = request.POST.get('gridcell')
+    status,err = grid_ops.delete_salt_key(gridcell)
+    status,err = grid_ops._regenerate_manifest_and_status()
+    return django.http.HttpResponseRedirect('/remove_gridcell/')
+
+
 
 @login_required
 def internal_audit(request):
-
   response = django.http.HttpResponse()
   if request.method == "GET":
     response.write("Error!")
