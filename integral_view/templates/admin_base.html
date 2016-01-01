@@ -4,7 +4,9 @@
 {% block contents %}
   <div class="nav-tabs-custom">
 	<ul class="nav nav-tabs">
-	  <li id="admin_change_pass_tab"><a href="/change_admin_password">Change admin password</a></li>
+	  <li id="admin_change_pass_tab"><a href="/change_admin_password/">Change admin password</a></li>
+	  <li id="initiate_scrub_tab"><a href="/initiate_scrub/">Schedule ZFS Pool Scrub </a></li>
+	  <li id="download_config_tab"><a href="/download_system_config/">Download system configuration</a></li>
     	  {% include 'help_and_refresh.html' %}
         </ul>
         <div class="tab-content">

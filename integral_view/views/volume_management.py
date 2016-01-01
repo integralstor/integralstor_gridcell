@@ -323,6 +323,7 @@ def volume_specific_op(request, operation, vol_name=None):
       return django.shortcuts.render_to_response('volume_specific_op_form.html', return_dict, context_instance=django.template.context.RequestContext(request))
   except Exception, e:
     s = str(e)
+    print s
     if "Another transaction is in progress".lower() in s.lower():
       return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
     else:
@@ -869,67 +870,69 @@ def replace_node(request):
                 raise Exception(err)
               #Get the brick path and the data set name
               if 'bricks' in vol_dict and vol_dict['bricks']:
-                print vol_dict['bricks']
-                brick1 = vol_dict['bricks'][0][0]
-                print brick1
-                d, err = volume_info.get_components(brick1)
-                if err:
-                  raise Exception(err)
-                if not d:
-                  raise Exception("Error decoding the brick for the specified volume. Brick name : %s "%brick1)
+                for brick_list in vol_dict['bricks']:
+                  for brick in brick_list:
+                    d, err = volume_info.get_components(brick)
+                    if err:
+                      raise Exception(err)
+                    if not d:
+                      raise Exception("Error decoding the brick for the specified volume. Brick name : %s "%brick)
+                    if d['host'] != src_node:
+                      continue
+                    #Found the brick on the src node so now proceed
+                    dataset_cmd = 'zfs create %s/%s/%s'%(d['pool'], d['ondisk_storage'], vol.strip())
+                    revert_list = ['zfs destroy %s/%s/%s'%(d['pool'], d['ondisk_storage'], vol.strip())]
+                    #print dataset_cmd
+                    r1 = client.cmd(dest_node, 'cmd.run_all', [dataset_cmd])
+                    errors = ''
+                    if r1:
+                      for node, ret in r1.items():
+                        print ret
+                        if ret["retcode"] != 0:
+                          errors += ", Error creating the underlying storage brick on %s"%node
+                          print errors
+                    if errors:
+                      print 'Reverting. Executing : ', revert_list
+                      r1 = client.cmd(dest_node, 'cmd.run_all', revert_list)
+                      if r1:
+                        for node, ret in r1.items():
+                          print ret
+                          if ret["retcode"] != 0:
+                            errors += ", Error removing the underlying storage brick on %s"%node
+                            print errors
+                      raise Exception(errors)
+                  
+                  
 
-                dataset_cmd = 'zfs create %s/%s/%s'%(d['pool'], d['ondisk_storage'], vol.strip())
-                revert_cmd = 'zfs destroy %s/%s/%s'%(d['pool'], d['ondisk_storage'], vol.strip())
-                #print dataset_cmd
-                r1 = client.cmd(dest_node, 'cmd.run_all', [dataset_cmd])
-                if r1:
-                  errors = ''
-                  for node, ret in r1.items():
-                    print ret
-                    if ret["retcode"] != 0:
-                      errors += ", Error creating the underlying storage brick on %s"%node
-                      print errors
-                    revert_list.append(revert_cmd)
-  
+            d, err = gluster_batch.create_replace_command_file(si, vol_list, src_node, dest_node)
+            print d, err
+            if err or (d and "error" in d):
+              if revert_list:
+                #Undo the creation of the datasets
+                for dsr_cmd in revert_list:
+                    r1 = client.cmd(dest_node, 'cmd.run_all', [dsr_cmd])
+                    if r1:
+                      for node, ret in r1.items():
+                        #print ret
+                        if ret["retcode"] != 0:
+                          errors += " , Error undoing the creation of the underlying storage brick on %s"%dest_node
+                          d["error"].append(errors)
+              if err:
+                raise Exception(err)
+              elif d and 'error' in d:
+                raise Exception("Error initiating replace : %s"%d["error"])
               else:
-                raise Exception("No bricks found for the specified volume ")
-              print 'here'
-
-          if errors and revert_list:
-            print revert_list
-            r1 = client.cmd(dest_node, 'cmd.run_all', [revert_list])
-            if r1:
-              for node, ret in r1.items():
-                print ret
-                if ret["retcode"] != 0:
-                  errors += ", Error removing the underlying storage brick on %s"%node
-                  print errors
-            raise Exception(errors)
-
-          d, err = gluster_batch.create_replace_command_file(si, vil, src_node, dest_node)
-          print d, err
-          if err or (d and "error" in d):
-            if revert_list:
-              #Undo the creation of the datasets
-              for dsr_cmd in revert_list:
-                  r1 = client.cmd(dest_node, 'cmd.run_all', [dsr_cmd])
-                  if r1:
-                    for node, ret in r1.items():
-                      #print ret
-                      if ret["retcode"] != 0:
-                        errors += " , Error undoing the creation of the underlying storage brick on %s"%dest_node
-                        d["error"].append(errors)
-            if err:
-              raise Exception(err)
-            elif d and 'error' in d:
-              raise Exception("Error initiating replace : %s"%d["error"])
+                raise Exception('Error creating the replace batch command file')
             else:
-              raise Exception('Error creating the replace batch command file')
+              ret, err = audit.audit("replace_node", "Scheduled replacement of GRIDCell %s with GRIDCell %s"%(src_node, dest_node), request.META["REMOTE_ADDR"])
+              if err:
+                raise Exception(err)
+              return django.http.HttpResponseRedirect('/show/batch_start_conf/%s'%d["file_name"])
           else:
-            ret, err = audit.audit("replace_node", "Scheduled replacement of GRIDCell %s with GRIDCell %s"%(src_node, dest_node), request.META["REMOTE_ADDR"])
-            if err:
-              raise Exception(err)
-            return django.http.HttpResponseRedirect('/show/batch_start_conf/%s'%d["file_name"])
+            raise Exception('No volumes found on the source GRIDCell')
+        else:
+          #Invalid conf form
+          raise Exception('Invalid request. Please try again.')
       else:
         form = volume_management_forms.ReplaceNodeForm(request.POST, src_node_list = d["src_node_list"], dest_node_list = d["dest_node_list"])
         if form.is_valid():

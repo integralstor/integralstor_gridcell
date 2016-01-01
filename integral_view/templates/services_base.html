@@ -4,9 +4,10 @@
 {% block contents %}
   <div class="nav-tabs-custom">
 	<ul class="nav nav-tabs">
+	  <li id="service_status_tab"><a href="/view_service_status/"> View Services </a></li>
 	  <li id="service_ntp_tab"><a href="/show/ntp_settings/">Configure NTP</a></li>
 	  <li id="service_config_email_tab"><a href="/show/email_settings">Configure Email</a></li>
-    <li id="service_cifs_access_tab"><a href="/auth_server_settings">Configure CIFS Access</a></li>
+          <li id="service_cifs_access_tab"><a href="/auth_server_settings">Configure CIFS Access</a></li>
     	  {% include 'help_and_refresh.html' %}
         </ul>
         <div class="tab-content">

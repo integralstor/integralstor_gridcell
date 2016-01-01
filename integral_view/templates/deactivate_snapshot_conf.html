@@ -44,3 +44,10 @@ Deactivate a snapshot
 {%block help_body%}
 <p>Snapshots are like data volumes and hence consume some resources. If access to the snapshots are not currently required then they may be deactivated using this screen. They can be activated at any later point in time if needed.</p>
 {%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('snapshot_view_tab')
+  </script>
+{% endblock %}
+

@@ -31,13 +31,13 @@
   {%if volume_info_list %}
 
     <table class="table table-bordered table-striped table-hover table-condensed datatable" width="100%">
-      <thead>
+      <thead class="bg-gray"> 
         <tr>
-          <th> Volume name </th>
-          <th> Access Mode </th>
-          <th> Status </th>
-          <th> Start/Stop </th>
-          <th> Details</th>
+          <th> <button class="btn"> Volume Name </button></th>
+          <th> <button class="btn"> Access Mode </button></th>
+          <th> <button class="btn"> Status </button></th>
+          <th> <button class="btn"> Start/Stop </button></th>
+          <th> <button class="btn"> Details </button></th>
         </tr>
       </thead>
       <tbody>
@@ -51,17 +51,17 @@
             <form action="/volume_specific_op/vol_stop/" method="post">
             <input type=hidden name="vol_name" value="{{o.name}}">
             <input type=hidden name="op" value="vol_stop">
-            <button type="submit" class="btn btn-primary">Stop this volume</button>
+            <button type="submit" class="btn btn-danger">Stop this volume</button>
             {%else%}
             <form action="/volume_specific_op/vol_start/" method="post">
             <input type=hidden name="vol_name" value="{{o.name}}">
             <input type=hidden name="op" value="vol_start">
-            <button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Start this volume</button>
+            <button type="submit" class="btn btn-success" onClick ="$('#processing').modal('show');">Start this volume</button>
             {%endif%}
             </form>
           </td>
           <td> 
-                <a href="/show/volume_info/{{o.name}}" role="button" class="btn btn-primary">Details</a>
+                <a href="/show/volume_info/{{o.name}}" role="button" class="btn btn-info">Details</a>
           </td>
         </tr>
         {%endfor%}

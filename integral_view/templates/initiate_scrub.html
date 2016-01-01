@@ -1,0 +1,59 @@
+{% extends 'admin_base.html' %}
+
+{% block tab_header %}
+  Initiate ZFS Scrub 
+{% endblock %}
+
+{% block inside_content %}
+<br />
+<br />
+    Initiate the Scrub <sup>*</sup>
+<form class="form-horizontal" role="form" name="create_form" action="." method="post">
+  <div class="input-append date">
+    <table  class="table " style="width:100%">
+      <tr>
+        <td>
+          <label for="datetime">Select the Date for SCRUB</label>
+        </td>
+        <td>
+          <input size="16" type="text" value="" readonly class="form-control form_datetime" name="datetime" id="datetime"placeholder="Click here to Select">
+          <input type="text" value="" readonly class="form-control" name="timestamp" id="timestamp" style="display:none;" >
+        </td>
+        <td>
+          {{ form.userid.errors }}
+        </td>
+      </tr>
+    </table>
+</div>
+  <button type="submit" class="btn btn-primary">Initiate Scrub </button>
+</form>
+  <br><sup>*</sup>Run it when your system isn’t busy servicing your customers.</br>
+{% endblock %}
+
+{% block js %}
+
+<script type="text/javascript">
+
+var today = new Date()
+var dd = today.getDate();
+var mm = today.getMonth()+1; //January is 0!
+var yyyy = today.getFullYear();
+var hours = today.getHours()
+var min = today.getMinutes()
+
+    $(".form_datetime").datetimepicker({
+        format: "yyyy-mm-dd hh:ii",
+        autoclose: true,
+        todayBtn: true,
+        startDate: yyyy+"-"+mm+"-"+dd+" "+hours+":"+min,
+        minuteStep: 15
+    });
+$("#datetime").on('change',function(){
+    var date = $("#datetime").val()
+    var ts = new Date(date.split(' ').join('T'))
+    timestamp = ts.getTime()/1000
+    $("#timestamp").val(timestamp)
+})
+</script>            
+{% endblock %}
+

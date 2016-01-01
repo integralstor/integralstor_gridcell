@@ -48,7 +48,7 @@ def set_as_primary(primary_ip, primary_netmask):
     if not ok:
       raise Exception("Please set the IP configuration of this (primary) GRIDCell and then try again")
   
-    str_to_print = 'Please enter the IP address of the Fractalio "secondary" GRIDCell : '    
+    str_to_print = 'Please enter the IP address of the Integralstor secondary GRIDCell : '    
     valid_input = False
     while not valid_input :
       print
@@ -198,7 +198,7 @@ def set_as_secondary(secondary_ip, secondary_netmask):
     print "Please set the IP configuration of this (secondary) GRIDCell and then try again"
     return -1
 
-  str_to_print = "Please enter the IP address of the Fractalio 'primary' GRIDCell : "    
+  str_to_print = "Please enter the IP address of the Integralstor primary GRIDCell : "    
   valid_input = False
   while not valid_input :
     input = raw_input(str_to_print)

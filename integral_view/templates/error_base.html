@@ -4,10 +4,7 @@
 {% block contents %}
 <div class="nav-tabs-custom">
 	<ul class="nav nav-tabs">
-	  <li id="gridcell_list_tab"><a href="/show/gridcells/">View GRIDCells</a></li>
-	  <li id="replace_gridcell_tab"><a href="/replace_node/">Replace a GRIDCell</a></li>
-	  <li id="scan_for_gridcells_tab"><a href="/hardware_scan/">Scan for new GRIDCells</a></li>
-	  <li id="remove_gridcell_tab"><a href="/remove_gridcell/">Remove GRIDCell</a></li>
+	  <li id="error_tab">Error</li>
 	  {% include 'help_and_refresh.html' %}
   </ul>
 
@@ -19,15 +16,10 @@
       </span>
       <span class="white-space:pre-line"></span>
        {% block inside_content %}
-        Information Not found. Please refresh the page
+       An error occurred when processing your request.
        {% endblock inside_content %}
     </div>
   </div>
 </div>
 
-{% endblock%}
-{% block menu_active %}
-<script>
-   make_side_menu_active("gridcell_menu")
-</script>
 {% endblock%}

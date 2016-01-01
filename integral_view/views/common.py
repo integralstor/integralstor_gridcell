@@ -1,4 +1,4 @@
-import json, time, os, shutil, tempfile, os.path, re, subprocess, sys, shutil, socket
+import json, time, os, shutil, tempfile, os.path, re, subprocess, sys, shutil, socket, zipfile
 
 import salt.client, salt.wheel
 
@@ -11,7 +11,7 @@ from integralstor_common import db, common, audit, alerts, ntp, mail
 from integralstor_common import cifs as cifs_common
 
 import integralstor_gridcell
-from integralstor_gridcell import batch, gluster_commands, volume_info, system_info, grid_ops, xml_parse, iscsi
+from integralstor_gridcell import batch, gluster_commands, volume_info, system_info, grid_ops, xml_parse, iscsi, ctdb, iscsi_stgt
 
 
 import integral_view
@@ -256,11 +256,11 @@ def show(request, page, info = None):
 
       return_dict['node'] = si[info]
       client = salt.client.LocalClient()
-      ctdb = client.cmd(info,'cmd.run',['service ctdb status'])
+      ctdb_status = client.cmd(info,'cmd.run',['service ctdb status'])
       winbind = client.cmd(info,'cmd.run',['service winbind status'])
       gluster = client.cmd(info,'cmd.run',['service glusterd status'])
-      if ctdb:
-        return_dict['ctdb'] = ctdb[info]
+      if ctdb_status:
+        return_dict['ctdb'] = ctdb_status[info]
       else:
         return_dict['ctdb'] = None
       if winbind:
@@ -506,6 +506,10 @@ def show(request, page, info = None):
       return_dict['num_free_nodes'] = num_free_nodes
 
     elif page == "dashboard":
+      return_dict['base_template'] = "dashboard_base.html"
+      return_dict["page_title"] = 'Dashboard'
+      return_dict['tab'] = 'dashboard_tab'
+      return_dict["error"] = 'Error loading dashboard'
       num_nodes_bad = 0
       num_pools_bad = 0
       num_vols_bad = 0
@@ -514,24 +518,75 @@ def show(request, page, info = None):
       total_vols = len(vil)
       nodes = {}
       storage_pool = {}
+      bad_nodes = []
+      bad_node_pools = []
+      bad_volumes = []
+      num_bad_ctdb_nodes = 0
+      bad_ctdb_nodes = []
+      num_quotas_exceeded = 0
+      quota_exceeded_vols = []
+      num_shares = 0
 
       for k, v in si.items():
         nodes[k] = v["node_status"]
         if v["node_status"] != 0:
           num_nodes_bad += 1
+          bad_nodes.append(k)
         if v["in_cluster"] :
           total_pool += 1
           if v["cluster_status"] != 1:
             num_pools_bad += 1
+            bad_node_pools.append(k)
         storage_pool[k] = v["cluster_status_str"]
+
           
 
       for vol in vil:
         if vol["status"] == 1 :
           if vol["data_access_status_code"] != 0 or (not vol["processes_ok"]):
+            bad_volumes.append(vol['name'])
             num_vols_bad += 1
+        if 'quotas' in vol and vol['quotas']:
+          for k,v in vol['quotas'].items():
+            if k.lower() in ['soft limit exceeded', 'hard limit exceeded'] and v.lower() == 'yes':
+              num_quotas_exceeded += 1
+              quota_exceeded_vols.append(vol['name'])
+              break
+                
+      shares_list, err = cifs_common.load_shares_list()
+      if err:
+        raise Exception(err)
+      if shares_list:
+        return_dict['num_shares'] = len(shares_list)
+
+      targets_list, err = iscsi_stgt.get_targets()
+      if err:
+        raise Exception(err)
+      if targets_list:
+        return_dict['num_targets'] = len(targets_list)
+      else:
+        return_dict['num_targets'] = 0
           
+      ctdb_status, err = ctdb.get_status()
+      print ctdb_status, err
+      if err:
+        raise Exception(err)
+      if ctdb_status:
+        num_ctdb_nodes = len(ctdb_status)
+        for n, v in ctdb_status.items():
+          if v.lower() != 'ok':
+            bad_ctdb_nodes.append((n,v))
+            num_bad_ctdb_nodes += 1
+
+      return_dict["ctdb_status"] = ctdb_status            
+      return_dict["num_quotas_exceeded"] = num_quotas_exceeded            
+      return_dict["quota_exceeded_vols"] = quota_exceeded_vols            
+      return_dict["num_ctdb_nodes"] = num_ctdb_nodes            
+      return_dict["bad_ctdb_nodes"] = bad_ctdb_nodes            
+      return_dict["num_bad_ctdb_nodes"] = num_bad_ctdb_nodes            
       return_dict["num_nodes_bad"] = num_nodes_bad            
+      return_dict["bad_nodes"] = bad_nodes
+      return_dict["bad_node_pools"] = bad_node_pools
       return_dict["num_pools_bad"] = num_pools_bad            
       return_dict["num_vols_bad"] = num_vols_bad            
       return_dict["total_nodes"] = total_nodes            
@@ -912,10 +967,27 @@ def hardware_scan(request):
       return_dict["error"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
+@login_required
+def remove_gridcell(request):
+  return_dict = {}
+  if request.method == "GET":
+    gridcells = []
+    si, err = system_info.load_system_config()
+    for name,status in si.items():
+      if not ('gridcell-pri.integralstor.lan' in name or 'gridcell-sec.integralstor.lan' in name) and not (si[name]['in_cluster']):
+        gridcells.append(name)
+    return_dict['gridcells'] = gridcells
+    return django.shortcuts.render_to_response("remove_gridcell.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  if request.method == "POST":
+    gridcell  = request.POST.get('gridcell')
+    status,err = grid_ops.delete_salt_key(gridcell)
+    status,err = grid_ops._regenerate_manifest_and_status()
+    return django.http.HttpResponseRedirect('/remove_gridcell/')
+
+
 
 @login_required
 def internal_audit(request):
-
   response = django.http.HttpResponse()
   if request.method == "GET":
     response.write("Error!")
@@ -931,6 +1003,59 @@ def internal_audit(request):
   return response
 
 
+def download_configuration(request):
+  """ Download the complete configuration stored in get_config_dir()"""
+
+  return_dict = {}
+  try:
+    return_dict['base_template'] = "admin_base.html"
+    return_dict["page_title"] = 'Download system configuration'
+    return_dict['tab'] = 'download_config_tab'
+    return_dict["error"] = 'Error downloading system configuration'
+  
+    if request.method == 'POST':
+  
+      config_dir, err = common.get_config_dir()
+      if err:
+        raise Exception(err)
+      #Remove trailing '/'
+      if config_dir[len(config_dir)-1] == '/':
+        config_dir = config_dir[:len(config_dir)-1]
+
+      zf_name = '/tmp/integralstor_config.zip'
+      zf = zipfile.ZipFile(zf_name, 'w')
+      top_component = config_dir[config_dir.rfind('/')+1:]
+      for dirname, subdirs, files in os.walk(config_dir):
+        for filename in files:
+          #print os.path.join(dirname, filename)
+          absname = os.path.abspath(os.path.join(dirname, filename))
+          arcname = '%s/%s'%(top_component,absname[len(config_dir) + 1:])
+          #print arcname
+          zf.write(absname, arcname)
+      zf.close()
+  
+  
+      response = django.http.HttpResponse()
+      response['Content-disposition'] = 'attachment; filename=%s.zip'%(display_name)
+      response['Content-type'] = 'application/x-compressed'
+      with open(zf_name, 'rb') as f:
+        byte = f.read(1)
+        while byte:
+          response.write(byte)
+          byte = f.read(1)
+      response.flush()
+  
+      return response
+  
+    # either a get or an invalid form so send back form
+    return django.shortcuts.render_to_response('download_config.html', return_dict, context_instance=django.template.context.RequestContext(request))
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
 
 

@@ -441,8 +441,7 @@ def edit_auth_method(request):
         raise Exception("Please select an authentication method")
       security = request.POST["auth_method"]
       if security == d["security"]:
-        return_dict["error"] = "Selected authentication method is the same as before." 
-        return django.shortcuts.render_to_response('edit_auth_method.html', return_dict, context_instance=django.template.context.RequestContext(request))
+        raise Exception("Selected authentication method is the same as before.")
   
       ret, err = cifs_common.change_auth_method(security)
       if err:

@@ -87,10 +87,10 @@ def configure_networking():
       print 'Error retrieving current name servers : %s'%err
     dns_primary = None
     if not dns_list:
-      str_to_print = "Enter the IP address of the Fractalio primary GRIDCell (currently not set, press enter to retain current value) : "
+      str_to_print = "Enter the IP address of the Integralstor primary GRIDCell (currently not set, press enter to retain current value) : "
     else:
       dns_primary = dns_list[0]
-      str_to_print = "Enter the IP address of the Fractalio primary GRIDCell (currently %s, press enter to retain current value) : "%dns_primary
+      str_to_print = "Enter the IP address of the Integralstor primary GRIDCell (currently %s, press enter to retain current value) : "%dns_primary
     valid_input = False
     while not valid_input:
       input = raw_input(str_to_print)
@@ -109,10 +109,10 @@ def configure_networking():
   
     dns_secondary = None
     if (not dns_list) or (len(dns_list) <= 1):
-      str_to_print = "Enter the IP address of the Fractalio secondary GRIDCell (currently not set, press enter to retain current value) : "
+      str_to_print = "Enter the IP address of the Integralstor secondary GRIDCell (currently not set, press enter to retain current value) : "
     else:
       dns_secondary = dns_list[1]
-      str_to_print = "Enter the IP address of the Fractalio secondary GRIDCell (currently %s, press enter to retain current value) : "%dns_secondary
+      str_to_print = "Enter the IP address of the Integralstor secondary GRIDCell (currently %s, press enter to retain current value) : "%dns_secondary
     valid_input = False
     while not valid_input:
       input = raw_input(str_to_print)
@@ -217,8 +217,8 @@ def configure_networking():
     print "Net Mask : %s"%netmask
     #print "Hostname : %s"%hostname
     print "Default gateway : %s"%default_gateway
-    print "IP address of the Fractalio primary GRIDCell : %s"%dns_primary
-    print "IP address of the Fractalio secondary GRIDCell : %s"%dns_secondary
+    print "IP address of the Integralstor primary GRIDCell : %s"%dns_primary
+    print "IP address of the Integralstor secondary GRIDCell : %s"%dns_secondary
     print "IP address of the customer's DNS server: %s"%dns_external
     if bonding_type == 4:
       print "NIC Bonding mode : LACP"

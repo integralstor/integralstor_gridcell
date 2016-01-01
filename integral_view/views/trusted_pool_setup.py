@@ -212,6 +212,7 @@ def remove_node_from_pool(request):
           node = cd["node"]
           iv_logging.info("Removing node '%s'"%node)
           d, error = grid_ops.remove_a_node_from_storage_pool(si, node)
+          print d, error
 
           return_dict['result_code'] = rc
           return_dict['node_name'] = node

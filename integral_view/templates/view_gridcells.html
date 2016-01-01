@@ -17,19 +17,17 @@
 {%endif%}
   {%if system_info %}
     {%if pending_minions %}
-    <i> GRIDCells that are not part of the grid have been detected on the network. <br> </i>
-    <a href="/hardware_scan" role="button" class="btn btn-default">Add GRIDCells to the grid</a>
     <br>
     {%endif%}
     <table class="table table-bordered table-striped table-hover table-condensed datatable" width="100%">
-      <thead>
+      <thead class="bg-gray">
         <tr>
-          <th> Name </th>
-          <th> Status </th>
-          <th> Storage pool status</th>
-          <th> GRIDCell details</th>
-          <th> Add to storage pool</th>
-          <th> Remove from storage pool</th>
+          <th> <button class="btn"> Name </button></th>
+          <th> <button class="btn"> Status</button></th>
+          <th> <button class="btn"> Storage pool status</button></th>
+          <th> <button class="btn"> GRIDCell details</button></th>
+          <th> <button class="btn"> Add to storage pool</button></th>
+          <th> <button class="btn"> Remove from storage pool</button></th>
         </tr>
       </thead>
       <tbody>
@@ -55,7 +53,7 @@
             ({{node.cluster_status_str}})
           </td>
           <td> 
-            <a href="/show/node_status/{{node_name}}" role="button" class="btn btn-primary">Details..</a>
+            <a href="/show/node_status/{{node_name}}" role="button" class="btn btn-info">Details</a>
           </td>
           <td>
             {%if gluster_addable_nodes  and node_name in gluster_addable_nodes%}

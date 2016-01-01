@@ -22,9 +22,6 @@
       <option value="users" {% if samba_global_dict.security == "users" %} selected{%endif%} >Local users</option>
     </select>
   </div>
-{% if error %}
-<p id="warning-text"> {{error}}</p>
-{%endif%}
   <a href="/auth_server_settings" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
   <button type="submit" class="btn btn-primary">Change authentication method</button>
 </div>

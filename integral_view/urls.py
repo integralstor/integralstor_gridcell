@@ -6,7 +6,8 @@ from integral_view.views.trusted_pool_setup  import add_nodes_to_pool, remove_no
 from integral_view.views.volume_creation import volume_creation_wizard, create_volume, create_volume_conf
 from integral_view.views.volume_management import volume_specific_op , expand_volume, replace_node, set_volume_options, set_volume_quota, delete_volume, replace_disk, deactivate_snapshot, activate_snapshot, create_snapshot, delete_snapshot, restore_snapshot
 from integral_view.views import perform_op
-from integral_view.views.common import show, refresh_alerts, raise_alert, internal_audit, configure_ntp_settings, reset_to_factory_defaults, flag_node, hardware_scan 
+from integral_view.views.common import show, refresh_alerts, raise_alert, internal_audit, configure_ntp_settings, reset_to_factory_defaults, flag_node, hardware_scan, remove_gridcell, download_configuration
+from integral_view.views.service_management import get_service_status,node_service_action,initiate_scrub
 from integral_view.views.log_management import download_vol_log, download_sys_log, rotate_log, view_rotated_log_list, view_rotated_log_file, edit_integral_view_log_level
 #from integral_view.views.node_management import pull_node_status, node_status
 #from integral_view.views.share_management import samba_server_settings_basic, save_samba_server_settings_basic, samba_server_settings_security, save_samba_server_settings_security, display_shares, create_share, view_samba_share, edit_samba_share, display_users, edit_samba_user, create_user, create_unix_user, samba_server_settings, save_samba_server_settings, samba_server_settings, view_share, edit_share
@@ -29,6 +30,7 @@ urlpatterns = patterns('',
     url(r'^deactivate_snapshot/', login_required(deactivate_snapshot)),
     url(r'^activate_snapshot/', login_required(activate_snapshot)),
     url(r'^hardware_scan/', login_required(hardware_scan)),
+    url(r'^remove_gridcell/', login_required(remove_gridcell)),
     url(r'^configure_email_settings/', login_required(configure_email_settings)),
     url(r'^reset_to_factory_defaults/', login_required(reset_to_factory_defaults)),
     url(r'^configure_ntp_settings/', login_required(configure_ntp_settings)),
@@ -40,6 +42,8 @@ urlpatterns = patterns('',
     url(r'^create_share/', login_required(create_share)),
     url(r'^view_share/', login_required(view_share)),
     url(r'^edit_share/', login_required(edit_share)),
+    url(r'^view_service_status/', login_required(get_service_status)),
+    url(r'^node_service_action/', login_required(node_service_action)),
     url(r'^edit_auth_method/', login_required(edit_auth_method)),
     url(r'^delete_share/', login_required(delete_share)),
     url(r'^auth_server_settings/', login_required(samba_server_settings)),
@@ -65,10 +69,12 @@ urlpatterns = patterns('',
     url(r'^volume_specific_op/create_volume_dir/', login_required(volume_specific_op),name="create_vol_dir"),
     url(r'^download_vol_log/', login_required(download_vol_log)),
     url(r'^download_sys_log/', login_required(download_sys_log)),
+    url(r'^download_system_config/', login_required(download_configuration)),
     url(r'^rotate_log/([A-Za-z_]+)', login_required(rotate_log)),
     url(r'^view_rotated_log_list/([A-Za-z_]+)', login_required(view_rotated_log_list)),
     url(r'^view_rotated_log_file/([A-Za-z_]+)', login_required(view_rotated_log_file)),
     url(r'^first_login/', login_required(hardware_scan)),
+    url(r'^initiate_scrub/', login_required(initiate_scrub)),
 
 
     url(r'^view_iscsi_targets/', login_required(view_targets)),

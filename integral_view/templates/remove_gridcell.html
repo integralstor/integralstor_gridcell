@@ -1,0 +1,21 @@
+{% extends 'gridcell_base.html' %}
+
+{% block tab_header %}
+	Remove GRIDCell
+{% endblock%}
+
+{% block inside_content%}
+<br />
+<br />
+  {% if gridcells %}
+    {% for gridcell in gridcells %}
+     	{{gridcell}}
+	 <form action="." method="POST">
+		<input type="text" value="{{gridcell}}" style="display:none;" name="gridcell"/>
+		<button type="submit" class="btn btn-danger">Remove from list</button>
+	</form>
+    {% endfor %}
+  {% else %}
+    No GRIDCells found for removal. Please remove the GRIDCell from storage pool for GRIDCell to appear here.
+  {% endif %}
+{% endblock %}

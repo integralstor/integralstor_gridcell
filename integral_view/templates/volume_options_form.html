@@ -79,7 +79,7 @@ function set_field_visibility() {
     {{ form.nfs_volume_access.errors }}
   </div>
   <input type="button" class="btn btn-default" value="Cancel" onClick="window.location='/show/volume_info/{{vol_name}}'"> &nbsp;&nbsp;
-  <button type="submit" class="btn btn-primary">Save >></button>
+  <button type="submit" class="btn btn-primary">Save </button>
 </form>
 </div>
 
@@ -94,3 +94,9 @@ Set Volume options
 {%block help_body%}
 <p>This page allows you to set and change various options for each data volume. </p><p> IP based access control is currently the only way of controlling access for NFS clients. </p><p>The WORM option allows you to prevent any changes to existing files. Files can only be appended to or new files created, when this option is set.</p>
 {%endblock%}
+{% block tab_active %}
+  <script>
+    make_tab_active('volume_configuration_tab')
+  </script>
+{% endblock %}
+

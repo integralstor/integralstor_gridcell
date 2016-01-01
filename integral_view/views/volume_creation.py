@@ -268,11 +268,38 @@ def create_volume(request):
       #print rc, ret
       #All ok so mount and change the owner and group of the volume to integralstor
       (ret, rc), err = command.execute_with_rc("gluster volume set "+request.POST['vol_name']+" storage.owner-gid 500")
+      if err:
+        raise Exception(err)
       (ret, rc), err = command.execute_with_rc("gluster volume start "+request.POST['vol_name'])
+      if err:
+        raise Exception(err)
+      cmd = "gluster volume set %s cluster.server-quorum-type server --xml"%request.POST['vol_name']
+      d, err = gluster_commands.run_gluster_command(cmd, "%s/create_volume.xml"%devel_files_path, "Volume quorum type setting")
+      if err:
+        raise Exception(err)
+      if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
+        #print "Setting trusted pool quorum... Done."
+        #print
+        pass
+      else:
+        err = ""
+        if "op_status" in d and "op_errstr" in d["op_status"]:
+          err = d["op_status"]["op_errstr"]
+        if "op_errno" in d["op_status"]:
+          err += ". Error number %d"%d["op_status"]["op_errno"]
+        raise Exception("Error setting trusted pool quorum : %s"%err)
       (ret, rc), err = command.execute_with_rc("mount -t glusterfs localhost:/"+request.POST['vol_name']+" /mnt")
+      if err:
+        raise Exception(err)
       (ret, rc), err = command.execute_with_rc("chmod 770 /mnt")
+      if err:
+        raise Exception(err)
       (ret, rc), err = command.execute_with_rc("umount /mnt")
+      if err:
+        raise Exception(err)
       (ret, rc), err = command.execute_with_conf_and_rc("gluster volume stop "+request.POST['vol_name'])
+      if err:
+        raise Exception(err)
       #Success so audit the change
       print request.POST['vol_access']
       if request.POST["vol_access"] == "iscsi":
