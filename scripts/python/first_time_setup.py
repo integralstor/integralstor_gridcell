@@ -129,21 +129,6 @@ def create_admin_volume(client, primary, secondary):
         err += ". Error number %d"%d["op_status"]["op_errno"]
       raise Exception("Error creating the admin volume : %s"%err)
 
-    print "Setting trusted pool quorum."
-    cmd = "gluster volume set all cluster.server-quorum-ratio 51% --xml"
-    d, err = gluster_commands.run_gluster_command(cmd, "%s/create_volume.xml"%devel_files_path, "Admin volume creation")
-    if err:
-      raise Exception(err)
-    if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
-      print "Setting trusted pool quorum... Done."
-      print
-    else:
-      err = ""
-      if "op_status" in d and "op_errstr" in d["op_status"]:
-        err = d["op_status"]["op_errstr"]
-      if "op_errno" in d["op_status"]:
-        err += ". Error number %d"%d["op_status"]["op_errno"]
-      raise Exception("Error setting trusted pool quorum : %s"%err)
 
     print "Starting the IntegralStor Administration Volume."
     d, err = gluster_commands.run_gluster_command('gluster volume start %s --xml'%admin_vol_name, '', 'Starting admin vol')
