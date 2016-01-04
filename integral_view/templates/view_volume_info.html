@@ -60,15 +60,15 @@
             
             {%for o in vol.options%}
               {% if o.name == "auth.reject" %}
-                <li><span class="pull-right"> Disallowed hosts (all access methods) : {{o.value}}</span></li>
+                <span > Disallowed hosts (all access methods) : {{o.value}}</span>
               {% elif o.name == "auth.allow" %}
-                <li><span class="pull-right"> Permitted hosts (all access methods) : {{o.value}}</span></li>
+                <span > Permitted hosts (all access methods) : {{o.value}}</span>
               {% elif o.name == "nfs.rpc-auth-reject" %}
-                <li><span ="pull-right">Disallowed hosts (NFS only) : {{o.value}}</span></li>
+                <span >Disallowed hosts (NFS only) : {{o.value}}</span>
               {% elif o.name == "nfs.rpc-auth-allow" %}
-                <li><span class="pull-right">Permitted hosts (NFS only) : {{o.value}}</span></li>
+                <span >Permitted hosts (NFS only) : {{o.value}}</span>
               {%else%}
-                <li> {{o.name}}:{{o.value}}</li>
+                <li><span >-{{o.name}}:{{o.value}}</span></li>
               {%endif%}
             {%endfor%}
           {% endif %}
@@ -81,13 +81,13 @@
                               {%if l|length > 1 %}<li></li>
                               {%endif%}
                             {%for i in l %}</span>
+              </a>
+            </li>
                   <span class="pull-right "><li>{{i}}
                             {%endfor%}
                               {%if l|length > 1 %}</ul></li>
                               {%endif%}
                          {%endfor%} </span>
-              </a>
-            </li>
           </ul>
         </div><!-- /.box-body -->
       </div>
@@ -344,107 +344,6 @@
     </form>
   </div>
   {%endif%}
-
-<h3>Status of processes in data locations</h3>
-<table class="table table-bordered" style="width:90%">
-<tr>
-<th>
-Data location
-</th>
-<th>
-Process
-</th>
-<th>
-Status
-</th>
-</tr>
-{%for br, st in vol.brick_status.items %}
-{% if st.self_heal_deamon_status or st.nfs_status %}
-{%if "replicate" in vol.type.lower %}
-<tr>
-<td>
-{{st.hostname}}
-</td>
-<td>
-Self heal deamon
-</td>
-<td>
-{% if st.self_heal_deamon_status == 1 %} Healthy {%else%} Down {%endif%}
-</td>
-</tr>
-{%endif%}
-<tr>
-<td>
-{{st.hostname}}
-</td>
-<td>
-NFS Server
-</td>
-<td>
-{% if st.nfs_status == 1 %} Healthy {%else%} Down {%endif%}
-</td>
-</tr>
-{%endif%}
-{%endfor%}
-</table>
-<br>
-<div class="btn-group">
-<a href="/show/volume_info_all/" role="button" class="btn btn-default"> Back </a> 
-</div>
-<div class="btn-group">
-{%if vol.status == 1 %}
-<form action="/volume_specific_op/vol_stop/" method="post">
-<input type=hidden name="vol_name" value="{{vol.name}}">
-<input type=hidden name="op" value="vol_stop">
-<button type="submit" class="btn btn-danger">Stop this volume</button>
-</form>
-</div>
-{%else %}
-<div class="btn-group">
-<form action="/volume_specific_op/vol_start/" method="post">
-<input type=hidden name="vol_name" value="{{vol.name}}">
-<input type=hidden name="op" value="vol_start">
-<button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Start this volume</button>
-</form>
-</div>
-{%endif%}
-<div class="btn-group">
-<form action="/volume_specific_op/vol_delete/" method="post">
-<input type=hidden name="vol_name" value="{{vol.name}}">
-<input type=hidden name="op" value="vol_delete">
-<button type="submit" class="btn btn-danger" {% if vol.status == 1 %} disabled {%endif%}>Delete this volume</button>
-</form>
-</div>
-<div class="btn-group">
-<form action="/volume_specific_op/expand_volume/" method="post">
-<input type=hidden name="vol_name" value="{{vol.name}}">
-<input type=hidden name="op" value="expand_volume">
-<button type="submit" class="btn btn-primary" {% if vol.status != 1 %} disabled {%endif%}>Expand this volume</button>
-</form>
-</div>
-<div class="btn-group">
-<form action="/volume_specific_op/vol_options/" method="post">
-<input type=hidden name="vol_name" value="{{vol.name}}">
-<input type=hidden name="op" value="vol_options">
-<button type="submit" class="btn btn-primary">Change volume options</button>
-</form>
-</div>
-<div class="btn-group">
-<form action="/volume_specific_op/vol_quota/" method="post">
-<input type=hidden name="vol_name" value="{{vol.name}}">
-<input type=hidden name="op" value="vol_quota">
-<button type="submit" class="btn btn-primary" {% if vol.status != 1 %} disabled {%endif%}>Change/set volume quota</button>
-</form>
-</div>
-<div class="btn-group">
-{%if distribute %}
-<form action="/volume_specific_op/start_rebalance/" method="POST">
-<input type=hidden name="vol_name" value="{{vol.name}}">
-<input type=hidden name="op" value="start_rebalance">
-<button type="submit" class="btn btn-primary" {% if vol.status != 1 %} disabled {%endif%}>Start volume rebalance</button>
-</form>
-</div>
-{%endif%}
 
 {%endblock%}
 {%block help_header%}

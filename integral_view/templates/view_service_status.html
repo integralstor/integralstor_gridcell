@@ -5,7 +5,13 @@
 {% endblock %}
 
 {% block inside_content %}
-
+{% if request.GET.status %}
+  {% if request.GET.status == "success" %}
+    <p> {{request.GET.service}} {{request.GET.action}} on {{request.GET.node}} successful </p>
+  {% else %}
+    <p> {{request.GET.service}} {{request.GET.action}} on {{request.GET.node}} failed </p>
+  {% endif %}
+{% endif %}
 <br />
 <br />
 <div class="row">
