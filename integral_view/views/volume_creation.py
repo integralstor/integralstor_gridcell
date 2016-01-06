@@ -273,6 +273,33 @@ def create_volume(request):
       (ret, rc), err = command.execute_with_rc("gluster volume start "+request.POST['vol_name'])
       if err:
         raise Exception(err)
+      cmd = "gluster volume set %s quorum-count 2 --xml"%request.POST['vol_name']
+      d, err = gluster_commands.run_gluster_command(cmd, "%s/create_volume.xml"%devel_files_path, "Volume quorum type setting")
+      if err:
+        raise Exception(err)
+      if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
+        pass
+      else:
+        err = ""
+        if "op_status" in d and "op_errstr" in d["op_status"]:
+          err = d["op_status"]["op_errstr"]
+        if "op_errno" in d["op_status"]:
+          err += ". Error number %d"%d["op_status"]["op_errno"]
+        raise Exception("Error setting trusted pool client side quorum count : %s"%err)
+      cmd = "gluster volume set %s quorum-type fixed --xml"%request.POST['vol_name']
+      d, err = gluster_commands.run_gluster_command(cmd, "%s/create_volume.xml"%devel_files_path, "Volume quorum type setting")
+      if err:
+        raise Exception(err)
+      if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
+        pass
+      else:
+        err = ""
+        if "op_status" in d and "op_errstr" in d["op_status"]:
+          err = d["op_status"]["op_errstr"]
+        if "op_errno" in d["op_status"]:
+          err += ". Error number %d"%d["op_status"]["op_errno"]
+        raise Exception("Error setting trusted pool client side quorum : %s"%err)
+      '''
       cmd = "gluster volume set %s cluster.server-quorum-type server --xml"%request.POST['vol_name']
       d, err = gluster_commands.run_gluster_command(cmd, "%s/create_volume.xml"%devel_files_path, "Volume quorum type setting")
       if err:
@@ -288,6 +315,7 @@ def create_volume(request):
         if "op_errno" in d["op_status"]:
           err += ". Error number %d"%d["op_status"]["op_errno"]
         raise Exception("Error setting trusted pool quorum : %s"%err)
+      '''
       (ret, rc), err = command.execute_with_rc("mount -t glusterfs localhost:/"+request.POST['vol_name']+" /mnt")
       if err:
         raise Exception(err)
