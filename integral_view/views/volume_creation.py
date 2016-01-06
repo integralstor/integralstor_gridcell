@@ -53,7 +53,6 @@ def volume_creation_wizard(request, action):
         url = "vol_create_wiz_vol_name.html"
       '''
       Currently disabling ISCSI so...
-      '''
       form = integral_view.forms.volume_creation_forms.VolAccessMethodForm(request.POST)
       if form.is_valid():
         cd = form.cleaned_data
@@ -68,6 +67,7 @@ def volume_creation_wizard(request, action):
         url = "vol_create_wiz_vol_type.html"
       else:
         url = "vol_create_wiz_vol_access.html"
+      '''
     elif action == "select_ondisk_storage_type":
       # Previous form to verify
       form = integral_view.forms.volume_creation_forms.VolTypeForm(request.POST)

@@ -209,9 +209,11 @@ def show(request, page, info = None):
         return_dict["iscsi"] = True
 
       # To accomodate django template quirks
-      if vol["type"] in ["Replicate", "Distributed-Replicate"]:
+      #if vol["type"] in ["Replicate", "Distributed-Replicate"]:
+      #elif vol["type"] in ["Distribute", "Distributed-Replicate"]:
+      if 'replicate' in vol["type"].lower():
         return_dict["replicate"] = True
-      elif vol["type"] in ["Distribute", "Distributed-Replicate"]:
+      elif 'distribute' in vol["type"].lower():
         return_dict["distribute"] = True
 
     elif page == "volume_status":
