@@ -304,7 +304,7 @@ def establish_default_configuration(client, si):
       if "interfaces" in node_info and "bond0" in node_info["interfaces"] and "inet" in node_info["interfaces"]["bond0"] and len(node_info["interfaces"]["bond0"]["inet"]) == 1:
         ip_list.append("%s"%node_info["interfaces"]["bond0"]["inet"][0]["address"])
 
-    rc, errors = ctdb.add_to_nodes_file(client, ip_list)
+    rc, errors = ctdb.add_to_nodes_file(client, ip_list, False)
     if not rc:
       if errors:
         raise Exception(errors)
@@ -348,7 +348,7 @@ def establish_default_configuration(client, si):
     print "Linking smb.conf files... Done"
     print
 
-    print "Linking krb5.conf file"
+    print "Linking Kerberos config file"
     r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/krb5.conf'])
     with open('%s/krb5.conf'%config_dir, 'w') as f:
       f.close()
@@ -359,10 +359,10 @@ def establish_default_configuration(client, si):
         if ret["retcode"] != 0:
           errors = "Error linking to the krb5.conf file on %s"%node
           raise Exception(errors)
-    print "Linking krb5.conf file... Done"
+    print "Linking Kerberos config file... Done"
     print
 
-    print "Setting appropriate rc.local files."
+    print "Setting appropriate boot time init files."
     r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/rc.local'])
     r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/rc.d/rc.local'])
     r2 = client.cmd('*', 'cmd.run_all', ['cp %s/rc_local/primary_and_secondary/rc.local /etc/rc.local'%defaults_dir])
@@ -378,7 +378,7 @@ def establish_default_configuration(client, si):
         if ret["retcode"] != 0:
           errors = "Error setting the appropriate rc.d/rc.local file on %s"%node
           raise Exception(errors)
-    print "Setting appropriate rc.local files... Done"
+    print "Setting appropriate boot time init files... Done"
     print
 
   except Exception, e:
@@ -530,6 +530,7 @@ def initiate_setup():
           e = "Error creating the storage pool : Unknown error"
         raise Exception(e)
 
+    '''
     try :
       ipl = []
       ip = si[primary]["interfaces"]["bond0"]["inet"][0]["address"]
@@ -541,12 +542,13 @@ def initiate_setup():
     except Exception, e:
       raise Exception("Error retrieving IPs of primary and/or secondary GRIDCell(s)")
 
-    rc, err = ctdb.add_to_nodes_file(client, ipl)
+    rc, err = ctdb.add_to_nodes_file(client, ipl, False)
     if not rc :
       if err:
         raise Exception("Error adding IPs of the GRIDCell(s) to the CTDB nodes file : %s"%err)
       else:
         raise Exception("Error adding IPs of the GRIDCell(s) to the CTDB nodes file")
+    '''
 
 
     do = raw_input("Create admin volume?")
