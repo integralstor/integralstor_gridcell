@@ -59,7 +59,7 @@
             {%if gluster_addable_nodes  and node_name in gluster_addable_nodes%}
             <form action="/add_a_node_to_pool/" method="POST">
             <input type="hidden" name="node_name" value="{{node_name}}">
-            <button type="submit" class="btn btn-primary" >Add to storage pool</button>
+            <button type="submit" class="btn btn-primary cover-page" >Add to storage pool</button>
             </form>
             {%elif node.cluster_status == 1 %}
             In storage pool.<sup>*</sup>
@@ -71,7 +71,7 @@
             {%if gluster_removable_nodes and node_name in gluster_removable_nodes %}
             <form action="/remove_node_from_pool" method="GET">
             <input type="hidden" name="node_name" value="{{node_name}}">
-            <button type="submit" class="btn btn-primary" >Remove from storage pool</button>
+            <button type="submit" class="btn btn-primary cover-page" >Remove from storage pool</button>
             </form>
             {%else%}
             Cannot be removed. <sup>#</sup>

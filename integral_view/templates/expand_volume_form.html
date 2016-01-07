@@ -6,20 +6,6 @@
 {%block inside_content %}
 <br><br>
 <!-- Modal -->
-<div class="modal fade" id="processing" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-body" id="myModalBody">
-        <br><br><br>
-        <img src="/static/images/4.gif" >
-        <br><br><br>
-        <p id="p-node-text">Processing.. Please wait.
-        <br><br><br>
-      </div>
-    </div>
-  </div>
-</div>
-
 
 <span id="instruction-text"> The volume will be expanded by adding the following storage locations. The system automatically selects available storage to be added to the volume. <br><br>Please verify and confirm.<span><br>
 
@@ -61,7 +47,7 @@
 <input type="hidden" name="dataset_list" value="{{k}}:{{v}}">
 {%endfor%}
 {%endfor%}
-<button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Expand</button>
+<button type="submit" class="btn btn-primary cover-page cover-page" >Expand</button>
 </form>
 
 {%endblock%}

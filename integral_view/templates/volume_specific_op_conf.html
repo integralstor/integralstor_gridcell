@@ -13,20 +13,6 @@
 <br><br>
 
 <!-- Modal -->
-<div class="modal fade" id="processing" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-body" id="myModalBody">
-        <br><br><br>
-        <img src="/static/images/4.gif" >
-        <br><br><br>
-        <p id="p-node-text">Processing.. Please wait.
-        <br><br><br>
-      </div>
-    </div>
-  </div>
-</div>
-
 
 
 <p id="p-warning-text">{{op_conf_msg}} </p>
@@ -38,7 +24,7 @@
 {% endif %}
 <input type=hidden name="vol_name" value="{{vol_name}}">
 <input type="button" class="btn btn-default" value="Cancel" onClick="window.location='/show/volume_info/{{vol_name}}'"> &nbsp;&nbsp;
-<button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Continue </button>
+<button type="submit" class="btn btn-danger cover-page" >Continue </button>
 </form>
 
 

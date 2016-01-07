@@ -75,21 +75,6 @@ The following GRIDCells will be added to the storage pool.
 {%endfor%}
 </table>
 
-<!-- Modal -->
-<div class="modal fade" id="processing" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-body" id="myModalBody">
-        <br><br><br>
-        <img src="/static/images/4.gif" >
-        <br><br><br>
-        <p id="p-node-text">Processing.. Please wait.
-        <br><br><br>
-      </div>
-    </div>
-  </div>
-</div>
-
 <span id="instruction-text"> The system automatically selects applicable storage to be added to the available storage pool. Please verify and confirm.</span>
 <br>
 {% if prompt_for_spare %}
@@ -99,7 +84,7 @@ The following GRIDCells will be added to the storage pool.
 {% for node, display in form.nodes.field.widget.choices %}
 <input  value="{{ node }}" name="nodes" checked style="display:None" >
 {%endfor%}
-<button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Add GRIDCells </button>
+<button type="submit" class="btn btn-primary cover-page">Add GRIDCells </button>
 </form>
 
 {%endif%}

@@ -11,19 +11,6 @@
  {%endblock%}
 {%block contents%}
 <!-- Modal -->
-<div class="modal fade" id="processing" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-body" id="myModalBody">
-        <br><br><br>
-        <i class="fa fa-spinner fa-spin fa-4 blue"></i>
-        <br><br><br>
-        <p id="p-node-text">Processing.. Please wait.
-        <br><br><br>
-      </div>
-    </div>
-  </div>
-</div>
 
 
 <form action="" method="post">
@@ -33,7 +20,7 @@
   <input type=hidden name="step" value="offline_disk">
 
   <p > You have chosen to replace a disk with serial number "{{serial_number}}" on GRIDCell "{{node}}". On confirmation, we will safely guide you through this process.</p><br>
-      <input type="button" class="btn btn-default" value="Cancel" onClick="window.location='/show/disk_status'"> &nbsp;&nbsp; <button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Confirm and proceed >></button>
+      <input type="button" class="btn btn-default" value="Cancel" onClick="window.location='/show/disk_status'"> &nbsp;&nbsp; <button type="submit" class="btn btn-primary cover-page">Confirm and proceed </button>
 </form>
 
 

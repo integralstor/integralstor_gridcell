@@ -11,19 +11,6 @@
 
 
 <!-- Modal -->
-<div class="modal fade" id="processing" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-body" id="myModalBody">
-        <br><br><br>
-        <i class="fa fa-spinner fa-spin fa-4 blue"></i>
-        <br><br><br>
-        <p id="p-node-text">Processing.. Please wait.
-        <br><br><br>
-      </div>
-    </div>
-  </div>
-</div>
 
 <form action="" method="post">
   <input type=hidden name="conf" value="1">
@@ -32,7 +19,7 @@
   <p > You have chosen to delete the snapshot called "{{snapshot_name}}". </p>
   <p>Deleting a snapshot will erase all the information about the snapshot. Do you still want to continue?</p>
   <input type="button" class="btn btn-default" value="Cancel" onClick="window.location='/volume_specific_op/view_snapshots/'"> &nbsp;&nbsp;
-  <button type="submit" class="btn btn-danger" onClick ="$('#processing').modal('show');">Confirm and proceed</button>
+  <button type="submit" class="btn btn-danger cover-page" >Confirm and proceed</button>
 </form>
 
 
@@ -43,3 +30,10 @@ Deleting snapshots
 {%block help_body%}
 <p>Once a snapshot is deleted then its contents will no longer be accessible so please confirm that you actaually intend to perform this operation.</p>
 {%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('snapshot_view_tab')
+  </script>
+{% endblock %}
+

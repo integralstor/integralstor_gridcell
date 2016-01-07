@@ -46,18 +46,36 @@
                   <span class="pull-right "> {{vol.replica_count}} </span>
               </a>
             </li>
-                 <a> <span> {% elif distribute %} </span> </a>
+                 {% elif distribute %}
             <li>
               <a href="#"> Number of Data Copies
                   <span class="pull-right">{{vol.brick_count}} GRIDCell {% if vol.brick_count != '1' %} s {%endif%} {%endif%}</span>
               </a>
             </li>
+            <li>
+              <a href="#">Data Locations:
+                  <span class="pull-right">
+                  {{vol.bricks}}
+                  {%if vol.bricks|length > 1 %}
+                    {%for l in vol.bricks%}
+                        {{l}}
+            <!--
+                          <ul>
+                            {%for i in l %}
+                             <li> {{i}} </li>
+                            {%endfor%}
+                          </ul>
+              -->
+                     {%endfor%}
+                 {%endif%}
+                 </span>
+               </a>
+            </li>
           {% if vol.options %}
             <li>
               <a href="#"> Extra Options:
-              </a>
-            </li>
-            
+            <span class="pull-right">
+              <ol>
             {%for o in vol.options%}
               {% if o.name == "auth.reject" %}
                 <span > Disallowed hosts (all access methods) : {{o.value}}</span>
@@ -68,26 +86,15 @@
               {% elif o.name == "nfs.rpc-auth-allow" %}
                 <span >Permitted hosts (NFS only) : {{o.value}}</span>
               {%else%}
-                <li><span >-{{o.name}}:{{o.value}}</span></li>
+               <li>{{o.name}}::{{o.value}}</li>
               {%endif%}
             {%endfor%}
-          {% endif %}
-
-
-
-            <li>
-              <a href="#">Data Locations:
-                  <span> {%for l in vol.bricks%}
-                              {%if l|length > 1 %}<li></li>
-                              {%endif%}
-                            {%for i in l %}</span>
+              </ol>
+            </span>
               </a>
             </li>
-                  <span class="pull-right "><li>{{i}}
-                            {%endfor%}
-                              {%if l|length > 1 %}</ul></li>
-                              {%endif%}
-                         {%endfor%} </span>
+          {% endif %}
+
           </ul>
         </div><!-- /.box-body -->
       </div>
@@ -295,7 +302,7 @@
       <form action="/volume_specific_op/vol_stop/" method="post">
         <input type=hidden name="vol_name" value="{{vol.name}}">
         <input type=hidden name="op" value="vol_stop">
-        <button type="submit" class="btn btn-danger">Stop this volume</button>
+        <button type="submit" class="btn btn-danger cover-page">Stop this volume</button>
       </form>
     </div>
   {%else %}
@@ -303,7 +310,7 @@
       <form action="/volume_specific_op/vol_start/" method="post">
         <input type=hidden name="vol_name" value="{{vol.name}}">
         <input type=hidden name="op" value="vol_start">
-        <button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Start this volume</button>
+        <button type="submit" class="btn btn-primary cover-page" >Start this volume</button>
       </form>
     </div>
   {%endif%}
@@ -311,28 +318,28 @@
     <form action="/volume_specific_op/vol_delete/" method="post">
       <input type=hidden name="vol_name" value="{{vol.name}}">
       <input type=hidden name="op" value="vol_delete">
-      <button type="submit" class="btn btn-danger" {% if vol.status == 1 %} disabled {%endif%}>Delete this volume</button>
+      <button type="submit" class="btn btn-danger cover-page" {% if vol.status == 1 %} disabled {%endif%}>Delete this volume</button>
     </form>
   </div>
   <div class="btn-group">
     <form action="/volume_specific_op/expand_volume/" method="post">
       <input type=hidden name="vol_name" value="{{vol.name}}">
       <input type=hidden name="op" value="expand_volume">
-      <button type="submit" class="btn btn-primary" {% if vol.status != 1 %} disabled {%endif%}>Expand this volume</button>
+      <button type="submit" class="btn btn-primary cover-page" {% if vol.status != 1 %} disabled {%endif%}>Expand this volume</button>
     </form>
   </div>
   <div class="btn-group">
     <form action="/volume_specific_op/vol_options/" method="post">
       <input type=hidden name="vol_name" value="{{vol.name}}">
       <input type=hidden name="op" value="vol_options">
-      <button type="submit" class="btn btn-primary">Change volume options</button>
+      <button type="submit" class="btn btn-primary cover-page">Change volume options</button>
     </form>
   </div>
   <div class="btn-group">
     <form action="/volume_specific_op/vol_quota/" method="post">
       <input type=hidden name="vol_name" value="{{vol.name}}">
       <input type=hidden name="op" value="vol_quota">
-      <button type="submit" class="btn btn-primary" {% if vol.status != 1 %} disabled {%endif%}>Change/set volume quota</button>
+      <button type="submit" class="btn btn-primary cover-page" {% if vol.status != 1 %} disabled {%endif%}>Change/set volume quota</button>
     </form>
   </div>
   {%if distribute %}
@@ -340,7 +347,7 @@
     <form action="/volume_specific_op/start_rebalance/" method="POST">
       <input type=hidden name="vol_name" value="{{vol.name}}">
       <input type=hidden name="op" value="start_rebalance">
-      <button type="submit" class="btn btn-primary" {% if vol.status != 1 %} disabled {%endif%}>Start volume rebalance</button>
+      <button type="submit" class="btn btn-primary cover-page" {% if vol.status != 1 %} disabled {%endif%}>Start volume rebalance</button>
     </form>
   </div>
   {%endif%}

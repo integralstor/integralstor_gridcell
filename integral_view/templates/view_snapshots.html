@@ -61,18 +61,18 @@ Restore
     {% if d.status == "Started" %}
     <form  role="form" action="/deactivate_snapshot/" method="post">
     <input type="hidden" name="snapshot_name" value="{{d.name}}">
-    <input class="btn btn-danger" type="submit" value="Deactivate">
+    <input class="btn btn-danger cover-page" type="submit" value="Deactivate">
     {%else%}
     <form  role="form" action="/activate_snapshot/" method="post">
     <input type="hidden" name="snapshot_name" value="{{d.name}}">
-    <input class="btn btn-primary" type="submit" value="Activate">
+    <input class="btn btn-primary cover-page" type="submit" value="Activate">
     {%endif%}
     </form>
   </td>
   <td>
     <form  role="form" action="/delete_snapshot/" method="post">
     <input type="hidden" name="snapshot_name" value="{{d.name}}">
-    <input class="btn btn-danger" type="submit" value="Delete">
+    <input class="btn btn-danger cover-page" type="submit" value="Delete">
     </form>
   </td>
   <td>
@@ -80,9 +80,9 @@ Restore
     <input type="hidden" name="snapshot_name" value="{{d.name}}">
     <input type="hidden" name="vol_name" value="{{vol_name}}">
     {% if vol_started %}
-    <input class="btn btn-success" disabled type="submit" value="Restore">
+    <input class="btn btn-success cover-page" disabled type="submit" value="Restore">
     {%else%}
-    <input class="btn btn-primary" type="submit" value="Restore >>">
+    <input class="btn btn-primary cover-page" type="submit" value="Restore >>">
     {%endif%}
     </form>
   </td>

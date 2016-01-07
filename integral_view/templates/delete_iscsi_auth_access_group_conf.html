@@ -13,21 +13,6 @@
 
 {%block contents%}
 
-<!-- Modal -->
-<div class="modal fade" id="processing" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-body" id="myModalBody">
-        <br><br><br>
-        <i class="fa fa-spinner fa-spin fa-4 blue"></i>
-        <br><br><br>
-        <p id="p-node-text">Processing.. Please wait.
-        <br><br><br>
-      </div>
-    </div>
-  </div>
-</div>
-
 <span id="topic-text"> ISCSI Access -> Delete an ISCSI authorized access group </span><br>
 
 
@@ -36,7 +21,7 @@
 <form action="/iscsi_delete_auth_access_group/" method="POST">
 <input type=hidden name="auth_access_group_id" value="{{auth_access_group_id}}">
 <input type="button" class="btn btn-default" value="Cancel" onClick="window.location='/iscsi_display_auth_access_group_list'"> &nbsp;&nbsp;
-<button type="submit" class="btn btn-primary" onClick ="$('#processing').modal('show');">Confirm and delete >></button>
+<button type="submit" class="btn btn-primary cover-page">Confirm and delete </button>
 </form>
 
 
