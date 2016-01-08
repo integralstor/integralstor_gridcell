@@ -20,7 +20,6 @@ from integral_view.utils import iv_logging
 
 from glusterfs import gfapi
 
-base_template = 'logged_in_base.html'
 
 @login_required    
 def show(request, page, info = None):
@@ -28,7 +27,6 @@ def show(request, page, info = None):
   return_dict = {}
   try:
 
-    return_dict['base_template'] = base_template
     assert request.method == 'GET'
 
     vil, err  = volume_info.get_volume_info_all()
@@ -1024,6 +1022,7 @@ def download_configuration(request):
       if config_dir[len(config_dir)-1] == '/':
         config_dir = config_dir[:len(config_dir)-1]
 
+      display_name = 'integralstor_config'
       zf_name = '/tmp/integralstor_config.zip'
       zf = zipfile.ZipFile(zf_name, 'w')
       top_component = config_dir[config_dir.rfind('/')+1:]

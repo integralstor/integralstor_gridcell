@@ -129,6 +129,35 @@ def create_admin_volume(client, primary, secondary):
         err += ". Error number %d"%d["op_status"]["op_errno"]
       raise Exception("Error creating the admin volume : %s"%err)
 
+    print "Setting trusted pool client side quorum."
+    cmd = "gluster volume set %s quorum-count 2 --xml"%request.POST['vol_name']
+    d, err = gluster_commands.run_gluster_command(cmd, "%s/create_volume.xml"%devel_files_path, "Admin volume creation")
+    if err:
+      raise Exception(err)
+    if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
+      pass
+    else:
+      err = ""
+      if "op_status" in d and "op_errstr" in d["op_status"]:
+        err = d["op_status"]["op_errstr"]
+      if "op_errno" in d["op_status"]:
+        err += ". Error number %d"%d["op_status"]["op_errno"]
+      raise Exception("Error setting trusted pool quorum count : %s"%err)
+
+    cmd = "gluster volume set %s quorum-type fixed --xml"%request.POST['vol_name']
+    d, err = gluster_commands.run_gluster_command(cmd, "%s/create_volume.xml"%devel_files_path, "Admin volume creation")
+    if err:
+      raise Exception(err)
+    if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
+      print "Setting trusted pool client side quorum... Done"
+      print
+    else:
+      err = ""
+      if "op_status" in d and "op_errstr" in d["op_status"]:
+        err = d["op_status"]["op_errstr"]
+      if "op_errno" in d["op_status"]:
+        err += ". Error number %d"%d["op_status"]["op_errno"]
+      raise Exception("Error setting trusted pool quorum type : %s"%err)
     '''
     # Not setting server side quorum for now..
     print "Setting trusted pool quorum."
@@ -233,6 +262,10 @@ def establish_default_configuration(client, si):
 
   try :
 
+    platform_root, err = common.get_platform_root()
+    if err:
+      raise Exception(err)
+
     defaults_dir, err = common.get_defaults_dir()
     if err:
       raise Exception(err)
@@ -275,7 +308,15 @@ def establish_default_configuration(client, si):
     # Create a home for the manifest and status files and move the previously generated files here..
     os.mkdir("%s/status"%config_dir)
     shutil.move("%s/master.manifest"%tmp_path, ss_path)
-    shutil.move("%s/master.status"%tmp_path, ss_path)
+    shutil.move("%s/master.status"%tmp_path, platform_root)
+
+    # Link the master.status to the platform root so that it can survive the death of primary or secondary
+    r2 = client.cmd('roles:master', 'cmd.run_all', ['ln -s %s/master.status %s'%(config_dir, ss_path)], expr_form='grain')
+    if r2:
+      for node, ret in r2.items():
+        if ret["retcode"] != 0:
+          errors = "Error linking master status file on %s"%node
+          raise Exception(errors)
 
 
     os.mkdir("%s/batch_processes"%config_dir)

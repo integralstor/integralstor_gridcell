@@ -294,9 +294,7 @@
   {%endif%}
 
   <br>
-  <div class="btn-group">
-    <a href="/show/volume_info_all/" role="button" class="btn btn-default"> Back </a>
-  </div>
+  <br>
   {%if vol.status == 1 %}
     <div class="btn-group">
       <form action="/volume_specific_op/vol_stop/" method="post">
@@ -328,6 +326,8 @@
       <button type="submit" class="btn btn-primary cover-page" {% if vol.status != 1 %} disabled {%endif%}>Expand this volume</button>
     </form>
   </div>
+  <br>
+  <br>
   <div class="btn-group">
     <form action="/volume_specific_op/vol_options/" method="post">
       <input type=hidden name="vol_name" value="{{vol.name}}">
@@ -351,6 +351,11 @@
     </form>
   </div>
   {%endif%}
+  <br>
+  <br>
+  <div class="btn-group">
+    <a href="/show/volume_info_all/" role="button" class="btn btn-default"> << Back </a>
+  </div>
 
 {%endblock%}
 {%block help_header%}
