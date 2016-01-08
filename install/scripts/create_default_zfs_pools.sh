@@ -52,7 +52,7 @@ done
 #### To get an array of disk_by_id skipping OS ####
 declare -a disk_byid
 for sno in "${serialnos[@]}" ; do
-    byid=$(ls -l /dev/disk/by-id | awk "/$sno/ { print \$9;}" | egrep '[a-zA-Z0-9]' | head -n1)    # Gives only the disk names as in /dev/disk/by-id excluing OS drive.
+    byid=$(ls -l /dev/disk/by-id | grep scsi |awk "/$sno/ { print \$9;}" | egrep '[a-zA-Z0-9]' | head -n1)    # Gives only the disk names as in /dev/disk/by-id excluing OS drive.
  
     disk_byid=(${disk_byid[@]} $byid)
 done 
