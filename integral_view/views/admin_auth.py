@@ -174,6 +174,7 @@ def configure_email_settings(request):
     else:
       form = admin_forms.ConfigureEmailForm(request.POST)
       if form.is_valid():
+        print 'valid'
         cd = form.cleaned_data
         d = {}
         if "email_alerts" in cd:
@@ -202,13 +203,15 @@ def configure_email_settings(request):
           return django.http.HttpResponseRedirect("/show/email_settings?saved=1&err=%s"%ret)
         else:
           return django.http.HttpResponseRedirect("/show/email_settings?saved=1")
+      else:
+        print 'invalid'
     return_dict["form"] = form
     return django.shortcuts.render_to_response(url, return_dict, context_instance = django.template.context.RequestContext(request))
   except Exception, e:
-    return_dict['base_template'] = "system_base.html"
-    return_dict["page_title"] = 'Change email notification settings'
-    return_dict['tab'] = 'email_tab'
-    return_dict["error"] = 'Error changing email notification settings'
+    return_dict['base_template'] = "services_base.html"
+    return_dict["page_title"] = 'Configure email settings'
+    return_dict['tab'] = 'service_config_email_tab'
+    return_dict["error"] = 'Error configuring email settings'
     return_dict["error_details"] = str(e)
     return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 

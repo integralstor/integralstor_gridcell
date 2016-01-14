@@ -18,6 +18,7 @@
 <br><br><br>
 </div>
 </div>
+{{form.errors}}
 
 <form role="form" action="/configure_email_settings/" method="post">
 <div  style=" position:relative;border:0px solid #DDDDDD;width:600px; padding:15px 15px 15px;margin:0px 15px;border-radius:4px 4px 0px 0px">
@@ -32,9 +33,9 @@
     {{ form.email_server_port.errors }}
   </div>
   <div class="form-group" >
-    <label for="id_user_name" >SMTP server account username:</label>
-    <input type="text"  name="user_name" class="form-control" id="id_user_name" placeholder="Enter SMTP server username"> 
-    {{ form.user_name.errors }}
+    <label for="id_username" >SMTP server account username:</label>
+    <input type="text"  name="username" class="form-control" id="id_username" placeholder="Enter SMTP server username"> 
+    {{ form.username.errors }}
   </div>
   <div class="form-group" >
     <label for="id_pswd" >SMTP server account password:</label>
@@ -54,11 +55,6 @@
       Send email for alerts
     </label>
     {{ form.email_alerts.errors }}
-  </div>
-  <div class="form-group" >
-    <label for="id_user_name" >SMTP server username:</label>
-    <input type="text"  name="user_name" class="form-control" id="id_user_name" placeholder="Enter SMTP server username"> 
-    {{ form.user_name.errors }}
   </div>
   <div class="form-group" >
     <label for="id_rcpt_list" >Email recipient list:</label>

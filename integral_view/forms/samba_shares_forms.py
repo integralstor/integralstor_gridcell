@@ -60,6 +60,9 @@ class LocalUserForm(forms.Form):
     if "'" in cd["name"] or '"' in cd["name"]:
       self._errors["name"] = self.error_class(["The name cannot contain special characters."])
       del cd["name"]
+    if cd['userid'][0].isdigit():
+      self._errors["userid"] = self.error_class(["The username cannot contain begin with numbers."])
+      del cd["userid"]
     if "name" in cd:
       n = cd["name"]
       cd["name"] = "_".join(n.split())
