@@ -272,53 +272,119 @@
       <table border="8" cellpadding="1" cellspacing="1" style="width: 500px;" class="table table-bordered table-hover table-responsive container">
 	<tbody>
 		<tr>
-                  {% for i in "xxxx" %}
-			<td id="table_{{forloop.counter0}}_colour">
+			<td id="chassis_pos_0_colour">
 			  <strong class="spacing">
-                          <span id="table_{{ forloop.counter0}}_serial">No Disk</span>
-			<br />
-                          <span id="table_{{forloop.counter0}}_status">No Status
+          <span id="chassis_pos_indicator_0_serial">No disk</span>
+			    <br />
+          <span id="chassis_pos_indicator_0_status">No status</span>
 			  </span>
 			</strong>
 			</td>
-                    {% endfor %}
+			<td id="chassis_pos_1_colour">
+			  <strong class="spacing">
+          <span id="chassis_pos_indicator_1_serial">No disk</span>
+			    <br />
+          <span id="chassis_pos_indicator_1_status">No status</span>
+			  </span>
+			</strong>
+			</td>
+			<td id="chassis_pos_2_colour">
+			  <strong class="spacing">
+          <span id="chassis_pos_indicator_2_serial">No disk</span>
+			    <br />
+          <span id="chassis_pos_indicator_2_status">No status</span>
+			  </span>
+			</strong>
+			</td>
+			<td id="chassis_pos_3_colour">
+			  <strong class="spacing">
+          <span id="chassis_pos_indicator_3_serial">No disk</span>
+			    <br />
+          <span id="chassis_pos_indicator_3_status">No status</span>
+			  </span>
+			</strong>
+			</td>
 		</tr>
 		<tr>
-                  {% for i in "xxxx" %}
-			<td id="table_{{forloop.counter0|add:4}}_colour">
+			<td id="chassis_pos_4_colour">
 			  <strong class="spacing">
-                          <span id="table_{{ forloop.counter0|add:4 }}_serial">No Disk</span>
-			<br />
-                          <span id="table_{{forloop.counter0|add:4}}_status">No Status
+          <span id="chassis_pos_indicator_4_serial">No disk</span>
+			    <br />
+          <span id="chassis_pos_indicator_4_status">No status</span>
 			  </span>
 			</strong>
 			</td>
-                    {% endfor %}
+			<td id="chassis_pos_5_colour">
+			  <strong class="spacing">
+          <span id="chassis_pos_indicator_5_serial">No disk</span>
+			    <br />
+          <span id="chassis_pos_indicator_5_status">No status</span>
+			  </span>
+			</strong>
+			</td>
+			<td id="chassis_pos_12_colour">
+			  <strong class="spacing">
+          <span id="chassis_pos_indicator_12_serial">No disk</span>
+			    <br />
+          <span id="chassis_pos_indicator_12_status">No status</span>
+			  </span>
+			</strong>
+			</td>
+			<td id="chassis_pos_13_colour">
+			  <strong class="spacing">
+          <span id="chassis_pos_indicator_13_serial">No disk</span>
+			    <br />
+          <span id="chassis_pos_indicator_13_status">No status</span>
+			  </span>
+			</strong>
+			</td>
 		</tr>
 		<tr>
-                  {% for i in "xxxx" %}
-			<td id="table_{{forloop.counter0|add:7}}_colour">
+			<td id="chassis_pos_6_colour">
 			  <strong class="spacing">
-                          <span id="table_{{ forloop.counter0|add:7 }}_serial">No Disk</span>
-			<br />
-                          <span id="table_{{forloop.counter0|add:7}}_status">No Status
+          <span id="chassis_pos_indicator_6_serial">No disk</span>
+			    <br />
+          <span id="chassis_pos_indicator_6_status">No status</span>
 			  </span>
 			</strong>
 			</td>
-                    {% endfor %}
+			<td id="chassis_pos_7_colour">
+			  <strong class="spacing">
+          <span id="chassis_pos_indicator_7_serial">No disk</span>
+			    <br />
+          <span id="chassis_pos_indicator_7_status">No status</span>
+			  </span>
+			</strong>
+			</td>
+			<td id="chassis_pos_8_colour">
+			  <strong class="spacing">
+          <span id="chassis_pos_indicator_8_serial">No disk</span>
+			    <br />
+          <span id="chassis_pos_indicator_8_status">No status</span>
+			  </span>
+			</strong>
+			</td>
+			<td id="chassis_pos_9_colour">
+			  <strong class="spacing">
+          <span id="chassis_pos_indicator_9_serial">No disk</span>
+			    <br />
+          <span id="chassis_pos_indicator_9_status">No status</span>
+			  </span>
+			</strong>
+			</td>
 		</tr>
 	</tbody>
        </table>
         <script>
           {%for sn, disk in node.disks.items %}
             {%if disk.status != 'PASSED' and disk.status != 'OK' and not disk.boot_device%}
-              $('#table_{{disk.chassis_pos}}_serial').html("{{sn}}")
-              $('#table_{{disk.chassis_pos}}_status').text("Status :{{disk.status}}")
-              $('#table_{{disk.chassis_pos}}_colour').removeClass('bg-gray').addClass('bg-red-active')
+              $('#table_{{disk.chassis_pos_indicator}}_serial').html("{{sn}}")
+              $('#table_{{disk.chassis_pos_indicator}}_status').text("Status :{{disk.status}}")
+              $('#table_{{disk.chassis_pos_indicator}}_colour').removeClass('bg-gray').addClass('bg-red-active')
             {%elif not disk.boot_device%}
-              $('#table_{{disk.chassis_pos}}_serial').html("{{sn}}")
-              $('#table_{{disk.chassis_pos}}_status').text("Status :OK")
-              $('#table_{{disk.chassis_pos}}_colour').removeClass('bg-grey').addClass('bg-green-active')
+              $('#table_{{disk.chassis_pos_indicator}}_serial').html("{{sn}}")
+              $('#table_{{disk.chassis_pos_indicator}}_status').text("Status :OK")
+              $('#table_{{disk.chassis_pos_indicator}}_colour').removeClass('bg-grey').addClass('bg-green-active')
             {%endif%}
           {%endfor%}
         </script>

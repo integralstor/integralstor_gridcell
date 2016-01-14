@@ -255,10 +255,11 @@ def show(request, page, info = None):
         raise Exception(err)
 
       return_dict['node'] = si[info]
-      for sn, disk in si[info]['disks'].items():
-        pos = disk['scsi_info'][0]*6+disk['scsi_info'][2]
-        #print pos, sn, disk['scsi_info']
-        disk['chassis_pos'] = pos
+      if 'disks' in si[info] and si[info]['disks']:
+        for sn, disk in si[info]['disks'].items():
+          pos = disk['scsi_info'][0]*6+disk['scsi_info'][2]
+          #print pos, sn, disk['scsi_info']
+          disk['chassis_pos'] = pos
       return_dict['ctdb'] = si[info]['services']['ctdb'][1]
       return_dict['winbind'] = si[info]['services']['winbind'][1]
       return_dict['gluster'] = si[info]['services']['glusterd'][1]
