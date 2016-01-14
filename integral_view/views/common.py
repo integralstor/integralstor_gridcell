@@ -255,22 +255,13 @@ def show(request, page, info = None):
         raise Exception(err)
 
       return_dict['node'] = si[info]
-      client = salt.client.LocalClient()
-      ctdb_status = client.cmd(info,'cmd.run',['service ctdb status'])
-      winbind = client.cmd(info,'cmd.run',['service winbind status'])
-      gluster = client.cmd(info,'cmd.run',['service glusterd status'])
-      if ctdb_status:
-        return_dict['ctdb'] = ctdb_status[info]
-      else:
-        return_dict['ctdb'] = None
-      if winbind:
-        return_dict['winbind'] = winbind[info]
-      else:
-        return_dict['winbind'] = None
-      if gluster:
-        return_dict['gluster'] = gluster[info]
-      else:
-        return_dict['gluster'] = None
+      for sn, disk in si[info]['disks'].items():
+        pos = disk['scsi_info'][0]*6+disk['scsi_info'][2]
+        #print pos, sn, disk['scsi_info']
+        disk['chassis_pos'] = pos
+      return_dict['ctdb'] = si[info]['services']['ctdb'][1]
+      return_dict['winbind'] = si[info]['services']['winbind'][1]
+      return_dict['gluster'] = si[info]['services']['glusterd'][1]
       return_dict['node_name'] = info
       return_dict['vol_list'] = vol_list
 

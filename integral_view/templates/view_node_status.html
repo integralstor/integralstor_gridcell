@@ -7,6 +7,22 @@
  {%endblock%}
 
 {%block inside_content%}
+<style>
+.info-box-icon {
+  width: 60px;
+}
+.info-box-content {
+  margin-left: 60px;
+}
+#disks > div > div.box > div.box-header > span{
+  font-size: 12px;
+}
+.spacing {
+  letter-spacing: 1.5px;
+  font-weight: bold;
+}
+</style>
+
 {% if node.errors %}
 <h3> GRIDCell errors </h3>
 <table class="table table-bordered table-striped table-hover red" style="width:60%">
@@ -241,6 +257,7 @@
     </div>
   </div>
 </div>
+
 <div class="row">
   <div class="col-md-12 col-sm-12 col-lg-12">
     <div class="box box-success box-solid collapsed-box">
@@ -251,6 +268,61 @@
         </div><!-- /.box-tools -->
       </div><!-- /.box-header -->
       <div style="display: none;" class="box-body">
+
+      <table border="8" cellpadding="1" cellspacing="1" style="width: 500px;" class="table table-bordered table-hover table-responsive container">
+	<tbody>
+		<tr>
+                  {% for i in "xxxx" %}
+			<td id="table_{{forloop.counter0}}_colour">
+			  <strong class="spacing">
+                          <span id="table_{{ forloop.counter0}}_serial">No Disk</span>
+			<br />
+                          <span id="table_{{forloop.counter0}}_status">No Status
+			  </span>
+			</strong>
+			</td>
+                    {% endfor %}
+		</tr>
+		<tr>
+                  {% for i in "xxxx" %}
+			<td id="table_{{forloop.counter0|add:4}}_colour">
+			  <strong class="spacing">
+                          <span id="table_{{ forloop.counter0|add:4 }}_serial">No Disk</span>
+			<br />
+                          <span id="table_{{forloop.counter0|add:4}}_status">No Status
+			  </span>
+			</strong>
+			</td>
+                    {% endfor %}
+		</tr>
+		<tr>
+                  {% for i in "xxxx" %}
+			<td id="table_{{forloop.counter0|add:7}}_colour">
+			  <strong class="spacing">
+                          <span id="table_{{ forloop.counter0|add:7 }}_serial">No Disk</span>
+			<br />
+                          <span id="table_{{forloop.counter0|add:7}}_status">No Status
+			  </span>
+			</strong>
+			</td>
+                    {% endfor %}
+		</tr>
+	</tbody>
+       </table>
+        <script>
+          {%for sn, disk in node.disks.items %}
+            {%if disk.status != 'PASSED' and disk.status != 'OK' and not disk.boot_device%}
+              $('#table_{{disk.chassis_pos}}_serial').html("{{sn}}")
+              $('#table_{{disk.chassis_pos}}_status').text("Status :{{disk.status}}")
+              $('#table_{{disk.chassis_pos}}_colour').removeClass('bg-gray').addClass('bg-red-active')
+            {%elif not disk.boot_device%}
+              $('#table_{{disk.chassis_pos}}_serial').html("{{sn}}")
+              $('#table_{{disk.chassis_pos}}_status').text("Status :OK")
+              $('#table_{{disk.chassis_pos}}_colour').removeClass('bg-grey').addClass('bg-green-active')
+            {%endif%}
+          {%endfor%}
+        </script>
+	<br /> <br />
         <table class="table table-bordered table-hover table-responsive" style="width:800px">
           <thead>
             <th >
@@ -274,7 +346,7 @@
                 </td>
                 <td>
                   {{disk.status}} &nbsp;&nbsp;
-                  {%if disk.status == 'PASSED'%}
+                  {%if disk.status == 'PASSED' or disk.status == 'OK'%}
                     <i class="fa fa-check green fa-2x"></i>
                   {%else%}
                     <i class="fa fa-remove red fa-2x"></i>
@@ -294,7 +366,7 @@
               </td>
               <td>
                 {{disk.status}} &nbsp;&nbsp;
-                {%if disk.status == 'PASSED'%}
+                {%if disk.status == 'PASSED' or disk.status == 'OK'%}
                   <i class="fa fa-check green fa-2x"></i>
                 {%else%}
                   <i class="fa fa-remove red fa-2x"></i>
@@ -304,7 +376,7 @@
                 {{disk.capacity}}
               </td>
               <td>
-                {%if disk.status != 'PASSED'%}
+                {%if disk.status != 'PASSED' and disk.status != 'OK'%}
                     {%if disk.pool%}
                     <form method="POST" action="/replace_disk/">
                       <input type="hidden" name="node" value="{{node_name}}">
@@ -327,6 +399,9 @@
     </div>
   </div>
 </div>
+
+
+
 
 <div class="row">
   <div class="col-md-12 col-sm-12 col-lg-12">

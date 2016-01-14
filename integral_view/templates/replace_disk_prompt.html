@@ -1,16 +1,11 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'gridcell_base.html' %}
+{%block tab_header%}
+  Replace GRIDCell disk
+{%endblock%}
 
-{%block page-header%}
-  Replace disk - Replace drive prompt
-    <br /><small>
-      GRIDCells
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Replace disk
-  </small>
+{%block inside_content%}
+<br><br>
 
- {%endblock%}
-{%block contents%}
-<!-- Modal -->
 
 <form action="" method="post">
   <input type=hidden name="conf" value="1">
@@ -35,3 +30,8 @@ Replace a drive
 {%block help_body%}
 <p>The disk to be replaced can now be safely removed. Since the following steps will scan for the replacement drive, please note down the serial number of the replacement drive as you will be prompted with a confirmation screen. </p>
 {%endblock%}
+{% block tab_active %}
+<script>
+	make_tab_active('gridcell_list_tab')
+</script>
+{% endblock %}

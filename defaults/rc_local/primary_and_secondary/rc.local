@@ -8,6 +8,7 @@ exec 1>/tmp/rclocal_log 2>&1
 
 touch /var/lock/subsys/local
 modprobe ipmi_devintf
+/bin/bash /opt/integralstor/integralstor_gridcell/install/scripts/create_default_zfs_pools.sh
 /bin/bash /opt/integralstor/integralstor_gridcell/scripts/shell/gluster-check.sh
 sleep 10
 mount -t glusterfs localhost:integralstor_admin_vol /opt/integralstor/integralstor_gridcell/config

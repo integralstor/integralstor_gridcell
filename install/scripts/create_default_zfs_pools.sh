@@ -39,20 +39,20 @@ done
 
 
 #### To get an array of Serial Nos ####
-declare -a serialnos
-for item in "${without_os[@]}" ; do
-    disk_string="/dev/$item"
-    slno=`hdparm -i $disk_string | grep SerialNo | cut -d' ' -f 4 | cut -d'=' -f 2`    # Gives the Serial No. of the Disk. 
-    serialnos=(${serialnos[@]} $slno)
-done
+#declare -a serialnos
+#for item in "${without_os[@]}" ; do
+#    disk_string="/dev/$item"
+#    slno=`hdparm -i $disk_string | grep SerialNo | cut -d' ' -f 4 | cut -d'=' -f 2`    # Gives the Serial No. of the Disk. 
+#    serialnos=(${serialnos[@]} $slno)
+#done
 #echo "serial no : " ${serialnos[@]}
 
 
 
 #### To get an array of disk_by_id skipping OS ####
 declare -a disk_byid
-for sno in "${serialnos[@]}" ; do
-    byid=$(ls -l /dev/disk/by-id | grep scsi |awk "/$sno/ { print \$9;}" | egrep '[a-zA-Z0-9]' | head -n1)    # Gives only the disk names as in /dev/disk/by-id excluing OS drive.
+for disk_name in "${without_os[@]}" ; do
+    byid=$(ls -l /dev/disk/by-id | grep scsi |awk "/$disk_name/ { print \$9;}" | egrep '[a-zA-Z0-9]' | head -n1)    # Gives only the disk names as in /dev/disk/by-id excluing OS drive.
  
     disk_byid=(${disk_byid[@]} $byid)
 done 

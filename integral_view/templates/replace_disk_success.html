@@ -1,17 +1,10 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'gridcell_base.html' %}
+{%block tab_header%}
+  Replace GRIDCell disk
+{%endblock%}
 
-{%block page-header%}
-  Replace disk - results
-    <br /><small>
-      GRIDCells
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Replace disk
-  </small>
-
- {%endblock%}
-{%block contents%}
-<!-- Modal -->
-
+{%block inside_content%}
+<br><br>
 
   <p > The system has successfully replaced the disk with serial number {{old_serial_number}} with a new disk with serial number {{new_serial_number}} on GRIDCell {{node}}.</p><br>
 
@@ -24,3 +17,8 @@ Replace a disk - results
 {%block help_body%}
 <p>The old disk has been successfully been replaced with the new disk. The internal RAID process will repopulate the appropriate data onto the new disk.</p>
 {%endblock%}
+{% block tab_active %}
+	<script>
+		make_tab_active('gridcell_list_tab')
+	</script>
+{% endblock %}

@@ -1,17 +1,10 @@
-{% extends 'logged_in_base.html' %}
+{% extends 'gridcell_base.html' %}
+{%block tab_header%}
+  Replace GRIDCell disk
+{%endblock%}
 
-{%block page-header%}
-  Replace disk - new disk information
-    <br /><small>
-      GRIDCells
-      <i class="fa fa-angle-double-right smaller-80"></i>
-      Replace disk
-  </small>
-
- {%endblock%}
-{%block contents%}
-<!-- Modal -->
-
+{%block inside_content%}
+<br><br>
 <form action="" method="post">
   <input type=hidden name="conf" value="1">
   <input type=hidden name="node" value="{{node}}">
@@ -34,3 +27,8 @@ Replace a disk within a GRIDCell
 {%block help_body%}
 <p>After the administrator has replaced a faulty disk with a new disk, the system scans for the disks and reports what it finds as the information about the new disk. Please confirm that this information is correct before proceeding.</p>
 {%endblock%}
+{% block tab_active %}
+	<script>
+		make_tab_active('gridcell_list_tab')
+	</script>
+{% endblock %}

@@ -129,8 +129,10 @@ def create_admin_volume(client, primary, secondary):
         err += ". Error number %d"%d["op_status"]["op_errno"]
       raise Exception("Error creating the admin volume : %s"%err)
 
+    '''
+    # Not setting quorum for admin vol for now..
     print "Setting trusted pool client side quorum."
-    cmd = "gluster volume set %s quorum-count 2 --xml"%request.POST['vol_name']
+    cmd = "gluster volume set %s quorum-count 2 --xml"%admin_vol_name
     d, err = gluster_commands.run_gluster_command(cmd, "%s/create_volume.xml"%devel_files_path, "Admin volume creation")
     if err:
       raise Exception(err)
@@ -144,7 +146,7 @@ def create_admin_volume(client, primary, secondary):
         err += ". Error number %d"%d["op_status"]["op_errno"]
       raise Exception("Error setting trusted pool quorum count : %s"%err)
 
-    cmd = "gluster volume set %s quorum-type fixed --xml"%request.POST['vol_name']
+    cmd = "gluster volume set %s quorum-type fixed --xml"%admin_vol_name
     d, err = gluster_commands.run_gluster_command(cmd, "%s/create_volume.xml"%devel_files_path, "Admin volume creation")
     if err:
       raise Exception(err)
@@ -158,23 +160,6 @@ def create_admin_volume(client, primary, secondary):
       if "op_errno" in d["op_status"]:
         err += ". Error number %d"%d["op_status"]["op_errno"]
       raise Exception("Error setting trusted pool quorum type : %s"%err)
-    '''
-    # Not setting server side quorum for now..
-    print "Setting trusted pool quorum."
-    cmd = "gluster volume set all cluster.server-quorum-ratio 51% --xml"
-    d, err = gluster_commands.run_gluster_command(cmd, "%s/create_volume.xml"%devel_files_path, "Admin volume creation")
-    if err:
-      raise Exception(err)
-    if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
-      print "Setting trusted pool quorum... Done."
-      print
-    else:
-      err = ""
-      if "op_status" in d and "op_errstr" in d["op_status"]:
-        err = d["op_status"]["op_errstr"]
-      if "op_errno" in d["op_status"]:
-        err += ". Error number %d"%d["op_status"]["op_errno"]
-      raise Exception("Error setting trusted pool quorum : %s"%err)
     '''
 
     print "Starting the IntegralStor Administration Volume."
@@ -294,6 +279,7 @@ def establish_default_configuration(client, si):
     if r2:
       for node, ret in r2.items():
         if ret["retcode"] != 0:
+          print r2
           errors = "Error linking to the NTP config file on %s"%node
           raise Exception(errors)
 
@@ -302,22 +288,14 @@ def establish_default_configuration(client, si):
     if r2:
       for node, ret in r2.items():
         if ret["retcode"] != 0:
+          print r2
           errors = "Error linking to the NTP config file on %s"%node
           raise Exception(errors)
 
     # Create a home for the manifest and status files and move the previously generated files here..
     os.mkdir("%s/status"%config_dir)
     shutil.move("%s/master.manifest"%tmp_path, ss_path)
-    shutil.move("%s/master.status"%tmp_path, platform_root)
-
-    # Link the master.status to the platform root so that it can survive the death of primary or secondary
-    r2 = client.cmd('roles:master', 'cmd.run_all', ['ln -s %s/master.status %s'%(config_dir, ss_path)], expr_form='grain')
-    if r2:
-      for node, ret in r2.items():
-        if ret["retcode"] != 0:
-          errors = "Error linking master status file on %s"%node
-          raise Exception(errors)
-
+    shutil.move("%s/master.status"%tmp_path, ss_path)
 
     os.mkdir("%s/batch_processes"%config_dir)
     
@@ -364,6 +342,7 @@ def establish_default_configuration(client, si):
     if r2:
       for node, ret in r2.items():
         if ret["retcode"] != 0:
+          print r2
           errors = "Error linking to the CTDB config file on %s"%node
           raise Exception(errors)
 
@@ -376,6 +355,7 @@ def establish_default_configuration(client, si):
     if r2:
       for node, ret in r2.items():
         if ret["retcode"] != 0:
+          print r2
           errors = "Error linking to the CTDB nodes file on %s"%node
           raise Exception(errors)
     print "Linking CTDB nodes files. Done.."
@@ -387,6 +367,7 @@ def establish_default_configuration(client, si):
     if r2:
       for node, ret in r2.items():
         if ret["retcode"] != 0:
+          print r2
           errors = "Error linking to the smb.conf file on %s"%node
           raise Exception(errors)
     print "Linking smb.conf files... Done"
@@ -401,26 +382,22 @@ def establish_default_configuration(client, si):
     if r2:
       for node, ret in r2.items():
         if ret["retcode"] != 0:
+          print r2
           errors = "Error linking to the krb5.conf file on %s"%node
           raise Exception(errors)
     print "Linking Kerberos config file... Done"
     print
 
     print "Setting appropriate boot time init files."
-    r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/rc.local'])
-    r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/rc.d/rc.local'])
-    r2 = client.cmd('*', 'cmd.run_all', ['cp %s/rc_local/primary_and_secondary/rc.local /etc/rc.local'%defaults_dir])
-    r2 = client.cmd('*', 'cmd.run_all', ['chmod 755 /etc/rc.local'])
+    r2 = client.cmd('roles:master', 'cmd.run_all', ['rm /etc/rc.local'], expr_form='grain')
+    r2 = client.cmd('roles:master', 'cmd.run_all', ['rm /etc/rc.d/rc.local'], expr_form='grain')
+    r2 = client.cmd('roles:master', 'cmd.run_all', ['cp %s/rc_local/primary_and_secondary/rc.local /etc/rc.local'%defaults_dir], expr_form='grain')
+    r2 = client.cmd('roles:master', 'cmd.run_all', ['chmod 755 /etc/rc.local'], expr_form='grain')
     if r2:
       for node, ret in r2.items():
         if ret["retcode"] != 0:
+          print r2
           errors = "Error setting the appropriate rc.local file on %s"%node
-          raise Exception(errors)
-    r2 = client.cmd('*', 'cmd.run_all', ['cp %s/rc_local/primary_and_secondary/rc.local /etc/rc.d/rc.local'%defaults_dir])
-    if r2:
-      for node, ret in r2.items():
-        if ret["retcode"] != 0:
-          errors = "Error setting the appropriate rc.d/rc.local file on %s"%node
           raise Exception(errors)
     print "Setting appropriate boot time init files... Done"
     print
@@ -434,19 +411,29 @@ def undo_default_configuration(client):
 
 
   try :
+    inp = raw_input ("Press <Enter> to undo the changes made so far : ")
+    print 
+    platform_root, err = common.get_platform_root()
+    if err:
+      raise Exception(err)
     defaults_dir, err = common.get_defaults_dir()
     if err:
       raise Exception(err)
 
+    try:
+      os.remove('%s/master.status'%platform_root)
+    except OSError:
+      pass
+
     r2 = client.cmd('roles:master', 'cmd.run_all', ['rm /etc/ntp.conf'], expr_form='grain')
 
     print "Unlinking CTDB files"
-    r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/sysconfig/ctdb'])
-    r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/ctdb/nodes'])
+    r2 = client.cmd('roles:master', 'cmd.run_all', ['rm /etc/sysconfig/ctdb'], expr_form='grain')
+    r2 = client.cmd('roles:master', 'cmd.run_all', ['rm /etc/ctdb/nodes'], expr_form='grain')
 
-    r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/samba/smb.conf'])
-    r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/rc.local'])
-    r2 = client.cmd('*', 'cmd.run_all', ['cp %s/rc_local/normal/rc.local.not_in_cluster /etc/rc.local'%defaults_dir])
+    r2 = client.cmd('roles:master', 'cmd.run_all', ['rm /etc/samba/smb.conf'], expr_form='grain')
+    r2 = client.cmd('roles:master', 'cmd.run_all', ['rm /etc/rc.local'], expr_form='grain')
+    r2 = client.cmd('roles:master', 'cmd.run_all', ['cp %s/rc_local/normal/rc.local.not_in_cluster /etc/rc.local'%defaults_dir], expr_form='grain')
 
   except Exception, e:
     return False, 'Error undoing the default configuration : %s'%str(e)

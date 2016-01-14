@@ -968,8 +968,8 @@ def replace_disk(request):
     vil, err = volume_info.get_volume_info_all()
     if err:
       raise Exception(err)
-    if not vil:
-      raise Exception('Could not load volume information')
+    #if not vil:
+    #  raise Exception('Could not load volume information')
     si, err = system_info.load_system_config()
     if err:
       raise Exception(err)
