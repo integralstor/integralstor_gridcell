@@ -1,0 +1,22 @@
+CREATE TABLE "scheduler_tasks" (
+    "task_id" integer NOT NULL PRIMARY KEY,
+    "task_name" varchar(200) NOT NULL,
+    "create_time" datetime NOT NULL,
+    "initiate_time" datetime NOT NULL,
+    "status" varchar(50) NOT NULL,
+    "node" varchar(200)
+ );
+
+CREATE TABLE "scheduler_commands" (
+    "command_id" integer NOT NULL PRIMARY KEY,
+    "name" varchar(100) NOT NULL,
+    "command"  varchar(400) NOT NULL,
+    "task_ref_id" integer NOT NULL,
+    "status" varchar(100),
+    "return_code" varchar(10),
+    "output" text,
+    "errors" text,
+    "retries" integer NOT NULL,
+    FOREIGN KEY(task_ref_id) REFERENCES scheduler_tasks(task_id)
+);
+
