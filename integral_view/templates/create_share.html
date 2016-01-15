@@ -237,11 +237,12 @@ $(window).load(function() {
  $(function () {
     $('#pathdiv').on('changed.jstree', function (e, data) {
         var i, j, r = [];
-        r = data.instance.get_node(data.selected[0]).text;
-        rfp = data.instance.get_node(data.selected[0]).data["dir"];
-        document.forms["create_form"].elements["path"].value = rfp;
-        document.forms["create_form"].elements["display_path"].value = rfp;
-        document.getElementById("pathdiv").style.display = "none";
+          var e = document.getElementById("id_vol");
+          r = data.instance.get_node(data.selected[0]).text;
+          rfp = data.instance.get_node(data.selected[0]).data["dir"];
+          document.forms["create_form"].elements["path"].value = rfp;
+          document.getElementById("pathdiv").style.display = "none";
+	  $("#new_folder").trigger('input')
       })
       .jstree();
   });

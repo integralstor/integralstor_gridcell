@@ -21,7 +21,7 @@ from integral_view.utils import iv_logging
 from glusterfs import gfapi
 
 
-@login_required    
+@login_required
 def show(request, page, info = None):
 
   return_dict = {}
@@ -50,21 +50,23 @@ def show(request, page, info = None):
       path_base = None
       vol_name = ""
       dir_list = []
-      try: 
+      try:
         if ("vol_name" in request.GET) and ("dir" in request.GET):
-          vol_name = request.GET["vol_name"]
-          dir_name = request.GET["dir"]
-          first = request.GET["first"]
+          vol_name = request.GET.get("vol_name")
+          dir_name = request.GET.get("dir")
+          first = request.GET.get("first")
           #print first
         else:
           raise Exception ("No volume or Directory Specified")
-
-        dirs, err  = gluster_commands.get_gluster_dir_list(vol_name ,dir_name)
+        if first:
+            dirs, err  = gluster_commands.get_gluster_dir_list(vol_name ,"")
+        else:
+          dirs, err  = gluster_commands.get_gluster_dir_list(vol_name ,dir_name)
         if err:
           raise Exception(err)
 
         dir_list = json.dumps(dirs)
-      
+
       except Exception as e:
         return django.http.HttpResponse("Exception Occured : %s"%str(e))
         #iv_logging.debug("Exception while getting dir listing : "%e)
@@ -89,7 +91,7 @@ def show(request, page, info = None):
       template = "view_integral_view_log_level.html"
       log_level, err = iv_logging.get_log_level_str()
       if err:
-        raise Exception(err)     
+        raise Exception(err)
       return_dict["log_level_str"] = log_level
       if "saved" in request.REQUEST:
         return_dict["saved"] = request.REQUEST["saved"]
@@ -236,9 +238,9 @@ def show(request, page, info = None):
         return_dict["replicate"] = True
       elif vol["type"] in ["Distribute", "Distributed-Replicate"]:
         return_dict["distribute"] = True
-          
+
     elif page == "node_status":
-      
+
       return_dict['base_template'] = "gridcell_base.html"
       return_dict["page_title"] = 'View GRIDCell status'
       return_dict['tab'] = 'gridcell_list_tab'
@@ -296,12 +298,12 @@ def show(request, page, info = None):
         raise Exception(err)
       with open("%s/%s"%(ss_path, manifest), "r") as f:
         nodes = json.load(f)
-      
+
       return_dict["manifest"] = nodes
       return_dict["manifest_file"] = manifest
       return django.shortcuts.render_to_response('view_manifest.html', return_dict, context_instance=django.template.context.RequestContext(request))
-      
-          
+
+
     elif page == "iscsi_auth_access_info":
       return_dict['base_template'] = "shares_and_targets_base.html"
       return_dict["page_title"] = 'View ISCSI authorized access info'
@@ -417,7 +419,7 @@ def show(request, page, info = None):
           #count the failures in case of Offline or degraded
           disk_failures = 0
           #Default background color
-          background_color = "bg-green" 
+          background_color = "bg-green"
           if not si[key]["in_cluster"]:
             disk_new[key] = {}
             disk_new[key]["disks"] = {}
@@ -433,7 +435,7 @@ def show(request, page, info = None):
                 background_color = "bg-yellow"
               if disk_failures >= 4:
                 background_color == "bg-red"
-          
+
             if si[key]['node_status_str'] == "Degraded":
               background_color = "bg-yellow"
             #print type(si[key]["pools"][0]["state"])
@@ -447,7 +449,7 @@ def show(request, page, info = None):
             disk_new[key]["disk_pos"] = sorted_disks
             #print disk_new
             #disk_new[key]["info"] = pool_status
-          else:             
+          else:
             disk_status[key] = {}
             if si[key]["node_status"] != -1:
               disk_status[key]["disks"] = {}
@@ -482,7 +484,7 @@ def show(request, page, info = None):
               disk_status[key]["background_color"] = "bg-red"
               disk_status[key]["disk_pos"] = {}
               disk_status[key]["name"] = "Unknown"
-        
+
         template = "view_disk_status.html"
         return_dict["disk_status"] = disk_status
         return_dict["disk_new"] = disk_new
@@ -531,7 +533,7 @@ def show(request, page, info = None):
             bad_node_pools.append(k)
         storage_pool[k] = v["cluster_status_str"]
 
-          
+
 
       for vol in vil:
         if vol["status"] == 1 :
@@ -544,7 +546,7 @@ def show(request, page, info = None):
               num_quotas_exceeded += 1
               quota_exceeded_vols.append(vol['name'])
               break
-                
+
       shares_list, err = cifs_common.load_shares_list()
       if err:
         raise Exception(err)
@@ -558,7 +560,7 @@ def show(request, page, info = None):
         return_dict['num_targets'] = len(targets_list)
       else:
         return_dict['num_targets'] = 0
-          
+
       ctdb_status, err = ctdb.get_status()
       print ctdb_status, err
       if err:
@@ -570,21 +572,21 @@ def show(request, page, info = None):
             bad_ctdb_nodes.append((n,v))
             num_bad_ctdb_nodes += 1
 
-      return_dict["ctdb_status"] = ctdb_status            
-      return_dict["num_quotas_exceeded"] = num_quotas_exceeded            
-      return_dict["quota_exceeded_vols"] = quota_exceeded_vols            
-      return_dict["num_ctdb_nodes"] = num_ctdb_nodes            
-      return_dict["bad_ctdb_nodes"] = bad_ctdb_nodes            
-      return_dict["num_bad_ctdb_nodes"] = num_bad_ctdb_nodes            
-      return_dict["num_nodes_bad"] = num_nodes_bad            
+      return_dict["ctdb_status"] = ctdb_status
+      return_dict["num_quotas_exceeded"] = num_quotas_exceeded
+      return_dict["quota_exceeded_vols"] = quota_exceeded_vols
+      return_dict["num_ctdb_nodes"] = num_ctdb_nodes
+      return_dict["bad_ctdb_nodes"] = bad_ctdb_nodes
+      return_dict["num_bad_ctdb_nodes"] = num_bad_ctdb_nodes
+      return_dict["num_nodes_bad"] = num_nodes_bad
       return_dict["bad_nodes"] = bad_nodes
       return_dict["bad_node_pools"] = bad_node_pools
-      return_dict["num_pools_bad"] = num_pools_bad            
-      return_dict["num_vols_bad"] = num_vols_bad            
-      return_dict["total_nodes"] = total_nodes            
-      return_dict["total_pool"] = total_pool            
-      return_dict["total_vols"] = total_vols            
-      return_dict["nodes"] = nodes            
+      return_dict["num_pools_bad"] = num_pools_bad
+      return_dict["num_vols_bad"] = num_vols_bad
+      return_dict["total_nodes"] = total_nodes
+      return_dict["total_pool"] = total_pool
+      return_dict["total_vols"] = total_vols
+      return_dict["nodes"] = nodes
       return_dict["storage_pool"] = storage_pool
       template = "view_dashboard.html"
 
@@ -693,7 +695,7 @@ def raise_alert(request):
     return_dict["error"] = "An error occurred when processing your request : %s"%str(e)
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
-    
+
 @login_required
 def configure_ntp_settings(request):
 
@@ -773,7 +775,7 @@ def configure_ntp_settings(request):
 
 
 
-@login_required 
+@login_required
 #@django.views.decorators.csrf.csrf_exempt
 def flag_node(request):
 
@@ -802,7 +804,7 @@ def flag_node(request):
     return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
-    
+
 @admin_login_required
 def reset_to_factory_defaults(request):
   return_dict = {}
@@ -825,29 +827,29 @@ def reset_to_factory_defaults(request):
     else:
       iv_logging.info("Got a request to reset to factory defaults")
       #Post request so from conf screen
-  
+
       #Reset the ntp config file
       try :
         shutil.copyfile("%s/factory_defaults/ntp.conf"%defaults_path, '%s/ntp.conf'%ntp_conf_path)
       except Exception, e:
         raise Exception("Error reseting NTP configuration : %s"%e)
-  
+
       #Remove email settings
       ret, err = mail.delete_email_settings()
       if err:
         raise Exception(err)
-  
+
       ret, err = audit.rotate_audit_trail()
       if err:
         raise Exception(err)
-  
-      #Remove all shares 
+
+      #Remove all shares
       try:
         cifs_common.delete_all_shares()
       except Exception, e:
         #print str(e)
         raise Exception("Error deleting shares : %s."%e)
-  
+
       try:
         cifs_common.delete_auth_settings()
       except Exception, e:
@@ -857,14 +859,14 @@ def reset_to_factory_defaults(request):
         request.user.save()
       except Exception, e:
         raise Exception("Error resetting admin password: %s."%e)
-  
-  
+
+
       #Reset the alerts file
       try :
         shutil.copyfile("%s/factory_defaults/alerts.log"%defaults_path, '%s/alerts.log'%alerts_path)
       except Exception, e:
         raise Exception("Error reseting alerts : %s."%e)
-  
+
       #Reset all batch jobs
       try :
         l = os.listdir("%s"%batch_files_path)
@@ -872,7 +874,7 @@ def reset_to_factory_defaults(request):
           os.remove("%s/%s"%(batch_files_path, fname))
       except Exception, e:
         raise Exception("Error removing scheduled batch jobs : %s."%e)
-  
+
       try:
         iscsi.reset_global_target_conf()
         iscsi.delete_all_targets()
@@ -881,7 +883,7 @@ def reset_to_factory_defaults(request):
         iscsi.delete_all_auth_access_users()
       except Exception, e:
         raise Exception("Error resetting ISCSI configuration : %s."%e)
-  
+
       try:
         # Create commands to stop and delete volumes. Remove peers from cluster.
         vil, err = volume_info.get_volume_info_all()
@@ -911,7 +913,7 @@ def reset_to_factory_defaults(request):
       return_dict["error"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
-  
+
 @login_required
 def hardware_scan(request):
 
@@ -923,11 +925,11 @@ def hardware_scan(request):
     return_dict["error"] = 'Error scanning for new GRIDCells'
     url = 'add_nodes_form.html'
     iv_logging.info("Hardware scan initiated")
-  
+
     pending_minions, err = grid_ops.get_pending_minions()
     if err:
       raise Exception(err)
-  
+
     if request.method == 'GET':
       # Return a list of new nodes available to be pulled into the grid
       if pending_minions:
@@ -949,7 +951,7 @@ def hardware_scan(request):
         return_dict["success"] = success
         return_dict["failed"] = failed
         return_dict["errors"] = errors
-          
+
     return django.shortcuts.render_to_response(url, return_dict, context_instance = django.template.context.RequestContext(request))
   except Exception, e:
     s = str(e)
@@ -1004,9 +1006,9 @@ def download_configuration(request):
     return_dict["page_title"] = 'Download system configuration'
     return_dict['tab'] = 'download_config_tab'
     return_dict["error"] = 'Error downloading system configuration'
-  
+
     if request.method == 'POST':
-  
+
       config_dir, err = common.get_config_dir()
       if err:
         raise Exception(err)
@@ -1026,8 +1028,8 @@ def download_configuration(request):
           #print arcname
           zf.write(absname, arcname)
       zf.close()
-  
-  
+
+
       response = django.http.HttpResponse()
       response['Content-disposition'] = 'attachment; filename=%s.zip'%(display_name)
       response['Content-type'] = 'application/x-compressed'
@@ -1037,9 +1039,9 @@ def download_configuration(request):
           response.write(byte)
           byte = f.read(1)
       response.flush()
-  
+
       return response
-  
+
     # either a get or an invalid form so send back form
     return django.shortcuts.render_to_response('download_config.html', return_dict, context_instance=django.template.context.RequestContext(request))
   except Exception, e:
