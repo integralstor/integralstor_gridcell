@@ -8,13 +8,19 @@
 <br />
 <br />
   {% if gridcells %}
+  <table class="table table-bordered">
     {% for gridcell in gridcells %}
-     	{{gridcell}}
+    <tr>
+       <td> {{gridcell}}</td>
+       <td>
 	 <form action="." method="POST">
 		<input type="text" value="{{gridcell}}" style="display:none;" name="gridcell"/>
-		<button type="submit" class="btn btn-danger cover-page">Remove from list</button>
+		<button type="submit" class="btn btn-danger cover-page">Remove GRIDCell</button>
 	</form>
+       </td>
+    </tr>
     {% endfor %}
+  </table>
   {% else %}
     No GRIDCells found for removal. Please remove the GRIDCell from storage pool for GRIDCell to appear here.
   {% endif %}

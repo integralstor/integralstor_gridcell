@@ -19,62 +19,71 @@
           </div><!-- /.box-tools -->
         </div><!-- /.box-header -->
         <div style="display: none;" class="box-body">
-          <ul class="nav nav-stacked">
-            <li>
-              <a href="#"> Name
-                  <span class="pull-right "> {{vol.name}} </span>
-              </a>
-            </li>
-            <li>
-              <a href="#"> Type
-                  <span class="pull-right "> {{vol.type}} </span>
-              </a>
-            </li>
-            <li>
-              <a href="#"> Access Mode
-                  <span class="pull-right "> {% if iscsi %} ISCSI block access {%else %} NFS/CIFS file access {%endif%} </span>
-              </a>
-            </li>
-            <li>
-              <a href="#"> Number of Data locations used
-                  <span class="pull-right "> {{vol.brick_count}} </span>
-              </a>
-            </li>
-                 <a> <span> {% if replicate %} </span> </a>
-            <li>
-              <a href="#"> Number of Data Copies
+           <table class="table table-bordered">
+             <tr>
+               <td>
+                 Name
+               </td>
+               <td>
+                  {{vol.name}}
+               </td>
+             </tr>
+             <tr>
+               <td>
+                  Type
+               </td>
+               <td>
+                 {{vol.type}}
+               </td>
+             </tr>
+             <tr>
+               <td>
+                  Access mode
+               </td>
+               <td>
+                  {% if iscsi %} ISCSI block access {%else %} NFS/CIFS file access {%endif%} 
+               </td>
+             </tr>
+             <tr>
+               <td>
+                   Number of Data locations used
+               </td>
+               <td>
+                  {{vol.brick_count}} 
+               </td>
+             </tr>
+             <tr>
+               <td>
+                  Number of data copies
+               </td>
+               <td>
+                 {% if replicate %} 
                   <span class="pull-right "> {{vol.replica_count}} </span>
-              </a>
-            </li>
                  {% elif distribute %}
-            <li>
-              <a href="#"> Number of Data Copies
-                  <span class="pull-right">{{vol.brick_count}} GRIDCell {% if vol.brick_count != '1' %} s {%endif%} {%endif%}</span>
-              </a>
-            </li>
-            <li>
-              <a href="#">Data Locations:
-                  <span class="pull-right">
-                  {{vol.bricks}}
-                  {%if vol.bricks|length > 1 %}
-                    {%for l in vol.bricks%}
-                        {{l}}
-            <!--
-                          <ul>
-                            {%for i in l %}
-                             <li> {{i}} </li>
-                            {%endfor%}
-                          </ul>
-              -->
-                     {%endfor%}
+                    {{vol.brick_count}} GRIDCell {% if vol.brick_count != '1' %} s {%endif%} 
                  {%endif%}
-                 </span>
-               </a>
-            </li>
-          {% if vol.options %}
-            <li>
-              <a href="#"> Extra Options:
-            <span class="pull-right">
+               </td>
+             </tr>
+             <tr>
+               <td>
+                Data locations
+               </td>
+               <td>
+                  {%if vol.bricks  %}
+                    {%for br_list in vol.bricks%}
+                      {%for br in br_list%}
+                        {{br}}<br>
+                      {%endfor%}
+                    {%endfor%}
+                 {%endif%}
+               </td>
+             </tr>
+            {% if vol.options %}
+             <tr>
+               <td>
+                  Extra Options:
+               </td>
+               <td>
               <ol>
             {%for o in vol.options%}
               {% if o.name == "auth.reject" %}
@@ -90,12 +99,10 @@
               {%endif%}
             {%endfor%}
               </ol>
-            </span>
-              </a>
-            </li>
-          {% endif %}
-
-          </ul>
+               </td>
+             </tr>
+           {%endif%}
+           </table>
         </div><!-- /.box-body -->
       </div>
     </div>
@@ -215,7 +222,7 @@
               </li>
               <li>
                   <a href="#"> Data access status
-                    <span class="pull-right ">{{vol.status_str}}{{vol.data_access_status}}</span>
+                    <span class="pull-right ">{{vol.status_str}}, {{vol.data_access_status}}</span>
                  </a>
               </li>
               <li>
