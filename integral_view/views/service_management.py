@@ -59,12 +59,13 @@ def initiate_scrub(request):
       poolname = 'frzpool'
       db_path,err = common.get_db_path()
       status,err = scheduler_utils.schedule_a_job(db_path,'ZFS Scrub',[{'scrub':'zpool scrub frzpool'}],int(dt))
+      print status,err
       if err:
         return_dict["error"] = "Scrub scheduling failed"
         return_dict["error_details"] = err
         return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
-      return django.shortcuts.render_to_response("initiate_scrub.html", return_dict, context_instance=django.template.context.RequestContext(request))
+      return django.http.HttpResponseRedirect('/initiate_scrub/?schedule=success')
   except Exception, e:
     return_dict["error"] = 'Unable to retrive the status of services'
-    return_dict["error_details"] = "An error occurred when processing your request : %s"%s
+    return_dict["error_details"] = "An error occurred when processing your request : %s"%e
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
