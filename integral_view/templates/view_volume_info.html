@@ -60,7 +60,7 @@
                  {% if replicate %} 
                   <span class="pull-right "> {{vol.replica_count}} </span>
                  {% elif distribute %}
-                    {{vol.brick_count}} GRIDCell {% if vol.brick_count != '1' %} s {%endif%} 
+                    {{vol.brick_count}} GRIDCell {% if vol.brick_count != '1' %}s {%endif%} 
                  {%endif%}
                </td>
              </tr>

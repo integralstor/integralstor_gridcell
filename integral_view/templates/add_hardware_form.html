@@ -8,9 +8,9 @@ Please select the GRIDCells that you want to add to the grid
     </td>
     <td>
     {% for choice in form.nodes.field.choices %} 
-    <div class="checkbox">
+    <div class="radio">
     <label>
-    <input type="checkbox" name="nodes" id="optionsRadios1" value="{{choice.0}}" {%if choice.0 in form.initial.nodes %} checked="checked"{%endif%}> &nbsp;{{choice.0}}
+    <input type="radio" name="nodes" id="optionsRadios1" value="{{choice.0}}" {%if choice.0 in form.initial.nodes %} checked="checked"{%endif%}> &nbsp;{{choice.0}}
     </label>
     </div>
     {%endfor%}

@@ -1,7 +1,7 @@
 {% extends 'volume_base.html' %}
 
 {%block tab_header%}
-  Background processes
+  Volume batch processes
 {%endblock%}
 
 {%block inside_content%}
@@ -54,7 +54,7 @@ Click for details
 Batch processes list
 {%endblock%}
 {%block help_body%}
-  <p>Anytime an action is performed from IntegralView that requires potentially large movement of data, a background process is scheduled in order to perform this action. The background processes are processed every minute. This page lists all such background processes that have been scheduled. You can click on any particular process entry to view the details of that process.</p>
+  <p>Anytime an action is performed from IntegralView that requires potentially large movement of data in volumes, a batch process is scheduled in order to perform this action. The batch processes are processed every minute. This page lists all such batch processes that have been scheduled. You can click on any particular process entry to view the details of that process.</p>
 {%endblock%}
 {% block tab_active %}
   <script>
