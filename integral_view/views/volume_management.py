@@ -9,7 +9,7 @@ import salt.client
 import integralstor_gridcell
 from integralstor_gridcell import volume_info, system_info, gluster_commands, gluster_batch, iscsi
 import integralstor_common
-from integralstor_common import command, audit, common
+from integralstor_common import command, audit, common, scheduler_utils
 
 import integral_view
 from integral_view.forms import volume_management_forms
@@ -1057,6 +1057,10 @@ def replace_disk(request):
               #if disk_status == "Disk Missing":
               #  #Issue a reboot now, wait for a couple of seconds for it to shutdown and then redirect to the template to wait for reboot..
               #  pass
+              audit_str = "Disk replacement of old disk(sno %s) on GRIDCell %s - disk taken offline."%(serial_number, node)
+              ret, err = audit.audit("replace_disk_offline_disk", audit_str, request.META["REMOTE_ADDR"])
+              if err:
+                raise Exception(err)
               return_dict["serial_number"] = serial_number
               return_dict["node"] = node
               return_dict["pool"] = pool
@@ -1102,8 +1106,19 @@ def replace_disk(request):
             old_id = request.POST["old_id"]
             new_id = request.POST["new_id"]
             new_serial_number = request.POST["new_serial_number"]
-            cmd_to_run = "zpool replace -f %s %s %s"%(pool, old_id, new_id)
+            cmd1 = "zpool replace -f %s %s %s"%(pool, old_id, new_id)
+            cmd2 = 'zpool online %s %s'%(pool, new_id)
+            cmd3 = '%s/generate_manifest.py'%common_python_scripts_path
+            cmd4 = '%s/generate_status.py'%common_python_scripts_path
             #print 'Running %s'%cmd_to_run
+            db_path, err = common.get_db_path()
+            if err:
+              raise Exception('Error scheduling a job - getting database location : %s'%err)
+            job_id, err = scheduler_utils.schedule_a_job(db_path, 'Disk replacement on GRIDCell %s'%node, [{'Disk Replacement': cmd1}, {'Disk onlining':cmd2}], node=node, extra={'deleteable':0})
+            if err:
+              raise Exception('Error scheduling the disk replacement : %s'%err)
+            new_job_id, err = scheduler_utils.schedule_a_job(db_path, 'Regeneration of system configuration', [{'Regeneration of system configuration':cmd3}, {'Regeneration of system status':cmd4}], extra = {'execute_after': job_id, 'deleteable':0})
+            '''
             client = salt.client.LocalClient()
             rc = client.cmd(node, 'cmd.run_all', [cmd_to_run])
             if rc:
@@ -1120,6 +1135,7 @@ def replace_disk(request):
               raise Exception("Error replacing the disk on %s : "%(node))
 
             '''
+            '''
             cmd_to_run = "zpool set autoexpand=on %s"%pool
             print 'Running %s'%cmd_to_run
             rc = client.cmd(node, 'cmd.run_all', [cmd_to_run])
@@ -1135,6 +1151,7 @@ def replace_disk(request):
             if new_serial_number in si[node]["disks"]:
               disk = si[node]["disks"][new_serial_number]
               disk_id = disk["id"]
+            '''
             '''
             cmd_to_run = 'zpool online %s %s'%(pool, new_id)
             #print 'Running %s'%cmd_to_run
@@ -1167,10 +1184,15 @@ def replace_disk(request):
               si, err = system_info.load_system_config()
               if err:
                 raise Exception(err)
-              return_dict["node"] = node
-              return_dict["old_serial_number"] = serial_number
-              return_dict["new_serial_number"] = new_serial_number
-              template = "replace_disk_success.html"
+            '''
+            return_dict["node"] = node
+            return_dict["old_serial_number"] = serial_number
+            return_dict["new_serial_number"] = new_serial_number
+            audit_str = "Scheduled replacement of old disk(sno %s) with new disk(sno %s) on GRIDCell %s."%(serial_number, new_serial_number, node)
+            ret, err = audit.audit("replace_disk_scheduled", audit_str, request.META["REMOTE_ADDR"])
+            if err:
+              raise Exception(err)
+            template = "replace_disk_success.html"
   
           return django.shortcuts.render_to_response(template, return_dict, context_instance = django.template.context.RequestContext(request))
           

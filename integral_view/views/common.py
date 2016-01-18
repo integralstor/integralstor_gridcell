@@ -964,19 +964,32 @@ def hardware_scan(request):
 @login_required
 def remove_gridcell(request):
   return_dict = {}
-  if request.method == "GET":
-    gridcells = []
-    si, err = system_info.load_system_config()
-    for name,status in si.items():
-      if not ('gridcell-pri.integralstor.lan' in name or 'gridcell-sec.integralstor.lan' in name) and not (si[name]['in_cluster']):
-        gridcells.append(name)
-    return_dict['gridcells'] = gridcells
-    return django.shortcuts.render_to_response("remove_gridcell.html", return_dict, context_instance=django.template.context.RequestContext(request))
-  if request.method == "POST":
-    gridcell  = request.POST.get('gridcell')
-    status,err = grid_ops.delete_salt_key(gridcell)
-    status,err = grid_ops._regenerate_manifest_and_status()
-    return django.http.HttpResponseRedirect('/remove_gridcell/')
+  try:
+    return_dict['base_template'] = "gridcell_base.html"
+    return_dict["page_title"] = 'Remove GRIDCells'
+    return_dict['tab'] = 'remove_gridcell_tab'
+    return_dict["error"] = 'Error removing GRIDCells'
+    if request.method == "GET":
+      gridcells = []
+      si, err = system_info.load_system_config()
+      for name,status in si.items():
+        if not ('gridcell-pri.integralstor.lan' in name or 'gridcell-sec.integralstor.lan' in name) and not (si[name]['in_cluster']):
+          gridcells.append(name)
+      return_dict['gridcells'] = gridcells
+      return django.shortcuts.render_to_response("remove_gridcell.html", return_dict, context_instance=django.template.context.RequestContext(request))
+    if request.method == "POST":
+      gridcell  = request.POST.get('gridcell')
+      status,err = grid_ops.delete_salt_key(gridcell)
+      status,err = grid_ops._regenerate_manifest_and_status()
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  else:
+      return django.http.HttpResponseRedirect('/show/gridcells/')
 
 
 
