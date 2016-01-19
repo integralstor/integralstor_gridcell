@@ -60,3 +60,11 @@ $("#datetime").on('change',function(){
 </script>            
 {% endblock %}
 
+{%block help_header%}
+Schedule a ZFS scrub
+{%endblock%}
+{%block help_body%}
+  <p>
+   This screen allows you to schedule a scrub of all the underlying on-disk file ZFS systems. A scrub is used to compare stored checksums against calculated checksums, thus being able to detect and correct silent disk errors. Since this processes all the data in the ZFS pool to check and fix inconsistencies, it will negatively impact performance. Hence please schedule this check at a time of low usage.
+  </p>
+{%endblock%}

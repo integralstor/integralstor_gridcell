@@ -25,3 +25,14 @@
     No GRIDCells found for removal. Please remove the GRIDCell from storage pool for GRIDCell to appear here.
   {% endif %}
 {% endblock %}
+{%block help_header%}
+Removing a GRIDCell 
+{%endblock%}
+{%block help_body%}
+<p>This screen is used to remove a GRIDCell from the grid. You would normally do this in order to fix or retire a GRIDCell.</p>
+{%endblock%}
+{% block tab_active %}
+	<script>
+		make_tab_active('remove_gridcell_tab')
+	</script>
+{% endblock %}
