@@ -1,0 +1,62 @@
+{% extends 'admin_base.html' %}
+
+{% block tab_header %}
+  {{task.task_name}} ({{task.status|title}})
+  {% if task.status == "scheduled" %}
+  <span class="pull-right">
+	<form action="/delete_task/" method="POST">
+	  <input name="task_id" value="{{task.task_id}}" style="display:none;"/>
+          <button class="btn btn-danger">Delete this task </button>
+	</form>
+  {% endif %}
+{% endblock %}
+
+{% block inside_content %}
+<br /> <br />
+{%for command in commands %}
+<div class="panel box {%if command.return_code == '0' %} box-success {%else%} box-danger{%endif%}">
+  <div class="box-header with-border">
+    <h4 class="box-title">
+      <a class="" aria-expanded="true" data-toggle="collapse" data-parent="#accordion" href="#pool_{{forloop.counter}}">
+        {{command.command}}
+      </a> 
+    </h4>
+  </div>
+  <div style="" aria-expanded="true" id="pool_{{forloop.counter}}" class="panel-collapse collapse">
+    <div class="box-body">
+      <table>
+      <tbody>
+        <tr>
+          <td colspan=1> Command </td>
+          <td> {{command.command}} </td>
+        </tr>
+        <tr>
+          <td colspan=1> Status </td>
+          <td> {{command.status}} </td>
+        </tr>
+        <tr>
+          <td colspan=1> Output </td>
+          <td> {{command.output}} </td>
+        </tr>
+        <tr>
+          <td colspan=1> Error </td>
+          <td> {{command.errors}} </td>
+        </tr>
+        <tr>
+          <td colspan=1> Retries </td>
+          <td> {{command.retries}} </td>
+        </tr>
+      </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}
+{% block tab_active %}
+<script>
+   make_tab_active("scheduled_jobs_tab")
+</script>
+{% endblock%}
+
