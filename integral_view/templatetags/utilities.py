@@ -1,6 +1,6 @@
 from django import template
 from django.template.defaultfilters import stringfilter
-
+import datetime
 register = template.Library()
 
 @register.filter
@@ -22,3 +22,13 @@ def get_item(dictionary,key):
 @register.filter
 def get_item(dictionary, key):
     return dictionary.get(key)
+
+@register.filter
+def print_timestamp(timestamp):
+  try:
+    #assume, that timestamp is given in seconds with decimal point
+    ts = float(timestamp)
+  except ValueError:
+    return None
+  return datetime.datetime.fromtimestamp(ts)
+

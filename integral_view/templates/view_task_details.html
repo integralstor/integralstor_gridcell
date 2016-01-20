@@ -5,7 +5,7 @@
   {% if task.status == "scheduled" %}
   <span class="pull-right">
 	<form action="/delete_task/" method="POST">
-	  <input name="task_id" value="{{task.task_id}}" style="display:none;"/>
+	  <input name="task_id" value="{{task.task_id}}" />
           <button class="btn btn-danger">Delete this task </button>
 	</form>
   {% endif %}
