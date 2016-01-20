@@ -213,7 +213,7 @@ def show(request, page, info = None):
       #elif vol["type"] in ["Distribute", "Distributed-Replicate"]:
       if 'replicate' in vol["type"].lower():
         return_dict["replicate"] = True
-      elif 'distribute' in vol["type"].lower():
+      if 'distribute' in vol["type"].lower():
         return_dict["distribute"] = True
 
     elif page == "volume_status":
@@ -236,7 +236,7 @@ def show(request, page, info = None):
       # To accomodate django template quirks
       if vol["type"] in ["Replicate", "Distributed-Replicate"]:
         return_dict["replicate"] = True
-      elif vol["type"] in ["Distribute", "Distributed-Replicate"]:
+      if vol["type"] in ["Distribute", "Distributed-Replicate"]:
         return_dict["distribute"] = True
 
     elif page == "node_status":

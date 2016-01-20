@@ -25,7 +25,7 @@ if nodetype is secondary :
 '''
 
 import sys, socket
-from integralstor_common import command, networking
+from integralstor_common import command, networking, scheduler_utils
 
 def set_as_primary(primary_ip, primary_netmask):
 
@@ -163,6 +163,11 @@ def set_as_primary(primary_ip, primary_netmask):
       raise Exception("Error setting the salt master server to start on boot")
     print "Setting salt master to start on reboot.. Done."
   
+    print "Setting up crontab.."
+    scheduler_utils.create_cron('Generate Status',min="1",hour='*',day='*',dow='*',month='*',command="/opt/integralstor/integralstor_common/scripts/python/generate_status.py > /tmp/out_status >> /tmp/err_status",log_file=None)
+    scheduler_utils.create_cron('Poll for alerts',min="1",hour='*',day='*',dow='*',month='*',command="/opt/integralstor/integralstor_common/scripts/python/poll_for_alerts.py > /tmp/out_alerts >> /tmp/err_alerts",log_file=None)
+    scheduler_utils.create_cron('Run gluster batch processes',min="1",hour='*',day='*',dow='*',month='*',command="/opt/integralstor/integralstor_gridcell/scripts/python/batch_process.py > /tmp/out_batch >> /tmp/err_batch",log_file=None)
+    print "Setting up crontab.. Done."
   
     print
     print "Successfully set the GRIDCell type to primary."

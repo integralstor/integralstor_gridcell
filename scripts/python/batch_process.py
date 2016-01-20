@@ -109,9 +109,11 @@ def process_batch(d, file):
           #Now start processing output of command
           if lines:
             for line in lines:
-              m = re.search("Launching Heal operation on volume [a-zA-Z_\-]* has been successful", line)
+              #print line
+              m = re.search("has been successful", line)
               #print m
               if m:
+                #print 'success'
                 #Successfully executed
                 ret, err = audit.audit(cd["type"], cd["desc"], 'Batch job')
                 cd["status_code"] = 3
@@ -336,7 +338,10 @@ def main():
           continue
         else:
           with open(os.path.normpath("%s/%s"%(batch_files_path,file)), "r") as f:
+            #print 'a'
+            #print os.path.normpath("%s/%s"%(batch_files_path,file))
             d = json.load(f)
+            #print 'a1'
             ret, err = process_batch(d, file)
             if err:
               print "Error loading json content for %s/%s : %s"%(batch_files_path, file, err)
