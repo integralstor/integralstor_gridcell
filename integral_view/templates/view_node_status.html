@@ -124,6 +124,12 @@
             <th>
               MAC Address
             </th>
+            <th>
+              IP Address
+            </th>
+            <th>
+              Status
+            </th>
           </thead>
         {% for if_name,interface in node.interfaces.items %}
         <ul class="nav nav-stacked">
@@ -133,6 +139,9 @@
             </td>
             <td>
               {{interface.hwaddr}}
+            </td>
+            <td>
+              {{interface.inet.0.address}}
             </td>
             <td>
             {% if interface.status == "up"%}
