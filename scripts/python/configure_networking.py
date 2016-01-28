@@ -70,7 +70,7 @@ def configure_networking():
     while not valid_input:
       input = raw_input(str_to_print)
       if input:
-        vi, err = networking.validate_netmask(input)
+        vi, err = networking.validate_ip(input)
         if vi:
           valid_input = True
           default_gateway = input
