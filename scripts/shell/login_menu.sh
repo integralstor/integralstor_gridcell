@@ -32,7 +32,7 @@ first_time_setup(){
     cp -f /opt/integralstor/integralstor_gridcell/defaults/salt/master /etc/salt/master
     mkdir -p /opt/integralstor/integralstor_gridcell/config/salt/pki/master
     cp -r /etc/salt/pki/master/ /opt/
-    mv /etc/salt/pki/master/ /opt/integralstor/integralstor_gridcell/config/salt/pki/master/
+    mv /etc/salt/pki/master/ /opt/integralstor/integralstor_gridcell/config/salt/pki/
     service salt-master start
     pause
   else
