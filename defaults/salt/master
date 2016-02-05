@@ -173,7 +173,7 @@ pki_dir: /opt/integralstor/integralstor_gridcell/config/salt/pki/master
 # authentication, this is only intended for highly secure environments or for
 # the situation where your keys end up in a bad state. If you run in open mode
 # you do so at your own risk!
-open_mode: True
+# open_mode: True
 
 # Enable auto_accept, this setting will automatically accept all incoming
 # public keys from the minions. Note that this is insecure.
