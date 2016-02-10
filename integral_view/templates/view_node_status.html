@@ -386,11 +386,11 @@
        </table>
         <script>
           {%for sn, disk in node.disks.items %}
-            {%if disk.status != 'PASSED' and disk.status != 'OK' and not disk.boot_device%}
+            {%if disk.status != 'PASSED' and disk.status != 'OK' and not disk.os_device%}
               $('#chassis_pos_indicator_{{disk.chassis_pos_indicator}}_serial').html("{{sn}}")
               $('#chassis_pos_indicator_{{disk.chassis_pos_indicator}}_status').text("Status :{{disk.status}}")
               $('#chassis_pos_indicator_{{disk.chassis_pos_indicator}}_colour').removeClass('bg-gray').addClass('bg-red-active')
-            {%elif not disk.boot_device%}
+            {%elif not disk.os_device%}
               $('#chassis_pos_indicator_{{disk.chassis_pos_indicator}}_serial').html("{{sn}}")
               $('#chassis_pos_indicator_{{disk.chassis_pos_indicator}}_status').text("Status :OK")
               $('#chassis_pos_indicator_{{disk.chassis_pos_indicator}}_colour').removeClass('bg-grey').addClass('bg-green-active')
@@ -414,7 +414,7 @@
             </th>
           </thead>
           {%for sn, disk in node.disks.items %}
-            {%if disk.boot_device %}
+            {%if disk.os_device %}
               <tr>
                 <td>
                   {{sn}}  (OS disk)
@@ -434,7 +434,7 @@
           {%endif%}
         {%endfor%}
         {%for sn, disk in node.disks.items %}
-          {%if not disk.boot_device %}
+          {%if not disk.os_device %}
             <tr>
               <td>
                 {{sn}}  (Data disk)
