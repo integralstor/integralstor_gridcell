@@ -169,7 +169,7 @@ def create_iscsi_lun(request):
       if form.is_valid():
         cd = form.cleaned_data
         # Create a zvol 
-        cmd = 'zfs create -s -V %s frzpool/%s'%(cd['lun_size'],cd['lun_name']) 
+        cmd = 'zfs create -s -b 64K -V %s frzpool/%s'%(cd['lun_size'],cd['lun_name']) 
         ret,err = command.execute_with_rc(cmd = cmd, shell=True)
         time.sleep(20)
         ret, err = iscsi_stgt.create_lun(cd["target_name"],"/dev/frzpool/%s"%cd['lun_name'])
