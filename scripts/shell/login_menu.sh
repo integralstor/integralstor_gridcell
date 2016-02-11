@@ -28,12 +28,12 @@ first_time_setup(){
   if [ $hn == "gridcell-pri" ]
   then
     /opt/integralstor/integralstor_gridcell/scripts/python/first_time_setup.py
-    #service salt-master stop
-    #cp -f /opt/integralstor/integralstor_gridcell/defaults/salt/master /etc/salt/master
-    #mkdir -p /opt/integralstor/integralstor_gridcell/config/salt/pki/master
-    #cp -r /etc/salt/pki/master/ /opt/
-    #mv /etc/salt/pki/master/ /opt/integralstor/integralstor_gridcell/config/salt/pki/
-    #service salt-master start
+    service salt-master stop
+    cp -f /opt/integralstor/integralstor_gridcell/defaults/salt/master /etc/salt/master
+    mkdir -p /opt/integralstor/integralstor_gridcell/config/salt/pki/master
+    cp -r /etc/salt/pki/master/ /opt/
+    mv /etc/salt/pki/master/ /opt/integralstor/integralstor_gridcell/config/salt/pki/
+    service salt-master start
     pause
   else
     echo 'This functionality can only initiated from the primary GRIDCell.'
@@ -56,9 +56,9 @@ set_as_secondary(){
   if [ $ret != 0 ]
   then
     python /opt/integralstor/integralstor_gridcell/scripts/python/set_node_type.py secondary
-    #service salt-master stop
-    #cp -f /opt/integralstor/integralstor_gridcell/defaults/salt/master /etc/salt/master
-    #mv /etc/salt/pki/master /etc/salt/pki/master.backup
+    service salt-master stop
+    cp -f /opt/integralstor/integralstor_gridcell/defaults/salt/master /etc/salt/master
+    mv /etc/salt/pki/master /etc/salt/pki/master.backup
     pause
   else
     echo 'A secondary GRIDCell (with hostname gridcell-sec) seems to already exist in the LAN! A grid cannot have more than one secondary.'
