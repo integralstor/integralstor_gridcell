@@ -18,6 +18,7 @@ master:
   - gridcell-pri.integralstor.lan
   - gridcell-sec.integralstor.lan
 
+master_alive_interval: 30
 # If multiple masters are specified in the 'master' setting, the default behavior
 # is to always try to connect to them in the order they are listed. If random_master is
 # set to True, the order will be randomized instead. This can be helpful in distributing
