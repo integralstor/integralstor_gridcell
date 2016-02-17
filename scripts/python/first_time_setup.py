@@ -633,64 +633,35 @@ def initiate_setup():
       raise Exception(e)
     print "Starting services.. Done."
     print "Setting up the Secondary Master .."
-    rc,err = client = salt.client.LocalClient()
-    if not rc:
-      e = None
-      if err:
-        e =  "Error starting services on the GRIDCells : %s"%err
-      else:
-        e =  "Error starting services on the GRIDCells"
+    client = salt.client.LocalClient()
+    try:
+      rc = client.cmd('gridcell-pri.integralstor.lan','file.copy',['/etc/salt/pki/master','/opt/integralstor/integralstor_gridcell/config/salt/pki/master',True])
+    except Exception,e:  
       raise Exception(e)
 
-    rc,err = client.cmd('gridcell-pri.integralstor.lan','file.copy',['/etc/salt/pki/master','/opt/integralstor/integralstor_gridcell/config/salt/pki/master',True])
-    if not rc:
-      e = None
-      if err:
-        e =  "Error copying primary master config to common path : %s"%err
-      else:
-        e =  "Error copying primary master config to mount"
+    try:
+      rc = client.cmd('gridcell-sec.integralstor.lan','file.copy',['/opt/integralstor/integralstor_gridcell/config/salt/pki/master','/etc/salt/pki/master',True])
+    except Exception,e:  
       raise Exception(e)
 
-    rc,err = client.cmd('gridcell-sec.integralstor.lan','file.copy',['/opt/integralstor/integralstor_gridcell/config/salt/pki/master','/etc/salt/pki/master',True])
-    if not rc:
-      e = None
-      if err:
-        e =  "Error syncing config files from mount to secondary master : %s"%err
-      else:
-        e =  "Error syncing config in secondary master"
+    try:
+      rc = client.cmd('*','file.copy',['/opt/integralstor/integralstor_gridcell/defaults/salt/master','/etc/salt/master',True])
+    except Exception,e:  
       raise Exception(e)
-    rc,err = client.cmd('*','file.copy',['/opt/integralstor/integralstor_gridcell/defaults/salt/master','/etc/salt/master',True])
-    if not rc:
-      e = None
-      if err:
-        e =  "Regenerating master config files failed : %s"%err
-      else:
-        e =  "Regenerating master config failed"
-      raise Exception(e)
-    rc,err = client.cmd('*','file.copy',['/opt/integralstor/integralstor_gridcell/defaults/salt/minion','/etc/salt/minion',True])
-    if not rc:
-      e = None
-      if err:
-        e =  "Regenerating minion config files failed : %s"%err
-      else:
-        e =  "Regenerating minion config failed"
+    
+    try:
+      rc = client.cmd('*','file.copy',['/opt/integralstor/integralstor_gridcell/defaults/salt/minion','/etc/salt/minion',True])
+    except Exception,e:  
       raise Exception(e)
 
-    rc,err = client.cmd('*','cmd.run',['service salt-master restart'])
-    if not rc:
-      e = None
-      if err:
-        e =  "Restarting the masters failed : %s"%err
-      else:
-        e =  "Restarting the masters failed"
+    try:
+      rc = client.cmd('*','cmd.run',['service salt-master restart'])
+    except Exception,e:  
       raise Exception(e)
-    rc,err = client.cmd('*','cmd.run',['service salt-minion restart'])    
-    if not rc:
-      e = None
-      if err:
-        e =  "Restarting the minions failed : %s"%err
-      else:
-        e =  "Restarting the minions failed "
+
+    try:
+      rc = client.cmd('*','cmd.run',['service salt-minion restart'])    
+    except Exception,e:  
       raise Exception(e)
 
     platform_root, err = common.get_platform_root()
