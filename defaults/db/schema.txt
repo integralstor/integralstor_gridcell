@@ -4,7 +4,9 @@ CREATE TABLE "scheduler_tasks" (
     "create_time" datetime NOT NULL,
     "initiate_time" datetime NOT NULL,
     "status" varchar(50) NOT NULL,
-    "node" varchar(200)
+    "node" varchar(200),
+    "deleteble" integer,
+    "execute_after" integer NOT NULL
  );
 
 CREATE TABLE "scheduler_commands" (
