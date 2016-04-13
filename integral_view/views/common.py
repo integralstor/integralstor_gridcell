@@ -980,6 +980,7 @@ def remove_gridcell(request):
     if request.method == "POST":
       gridcell  = request.POST.get('gridcell')
       status,err = grid_ops.delete_salt_key(gridcell)
+      time.sleep(30)
       status,err = grid_ops._regenerate_manifest_and_status()
   except Exception, e:
     s = str(e)

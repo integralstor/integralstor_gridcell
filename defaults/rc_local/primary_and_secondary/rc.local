@@ -24,3 +24,6 @@ ln -s /opt/integralstor/integralstor_gridcell/config/lock/ctdb /etc/sysconfig/ct
 service winbind restart
 service nginx restart
 service ctdb restart
+service salt-master restart
+service salt-minion restart
+
