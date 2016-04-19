@@ -6,7 +6,7 @@ from integralstor_common import common
 import salt.client
 from pwd import getpwnam
 import shutil
-from time import strftime
+from time import strftime,sleep
 
 def scan_for_nodes():
   try :
@@ -634,34 +634,64 @@ def initiate_setup():
     print "Starting services.. Done."
     print "Setting up the Secondary Master .."
     client = salt.client.LocalClient()
+    print client
+ 
+    sleep(10)
     try:
       rc = client.cmd('gridcell-pri.integralstor.lan','file.copy',['/etc/salt/pki/master','/opt/integralstor/integralstor_gridcell/config/salt/pki/master',True])
+      print rc
     except Exception,e:  
+      print e
       raise Exception(e)
 
+    sleep(10)
     try:
       rc = client.cmd('gridcell-sec.integralstor.lan','file.copy',['/opt/integralstor/integralstor_gridcell/config/salt/pki/master','/etc/salt/pki/master',True])
+      print rc
     except Exception,e:  
+      print e
       raise Exception(e)
 
+    sleep(10)
     try:
       rc = client.cmd('*','file.copy',['/opt/integralstor/integralstor_gridcell/defaults/salt/master','/etc/salt/master',True])
+      print rc
     except Exception,e:  
+      print e
       raise Exception(e)
     
+    sleep(10)
     try:
       rc = client.cmd('*','file.copy',['/opt/integralstor/integralstor_gridcell/defaults/salt/minion','/etc/salt/minion',True])
+      print rc
     except Exception,e:  
+      print e
       raise Exception(e)
 
+    sleep(10)
     try:
-      rc = client.cmd('*','cmd.run',['service salt-master restart'])
+      rc = client.cmd('*','cmd.run_all',['service salt-master restart'])
+      if rc:
+        for node, ret in rc.items():
+          if ret["retcode"] != 0:
+            errors = "Error restarting salt-master on %s"%node
+            print errors
+      print rc
     except Exception,e:  
+      print e
       raise Exception(e)
 
+    sleep(10)
     try:
-      rc = client.cmd('*','cmd.run',['service salt-minion restart'])    
+      rc = client.cmd('*','cmd.run_all',['service salt-minion restart'])    
+      if rc:
+        for node, ret in rc.items():
+          if ret["retcode"] != 0:
+            errors = "Error restarting salt-minion service on %s"%node
+            print errors
+      print rc
     except Exception,e:  
+      print e
       raise Exception(e)
 
     platform_root, err = common.get_platform_root()
