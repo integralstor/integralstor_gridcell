@@ -638,7 +638,12 @@ def initiate_setup():
  
     sleep(10)
     try:
-      rc = client.cmd('gridcell-pri.integralstor.lan','file.copy',['/etc/salt/pki/master','/opt/integralstor/integralstor_gridcell/config/salt/pki/master',True])
+      rc = client.cmd('gridcell-pri.integralstor.lan','cmd.run_all',['yes | cp -rf /etc/salt/pki/master /opt/integralstor/integralstor_gridcell/config/salt/pki/master'])
+      if rc:
+        for node, ret in rc.items():
+          if ret["retcode"] != 0:
+            errors = "Error copying the master config to admin dir on %s"%node
+            print errors
       print rc
     except Exception,e:  
       print e
@@ -646,7 +651,12 @@ def initiate_setup():
 
     sleep(10)
     try:
-      rc = client.cmd('gridcell-sec.integralstor.lan','file.copy',['/opt/integralstor/integralstor_gridcell/config/salt/pki/master','/etc/salt/pki/master',True])
+      rc = client.cmd('gridcell-sec.integralstor.lan','cmd.run_all',['yes | cp -rf /opt/integralstor/integralstor_gridcell/config/salt/pki/master /etc/salt/pki/master'])
+      if rc:
+        for node, ret in rc.items():
+          if ret["retcode"] != 0:
+            errors = "Error restoring master config on %s from admin vol "%node
+            print errors
       print rc
     except Exception,e:  
       print e
@@ -654,7 +664,12 @@ def initiate_setup():
 
     sleep(10)
     try:
-      rc = client.cmd('*','file.copy',['/opt/integralstor/integralstor_gridcell/defaults/salt/master','/etc/salt/master',True])
+      rc = client.cmd('*','cmd.run_all',['yes | cp /opt/integralstor/integralstor_gridcell/defaults/salt/master /etc/salt/master'])
+      if rc:
+        for node, ret in rc.items():
+          if ret["retcode"] != 0:
+            errors = "Error copying the master config on %s"%node
+            print errors
       print rc
     except Exception,e:  
       print e
@@ -662,7 +677,12 @@ def initiate_setup():
     
     sleep(10)
     try:
-      rc = client.cmd('*','file.copy',['/opt/integralstor/integralstor_gridcell/defaults/salt/minion','/etc/salt/minion',True])
+      rc = client.cmd('*','cmd.run_all',['yes | cp /opt/integralstor/integralstor_gridcell/defaults/salt/minion /etc/salt/minion'])
+      if rc:
+        for node, ret in rc.items():
+          if ret["retcode"] != 0:
+            errors = "Error copying the minion config on %s"%node
+            print errors
       print rc
     except Exception,e:  
       print e
