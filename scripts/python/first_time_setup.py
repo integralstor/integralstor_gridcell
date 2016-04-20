@@ -637,6 +637,18 @@ def initiate_setup():
     print client
  
     sleep(10)
+    print "Creating the required folders"
+    try:
+      rc = client.cmd('gridcell-pri.integralstor.lan','cmd.run_all',['mkdir -p /opt/integralstor/integralstor_gridcell/config/salt/pki'])
+      if rc:
+        for node, ret in rc.items():
+          if ret["retcode"] != 0:
+            errors = "Error creating the required folder structure on admin vol. Error from : %s"%node
+            print errors
+      print rc
+    except Exception,e:  
+      print e
+      raise Exception(e)
     try:
       rc = client.cmd('gridcell-pri.integralstor.lan','cmd.run_all',['yes | cp -rf /etc/salt/pki/master /opt/integralstor/integralstor_gridcell/config/salt/pki/master'])
       if rc:
