@@ -634,7 +634,6 @@ def initiate_setup():
     print "Starting services.. Done."
     print "Setting up the Secondary Master .."
     client = salt.client.LocalClient()
-    print client
  
     sleep(10)
     print "Creating the required folders"
@@ -645,7 +644,6 @@ def initiate_setup():
           if ret["retcode"] != 0:
             errors = "Error creating the required folder structure on admin vol. Error from : %s"%node
             print errors
-      print rc
     except Exception,e:  
       print e
       raise Exception(e)
@@ -656,7 +654,6 @@ def initiate_setup():
           if ret["retcode"] != 0:
             errors = "Error copying the master config to admin dir on %s"%node
             print errors
-      print rc
     except Exception,e:  
       print e
       raise Exception(e)
@@ -669,7 +666,6 @@ def initiate_setup():
           if ret["retcode"] != 0:
             errors = "Error restoring master config on %s from admin vol "%node
             print errors
-      print rc
     except Exception,e:  
       print e
       raise Exception(e)
@@ -682,7 +678,6 @@ def initiate_setup():
           if ret["retcode"] != 0:
             errors = "Error copying the master config on %s"%node
             print errors
-      print rc
     except Exception,e:  
       print e
       raise Exception(e)
@@ -695,7 +690,6 @@ def initiate_setup():
           if ret["retcode"] != 0:
             errors = "Error copying the minion config on %s"%node
             print errors
-      print rc
     except Exception,e:  
       print e
       raise Exception(e)
@@ -708,7 +702,6 @@ def initiate_setup():
           if ret["retcode"] != 0:
             errors = "Error restarting salt-master on %s"%node
             print errors
-      print rc
     except Exception,e:  
       print e
       raise Exception(e)
@@ -721,7 +714,6 @@ def initiate_setup():
           if ret["retcode"] != 0:
             errors = "Error restarting salt-minion service on %s"%node
             print errors
-      print rc
     except Exception,e:  
       print e
       raise Exception(e)
