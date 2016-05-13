@@ -9,7 +9,7 @@ import salt.client
 import integralstor_gridcell
 from integralstor_gridcell import volume_info, system_info, gluster_commands, gluster_batch, iscsi
 import integralstor_common
-from integralstor_common import command, audit, common, scheduler_utils
+from integralstor_common import command, audit, common, scheduler_utils,cifs
 
 import integral_view
 from integral_view.forms import volume_management_forms
@@ -186,6 +186,15 @@ def volume_specific_op(request, operation, vol_name=None):
         vol_name = cd['vol_name']
         return_dict['vol_name'] = vol_name
         if operation in ['vol_stop', 'vol_delete']:
+          # Check if a share exists before even letting a user delete a volume
+          if operation == "vol_delete":
+            shares_list, err = cifs.load_shares_list()
+            if err:
+              raise Exception("Unable to check for shares in the volume selected")
+            for share in shares_list:
+              if vol_name == share['vol']:
+                raise Exception("Share with name %s exists under volume. Cannot delete. Delete the share and try again"%share['name'])
+
           return_dict['op_conf_msg'] = op_conf_msg[operation]
           return django.shortcuts.render_to_response('volume_specific_op_conf.html', return_dict, context_instance=django.template.context.RequestContext(request))
         elif operation == 'vol_quota':
@@ -695,7 +704,10 @@ def set_volume_quota(request):
           ret, err = audit.audit("set_vol_quota", d["display_command"], request.META["REMOTE_ADDR"])
           if err:
             raise Exception(err)
-  
+    # This is setup so as to make sure windows share also reflect the quota applied on gluster volumes
+    (ret, rc), err = command.execute_with_rc("gluster volume set "+request.POST['vol_name']+" quota-deem-statfs on")
+    if err:
+      raise Exception(err)
     return_dict["result_list"] = ol
     return_dict["app_debug"] = settings.APP_DEBUG
     return django.shortcuts.render_to_response('volume_quota_result.html', return_dict, context_instance = django.template.context.RequestContext(request))
