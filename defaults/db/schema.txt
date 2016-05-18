@@ -1,3 +1,15 @@
+CREATE TABLE "email_config" (
+"id" integer NOT NULL PRIMARY KEY,
+"server" varchar(40) NOT NULL,
+"port" integer NOT NULL,
+"username" varchar(40) NOT NULL,
+"pswd" varchar(40) NOT NULL,
+"tls" bool NOT NULL,
+"email_alerts" bool NOT NULL,
+"email_audit" bool NOT NULL,
+"email_quota" bool NOT NULL,
+"rcpt_list" varchar(400) NOT NULL
+);
 CREATE TABLE "scheduler_tasks" (
     "task_id" integer NOT NULL PRIMARY KEY,
     "task_name" varchar(200) NOT NULL,

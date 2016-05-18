@@ -197,12 +197,13 @@ def configure_email_settings(request):
           raise Exception(err)
 
         ret, err = mail.send_mail(cd["email_server"], cd["email_server_port"], cd["username"], cd["pswd"], cd["tls"], cd["rcpt_list"], "Test email from IntegralStor", "This is a test email sent by the IntegralStor system in order to confirm that your email settings are working correctly.")
+        print ret,err
         if err:
           raise Exception(err)
         if ret:
-          return django.http.HttpResponseRedirect("/show/email_settings?saved=1&err=%s"%ret)
-        else:
           return django.http.HttpResponseRedirect("/show/email_settings?saved=1")
+        else:
+          return django.http.HttpResponseRedirect("/show/email_settings?saved=1&err=%s"%err)
       else:
         print 'invalid'
     return_dict["form"] = form
