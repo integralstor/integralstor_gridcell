@@ -15,22 +15,22 @@
 <div  style=" position:relative;border:0px solid #DDDDDD;width:600px; padding:15px 15px 15px;margin:0px 15px;border-radius:4px 4px 0px 0px">
   <div class="form-group" >
     <label for="id_email_server" >SMTP server:</label>
-    <input type="text"  name="email_server" class="form-control" id="id_email_server" placeholder="Enter SMTP server" value="{{form.email_server.value}}"> 
+    <input type="text"  name="email_server" class="form-control" id="id_email_server" placeholder="Enter SMTP server" value="{{form.email_server.value|default_if_none:''}}"> 
     {{ form.email_server.errors }}
   </div>
   <div class="form-group" >
     <label for="id_email_server_port" >SMTP server port:</label>
-    <input type="text"  name="email_server_port" class="form-control" id="id_email_server_port" placeholder="Enter SMTP server port" value="{{form.email_server_port.value}}"> 
+    <input type="text"  name="email_server_port" class="form-control" id="id_email_server_port" placeholder="Enter SMTP server port" value="{{form.email_server_port.value|default_if_none:''}}"> 
     {{ form.email_server_port.errors }}
   </div>
   <div class="form-group" >
     <label for="id_username" >SMTP server account username:</label>
-    <input type="text"  name="username" class="form-control" id="id_username" placeholder="Enter SMTP server username" value="{{form.username.value}}"> 
+    <input type="text"  name="username" class="form-control" id="id_username" placeholder="Enter SMTP server username" value="{{form.username.value|default_if_none:''}}" > 
     {{ form.username.errors }}
   </div>
   <div class="form-group" >
     <label for="id_pswd" >SMTP server account password:</label>
-    <input type="password"  name="pswd" class="form-control" id="id_pswd" placeholder="Enter SMTP server account password"> 
+    <input type="password"  name="pswd" class="form-control" id="id_pswd" placeholder="Enter SMTP server account password" > 
     {{ form.pswd.errors }}
   </div>
   <div class="checkbox">
@@ -47,9 +47,24 @@
     </label>
     {{ form.email_alerts.errors }}
   </div>
+   <div class="checkbox">
+    <label for="id_email_audit">
+      <input name="email_audit" type="checkbox" {% if form.email_audit%} checked="checked" {%endif%}>
+      Send email for audit
+    </label>
+    {{ form.email_audit.errors }}
+  </div>
+  <div class="checkbox">
+    <label for="id_email_quota">
+      <input name="email_quota" type="checkbox" {% if form.email_quota%} checked="checked" {%endif%}>
+      Send email for quota limits
+    </label>
+    {{ form.email_quota.errors }}
+  </div>
+
   <div class="form-group" >
     <label for="id_rcpt_list" >Email recipient list:</label>
-    <input type="text"  name="rcpt_list" class="form-control" id="id_rcpt_list" placeholder="Enter email recipient list" value="{{form.rcpt_list.value}}"> 
+    <input type="text"  name="rcpt_list" class="form-control" id="id_rcpt_list" placeholder="Enter email recipient list" value="{{form.rcpt_list.value|default_if_none:''}}" required> 
     {{ form.rcpt_list.errors }}
   </div>
   <a href="/show/email_settings" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;

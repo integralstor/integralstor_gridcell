@@ -53,5 +53,7 @@ class ConfigureEmailForm(forms.Form):
   rcpt_list = _MultipleEmailField()
 
   email_alerts = forms.BooleanField(required=False)
+  email_audit = forms.BooleanField(required=False)
+  email_quota = forms.BooleanField(required=False)
 
 

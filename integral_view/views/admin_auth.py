@@ -170,7 +170,7 @@ def configure_email_settings(request):
           d["email_alerts"] = True
         else:
           d["email_alerts"] = False
-        form = admin_forms.ConfigureEmailForm(initial = {'email_server':d["server"], 'email_server_port':d["port"], 'tls':d["tls"], 'username':d["username"], 'email_alerts':d["email_alerts"], 'rcpt_list':d["rcpt_list"]})
+        form = admin_forms.ConfigureEmailForm(initial = {'email_server':d["server"], 'email_server_port':d["port"], 'tls':d["tls"], 'username':d["username"], 'email_alerts':d["email_alerts"], 'rcpt_list':d["rcpt_list"],"email_audit":True,"email_quota":True})
     else:
       form = admin_forms.ConfigureEmailForm(request.POST)
       if form.is_valid():
@@ -190,6 +190,14 @@ def configure_email_settings(request):
           d["tls"] = cd["tls"]
         else:
           d["tls"] = False
+        if "email_audit" in cd:
+          d["email_audit"] = cd["email_audit"]
+        else:
+          d["email_audit"] = False
+        if "email_quota" in cd:
+          d["email_quota"] = cd["email_quota"]
+        else:
+          d["email_quota"] = False
         #print "Saving : "
         #print d
         ret, err = mail.save_email_settings(d)

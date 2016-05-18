@@ -77,6 +77,22 @@
             </tr>
             <tr>
               <th>
+              Send email on audits 
+              </th>
+              <td>
+            {% if  email_settings.email_audit %} Yes {%else%} No {%endif%}
+              </td>
+            </tr>
+            <tr>
+              <th>
+              Send email on quotas 
+              </th>
+              <td>
+            {% if  email_settings.email_quota %} Yes {%else%} No {%endif%}
+              </td>
+            </tr>
+            <tr>
+              <th>
               Email recipient list
               </th>
               <td>
