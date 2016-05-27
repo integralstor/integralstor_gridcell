@@ -24,18 +24,11 @@ class VolumeOptionsForm(forms.Form):
 
 class VolumeQuotaForm(forms.Form):
   vol_name = forms.CharField(widget = forms.HiddenInput)
-  set_quota = forms.BooleanField(required=False)
-  limit = forms.CharField(required=False)
+  dir = forms.CharField()
+  #set_quota = forms.BooleanField(required=False)
+  limit = forms.CharField()
   ch = [('GB', 'GB'), ('MB', 'MB')]
   unit = forms.ChoiceField(choices=ch, required=False)
-
-  def clean(self):
-    cd = super(VolumeQuotaForm, self).clean()
-    if "set_quota" in cd :
-      if "limit" not in cd:
-        self._errors["limit"] = self.error_class(["Please specify a limit"])
-        del cd["limit"]
-    return cd
 
 
 class VolumeNameForm(forms.Form):

@@ -665,7 +665,122 @@ def set_volume_options(request):
       return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
+def set_dir_quota(request):
+  return_dict = {}
+  try:
+    if 'vol_name' not in request.REQUEST:
+      raise Exception('Invalid request. Please use the menus.')
+    vol_name = request.REQUEST['vol_name']
+    return_dict['vol_name'] = vol_name
+    vd, err = volume_info.get_volume_info(None, vol_name)
+    if err:
+      raise Exception(err)
+    return_dict['vol'] = vd
+    quota_enabled = False
+    if "options" in vd :
+      for o in vd["options"]:
+        if "features.quota" == o["name"] and o["value"] == "on":
+          quota_enabled = True
+          break
+    if not quota_enabled:
+      raise Exception('Quotas have not been enabled for this volume. Please enable quotas before setting quotas')
+    if request.method == 'GET':
+      init = {}
+      init['vol_name'] = vol_name
+      if 'dir' in request.REQUEST:
+        if request.REQUEST['dir'] not in vd['quotas']:
+          raise Exception('Could not determine quota information for chosen directory. Please retry using the menus.')
+        return_dict['dir'] = request.REQUEST['dir']
+        init['dir'] = request.REQUEST['dir']
+        q = vd["quotas"][request.REQUEST['dir']]
+        match = re.search('([0-9.]+)([A-Za-z]+)', q["limit"])
+        if match:
+          r  = match.groups()
+          init["limit"] = r[0]
+          init["unit"] = r[1].upper()
+      form = volume_management_forms.VolumeQuotaForm(initial=init)
+      return_dict["form"] = form
+      return django.shortcuts.render_to_response('edit_volume_dir_quota.html', return_dict, context_instance=django.template.context.RequestContext(request))
+    else:
+      form = integral_view.forms.volume_management_forms.VolumeQuotaForm(request.POST)
+      if not form.is_valid():
+        return_dict["form"] = form
+        return django.shortcuts.render_to_response('edit_volume_dir_quota.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      cd = form.cleaned_data
+      vol_name = cd["vol_name"]
+      vd, err = volume_info.get_volume_info(None, vol_name)
+      if err:
+        raise Exception(err)
+      res, err = gluster_commands.set_volume_dir_quota(cd["vol_name"], cd["dir"], cd["limit"], cd["unit"])
+      if err:
+        raise Exception(err)
+      result_message = 'Successfully set quota for directory %s on volume %s to %s %s'%(cd['dir'], cd['vol_name'], cd['limit'], cd['unit'])
+      return_dict['result_message'] = result_message
+      ret, err = audit.audit("set_vol_quota", result_message, request.META["REMOTE_ADDR"])
+      return django.shortcuts.render_to_response('volume_quota_result.html', return_dict, context_instance = django.template.context.RequestContext(request))
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
+def remove_dir_quota(request):
+  return_dict = {}
+  try:
+    if 'vol_name' not in request.REQUEST or 'dir' not in request.REQUEST:
+      raise Exception('Invalid request. Please use the menus.')
+    vol_name = request.REQUEST['vol_name']
+    dir = request.REQUEST['dir']
+    return_dict['vol_name'] = vol_name
+    return_dict['dir'] = dir
+    if request.method == 'GET':
+      return django.shortcuts.render_to_response('remove_volume_dir_quota_conf.html', return_dict, context_instance=django.template.context.RequestContext(request))
+    else:
+      res, err = gluster_commands.remove_volume_dir_quota(vol_name, dir)
+      if err:
+        raise Exception(err)
+      result_message = 'Successfully removed quota for directory %s on volume %s'%(dir, vol_name)
+      return_dict['result_message'] = result_message
+      ret, err = audit.audit("remove_vol_quota", result_message, request.META["REMOTE_ADDR"])
+      return django.shortcuts.render_to_response('volume_quota_result.html', return_dict, context_instance = django.template.context.RequestContext(request))
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+
+def change_quota_status(request):
+  return_dict = {}
+  try:
+    if 'vol_name' not in request.REQUEST or 'action' not in request.REQUEST:
+      raise Exception('Invalid request. Please use the menus.')
+    vol_name = request.REQUEST['vol_name']
+    action = request.REQUEST['action']
+    return_dict['vol_name'] = vol_name
+    return_dict['action'] = action
+    if request.method == 'GET' and  action == 'disable':
+        return django.shortcuts.render_to_response('disable_volume_quota_conf.html', return_dict, context_instance=django.template.context.RequestContext(request))
+    else:
+      res, err = gluster_commands.change_quota_status(vol_name, action)
+      if err:
+        raise Exception(err)
+      result_message = 'Successfully %sd quota for volume %s'%(action, vol_name)
+      return_dict['result_message'] = result_message
+      ret, err = audit.audit("change_quota_status", result_message, request.META["REMOTE_ADDR"])
+      return django.shortcuts.render_to_response('volume_quota_result.html', return_dict, context_instance = django.template.context.RequestContext(request))
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+
+'''
 def set_volume_quota(request):
   return_dict = {}
   try:
@@ -719,6 +834,7 @@ def set_volume_quota(request):
       return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
+'''
   
 def delete_volume(request):
 

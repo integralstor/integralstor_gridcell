@@ -193,6 +193,13 @@ def show(request, page, info = None):
 
       if not vol:
         raise Exception("Could not locate information for volume %s"%info)
+      quota_enabled = False
+      if "options" in vol :
+        for o in vol["options"]:
+          if "features.quota" == o["name"] and  o["value"] == "on":
+            quota_enabled = True
+            break
+      return_dict['quota_enabled'] = quota_enabled
 
       template = "view_volume_info.html"
       return_dict["vol"] = vol

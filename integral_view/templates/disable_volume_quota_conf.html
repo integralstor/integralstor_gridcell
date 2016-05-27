@@ -1,0 +1,33 @@
+{% extends 'volume_base.html' %}
+{%block tab_header %}
+Disable volume quota - confirmation
+{%endblock%}
+
+{% block inside_content %}
+<br><br>
+
+<!-- Modal -->
+
+<p id="p-warning-text">Disabling quota will delete all the quota configuration. Are you sure you want to disable all quotas form volume "{{vol_name}}"? </p>
+<br>
+<form action="/change_quota_status/" method="POST">
+<input type=hidden name="vol_name" value="{{vol_name}}">
+<input type=hidden name="action" value="{{action}}">
+<input type="button" class="btn btn-default" value="Cancel" onClick="window.location='/show/volume_info/{{vol_name}}'"> &nbsp;&nbsp;
+<button type="submit" class="btn btn-danger cover-page" >Confirm and disable</button>
+</form>
+
+
+{%endblock%}
+{%block help_header%}
+Disable all quotas for a volume
+{%endblock%}
+{%block help_body%}
+<p>Confirming this operation results in all quotas being disabled for specified volume. Please ensure that this is actually intended before continuing.</p>
+{%endblock%}
+
+{% block tab_active %}
+  <script>
+   make_tab_active("volume_configuration_tab")
+  </script>
+{% endblock %}

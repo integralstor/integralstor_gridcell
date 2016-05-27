@@ -1,0 +1,33 @@
+{% extends 'volume_base.html' %}
+{%block tab_header %}
+Remove a directory quota - confirmation
+{%endblock%}
+
+{% block inside_content %}
+<br><br>
+
+<!-- Modal -->
+
+<p id="p-warning-text">Are you sure you want to remove the quota on directory "{{dir}}" in volume "{{vol_name}}"? </p>
+<br>
+<form action="/remove_dir_quota/" method="POST">
+<input type=hidden name="vol_name" value="{{vol_name}}">
+<input type=hidden name="dir" value="{{dir}}">
+<input type="button" class="btn btn-default" value="Cancel" onClick="window.location='/show/volume_info/{{vol_name}}'"> &nbsp;&nbsp;
+<button type="submit" class="btn btn-danger cover-page" >Confirm and remove</button>
+</form>
+
+
+{%endblock%}
+{%block help_header%}
+Remove quota from a volume directory
+{%endblock%}
+{%block help_body%}
+<p>Confirming this operation results in the quota being removed from the specified directory. Please ensure that this is actually intended before continuing.</p>
+{%endblock%}
+
+{% block tab_active %}
+  <script>
+   make_tab_active("volume_configuration_tab")
+  </script>
+{% endblock %}

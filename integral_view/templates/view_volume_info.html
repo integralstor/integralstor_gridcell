@@ -53,16 +53,21 @@
                </td>
              </tr>
              <tr>
-               <td>
-                  Number of data copies
+               {% if replicate %} 
+                 <td>
+                    Data replicated across
+                 </td>
+                 <td>
+                   <span class="pull-right "> {{vol.replica_count}} GRIDCell{% if vol.replica_count != '1' %}'s {%endif%} </span>
+                 </td>
+               {% elif distribute %}
+                 <td>
+                    Data distributed across
+                 </td>
+                 <td>
+                    {{vol.brick_count}} GRIDCell{% if vol.brick_count != '1' %}'s {%endif%} 
                </td>
-               <td>
-                 {% if replicate %} 
-                  <span class="pull-right "> {{vol.replica_count}} </span>
-                 {% elif distribute %}
-                    {{vol.brick_count}} GRIDCell {% if vol.brick_count != '1' %}s {%endif%} 
-                 {%endif%}
-               </td>
+             {%endif%}
              </tr>
              <tr>
                <td>
@@ -151,58 +156,57 @@
           </div><!-- /.box-tools -->
         </div><!-- /.box-header -->
         <div style="display: none;" class="box-body">
-          <ul class="nav nav-stacked">
-           {% if vol.quotas %}
-            <li>
-                <a href="#"> Quota Limit
-                  <span class="pull-right ">{{vol.quotas|get_item:"/"|get_item:"limit"}}</span>
-                </a>
-            </li>
-            <li>
-                <a href="#"> Quota Used
-                  <span class="pull-right ">{{vol.quotas|get_item:"/"|get_item:"size"}}</span>
-                </a>
-            </li>
-            <li>
-                <a href="#"> Quota Available
-                  <span class="pull-right ">{{vol.quotas|get_item:"/"|get_item:"available"}}</span>
-                </a>
-            </li>
-            {%else%}
-             <span class="pull-left"> Quota is not set for this volume.</span>
-            {%endif%}
-
-          </ul>
+          <b>Quota enabled :</b> {%if quota_enabled%} Yes {%else%} No {%endif%} &nbsp;&nbsp;
+          {%if quota_enabled%}
+            <a href="/change_quota_status?vol_name={{vol.name}}&action=disable" role="button" class="btn btn-primary btn-xs"> Disable quotas </a>
+          {%else%}
+            <a href="/change_quota_status?vol_name={{vol.name}}&action=enable" role="button" class="btn btn-primary btn-xs"> Enable quotas </a>
+          {%endif%}
+          <br><br>
+          {% if vol.quotas %}
+            <table class="table">          
+              <tr>
+                <th> Directory </th>
+                <th> Hard limit </th>
+                <th> Soft limit </th>
+                <th> Used </th>
+                <th> Available </th>
+                <th> Soft limit exceeded </th>
+                <th> Hard limit exceeded </th>
+                <th> &nbsp;</th>
+                <th> &nbsp;</th>
+              </tr>
+              {%for dir, quota in vol.quotas.items%}
+                {% if quota.soft_limit_exceeded == 'Yes' %}
+                  <tr class="warning">
+                {% elif quota.hard_limit_exceeded == 'Yes' %}
+                  <tr class="danger">
+                {%else%}
+                  <tr>
+                {%endif%}
+                    <td> {{dir}} </td>
+                    <td> {{quota.limit}} </td>
+                    <td> {{quota.soft_limit}} </td>
+                    <td> {{quota.size}} </td>
+                    <td> {{quota.available}} </td>
+                    <td> {{quota.soft_limit_exceeded}} </td>
+                    <td> {{quota.hard_limit_exceeded}} </td>
+                    <td> <a href="/set_dir_quota?vol_name={{vol.name}}&dir={{dir}}" role="button" class="btn btn-primary btn-xs"> Modify </a> </td>
+                    <td> <a href="/remove_dir_quota?vol_name={{vol.name}}&dir={{dir}}" role="button" class="btn btn-danger btn-xs"> Remove </a> </td>
+                  </tr>
+              {%endfor%}
+            </table>          
+          {%else%}
+            <span class="pull-left"> No directory quotas have been set for this volume.</span>
+          {%endif%}
+          <br><br>
+          {%if quota_enabled%}
+            <a href="/set_dir_quota?vol_name={{vol.name}}" role="button" class="btn btn-primary btn-xs"> Add a new directory quota </a>
+          {%endif%}
         </div><!-- /.box-body -->
       </div>
     </div>
 
-    {% if vol.quotas %}
-    <div class="col-md-12 col-sm-12 col-lg-12">
-       <div class="box box-info box-solid collapsed-box">
-          <div class="box-header with-border">
-            <h3 class="box-title">Quota Status</h3>
-              <div class="box-tools pull-right">
-                <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i></button>
-              </div><!-- /.box-tools -->
-          </div><!-- /.box-header -->
-          <div style="display: none;" class="box-body">
-            <ul class="nav nav-stacked">
-              {% for value in vol.quotas.values%}
-                {% for k,v in value.items %}
-                  <li>
-                    <a href="#">
-                      {{k|human_readable_title:"_"|title}}
-                      <span class="pull-right ">{{v}}</span>
-                    </a>
-                  </li>
-                {%endfor%}
-              {%endfor%}
-              </ul>
-          </div><!-- /.box-body -->
-       </div>
-    </div>
-    {%endif%}
      
     
    <div class="col-md-12 col-sm-12 col-lg-12">
@@ -326,15 +330,13 @@
       <button type="submit" class="btn btn-danger cover-page" {% if vol.status == 1 %} disabled {%endif%}>Delete this volume</button>
     </form>
   </div>
-  <div class="btn-group">
+  <div class="btn-group ">
     <form action="/volume_specific_op/expand_volume/" method="post">
       <input type=hidden name="vol_name" value="{{vol.name}}">
       <input type=hidden name="op" value="expand_volume">
       <button type="submit" class="btn btn-primary cover-page" {% if vol.status != 1 %} disabled {%endif%}>Expand this volume</button>
     </form>
   </div>
-  <br>
-  <br>
   <div class="btn-group">
     <form action="/volume_specific_op/vol_options/" method="post">
       <input type=hidden name="vol_name" value="{{vol.name}}">
@@ -342,6 +344,7 @@
       <button type="submit" class="btn btn-primary cover-page">Change volume options</button>
     </form>
   </div>
+  <!--
   <div class="btn-group">
     <form action="/volume_specific_op/vol_quota/" method="post">
       <input type=hidden name="vol_name" value="{{vol.name}}">
@@ -349,6 +352,7 @@
       <button type="submit" class="btn btn-primary cover-page" {% if vol.status != 1 %} disabled {%endif%}>Change/set volume quota</button>
     </form>
   </div>
+  -->
   {%if distribute %}
   <div class="btn-group">
     <form action="/volume_specific_op/start_rebalance/" method="POST">
