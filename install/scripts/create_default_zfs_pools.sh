@@ -65,7 +65,7 @@ done
 #echo ${disk_byid[@]}
 
 # ZFS command to create raidz pool on the disks.
-/sbin/zpool create frzpool raidz ${disk_byid[@]} -f
+/sbin/zpool create frzpool raidz ${disk_byid[@]} -f  -O dedup=on 
 /sbin/zfs set acltype=posixacl frzpool
 /sbin/zfs set xattr=sa frzpool
 /sbin/zfs set atime=off frzpool
