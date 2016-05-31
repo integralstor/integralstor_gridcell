@@ -68,6 +68,7 @@
           <label for="id_final_path">Final Path :</label>
         </td>
         <td>
+          <input id="id_selected_path" class="form-control" readonly style="display:none;">
           <input id="id_final_path" name="final_path" class="form-control" readonly>
         </td>
         <td>
@@ -107,12 +108,25 @@
           r = data.instance.get_node(data.selected[0]).text;
           rfp = data.instance.get_node(data.selected[0]).data["dir"];
           document.forms["create_form"].elements["path"].value = rfp;
-          document.forms["create_form"].elements["final_path"].value = "/"+e.options[e.selectedIndex].value+rfp;
+          document.getElementById("id_selected_path").value = "/"+e.options[e.selectedIndex].value+rfp;
           document.getElementById("pathdiv").style.display = "none";
+	  $("#id_name").trigger('input')
         })
         .jstree();
     });
-    }        
+    }  
+    $("#id_name").on('input',function(){
+	var final_path = $("#id_selected_path").val()
+	if (final_path === ""){
+                var e = document.getElementById("id_vol");
+                var vol_name = e.options[e.selectedIndex].value;
+		$("#id_final_path").val("/"+vol_name+$(this).val())
+	}
+	else{
+		$("#id_final_path").val(final_path+$(this).val())
+	}
+});
+  
   </script>
 
 {%endblock%}

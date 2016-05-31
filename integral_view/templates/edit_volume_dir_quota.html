@@ -2,7 +2,7 @@
 
 
 {%block tab_header%}
-  Set volume directory quota (edit)
+  Set volume directory quota 
 {%endblock%}
 
 {%block inside_content %}
@@ -19,10 +19,17 @@
     <label >Directory in volume  :</label> {{form.initial.dir}} </br>
   {%else%}
     <div class="form-group" >
-      <label for="id_dir" >Directory :</label>
-      <input type="text"  name="dir" class="form-control" id="id_dir" value="{{form.initial.dir}}" placeholder="Enter directory within volume"> <br/>
+      <input type="text"  name="path" class="form-control" id="id_path" placeholder="Click the Browse button to choose a directory.." disabled> 
+       <button type="button" class="btn btn-info" onClick="displayTree();return false;"> Browse..</button>
+       <div id="pathdiv" style="display:inline">
+       </div>
     </div>
+    <div class="form-group" >
+      <label for="id_final_path" >Final Directory Path :</label>
+      <input type="text"  class="form-control" id="id_final_path" value="{{form.initial.dir}}" readonly> <br/>
+      <input type="text"  name="dir" class="form-control" id="id_dir" value="{{form.initial.dir}}" placeholder="Enter directory within volume" style="display:none;" readonly><br/>
     {{ form.dir.errors }}
+    </div>
   {%endif%}
   <div class="form-group" >
     <label for="id_limit" >Quota limit:</label>
@@ -70,6 +77,44 @@ $(window).load(function() {
       set_field_disabled(document.forms["edit_form"].elements["limit"], true);
     }
   });
+</script>
+
+  <script src="/static/jstree/dist/jstree.js"></script>
+  <script>
+  function displayTree() {
+      document.getElementById("pathdiv").style.display = "block";
+      $('#pathdiv').jstree({ 'core' : {
+        'multiple':false,
+        'data' : {
+          'full_path': 'dummy',
+          'url' : function (node) {
+            return node.id === '#' ? 
+              '/show/dir_contents?first=1&dir=/' : 
+              '/show/dir_contents'; 
+          },
+          'data' : function (node) {
+            var e = "{{form.vol_name.value}}"
+            if (node.data) {
+              return {  'dir' : node.data['dir'] , 'id':node.id, "vol_name": e};
+            }
+            else
+              return { 'dir' : node.text , 'id':node.id, "vol_name": e};
+            }
+          }
+        }
+    });
+ $(function () {
+    $('#pathdiv').on('changed.jstree', function (e, data) {
+        var i, j, r = [];
+          var e = "{{form.vol_name.value}}"
+          r = data.instance.get_node(data.selected[0]).text;
+          rfp = data.instance.get_node(data.selected[0]).data["dir"];
+          document.forms["edit_form"].elements["dir"].value = rfp;
+          document.getElementById("id_final_path").value = "/"+e+rfp;
+      })
+      .jstree();
+  });
+  }
 </script>
 
 {%endblock%}
