@@ -668,39 +668,61 @@ def set_volume_options(request):
 def set_dir_quota(request):
   return_dict = {}
   try:
-    if 'vol_name' not in request.REQUEST:
-      raise Exception('Invalid request. Please use the menus.')
-    vol_name = request.REQUEST['vol_name']
-    return_dict['vol_name'] = vol_name
-    vd, err = volume_info.get_volume_info(None, vol_name)
+    vil, err = volume_info.get_volume_info_all()
     if err:
       raise Exception(err)
-    return_dict['vol'] = vd
-    quota_enabled = False
-    if "options" in vd :
-      for o in vd["options"]:
-        if "features.quota" == o["name"] and o["value"] == "on":
-          quota_enabled = True
-          break
-    if not quota_enabled:
-      raise Exception('Quotas have not been enabled for this volume. Please enable quotas before setting quotas')
+    if not vil:
+      if operation != "view_snapshots":
+        raise Exception('Could not load volume information')
+    vol_list = []
+    for v in vil:
+      if v["status"] == 1:
+        vol_list.append(v["name"])
+    return_dict['vol_list'] = vol_list
+
+    dir = None
+    if 'dir' in request.REQUEST:
+      dir = request.REQUEST['dir']
+
+    vol_name = None
+    if 'vol_name' in request.REQUEST:
+      vol_name = request.REQUEST['vol_name']
+    if vol_name:
+      return_dict['vol_name'] = vol_name
+      vd, err = volume_info.get_volume_info(None, vol_name)
+      if err:
+        raise Exception(err)
+      return_dict['vol'] = vd
+      quota_enabled = False
+      if "options" in vd :
+        for o in vd["options"]:
+          if "features.quota" == o["name"] and o["value"] == "on":
+            quota_enabled = True
+            break
+      if not quota_enabled:
+        raise Exception('Quotas have not been enabled for this volume. Please enable quotas before setting quotas')
     if request.method == 'GET':
       init = {}
-      init['vol_name'] = vol_name
-      if 'dir' in request.REQUEST:
-        if request.REQUEST['dir'] not in vd['quotas']:
-          raise Exception('Could not determine quota information for chosen directory. Please retry using the menus.')
-        return_dict['dir'] = request.REQUEST['dir']
-        init['dir'] = request.REQUEST['dir']
-        q = vd["quotas"][request.REQUEST['dir']]
-        match = re.search('([0-9.]+)([A-Za-z]+)', q["limit"])
-        if match:
-          r  = match.groups()
-          init["limit"] = r[0]
-          init["unit"] = r[1].upper()
+      if vol_name:
+        init['vol_name'] = vol_name
+      if dir:
+        #if request.REQUEST['dir'] not in vd['quotas']:
+        #  raise Exception('Could not determine quota information for chosen directory. Please retry using the menus.')
+        return_dict['dir'] = dir
+        init['dir'] = dir
+        if vd and vol_name and dir and dir in vd['quotas']:
+          q = vd["quotas"][request.REQUEST['dir']]
+          match = re.search('([0-9.]+)([A-Za-z]+)', q["limit"])
+          if match:
+            r  = match.groups()
+            init["limit"] = r[0]
+            init["unit"] = r[1].upper()
       form = volume_management_forms.VolumeQuotaForm(initial=init)
       return_dict["form"] = form
-      return django.shortcuts.render_to_response('edit_volume_dir_quota.html', return_dict, context_instance=django.template.context.RequestContext(request))
+      if vol_name and dir:
+        return django.shortcuts.render_to_response('edit_volume_dir_quota.html', return_dict, context_instance=django.template.context.RequestContext(request))
+      else:
+        return django.shortcuts.render_to_response('set_volume_dir_quota.html', return_dict, context_instance=django.template.context.RequestContext(request))
     else:
       form = integral_view.forms.volume_management_forms.VolumeQuotaForm(request.POST)
       if not form.is_valid():
