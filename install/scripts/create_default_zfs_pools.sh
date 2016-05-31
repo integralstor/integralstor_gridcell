@@ -87,5 +87,15 @@ if [ $? == 0 ] ; then
     # Displays the ouput of zpool list
     echo "zpool list : "`zpool list frzpool`
 
+    total=$(zfs get all frzpool | grep available | tail -1 | cut -d" " -f16 | cut -d"T" -f1)
+
+    quota=$(awk "BEGIN {print ($total*85)/100}")T
+
+    zfs set quota=$quota frzpool/normal
+
+    zfs set quota=$quota frzpool/compressed
+
+    zfs set quota=$quota frzpool/deduplicated
+
 fi
 touch /opt/integralstor/integralstor_gridcell/pools_created
