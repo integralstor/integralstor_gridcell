@@ -89,7 +89,7 @@ if [ $? == 0 ] ; then
 
     total=$(zfs get -H -o value -p available frzpool)    
 
-    quota=$(awk "BEGIN {print ($total*85)/100}")T
+    quota=$(awk "BEGIN {print ($total*85)/100}")
 
     zfs set quota=$quota frzpool/normal
 
