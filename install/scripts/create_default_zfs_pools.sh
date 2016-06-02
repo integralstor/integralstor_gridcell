@@ -87,9 +87,9 @@ if [ $? == 0 ] ; then
     # Displays the ouput of zpool list
     echo "zpool list : "`zpool list frzpool`
 
-    total=$(zfs get all frzpool | grep available | tail -1 | cut -d" " -f16 | cut -d"T" -f1)
+    total=$(zfs get -H -o value -p available frzpool)    
 
-    quota=$(awk "BEGIN {print ($total*85)/100}")T
+    quota=$(awk "BEGIN {print ($total*85)/100}")
 
     zfs set quota=$quota frzpool/normal
 
