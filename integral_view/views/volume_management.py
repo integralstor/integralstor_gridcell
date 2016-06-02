@@ -699,8 +699,6 @@ def set_dir_quota(request):
           if "features.quota" == o["name"] and o["value"] == "on":
             quota_enabled = True
             break
-      if not quota_enabled:
-        raise Exception('Quotas have not been enabled for this volume. Please enable quotas before setting quotas')
     if request.method == 'GET':
       init = {}
       if vol_name:
@@ -710,7 +708,7 @@ def set_dir_quota(request):
         #  raise Exception('Could not determine quota information for chosen directory. Please retry using the menus.')
         return_dict['dir'] = dir
         init['dir'] = dir
-        if vd and vol_name and dir and dir in vd['quotas']:
+        if vd and vol_name and 'quotas' in vd and dir and dir in vd['quotas']:
           q = vd["quotas"][request.REQUEST['dir']]
           match = re.search('([0-9.]+)([A-Za-z]+)', q["limit"])
           if match:
@@ -733,6 +731,12 @@ def set_dir_quota(request):
       vd, err = volume_info.get_volume_info(None, vol_name)
       if err:
         raise Exception(err)
+      if not quota_enabled:
+        res, err = gluster_commands.change_quota_status(vol_name, 'enable')
+	if err:
+          raise Exception(err)
+        result_message = 'Auto enabled quota for volume %s'%vol_name
+        ret, err = audit.audit("change_quota_status", result_message, request.META["REMOTE_ADDR"])
       res, err = gluster_commands.set_volume_dir_quota(cd["vol_name"], cd["dir"], cd["limit"], cd["unit"])
       if err:
         raise Exception(err)
