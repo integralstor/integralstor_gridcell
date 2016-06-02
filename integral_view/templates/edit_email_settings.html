@@ -43,21 +43,21 @@
   <div class="checkbox">
     <label for="id_email_alerts">
       <input name="email_alerts" type="checkbox" {% if form.initial.email_alerts%} checked="checked" {%endif%}>
-      Send email for alerts
+      Send email for system errors/alerts
     </label>
     {{ form.email_alerts.errors }}
   </div>
    <div class="checkbox">
     <label for="id_email_audit">
       <input name="email_audit" type="checkbox" {% if form.email_audit%} checked="checked" {%endif%}>
-      Send email for audit
+      Send email for modifications in Integral View
     </label>
     {{ form.email_audit.errors }}
   </div>
   <div class="checkbox">
     <label for="id_email_quota">
       <input name="email_quota" type="checkbox" {% if form.email_quota%} checked="checked" {%endif%}>
-      Send email for quota limits
+      Send email for volume quota limits
     </label>
     {{ form.email_quota.errors }}
   </div>

@@ -11,12 +11,21 @@
        {% include 'vol_dir_select.html'%}
      </table>
  
-    <button type="submit" class="btn btn-primary cover-page" onClick="document.getElementById('id_path').disabled = false;return true;")> Set Quota</button>
+    <button type="button" class="btn btn-primary" onClick="document.getElementById('id_path').disabled = false;return true;") id="id_set_quota"> Set Quota</button>
 
 <script>
+  var url = ""
   function changed_vol_params(vol_name,path){
-    document.location.href = document.location.pathname + "?vol_name="+vol_name+"&dir="+path.slice(0,-1);
+    url = document.location.pathname + "?vol_name="+vol_name+"&dir="+path;
   } 
+  $("#id_set_quota").click(function(){
+    if (url != "") {
+      document.location.href = url
+
+    } else {
+      alert("Please Select a Directory");
+    }
+  });
 </script>
 {%endblock%}
 
