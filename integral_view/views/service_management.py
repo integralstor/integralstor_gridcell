@@ -3,7 +3,7 @@ from django.conf import settings
 import salt.client
 from datetime import datetime
 from integralstor_common import scheduler_utils,common
-from integralstor_gridcell import services
+from integralstor_gridcell import services,system_info
 from integralstor_gridcell.services import default_services
 
 #Exception handlings to be written to all the code below
@@ -57,12 +57,14 @@ def initiate_scrub(request):
       dt = request.POST.get('timestamp')
       poolname = 'frzpool'
       db_path,err = common.get_db_path()
-      status,err = scheduler_utils.schedule_a_job(db_path,'ZFS Scrub',[{'scrub':'zpool scrub frzpool'}],int(dt))
-      print status,err
-      if err:
-        return_dict["error"] = "Scrub scheduling failed"
-        return_dict["error_details"] = err
-        return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+      # Doing this to make sure each node has a zfs scrub scheduled
+      si, err = system_info.load_system_config()
+      for node in si.keys():
+        status,err = scheduler_utils.schedule_a_job(db_path,'ZFS Scrub on %s'%node,[{'scrub':'/sbin/zpool scrub frzpool'}],node=node,execute_time=int(dt))
+        if err:
+          return_dict["error"] = "Scrub scheduling failed on %s "%node
+          return_dict["error_details"] = err
+          return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
       return django.http.HttpResponseRedirect('/initiate_scrub/?schedule=success')
   except Exception, e:
     return_dict["error"] = 'Unable to retrive the status of services'

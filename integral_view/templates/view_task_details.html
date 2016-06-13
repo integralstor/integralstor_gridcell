@@ -5,7 +5,7 @@
   {% if task.status == "scheduled" %}
   <span class="pull-right">
 	<form action="/delete_task/" method="POST">
-	  <input name="task_id" value="{{task.task_id}}" />
+	  <input name="task_id" value="{{task.task_id}}" style="display:none;"/>
           <button class="btn btn-danger">Delete this task </button>
 	</form>
   {% endif %}
@@ -22,7 +22,7 @@
       </a> 
     </h4>
   </div>
-  <div style="" aria-expanded="true" id="pool_{{forloop.counter}}" class="panel-collapse collapse">
+  <div style="" aria-expanded="true" id="pool_{{forloop.counter}}" class="panel-collapse collapse in">
     <div class="box-body">
       <table>
       <tbody>

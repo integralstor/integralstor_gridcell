@@ -1,6 +1,5 @@
 {% extends 'gridcell_base.html' %}
 
-
 {%block tab_header%}
       {{node_name|title}} Status
   </small>
@@ -64,12 +63,12 @@
           </li>
           <li>
             <a href="#"> Total
-                <span class="pull-right "> {{ node.memory.mem_total.value}} {{node.memory.mem_total.unit}} </span>
+                <span class="pull-right "> {{ node.memory.mem_total.value|floatformat:2}} {{node.memory.mem_total.unit}} </span>
             </a>
           </li>
           <li>
             <a href="#"> Free
-                <span class="pull-right ">{{ node.memory.mem_free.value}} {{node.memory.mem_free.unit}}</span>
+                <span class="pull-right ">{{ node.memory.mem_free.value|floatformat:2}} {{node.memory.mem_free.unit}}</span>
               </a>
           </li>
         </ul>
