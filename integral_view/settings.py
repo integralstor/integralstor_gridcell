@@ -137,6 +137,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     'django.contrib.admindocs',
+    'django.contrib.humanize',
     'integral_view',
 )
 
@@ -150,6 +151,8 @@ TEMPLATE_CONTEXT_PROCESSORS = (
   "django.contrib.messages.context_processors.messages",
   'django.core.context_processors.request',
   )
+TEMPLATE_CONTEXT_PROCESSORS += ("integral_view.context_processors.get_version", )
+
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
 # the site admins on every HTTP 500 error when DEBUG=False.
