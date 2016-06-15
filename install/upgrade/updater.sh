@@ -20,4 +20,6 @@ yes | cp -rf /tmp/integralstor_gridcell/site-packages/integralstor_gridcell/* /o
 #yes | cp -rf /opt/integralstor/integralstor_gridcell/config /opt/integralstor
 ### Apply quota information on every reboot if quota is not applied ###
 echo "sh /opt/integralstor_gridcell/scripts/shell/set_pool_quota.sh" >> /etc/rc.local
+
+(crontab -l 2>/dev/null; echo "*/5 * * * * /opt/integralstor/integralstor_gridcell/scripts/python/poll_for_alerts.py > /tmp/out_gluster_alerts >> /tmp/err_gluster_alerts >> /opt/integralstor/integralstor_gridcell/config/logs/gluster_poll_for_alerts.log 2>&1 # Poll for alerts") | crontab -
 echo "Software updated successfully."
