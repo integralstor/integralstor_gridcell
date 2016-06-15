@@ -22,7 +22,7 @@ echo "Filesystem update successful"
 
 echo "Pulling IntegralView updates"
 # Setup IntegralStor Common
-mkdir -p /opt/integralstor_gridcell/install/upgrade
+mkdir -p /opt/integralstor/integralstor_gridcell/install/upgrade
 cd /tmp
 rm -rf /tmp/integralstor_*
 /usr/bin/wget -c http://$ip/netboot/distros/centos/6.6/x86_64/integralstor_gridcell/v1.0/tar_installs/integralstor_common.tar.gz
@@ -37,7 +37,7 @@ cd /tmp
 yes | cp -rf /tmp/integralstor_gridcell/integral_view/* /opt/integralstor/integralstor_gridcell/integral_view
 yes | cp -rf /tmp/integralstor_gridcell/site-packages/integralstor_gridcell/* /opt/integralstor/integralstor_gridcell/site-packages/integralstor_gridcell
 yes | cp -rf /tmp/integralstor_gridcell/version /opt/integralstor/integralstor_gridcell
-yes | cp -rf /tmp/integralstor_gridcell/scripts/shell/set_pool_quota /opt/integralstor_gridcell/scripts/shell
+yes | cp -rf /tmp/integralstor_gridcell/scripts/shell/set_pool_quota.sh /opt/integralstor_gridcell/scripts/shell
 yes | cp -rf /tmp/integralstor_gridcell/install/upgrade/* /opt/integralstor_gridcell/install/upgrade
 
 #yes | cp -rf /opt/integralstor/integralstor_gridcell/config /opt/integralstor
