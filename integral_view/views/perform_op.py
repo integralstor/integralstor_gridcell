@@ -7,7 +7,7 @@ from django.conf import settings
 
 from integralstor_gridcell import gluster_commands, volume_info, system_info
 
-from integralstor_common import command, common, audit
+from integralstor_common import command, common, audit, lock
 
 import integral_view
 from integral_view.forms import trusted_pool_setup_forms
@@ -18,6 +18,13 @@ def perform_op(request, op, name1=None, name2= None):
 
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
     # Now only handles the following ops : vol_start, rotate_log, check_rebalance, stop_rebalance, vol_stop
 
     if not op:
@@ -215,4 +222,6 @@ def perform_op(request, op, name1=None, name2= None):
     else:
       return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 

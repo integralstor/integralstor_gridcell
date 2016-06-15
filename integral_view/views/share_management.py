@@ -8,7 +8,7 @@ import integral_view
 from integral_view.forms import samba_shares_forms
 from integralstor_gridcell import volume_info, system_info, local_users, gluster_commands, iscsi
 from integralstor_gridcell import cifs as cifs_gridcell
-from integralstor_common import networking, audit
+from integralstor_common import networking, audit, lock
 from integralstor_common import cifs as cifs_common
 from integralstor_common import common
 
@@ -94,6 +94,13 @@ def edit_share(request):
 
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
     return_dict['base_template'] = "shares_and_targets_base.html"
     return_dict["page_title"] = 'Edit CIFS share details'
     return_dict['tab'] = 'view_share_tab'
@@ -223,6 +230,8 @@ def edit_share(request):
     else:
       return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 
 
   
@@ -274,6 +283,13 @@ def create_share(request):
 
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
     return_dict['base_template'] = "shares_and_targets_base.html"
     return_dict["page_title"] = 'Create a CIFS share'
     return_dict['tab'] = 'view_share_tab'
@@ -378,6 +394,8 @@ def create_share(request):
     else:
       return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 
   
 def samba_server_settings(request):

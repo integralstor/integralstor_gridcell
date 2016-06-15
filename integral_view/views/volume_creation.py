@@ -6,7 +6,7 @@ import salt.client
 
 import random
 from integralstor_gridcell import volume_info, system_info, gluster_commands, iscsi
-from integralstor_common import command, common, audit
+from integralstor_common import command, common, audit, lock
 
 from integral_view.utils import iv_logging
 
@@ -131,6 +131,13 @@ def create_volume_conf(request):
 
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
     return_dict['base_template'] = "volume_base.html"
     return_dict["page_title"] = 'Create a volume - confirmation'
     return_dict['tab'] = 'create_volume_tab'
@@ -202,6 +209,8 @@ def create_volume_conf(request):
     else:
       return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 
   
 def create_volume(request):
@@ -209,6 +218,13 @@ def create_volume(request):
   
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
     return_dict['base_template'] = "volume_base.html"
     return_dict["page_title"] = 'Create a volume'
     return_dict['tab'] = 'create_volume_tab'
@@ -375,5 +391,7 @@ def create_volume(request):
     else:
       return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 
 

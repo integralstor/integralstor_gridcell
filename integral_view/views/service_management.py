@@ -2,7 +2,7 @@ import django
 from django.conf import settings
 import salt.client
 from datetime import datetime
-from integralstor_common import scheduler_utils,common
+from integralstor_common import scheduler_utils,common, lock
 from integralstor_gridcell import services,system_info
 from integralstor_gridcell.services import default_services
 
@@ -51,6 +51,12 @@ def node_service_action(request):
 def initiate_scrub(request):
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
     if request.method == "GET":
       return django.shortcuts.render_to_response("initiate_scrub.html", return_dict, context_instance=django.template.context.RequestContext(request))
     elif request.method == "POST":
@@ -70,6 +76,8 @@ def initiate_scrub(request):
     return_dict["error"] = 'Unable to retrive the status of services'
     return_dict["error_details"] = "An error occurred when processing your request : %s"%e
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 
 def view_background_tasks(request):
   return_dict = {}

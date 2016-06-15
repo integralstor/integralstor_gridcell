@@ -9,7 +9,7 @@ import salt.client
 import integralstor_gridcell
 from integralstor_gridcell import volume_info, system_info, gluster_commands, gluster_batch, iscsi
 import integralstor_common
-from integralstor_common import command, audit, common, scheduler_utils,cifs
+from integralstor_common import command, audit, common, scheduler_utils,cifs, lock
 
 import integral_view
 from integral_view.forms import volume_management_forms
@@ -22,6 +22,13 @@ def volume_specific_op(request, operation, vol_name=None):
 
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
     return_dict['base_template'] = "volume_base.html"
     return_dict['tab'] = 'volume_configuration_tab'
 
@@ -338,12 +345,21 @@ def volume_specific_op(request, operation, vol_name=None):
     else:
       return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 
 
 def create_snapshot(request):
 
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
     return_dict['base_template'] = "snapshot_base.html"
     return_dict['tab'] = 'snapshot_create_tab'
     return_dict["page_title"] = 'Create a volume snapshot'
@@ -397,11 +413,20 @@ def create_snapshot(request):
     else:
       return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 
 def delete_snapshot(request):
 
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
     return_dict['base_template'] = "snapshot_base.html"
     return_dict['tab'] = 'snapshot_view_tab'
     return_dict["page_title"] = 'Delete a volume snapshot'
@@ -453,12 +478,21 @@ def delete_snapshot(request):
     else:
       return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 
 
 def restore_snapshot(request):
 
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
     return_dict['base_template'] = "snapshot_base.html"
     return_dict['tab'] = 'snapshot_view_tab'
     return_dict["page_title"] = 'Restore a volume snapshot'
@@ -513,12 +547,21 @@ def restore_snapshot(request):
     else:
       return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 
           
 def deactivate_snapshot(request):
 
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
     return_dict['base_template'] = "snapshot_base.html"
     return_dict['tab'] = 'snapshot_view_tab'
     return_dict["page_title"] = 'Deactivate a volume snapshot'
@@ -571,11 +614,20 @@ def deactivate_snapshot(request):
     else:
       return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 
 def activate_snapshot(request):
 
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
     return_dict['base_template'] = "snapshot_base.html"
     return_dict['tab'] = 'snapshot_view_tab'
     return_dict["page_title"] = 'Activate a volume snapshot'
@@ -623,6 +675,8 @@ def activate_snapshot(request):
     else:
       return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 
 
   
@@ -630,6 +684,13 @@ def set_volume_options(request):
 
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
     return_dict['base_template'] = "volume_base.html"
     return_dict['tab'] = 'volume_configuration_tab'
     return_dict["page_title"] = 'Set volume options'
@@ -664,10 +725,19 @@ def set_volume_options(request):
     else:
       return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 
 def set_dir_quota(request):
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
     vil, err = volume_info.get_volume_info_all()
     if err:
       raise Exception(err)
@@ -751,10 +821,19 @@ def set_dir_quota(request):
     else:
       return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 
 def remove_dir_quota(request):
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
     if 'vol_name' not in request.REQUEST or 'dir' not in request.REQUEST:
       raise Exception('Invalid request. Please use the menus.')
     vol_name = request.REQUEST['vol_name']
@@ -778,10 +857,19 @@ def remove_dir_quota(request):
     else:
       return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 
 def change_quota_status(request):
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
     if 'vol_name' not in request.REQUEST or 'action' not in request.REQUEST:
       raise Exception('Invalid request. Please use the menus.')
     vol_name = request.REQUEST['vol_name']
@@ -805,6 +893,8 @@ def change_quota_status(request):
     else:
       return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 
 '''
 def set_volume_quota(request):
@@ -866,6 +956,13 @@ def delete_volume(request):
 
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
     return_dict['base_template'] = "volume_base.html"
     return_dict['tab'] = 'volume_configuration_tab'
     return_dict["page_title"] = 'Delete a volume'
@@ -958,12 +1055,21 @@ def delete_volume(request):
     else:
       return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 
 
 def replace_node(request):
 
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
     return_dict['base_template'] = "gridcell_base.html"
     return_dict['tab'] = 'replace_gridcell_tab'
     return_dict["page_title"] = 'Replace a GRIDCell'
@@ -1106,6 +1212,8 @@ def replace_node(request):
     else:
       return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 
 
 
@@ -1113,6 +1221,13 @@ def replace_disk(request):
 
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
     return_dict['base_template'] = "gridcell_base.html"
     return_dict['tab'] = 'gridcell_list_tab'
     return_dict["page_title"] = 'Replace a disk in a GRIDCell'
@@ -1365,6 +1480,8 @@ def replace_disk(request):
     else:
       return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 
   
     
@@ -1372,6 +1489,13 @@ def expand_volume(request):
 
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
     return_dict['base_template'] = "volume_base.html"
     return_dict['tab'] = 'volume_configuration_tab'
     return_dict["page_title"] = 'Expand a volume'
@@ -1479,5 +1603,7 @@ def expand_volume(request):
     else:
       return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 
 
