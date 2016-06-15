@@ -7,7 +7,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 
 import integralstor_common
-from integralstor_common import db, common, audit, alerts, ntp, mail
+from integralstor_common import db, common, audit, alerts, ntp, mail, lock
 from integralstor_common import cifs as cifs_common
 
 import integralstor_gridcell
@@ -26,6 +26,12 @@ def show(request, page, info = None):
 
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
 
     assert request.method == 'GET'
 
@@ -641,6 +647,8 @@ def show(request, page, info = None):
     else:
       return_dict["error_details"] = s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 
 
 def admin_login_required(view):
@@ -926,6 +934,13 @@ def hardware_scan(request):
 
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
     return_dict['base_template'] = "gridcell_base.html"
     return_dict["page_title"] = 'Scan for new GRIDCells'
     return_dict['tab'] = 'gridcell_list_tab'
@@ -967,11 +982,20 @@ def hardware_scan(request):
     else:
       return_dict["error"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 
 @login_required
 def remove_gridcell(request):
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
     return_dict['base_template'] = "gridcell_base.html"
     return_dict["page_title"] = 'Remove GRIDCells'
     return_dict['tab'] = 'remove_gridcell_tab'
@@ -998,6 +1022,8 @@ def remove_gridcell(request):
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
   else:
       return django.http.HttpResponseRedirect('/show/gridcells/')
+  finally:
+    lock.release_lock('gluster_commands')
 
 
 

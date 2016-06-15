@@ -9,7 +9,7 @@ import integralstor_gridcell
 from integralstor_gridcell import volume_info, system_info
 
 import integralstor_common
-from integralstor_common import common, audit, alerts
+from integralstor_common import common, audit, alerts, lock
 
 import integral_view
 from integral_view.forms import volume_management_forms, log_management_forms
@@ -53,6 +53,13 @@ def download_vol_log(request):
 
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
     return_dict['base_template'] = "volume_log_base.html"
     return_dict["page_title"] = 'Download volume logs'
     return_dict['tab'] = 'volume_log_download_tab'
@@ -145,6 +152,8 @@ def download_vol_log(request):
     else:
       return_dict["error"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 
 
 
@@ -154,6 +163,12 @@ def download_sys_log(request):
 
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
     return_dict['base_template'] = "system_log_base.html"
     return_dict["page_title"] = 'Download system logs'
     return_dict['tab'] = 'system_log_download_tab'
@@ -232,6 +247,8 @@ def download_sys_log(request):
     else:
       return_dict["error"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 
   
 def rotate_log(request, log_type=None):

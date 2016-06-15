@@ -10,13 +10,20 @@ from integral_view.utils import iv_logging
 
 import integralstor_gridcell
 from integralstor_gridcell import volume_info, system_info, gluster_commands, grid_ops
-from integralstor_common import audit
+from integralstor_common import audit, lock
 
 def add_nodes_to_pool(request):
   """ Used to add servers to the trusted pool"""
 
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
     return_dict['base_template'] = "gridcell_base.html"
     return_dict["page_title"] = 'Add GRIDCells to the storage pool'
     return_dict['tab'] = 'gridcell_list_tab'
@@ -90,6 +97,8 @@ def add_nodes_to_pool(request):
     else:
       return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 
 
 def add_a_node_to_pool(request):
@@ -97,6 +106,13 @@ def add_a_node_to_pool(request):
 
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
     return_dict['base_template'] = "gridcell_base.html"
     return_dict["page_title"] = 'Add a GRIDCell to the storage pool'
     return_dict['tab'] = 'gridcell_list_tab'
@@ -147,11 +163,20 @@ def add_a_node_to_pool(request):
     else:
       return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 
 def remove_node_from_pool(request):
 
   return_dict = {}
   try:
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
     return_dict['base_template'] = "gridcell_base.html"
     return_dict["page_title"] = 'Remove a GRIDCell from the storage pool'
     return_dict['tab'] = 'gridcell_list_tab'
@@ -248,5 +273,7 @@ def remove_node_from_pool(request):
     else:
       return_dict["error_details"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
 
 
