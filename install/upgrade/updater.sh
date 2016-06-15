@@ -10,7 +10,7 @@ cat << EOF > /etc/yum.repos.d/fractalio.repo
 [fractalio]
 enabled=1
 name= Fractalio- Updates
-baseurl=http://$input/netboot/distros/centos/6.6/x86_64/integralstor_gridcell/v1.0/rpms_zfs-0.6.5.6
+baseurl=http://$ip/netboot/distros/centos/6.6/x86_64/integralstor_gridcell/v1.0/rpms_zfs-0.6.5.6
 gpgcheck=0
 EOF
 
@@ -70,7 +70,7 @@ cat << EOF > /etc/yum.repos.d/fractalio.repo
 [fractalio]
 enabled=0
 name= Fractalio- Updates
-baseurl=http://$input/netboot/distros/centos/6.6/x86_64/integralstor_gridcell/v1.0/rpms_zfs-0.6.5.6
+baseurl=http://$ip/netboot/distros/centos/6.6/x86_64/integralstor_gridcell/v1.0/rpms_zfs-0.6.5.6
 gpgcheck=0
 EOF
 
