@@ -46,7 +46,7 @@ echo "IntegralView update successful"
 
 ### Apply quota information on every reboot if quota is not applied ###
 echo "Checking pool status "
-echo "sh /opt/integralstor_gridcell/scripts/shell/set_pool_quota.sh" >> /etc/rc.local
+echo "sh /opt/integralstor/integralstor_gridcell/scripts/shell/set_pool_quota.sh" >> /etc/rc.local
 echo "Pool status ok . . . "
 
 echo "Updating Misc Scripts"
