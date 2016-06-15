@@ -50,7 +50,13 @@ echo "sh /opt/integralstor_gridcell/scripts/shell/set_pool_quota.sh" >> /etc/rc.
 echo "Pool status ok . . . "
 
 echo "Updating Misc Scripts"
+if [ "$HOSTNAME" == "gridcell-pri" ]; then		# Host specific. If Gridcell is primary then only update this cron.
+
+(crontab -l 2>/dev/null; echo ) | crontab -
+
 (crontab -l 2>/dev/null; echo "*/5 * * * * /opt/integralstor/integralstor_gridcell/scripts/python/poll_for_alerts.py > /tmp/out_gluster_alerts >> /tmp/err_gluster_alerts >> /opt/integralstor/integralstor_gridcell/config/logs/gluster_poll_for_alerts.log 2>&1 # Poll for alerts") | crontab -
+fi
+
 echo "Finished updating misc scripts"
 
 echo "Pulling Database updates"
