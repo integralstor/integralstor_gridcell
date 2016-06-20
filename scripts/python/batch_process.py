@@ -4,10 +4,11 @@ import json, time, re, os, tempfile, shutil, sys
 from xml.etree import ElementTree
 
 from integralstor_common import command,common, audit, lock
-
 from integralstor_gridcell import xml_parse
 
-
+import atexit
+atexit.register(lock.release_lock, 'batch_process')
+atexit.register(lock.release_lock, 'gluster_commands')
 
 def get_heal_count(cmd, type):
   #Gets the number of files healed so far
@@ -315,8 +316,6 @@ def process_batch(d, file):
   else:
     return True, None
   
-import atexit
-atexit.register(lock.release_lock, 'batch_process')
 
 def main():
   try :
@@ -324,11 +323,20 @@ def main():
     if err:
       raise Exception(err)
     devel_files_path, err = common.get_devel_files_path()
+
     ret, err = lock.get_lock('batch_process')
     if err:
       raise Exception(err)
     if not ret:
-      print 'Generate Status : Could not acquire lock. Exiting.'
+      print 'Gluster batch processing : Could not acquire lock. Exiting.'
+
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+        print 'Gluster batch processing : Could not acquire gluster lock. Exiting.'
+        sys.exit(-1)
 
     fl = os.listdir(os.path.normpath(batch_files_path))
     if fl:
@@ -346,6 +354,12 @@ def main():
             if err:
               print "Error loading json content for %s/%s : %s"%(batch_files_path, file, err)
               continue
+    else:
+      print 'No batch processes pending'
+
+    ret, err = lock.release_lock('gluster_commands')
+    if err:
+      raise Exception(err)
     ret, err = lock.release_lock('batch_process')
     if err:
       raise Exception(err)

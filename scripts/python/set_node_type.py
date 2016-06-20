@@ -167,7 +167,10 @@ def set_as_primary(primary_ip, primary_netmask):
     ret, err = scheduler_utils.create_cron('Generate Status',min="*",hour='*',day='*',dow='*',month='*',command="/opt/integralstor/integralstor_common/scripts/python/generate_status.py > /tmp/out_status >> /tmp/err_status",log_file=None)
     if err:
       raise Exception(err)
-    ret, err = scheduler_utils.create_cron('Poll for alerts',min="*/10",hour='*',day='*',dow='*',month='*',command="/opt/integralstor/integralstor_common/scripts/python/poll_for_alerts.py > /tmp/out_alerts >> /tmp/err_alerts",log_file=None)
+    ret, err = scheduler_utils.create_cron('Poll for alerts',min="*",hour='*',day='*',dow='*',month='*',command="/opt/integralstor/integralstor_common/scripts/python/poll_for_alerts.py > /tmp/out_alerts >> /tmp/err_alerts",log_file=None)
+    if err:
+      raise Exception(err)
+    ret, err = scheduler_utils.create_cron('GRIDCell Poll for alerts',min="*/5",hour='*',day='*',dow='*',month='*',command="/opt/integralstor/integralstor_gridcell/scripts/python/poll_for_alerts.py > /tmp/out_gridcell_alerts >> /tmp/err_gridcell_alerts",log_file=None)
     if err:
       raise Exception(err)
     ret, err = scheduler_utils.create_cron('Run gluster batch processes',min="*",hour='*',day='*',dow='*',month='*',command="/opt/integralstor/integralstor_gridcell/scripts/python/batch_process.py > /tmp/out_batch >> /tmp/err_batch",log_file=None)

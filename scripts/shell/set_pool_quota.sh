@@ -1,5 +1,6 @@
 #!/bin/bash
 zfs upgrade -a
+zpool upgrade -a
 DATASET="frzpool/normal frzpool/deduplicated frzpool/compressed"
 TOTAL=$(zfs get -H -o value -p available frzpool)
 echo
