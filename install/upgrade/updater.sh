@@ -38,6 +38,7 @@ yes | cp -rf /tmp/integralstor_gridcell/integral_view/* /opt/integralstor/integr
 yes | cp -rf /tmp/integralstor_gridcell/site-packages/integralstor_gridcell/* /opt/integralstor/integralstor_gridcell/site-packages/integralstor_gridcell
 yes | cp -rf /tmp/integralstor_gridcell/version /opt/integralstor/integralstor_gridcell
 yes | cp -rf /tmp/integralstor_gridcell/scripts/shell/set_pool_quota.sh /opt/integralstor/integralstor_gridcell/scripts/shell
+yes | cp -rf /tmp/integralstor_gridcell/scripts/shell/login_menu.sh /opt/integralstor/integralstor_gridcell/scripts/shell
 yes | cp -rf /tmp/integralstor_gridcell/install/upgrade/* /opt/integralstor/integralstor_gridcell/install/upgrade
 
 #yes | cp -rf /opt/integralstor/integralstor_gridcell/config /opt/integralstor
