@@ -290,13 +290,13 @@
     <th> GRIDCell status
   </tr>
   {% for k, v in vol.brick_status.items %}
-    {%if vol.brick_status.k.status != 1 %}
+    {%if v.status != 1 %}
     <tr>
       <td>
         {{v.hostname}}
       </td>
       <td>
-        <button class="btn btn-warning " onClick="load_node_status('{{v.hostname}}', '{{v.hostname}}');"> Details..</button>
+        <a href="/show/node_status/{{v.hostname}}" role="button" class="btn btn-warning">  Details.. </a>
       </td>
     </tr>
     {%endif%}
