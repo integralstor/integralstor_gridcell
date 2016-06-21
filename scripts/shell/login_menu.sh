@@ -4,6 +4,10 @@ pause(){
   read -p "Press [Enter] key to continue..." key
 }
  
+gluster_restart(){
+  read -p "Press [Enter] key to restart . . . Note this could cause a intermediate data disruption to all clients. " key
+  service glusterd restart
+}
 configure_networking(){
   #echo "configure networking called"
   python /opt/integralstor/integralstor_gridcell/scripts/python/configure_networking.py
@@ -137,6 +141,7 @@ show_menu() {
   then
     echo "6. View minion status"
   fi
+  echo "9. Restart GLUSTER Service"
 }
 
 read_input(){
@@ -146,7 +151,7 @@ read_input(){
   if [ $primary == 0 -a $secondary == 0 ]
   then
     # Normal node
-    read -p "Enter choice [1 - 7] " input 
+    read -p "Enter choice " input 
     case $input in
       1) configure_networking ;;
       2) do_reboot;;
@@ -155,6 +160,7 @@ read_input(){
       5) view_node_status;;
       6) set_as_primary;;
       7) set_as_secondary;;
+      9) gluster_restart;;
       *)  echo "Not a Valid INPUT" && sleep 2
     esac
   fi
@@ -164,7 +170,7 @@ read_input(){
     if [ ! -f '/opt/integralstor/integralstor_gridcell/first_time_setup_completed' ]
     then
         #Primary node with first time setup complete
-        read -p "Enter choice [1 - 7] " input 
+        read -p "Enter choice " input 
         case $input in
         1) configure_networking ;;
         2) do_reboot;;
@@ -176,7 +182,7 @@ read_input(){
         *)  echo "Not a Valid INPUT" && sleep 2
     	esac
     else
-        read -p "Enter choice [1 - 6] " input 
+        read -p "Enter choice " input 
         case $input in
         1) configure_networking ;;
         2) do_reboot;;
@@ -184,6 +190,7 @@ read_input(){
         4) view_node_config;;
         5) view_node_status;;
         6) view_minion_status ;;
+        9) gluster_restart;;
         *)  echo "Not a Valid INPUT" && sleep 2
     	esac
     fi
@@ -191,7 +198,7 @@ read_input(){
   if [ $secondary == 1 ]
   then
     #Secondary node
-      read -p "Enter choice [1 - 6] " input 
+      read -p "Enter choice " input 
       case $input in
       1) configure_networking ;;
       2) do_reboot;;
@@ -199,6 +206,7 @@ read_input(){
       4) view_node_config;;
       5) view_node_status;;
       6) view_minion_status ;;
+      9) gluster_restart;;
       *)  echo "Not a Valid INPUT" && sleep 2
     	esac
   fi
