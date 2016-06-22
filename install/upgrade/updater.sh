@@ -27,8 +27,9 @@ cd /tmp
 rm -rf /tmp/integralstor_*
 /usr/bin/wget -c http://$ip/netboot/distros/centos/6.6/x86_64/integralstor_gridcell/v1.0/tar_installs/integralstor_common.tar.gz
 /bin/tar xzf integralstor_common.tar.gz
-yes | cp -rf /tmp/integralstor_common/site-packages/integralstor_common/* /opt/integralstor/integralstor_common/site-packages/integralstor_common
-yes | cp -rf /tmp/integralstor_common/version /opt/integralstor/integralstor_common
+yes | cp -rf /tmp/integralstor_common /opt/integralstor
+
+rm -rf /tmp/integralstor_common*
 
 # Setup IntegralStor GRIDCell
 cd /tmp
@@ -37,9 +38,11 @@ cd /tmp
 yes | cp -rf /tmp/integralstor_gridcell/integral_view/* /opt/integralstor/integralstor_gridcell/integral_view
 yes | cp -rf /tmp/integralstor_gridcell/site-packages/integralstor_gridcell/* /opt/integralstor/integralstor_gridcell/site-packages/integralstor_gridcell
 yes | cp -rf /tmp/integralstor_gridcell/version /opt/integralstor/integralstor_gridcell
-yes | cp -rf /tmp/integralstor_gridcell/scripts/shell/set_pool_quota.sh /opt/integralstor/integralstor_gridcell/scripts/shell
-yes | cp -rf /tmp/integralstor_gridcell/scripts/shell/login_menu.sh /opt/integralstor/integralstor_gridcell/scripts/shell
+yes | cp -rf /tmp/integralstor_gridcell/defaults /opt/integralstor/integralstor_gridcell
+yes | cp -rf /tmp/integralstor_gridcell/scripts /opt/integralstor/integralstor_gridcell
 yes | cp -rf /tmp/integralstor_gridcell/install/upgrade/* /opt/integralstor/integralstor_gridcell/install/upgrade
+
+rm -rf /tmp/integralstor_gridcell*
 
 #yes | cp -rf /opt/integralstor/integralstor_gridcell/config /opt/integralstor
 echo "IntegralView update successful"
@@ -51,7 +54,12 @@ echo "sh /opt/integralstor/integralstor_gridcell/scripts/shell/set_pool_quota.sh
 echo "Pool status ok . . . "
 
 echo "Updating Misc Scripts"
+
+echo -e "PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin \n$(crontab -l)" | crontab -
+echo -e "SHELL=/bin/sh \n$(crontab -l)" | crontab -
+
 if [ "$HOSTNAME" == "gridcell-pri" ]; then		# Host specific. If Gridcell is primary then only update this cron.
+
 
 (crontab -l 2>/dev/null; echo ) | crontab -
 
@@ -88,5 +96,5 @@ EOF
 
 echo "Successfully removed updates repository"
 
-latest="cat /opt/integralstor/integralstor_gridcell/version/"
-echo "IntegralStor GRIDCell has been successfully updated to :" $latest
+echo "IntegralStor GRIDCell has been successfully updated to :"
+cat /opt/integralstor/integralstor_gridcell/version
