@@ -8,6 +8,13 @@ gluster_restart(){
   read -p "Press [Enter] key to restart . . . Note this could cause a intermediate data disruption to all clients. " key
   service glusterd restart
 }
+
+set_cpu_cores(){
+  read -p "Enter the number of cores to be disabled from [MINIMUM 2] " ip
+  sh /opt/integralstor/integralstor_gridcell/scripts/shell/cpu_core_dis.sh $ip
+  sleep 1
+}
+
 configure_networking(){
   #echo "configure networking called"
   python /opt/integralstor/integralstor_gridcell/scripts/python/configure_networking.py
@@ -142,6 +149,7 @@ show_menu() {
     echo "6. View minion status"
   fi
   echo "9. Restart GLUSTER Service"
+  echo "10.Modify CPU cores"
 }
 
 read_input(){
@@ -161,6 +169,7 @@ read_input(){
       6) set_as_primary;;
       7) set_as_secondary;;
       9) gluster_restart;;
+      10)set_cpu_cores;;
       *)  echo "Not a Valid INPUT" && sleep 2
     esac
   fi
@@ -191,6 +200,7 @@ read_input(){
         5) view_node_status;;
         6) view_minion_status ;;
         9) gluster_restart;;
+        10)set_cpu_cores;;
         *)  echo "Not a Valid INPUT" && sleep 2
     	esac
     fi
@@ -207,6 +217,7 @@ read_input(){
       5) view_node_status;;
       6) view_minion_status ;;
       9) gluster_restart;;
+      10)set_cpu_cores;;
       *)  echo "Not a Valid INPUT" && sleep 2
     	esac
   fi
