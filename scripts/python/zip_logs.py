@@ -1,6 +1,6 @@
 import salt.client
 import os, zipfile,shutil
-import grid_ops
+from integralstor_gridcell import grid_ops
 from integralstor_common import common
 
 # Files go in the format of , path where the file exists, and the regex to match for the files
