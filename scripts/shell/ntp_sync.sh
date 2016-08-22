@@ -1,6 +1,7 @@
 #!/bin/bash
 
 if [ "$HOSTNAME" = "gridcell-pri" ]; then		#Checks if it is Primary master then exit, else continue.
+	service ntpd restart
 	echo "This is Primary Master so exiting..."
         exit 0
 	service ntpd stop
