@@ -10,7 +10,7 @@ gluster_restart(){
 }
 
 set_cpu_cores(){
-  read -p "Enter the number of cores to be disabled from [MINIMUM 2] " ip
+  read -p "Enter the number of cores to be disabled from [minimum 2][press 1 to reset]. " ip
   sh /opt/integralstor/integralstor_common/scripts/shell/cpu_core_dis.sh $ip
   sleep 1
 }
