@@ -1,19 +1,22 @@
 import salt.client
 import os, zipfile,shutil
+from os.path import basename
 from integralstor_gridcell import grid_ops
 from integralstor_common import common
 
 # Files go in the format of , path where the file exists, and the regex to match for the files
-files = [["/var/log/","*message*"],["/var/log/","*boot.log"],"/var/log/nginx/error.log","/var/log/smblog.vfs","/var/log/log.ctdb",["/var/log/samba/","*log.smbd*"],["/var/log/","*dmesg*"]]
+files = [["/var/log/","*message*"],["/var/log/","*boot.log"],["/var/log/nginx/","*error.log*"],["/var/log/","*smblog.vfs*"],"/var/log/log.ctdb",["/var/log/samba/","*log.smbd*"],["/var/log/","*dmesg*"],["/var/spool/mail/","*root*"]]
 
-folders = ["/var/log/glusterfs","/var/log/samba",common.get_alerts_dir(),"/var/log/integralstor","/var/spool/mail/root","/var/log/salt"]
+folders = ["/var/log/glusterfs","/var/log/samba",common.get_alerts_dir(),"/var/log/integralstor","/var/log/salt"]
 
 primary_logs = ["/opt/integralstor/integralstor_gridcell/config/logs/"]
 
 local = salt.client.LocalClient()
 
-def get_logs(minion):
+def get_logs(minion): 
   try: 
+    # clear the old cache for the minion
+    local.cmd('gridcell-pri.integralstor.lan',["file.remove","/var/cache/salt/master/minions/%s/files/"%minion])
     for logs in files:
       if isinstance(logs,list):
         local.cmd(minion,"cp.push_dir",[logs[0],logs[1]])
@@ -56,7 +59,12 @@ def zipdir(path, name):
   ziph = zipfile.ZipFile(name, "w", zipfile.ZIP_DEFLATED)
   for root, dirs, files in os.walk(path):
     for file in files:
-      ziph.write(os.path.join(root, file))
+      #  The actual log files are being zipped
+      if "files" in root:
+        basepath = root.split("files")[1]
+        ziph.write(os.path.join(root, file),os.path.join(basepath,file)) 
+      else:
+        ziph.write(os.path.join(root, file)) 
   ziph.close()
 
 if __name__ == "__main__":
