@@ -35,20 +35,18 @@ if __name__ == "__main__":
         status = local.cmd(minion,"cp.push",["/tmp/%s.zip"%minion])
 
         if not status[minion]:
-          with open("/tmp/logs/%s.log"%minion,"a+") as f:
+          with open("/tmp/gridcell_logs/%s.log"%minion,"a+") as f:
             f.write("Could not get the log file from minion: %s. Check the minion logs for any possible errors."%minion)
 
       else:
-        with open("/tmp/logs/%s.log"%minion,"a+") as f:
+        with open("/tmp/gridcell_logs/%s.log"%minion,"a+") as f:
           f.write("Minion %s did not respond. Minion possibly down."%minion)
     
       log_path = "/var/cache/salt/master/minions/%s/files/tmp/%s.zip"%(minion,minion)
-      print log_path
       cmd = "cp -rf %s %s"%(log_path,path)
       ret, err = command.execute_with_rc(cmd, True)
       if err:
         raise Exception(err)
-    print path
     if os.path.isdir(path): 
       zipdir(path,"/tmp/gridcell.zip")
       
