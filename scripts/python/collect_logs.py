@@ -16,6 +16,7 @@ def zipdir(path, name):
 
 if __name__ == "__main__":
   try:
+    # Path where the zip files from all minions will be collected
     path = "/tmp/gridcell_logs/"
     if not os.path.isdir(path):
       os.mkdir(path)    
@@ -33,7 +34,7 @@ if __name__ == "__main__":
 
       if minion in status:
         status = local.cmd(minion,"cp.push",["/tmp/%s.zip"%minion])
-
+        # If no response from minion, log a message
         if not status[minion]:
           with open("/tmp/gridcell_logs/%s.log"%minion,"a+") as f:
             f.write("Could not get the log file from minion: %s. Check the minion logs for any possible errors."%minion)

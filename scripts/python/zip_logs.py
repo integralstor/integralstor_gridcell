@@ -32,7 +32,8 @@ def get_logs(hostname=socket.getfqdn()):
        
   except Exception, e:
     return False, e
-  return True, None
+  else:
+    return True, None
 
 
 def zip_my_logs(hostname):
@@ -46,13 +47,15 @@ def zip_my_logs(hostname):
         f.write("Unable to get log file in path : %s"%log_path)
   except Exception,e:
     return False,e
-  return True, None
+  else:
+    return True, None
 
 def zipdir(path, name):
   ziph = zipfile.ZipFile(name, "w", zipfile.ZIP_DEFLATED)
   for root, dirs, files in os.walk(path):
     for file in files:
       #  The actual log files are being zipped
+      # Making the zip keep the folder structure same instead of the whole pth
       if "files" in root:
         basepath = root.split("files")[1]
         ziph.write(os.path.join(root, file),os.path.join(basepath,file)) 
@@ -65,7 +68,9 @@ if __name__ == "__main__":
     hostname = socket.getfqdn()
     if os.path.isfile("/tmp/%s.zip"%hostname):
       os.remove("/tmp/%s.zip"%hostname) 
+   # Path where all the logs files will be collected
     path = "/tmp/logs/"
+    # Cleanup the path to collect new log files
     if not os.path.isdir(path):
       os.mkdir(path)    
     if not os.listdir(path) == []:
