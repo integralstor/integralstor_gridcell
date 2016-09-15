@@ -1,6 +1,6 @@
 #!/bin/sh
 
-MAXBOOTSIZE=300 			#Assign maximum size for OS disk u wanted to skip for Default Pool creation
+MAXBOOTSIZE=800 			#Assign maximum size for OS disk u wanted to skip for Default Pool creation
 
 #############################################################################
 #### This shell script creates a ZFS pool on each hard disk excluding the boot drive. The assumption is that the OS drive will be smaller than MAXBOOTSIZE
