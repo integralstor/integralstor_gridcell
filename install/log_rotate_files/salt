@@ -1,0 +1,44 @@
+/var/log/salt/master {
+    sharedscripts
+    daily
+    missingok
+    rotate 4
+    compress
+    notifempty
+}
+
+/var/log/salt/minion {
+    sharedscripts
+    daily
+    missingok
+    rotate 4
+    compress
+    notifempty
+}
+
+/var/log/salt/key {
+    sharedscripts
+    daily
+    missingok
+    rotate 4
+    compress
+    notifempty
+}
+
+/var/log/salt/cloud {
+    sharedscripts
+    daily
+    missingok
+    rotate 4
+    compress
+    notifempty
+}
+
+/var/log/salt/ssh {
+    sharedscripts
+    daily
+    missingok
+    rotate 4
+    compress
+    notifempty
+}
