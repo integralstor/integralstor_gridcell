@@ -1,0 +1,14 @@
+{% extends 'logged_in_base.html' %}
+
+{%block tab_items %}
+  <li id="email_settings_tab"><a href="/view_email_settings">Configure email alerts</a></li>
+  <li id="download_config_tab"><a href="/download_system_configuration/">Download system configuration</a></li>
+  <li id="initiate_scrub_tab"><a href="/schedule_scrub/">Schedule ZFS Pool Scrub </a></li>
+{% endblock%}
+
+{% block menu_active %}
+  <script>
+    make_side_menu_active("system_menu")
+  </script>
+{% endblock%}
+

@@ -1,39 +1,36 @@
 {% extends 'shares_and_targets_base.html' %}
 
 {%block tab_header %}
-Create an ISCSI target
+  Create an ISCSI target
 {%endblock%}
+
 {% block inside_content %}
-<br><br>
-{{conf_message}}
 
-
-{{form.errors}}
-<form class="form-horizontal" role="form" name="create_form" action="" method="post">
-  <table  class="table " style="width:80%">
-    <tr>
-      <td>
-        <label for="id_name">Target name:</label>
-      </td>
-      <td>
-        <input type="text"  name="name" class="form-control" id="id_name" value="{%if form.name.value%}{{form.name.value}}{%endif%}" placeholder="Enter a name for ISCSI target"> 
-      </td>
-      <td>
-    {{ form.name.errors }}
-      </td>
-    </tr>
+  {{form.errors}}
+  <form class="form-horizontal" role="form" name="create_form" action="" method="post">
+    <table  class="table " style="width:80%">
+      <tr>
+        <td> <label for="id_name">Target name:</label> </td>
+        <td>
+          <input type="text"  name="name" class="form-control" id="id_name" value="{%if form.name.value%}{{form.name.value}}{%endif%}" placeholder="Enter a name for ISCSI target"> 
+        </td>
+        <td> {{ form.name.errors }} </td>
+      </tr>
     </table>
-
-<a href="/view_iscsi_targets" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
-<button type="submit" class="btn btn-primary cover-page"> Create </button>
-</form>
+    <div class="btn-group btn-group-sm " >
+      <a href="/view_iscsi_targets" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
+      <button type="submit" class="btn btn-primary cover-page"> Create </button>
+    </div>
+  </form>
 
 {%endblock%}
+
 {%block help_header%}
-Create ISCSI users help
+  Create ISCSI users help
 {%endblock%}
+
 {%block help_body%}
-<p>Use ISCSI user authentication when you want ISCSI CHAP access control. For ISCSI authentication, you will need to create ISCSI user accounts using this screen and then deploy access control using these user accounts. These accounts are used only for ISCSI access and not for any other purpose.</p>
+  <p>Use ISCSI user authentication when you want ISCSI CHAP access control. For ISCSI authentication, you will need to create ISCSI user accounts using this screen and then deploy access control using these user accounts. These accounts are used only for ISCSI access and not for any other purpose.</p>
 {%endblock%}
 
 {% block tab_active %}

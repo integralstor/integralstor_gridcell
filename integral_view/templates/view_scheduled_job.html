@@ -1,0 +1,66 @@
+{% extends 'batch_base.html' %}
+
+{% block tab_header %}
+  {{task.task_name}} ({{task.status|title}})
+{% endblock %}
+{% if task.status == "scheduled" %}
+{%block global_actions %}
+  <div class="btn-group btn-group-sm pull-right" >
+    <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Click for actions" href="#"> <i class="fa fa-cog fa-fw"></i> Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+    <ul class="dropdown-menu">
+      <li><a  class="action-dropdown" href="/remove_scheduled_job?task_id={{task.task_id}}"   title="Remove this scheduled job" style="color:red"> <i class="fa fa-trash fa-fw"></i>Remove this job</a>
+      <li><a  class="action-dropdown" href="/view_scheduled_jobs"   title="Back to scheduled jobs list" > <i class="fa fa-list fa-fw"></i>Scheduled jobs list</a>
+    </ul>
+  </div>
+{%endblock%}
+{% endif %}
+
+{% block inside_content %}
+<br /> <br />
+{%for command in commands %}
+<div class="panel box {%if command.return_code == '0' %} box-success {%else%} box-danger{%endif%}">
+  <div class="box-header with-border">
+    <h4 class="box-title">
+      <a class="" aria-expanded="true" data-toggle="collapse" data-parent="#accordion" href="#pool_{{forloop.counter}}">
+        {{command.command}}
+      </a> 
+    </h4>
+  </div>
+  <div style="" aria-expanded="true" id="pool_{{forloop.counter}}" class="panel-collapse collapse in">
+    <div class="box-body">
+      <table>
+      <tbody>
+        <tr>
+          <td colspan=1> Command </td>
+          <td> {{command.command}} </td>
+        </tr>
+        <tr>
+          <td colspan=1> Status </td>
+          <td> {{command.status}} </td>
+        </tr>
+        <tr>
+          <td colspan=1> Output </td>
+          <td> {{command.output}} </td>
+        </tr>
+        <tr>
+          <td colspan=1> Error </td>
+          <td> {{command.errors}} </td>
+        </tr>
+        <tr>
+          <td colspan=1> Retries </td>
+          <td> {{command.retries}} </td>
+        </tr>
+      </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}
+{% block tab_active %}
+<script>
+   make_tab_active("scheduled_jobs_tab")
+</script>
+{% endblock%}
+

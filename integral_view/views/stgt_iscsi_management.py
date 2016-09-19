@@ -6,7 +6,7 @@ from integral_view.forms import iscsi_stgt_forms
 
 import django, django.template
 
-def view_targets(request):
+def view_iscsi_targets(request):
 
   return_dict = {}
   try:
@@ -16,42 +16,24 @@ def view_targets(request):
   
     return_dict["target_list"] = target_list
   
-    if "action" in request.GET:
-      conf = ''
-      if request.GET["action"] == "created":
-        conf = "ISCSI target successfully created"
-      elif request.GET["action"] == "target_deleted":
-        conf = "ISCSI target successfully created"
-      elif request.GET["action"] == "lun_created":
-        conf = "ISCSI LUN successfully created"
-      elif request.GET["action"] == "added_acl":
-        conf = "ISCSI target ACL successfully added"
-      elif request.GET["action"] == "removed_acl":
-        conf = "ISCSI target ACL successfully removed"
-      elif request.GET["action"] == "lun_deleted":
-        conf = "ISCSI LUN successfully deleted"
-      elif request.GET["action"] == "deleted":
-        conf = "ISCSI target successfully deleted"
-      elif request.GET["action"] == "added_initiator_authentication":
-        conf = "ISCSI initiator authentication successfully added"
-      elif request.GET["action"] == "added_target_authentication":
-        conf = "ISCSI target authentication successfully added"
-      elif request.GET["action"] == "removed_initiator_authentication":
-        conf = "ISCSI initiator authentication successfully removed"
-      elif request.GET["action"] == "removed_target_authentication":
-        conf = "ISCSI target authentication successfully removed"
-      return_dict["conf"] = conf
+    if "ack" in request.GET:
+      ack_message = ''
+      if request.GET["ack"] == "created":
+        ack_message = "ISCSI target successfully created"
+      elif request.GET["ack"] == "target_deleted":
+        ack_message = "ISCSI target successfully created"
+      return_dict["ack_message"] = ack_message
   
     return django.shortcuts.render_to_response('view_iscsi_targets.html', return_dict, context_instance=django.template.context.RequestContext(request))
   except Exception, e:
-    return_dict['base_template'] = "hares_base.html"
+    return_dict['base_template'] = "shares_and_targets_base.html"
     return_dict["page_title"] = 'ISCSI targets'
     return_dict['tab'] = 'view_iscsi_targets_tab'
     return_dict["error"] = 'Error loading ISCSI targets'
     return_dict["error_details"] = str(e)
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
   
-def view_target(request):
+def view_iscsi_target(request):
 
   return_dict = {}
   try:
@@ -66,6 +48,27 @@ def view_target(request):
       raise Exception("Specified target not found. Please use the menus.")
       
     return_dict["target"] = target
+    if "ack" in request.GET:
+      ack_message = ''
+      if request.GET["ack"] == "lun_created":
+        ack_message = "ISCSI LUN successfully created"
+      elif request.GET["ack"] == "added_acl":
+        ack_message = "ISCSI target ACL successfully added"
+      elif request.GET["ack"] == "removed_acl":
+        ack_message = "ISCSI target ACL successfully removed"
+      elif request.GET["ack"] == "lun_deleted":
+        ack_message = "ISCSI LUN successfully deleted"
+      elif request.GET["ack"] == "deleted":
+        ack_message = "ISCSI target successfully deleted"
+      elif request.GET["ack"] == "added_initiator_authentication":
+        ack_message = "ISCSI initiator authentication successfully added"
+      elif request.GET["ack"] == "added_target_authentication":
+        ack_message = "ISCSI target authentication successfully added"
+      elif request.GET["ack"] == "removed_initiator_authentication":
+        ack_message = "ISCSI initiator authentication successfully removed"
+      elif request.GET["ack"] == "removed_target_authentication":
+        ack_message = "ISCSI target authentication successfully removed"
+      return_dict["ack_message"] = ack_message
   
     return django.shortcuts.render_to_response('view_iscsi_target.html', return_dict, context_instance=django.template.context.RequestContext(request))
   except Exception, e:
@@ -97,8 +100,8 @@ def create_iscsi_target(request):
           else:
             raise Exception("Unknown error.")
         audit_str = "Created an ISCSI target %s"%cd["name"]
-        audit.audit("create_iscsi_target", audit_str, request.META["REMOTE_ADDR"])
-        url = '/view_iscsi_targets?action=created'
+        audit.audit("create_iscsi_target", audit_str, request.META)
+        url = '/view_iscsi_targets?ack=created'
         return django.http.HttpResponseRedirect(url)
       else:
         return_dict["form"] = form
@@ -130,8 +133,8 @@ def delete_iscsi_target(request):
         else:
           raise Exception("Unknown error")
       audit_str = "Deleted ISCSI target %s"%target_name
-      url = '/view_iscsi_targets?action=target_deleted'
-      audit.audit("delete_iscsi_target", audit_str, request.META["REMOTE_ADDR"])
+      url = '/view_iscsi_targets?ack=target_deleted'
+      audit.audit("delete_iscsi_target", audit_str, request.META)
       return django.http.HttpResponseRedirect(url)
   except Exception, e:
     return_dict['base_template'] = "shares_and_targets_base.html"
@@ -145,11 +148,10 @@ def create_iscsi_lun(request):
 
   return_dict = {}
 
-  target_name = request.REQUEST['target_name']
-
   try:
     if 'target_name' not in request.REQUEST:
       raise Exception("Malformed request. No target specified. Please use the menus.")
+    target_name = request.REQUEST['target_name']
     zvols, err = zfs.get_all_zvols()
     if err:
       raise Exception(err)
@@ -179,8 +181,8 @@ def create_iscsi_lun(request):
           else:
             raise Exception("Unknown error.")
         audit_str = "Created an ISCSI LUN in target %s with path %s"%(cd["target_name"], cd['lun_name'])
-        audit.audit("create_iscsi_lun", audit_str, request.META["REMOTE_ADDR"])
-        url = '/view_iscsi_targets?action=lun_created'
+        audit.audit("create_iscsi_lun", audit_str, request.META)
+        url = '/view_iscsi_target?name=%s&ack=lun_created'%target_name
         return django.http.HttpResponseRedirect(url)
       else:
         return_dict["form"] = form
@@ -219,8 +221,8 @@ def delete_iscsi_lun(request):
       audit_str = "Deleted ISCSI LUN %s from target %s"%(store, target_name)
       cmd = 'zfs destroy frzpool/%s'%(store.split("/")[-1]) 
       ret,err = command.execute_with_rc(cmd = cmd, shell=True)
-      url = '/view_iscsi_targets?action=lun_deleted'
-      audit.audit("delete_iscsi_lun", audit_str, request.META["REMOTE_ADDR"])
+      url = '/view_iscsi_target?name=%s&ack=lun_deleted'%target_name
+      audit.audit("delete_iscsi_lun", audit_str, request.META)
       return django.http.HttpResponseRedirect(url)
   except Exception, e:
     return_dict['base_template'] = "shares_and_targets_base.html"
@@ -267,11 +269,11 @@ def add_iscsi_user_authentication(request):
             raise Exception("Error adding the ISCSI target user.")
         if cd['authentication_type'] == 'incoming':
           audit_str = "Added ISCSI initiator authentication user %s for target %s"%(cd["username"], cd['target_name'])
-          url = '/view_iscsi_targets?action=added_initiator_authentication'
+          url = '/view_iscsi_target?name=%s&ack=added_initiator_authentication'%target_name
         else:
           audit_str = "Added ISCSI target authentication user %s for target %s"%(cd["username"], cd['target_name'])
-          url = '/view_iscsi_targets?action=added_target_authentication'
-        audit.audit("add_iscsi_target_authentication", audit_str, request.META["REMOTE_ADDR"])
+          url = '/view_iscsi_target?name=%s&ack=added_target_authentication'%target_name
+        audit.audit("add_iscsi_target_authentication", audit_str, request.META)
         return django.http.HttpResponseRedirect(url)
       else:
         return_dict["form"] = form
@@ -316,11 +318,11 @@ def remove_iscsi_user_authentication(request):
           raise Exception("Unknown error.")
       if authentication_type == 'incoming':
         audit_str = "Removed ISCSI initiator authentication user %s for target %s"%(username, target_name)
-        url = '/view_iscsi_targets?action=removed_initiator_authentication'
+        url = '/view_iscsi_target?name=%s&ack=removed_initiator_authentication'%target_name
       else:
         audit_str = "Removed ISCSI target authentication user %s for target %s"%(username, target_name)
-        url = '/view_iscsi_targets?action=removed_target_authentication'
-      audit.audit("remove_iscsi_target_authentication", audit_str, request.META["REMOTE_ADDR"])
+        url = '/view_iscsi_target?name=%s&ack=removed_target_authentication'%target_name
+      audit.audit("remove_iscsi_target_authentication", audit_str, request.META)
       return django.http.HttpResponseRedirect(url)
   except Exception, e:
     return_dict['base_template'] = "shares_and_targets_base.html"
@@ -363,8 +365,8 @@ def add_iscsi_acl(request):
           else:
             raise Exception("Unknown error.")
         audit_str = "Added ISCSI ACL %s for target %s"%(cd["acl"], cd['target_name'])
-        url = '/view_iscsi_targets?action=added_acl'
-        audit.audit("add_iscsi_acl", audit_str, request.META["REMOTE_ADDR"])
+        url = '/view_iscsi_target?name=%s&ack=added_acl'%target_name
+        audit.audit("add_iscsi_acl", audit_str, request.META)
         return django.http.HttpResponseRedirect(url)
       else:
         return_dict["form"] = form
@@ -400,8 +402,8 @@ def remove_iscsi_acl(request):
         else:
           raise Exception("Unknown error.")
       audit_str = "Removed ISCSI ACL %s for target %s"%(acl, target_name)
-      url = '/view_iscsi_targets?action=removed_acl'
-      audit.audit("remove_iscsi_acl", audit_str, request.META["REMOTE_ADDR"])
+      url = '/view_iscsi_target?name=%s&ack=removed_acl'%target_name
+      audit.audit("remove_iscsi_acl", audit_str, request.META)
       return django.http.HttpResponseRedirect(url)
   except Exception, e:
     return_dict['base_template'] = "shares_and_targets_base.html"

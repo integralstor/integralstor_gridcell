@@ -1,59 +1,51 @@
 {% extends 'shares_and_targets_base.html' %}
 
 {%block tab_header %}
-Create an ISCSI LUN
+  Create an ISCSI LUN
 {%endblock%}
+
 {% block inside_content %}
-<br><br>
 
-{{conf_message}}
-<strong> This could take a few seconds to complete.
-<form id="create_form" name="create_form" action="/create_iscsi_lun/" method="post">
-{{form.target_name}}
-            <table class="table" style="width:800px">
-            <tr>
-              <td>
-            <label >Target :</label>
-              </td>
-              <td>
-                {{form.target_name.value}}
-              </td>
-              <td>
-              &nbsp;
-              </td>
-            </tr>
-            <tr>
-              <td>
-            <label for="id_path">LUN Name :</label>
-              <td>
-              <input type="text" class="form-control" id="id_lun_name" placeholder="Enter a lun name" value="{{form.lun_name.value|default_if_none:''}}" name="lun_name">
-              </td>
-              <td>
-            {{ form.lun_name.errors }}
-              </td>
-            </tr>
-            <tr>
-              <td>
-            <label for="id_path">LUN size :</label>
-              <td>
-              <input type="text" class="form-control" id="id_lun_name" placeholder="Enter lun size : Eg: 10g" value="{{form.lun_size.value|default_if_none:''}}" name="lun_size">
-              </td>
-              <td>
-            {{ form.lun_size.errors }}
-              </td>
-            </tr>
-            </table>
-
-        <a href="/view_iscsi_target?name={{form.target_name.value}}" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
-        <button type="submit" class="btn btn-primary cover-page">Create</button>
-</form>
+  {{form.errors}}
+  <form id="create_form" name="create_form" action="/create_iscsi_lun/" method="post">
+    {{form.target_name}}
+    <table class="table" style="width:800px">
+      <tr>
+        <td> <label >Target :</label> </td>
+        <td> {{form.target_name.value}} </td>
+        <td> &nbsp; </td>
+      </tr>
+      <tr>
+        <td> <label for="id_path">LUN Name :</label> </td>
+        <td>
+          <input type="text" class="form-control" id="id_lun_name" placeholder="Enter a lun name" value="{{form.lun_name.value|default_if_none:''}}" name="lun_name">
+        </td>
+        <td> {{ form.lun_name.errors }} </td>
+      </tr>
+      <tr>
+        <td> <label for="id_path">LUN size :</label> </td>
+        <td>
+          <input type="text" class="form-control" id="id_lun_name" placeholder="Enter lun size : Eg: 10g" value="{{form.lun_size.value|default_if_none:''}}" name="lun_size">
+        </td>
+        <td> {{ form.lun_size.errors }} </td>
+      </tr>
+    </table>
+    <div class="btn-group btn-group-sm " >
+      <a href="/view_iscsi_target?name={{form.target_name.value}}" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
+      <button type="submit" class="btn btn-primary cover-page">Create</button>
+    </div>
+  </form>
+  <br/>
+  <strong> <sup>*</sup>This operation could take a few seconds to complete.</strong>
 
 {%endblock%}
+
 {%block help_header%}
-Create an ISCSI LUN
+  Create an ISCSI LUN
 {%endblock%}
+
 {%block help_body%}
-<p>Use this screen to create an ISCSI LUN. The settings will take effect upon saving this information.</p>
+  <p>Use this screen to create an ISCSI LUN. The settings will take effect upon saving this information.</p>
 {%endblock%}
 
 {% block tab_active %}

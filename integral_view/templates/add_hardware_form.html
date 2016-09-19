@@ -1,29 +1,27 @@
 
 Please select the GRIDCells that you want to add to the grid
 <form id="edit_form" name="edit_form" action="" method="post">
-<table class="table table-hover table-bordered" style="width:60%">
-  <tr>
-    <td>
-      <label for="id_nodes">Discovered new GRIDCells :</label>
-    </td>
-    <td>
-    {% for choice in form.nodes.field.choices %} 
-    <div class="radio">
-    <label>
-    <input type="radio" name="nodes" id="optionsRadios1" value="{{choice.0}}" {%if choice.0 in form.initial.nodes %} checked="checked"{%endif%}> &nbsp;{{choice.0}}
-    </label>
-    </div>
-    {%endfor%}
-    </td>
-    <td>
-      {{form.nodes.errors}}
-    </td>
-  </tr>
+  <table class="table table-hover table-bordered" style="width:60%">
+    <tr>
+      <td> <label for="id_nodes">Discovered new GRIDCells :</label> </td>
+      <td>
+        {% for choice in form.nodes.field.choices %} 
+          <div class="radio">
+            <label>
+              <input type="radio" name="nodes" id="optionsRadios1" value="{{choice.0}}" {%if choice.0 in form.initial.nodes %} checked="checked"{%endif%}> &nbsp;{{choice.0}}
+            </label>
+          </div>
+        {%endfor%}
+      </td>
+      <td> {{form.nodes.errors}} </td>
+    </tr>
   </table>
   {%if request.path == '/first_login/'%}
-    <button type="submit" class="btn btn-primary cover-page">Add GRIDCells and get started</button>
+    <button type="submit" class="btn btn-primary brn-sm cover-page">Add GRIDCells </button>
   {%else%}
-  <a href="/show/dashboard" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
-  <button type="submit" class="btn btn-primary cover-page">Add GRIDCells</button>
+    <div class="btn-group btn-group-sm " >
+      <a href="/view_dashboard" role="button" class="btn btn-sm btn-default"> Cancel</a>&nbsp;&nbsp;
+      <button type="submit" class="btn btn-primary cover-page">Add GRIDCells</button>
+    </div>
   {%endif%}
 </form>

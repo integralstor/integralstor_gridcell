@@ -32,13 +32,3 @@ class ConfigureNTPForm(forms.Form):
 
   server_list = MultipleServerField()
 
-class AddNodesForm(forms.Form):
-  def __init__(self, *args, **kwargs):
-    if kwargs:
-      pml = kwargs.pop('pending_minions_list')
-    super(AddNodesForm, self).__init__(*args, **kwargs)
-    ch = []
-    for minion in pml:
-      tup = (minion, minion)
-      ch.append(tup)   
-    self.fields["nodes"] = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple, choices=ch)

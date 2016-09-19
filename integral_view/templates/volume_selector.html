@@ -1,0 +1,39 @@
+{% extends base_template %}
+
+{%block tab_header %}
+  {{page_title}}
+{%endblock%}
+
+{%block inside_content %}
+
+  {{form.errors}}
+  <form role="form" action="" method="post" >
+    <table class="table" style="width:400px">
+      <tr>
+        <td> Select a volume </td>
+        <td>
+          <select id="id_vol_name" name="vol_name" class="form-control">
+            {% for choice in form.vol_name.field.choices %} 
+              {{choice}}
+              <option value="{{choice.0}}" {%if form.initial.vol_name == choice.0%} selected="selected" {%endif%}>{{choice.1}}</option>
+            {%endfor%}
+          </select>
+        </td>
+      </tr>
+    </table>
+    {%if action == 'cifs_share_creation' %}
+    <sup>*</sup> - Please select the volume under which the newly created share will reside.<br/><br/>
+    {%endif%}
+    <div class="btn-group btn-group-sm " >
+      <a href="{{cancel_url}}" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
+      <button type="submit" class="btn btn-primary btn-sm cover-page" ><i class="fa fa-arrow-circle-o-right fa-fw"></i> Next</button>
+    </div>
+  </form>
+
+{%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active("{{tab}}")
+  </script>
+{% endblock %}

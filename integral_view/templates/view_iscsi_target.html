@@ -1,137 +1,203 @@
 {% extends 'shares_and_targets_base.html' %}
+
 {%block tab_header %}
-ISCSI target details
+  ISCSI target details
+{%endblock%}
+
+{%block global_actions %}
+  <div class="btn-group btn-group-sm pull-right" >
+    <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Click for target actions" href="#"> <i class="fa fa-cog fa-fw"></i> Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+    <ul class="dropdown-menu">
+      <li><a  class="action-dropdown" href="/create_iscsi_lun?target_name={{target.iqn}}"   title="Add a LUN" > <i class="fa fa-plus fa-fw"></i>Add a LUN</a>
+      <li><a  class="action-dropdown" href="/add_iscsi_user_authentication?target_name={{target.iqn}}&authentication_type=incoming"   title="Add initiator authentication" > <i class="fa fa-plus fa-fw"></i>Add initiator authentication</a>
+      <li><a  class="action-dropdown" href="/add_iscsi_user_authentication?target_name={{target.iqn}}&authentication_type=outgoing"   title="Add target authentication" > <i class="fa fa-plus fa-fw"></i>Add target authentication</a>
+      <li><a  class="action-dropdown" href="/add_iscsi_acl?target_name={{target.iqn}}"   title="Add an ACL" > <i class="fa fa-plus fa-fw"></i>Add an ACL</a>
+      <li><a  class="action-dropdown" href="/delete_iscsi_target?target_name={{target.iqn}}"   title="Remove this target" style="color:red"> <i class="fa fa-trash fa-fw"></i>Remove this target</a>
+      <li><a  class="action-dropdown" href="/view_iscsi_targets"   title="Back to targets list" > <i class="fa fa-list fa-fw"></i>Targets list</a>
+    </ul>
+  </div>
 {%endblock%}
 
 {% block inside_content %}
-<br><br>
-
-
-{{conf}}
-            <hr>
-            <h4> Target details :</h4>
-            <hr>
-
+  <div class="container" style="width:98%">
+    <a href="#" id="open_all" style="display:block" class="btn btn-default btn-xs openall pull-right"><i class="fa fa-expand fa-fw"></i> Open all </a> <a id="close_all" style="display:none" href="#" class="btn btn-default btn-xs closeall pull-right"><i class="fa fa-compress fa-fw"></i> Close all </a>
+    <br><br>
+    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+  
+      <div class="panel panel-default">
+        <div class="panel-heading"   role="tab" id="heading1">
+          <h5 class="panel-title ">
+          <a role="button" data-toggle="collapse" data-parent="#accordion" href="#target_info" aria-expanded="true" aria-controls="target_info">
+            <i class="fa fa-info-circle blue fa-1x"></i>
+            Target details<span class="caret"></span>
+          </a>
+          </h5>
+        </div> <!--panel-heading-->
+        <div id="target_info" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading1">
+          <div class="panel-body">
             <table class="table table-bordered">
-            <tr>
-              <th>
-            Target ID:
-              </th>
-              <td>
-            {{ target.tid }}
-              </td>
-            </tr>
-            <tr>
-              <th>
-            Target Name:
-              </th>
-              <td>
-            {{ target.iqn }}
-              </td>
-            </tr>
+              <tr>
+                  <th> Target ID: </th>
+                  <td> {{ target.tid }} </td>
+              </tr>
+              <tr>
+                  <th> Target Name: </th>
+                  <td> {{ target.iqn }} </td>
+              </tr>
             </table>
-            <hr>
-            <h4> LUNs:</h4>
-            <hr>
+          </div><!--panel-body-->
+        </div><!--panel-collapse-->
+      </div><!--panel-->
+
+      <div class="panel panel-default">
+        <div class="panel-heading"   role="tab" id="heading1">
+          <h5 class="panel-title ">
+          <a role="button" data-toggle="collapse" data-parent="#accordion" href="#luns" aria-expanded="true" aria-controls="luns">
+            <i class="fa fa-info-circle blue fa-1x"></i>
+            LUNs<span class="caret"></span>
+          </a>
+          </h5>
+        </div> <!--panel-heading-->
+        <div id="luns" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading1">
+          <div class="panel-body">
             {%if target.luns %}
-            <table class="table table-bordered">
-            <tr>
-              <th>
-                Backing storage
-              </th>
-              <th>
-                Action
-              </th>
-            </tr>
-            {%for lun in target.luns %}
-              {%if lun.type == 'disk'%}
-            <tr>
-              <td>
-                {{lun.path}} 
-              </td>
-              <td>
-                <a href="/delete_iscsi_lun?target_name={{target.iqn}}&store={{lun.path}}" role="button" class="btn btn-danger"> Remove this LUN </a>
-              </td>
-            </tr>
-              {%endif%}
-            {%endfor%}
-            </table>
-            {%else%}
-            No LUNs created
-            {%endif%}
-            <a href="/create_iscsi_lun?target_name={{target.iqn}}" role="button" class="btn btn-primary"> Add a LUN</a>
-            <hr>
-            <h4> User based authentication:</h4>
-            <hr>
-            {%if target.accounts %}
-            <table class="table table-bordered">
-            <tr>
-              <th>
-                Username
-              </th>
-              <th>
-                Authentication type
-              </th>
-              <th>
-                Action
-              </th>
-            </tr>
-            {%for account in target.accounts %}
-            <tr>
-              <td>
-                  {{account.user}} &nbsp;
-              </td>
-              <td>
-                  {%if account.type == 'incoming'%}
-                  Initiator authentication
-                  {%else%}
-                  Target authentication
+              <table class="table table-bordered">
+                <tr>
+                  <th> Backing storage </th>
+                  <th> Action </th>
+                </tr>
+                {%for lun in target.luns %}
+                  {%if lun.type == 'disk'%}
+                    <tr>
+                      <td> {{lun.path}} </td>
+                      <td>
+                        <div class="btn-group btn-group-xs " >
+                          <a class="btn btn-default dropdown-toggle " data-toggle="dropdown" href="#" title="Click to view actions "> <i class="fa fa-cog fa-fw"></i>Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+                          <ul class="dropdown-menu pull-right">
+                            <li><a  class="action-dropdown" href="/delete_iscsi_lun?target_name={{target.iqn}}&store={{lun.path}}"  style="color:red" title="Remove this LUN" > <i class="fa fa-trash fa-fw"></i>Remove this LUN</a>
+                          </ul>
+                        </div>
+                      </td>
+                    </tr>
                   {%endif%}
-              </td>
-              <td>
-                  <a href="/remove_iscsi_user_authentication?target_name={{target.iqn}}&username={{account.user}}&authentication_type={{account.type}}" role="button" class="btn btn-danger"> Remove this user </a>
-              </td>
-            </tr>
-            {%endfor%}
-            </table>
-          {%else%}
-          None defined
-          {%endif%}
-          <p>
-         <a href="/add_iscsi_user_authentication?target_name={{target.iqn}}&authentication_type=incoming" role="button" class="btn btn-primary"> Add an initiator authentication user</a>
-         <a href="/add_iscsi_user_authentication?target_name={{target.iqn}}&authentication_type=outgoing" role="button" class="btn btn-primary"> Add a target authentication user</a>
-         </p>
-          <hr>
-          <h4> ACLs (Authorized IPs/Initiators) :</h4>
-          <hr>
-          <table class="table table-bordered">
-          {% for acl in target.acl %}
-          <tr>
-            <td>
-            {{acl}}
-            </td>
-            <td>
-              <a href="/remove_iscsi_acl?target_name={{target.iqn}}&acl={{acl}}" role="button" class="btn btn-danger"> Remove this ACL</a>
-            </td>
-          </tr>
-          {%endfor%}
-          </table>
-          <p>
-          <a href="/add_iscsi_acl?target_name={{target.iqn}}" role="button" class="btn btn-primary"> Add an ACL</a>
-          <hr>
+                {%endfor%}
+              </table>
+            {%else%}
+              No LUNs created
+            {%endif%}
+          </div><!--panel-body-->
+        </div><!--panel-collapse-->
+      </div><!--panel-->
 
-  <p>
- <a href="/view_iscsi_targets" role="button" class="btn btn-default"> Back to targets list</a>
- <a href="/delete_iscsi_target?target_name={{target.iqn}}" role="button" class="btn btn-danger">Delete this ISCSI target</a>
- </p>
- <br> <br>
+      <div class="panel panel-default">
+        <div class="panel-heading"   role="tab" id="heading1">
+          <h5 class="panel-title ">
+          <a role="button" data-toggle="collapse" data-parent="#accordion" href="#user_auth" aria-expanded="true" aria-controls="user_auth">
+            <i class="fa fa-info-circle blue fa-1x"></i>
+            User based authentication<span class="caret"></span>
+          </a>
+          </h5>
+        </div> <!--panel-heading-->
+        <div id="user_auth" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading1">
+          <div class="panel-body">
+            {%if target.accounts %}
+              <table class="table table-bordered">
+                <tr>
+                  <th> Username </th>
+                  <th> Authentication type </th>
+                  <th> Action </th>
+                </tr>
+                {%for account in target.accounts %}
+                  <tr>
+                    <td> {{account.user}} &nbsp; </td>
+                    <td>
+                      {%if account.type == 'incoming'%}
+                        Initiator authentication
+                      {%else%}
+                        Target authentication
+                      {%endif%}
+                    </td>
+                    <td>
+                      <div class="btn-group btn-group-xs " >
+                        <a class="btn btn-default dropdown-toggle " data-toggle="dropdown" href="#" title="Click to view actions "> <i class="fa fa-cog fa-fw"></i>Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+                        <ul class="dropdown-menu pull-right">
+                          <li><a  class="action-dropdown" href="/remove_iscsi_user_authentication?target_name={{target.iqn}}&username={{account.user}}&authentication_type={{account.type}}"  style="color:red" title="Remove this user" > <i class="fa fa-trash fa-fw"></i>Remove this user</a>
+                        </ul>
+                      </div>
+                    </td>
+                  </tr>
+                {%endfor%}
+              </table>
+            {%else%}
+              No user based authentication defined.
+            {%endif%}
+            <p>
+            </p>
+          </div><!--panel-body-->
+        </div><!--panel-collapse-->
+      </div><!--panel-->
+
+      <div class="panel panel-default">
+        <div class="panel-heading"   role="tab" id="heading1">
+          <h5 class="panel-title ">
+          <a role="button" data-toggle="collapse" data-parent="#accordion" href="#acls" aria-expanded="true" aria-controls="acls">
+            <i class="fa fa-info-circle blue fa-1x"></i>
+            ACLs (Authorized IPs/Initiators)<span class="caret"></span>
+          </a>
+          </h5>
+        </div> <!--panel-heading-->
+        <div id="acls" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading1">
+          <div class="panel-body">
+            {%if target.acl %}
+              <table class="table table-bordered">
+                {% for acl in target.acl %}
+                  <tr>
+                    <td> {{acl}} </td>
+                    <td>
+                      <div class="btn-group btn-group-xs " >
+                        <a class="btn btn-default dropdown-toggle " data-toggle="dropdown" href="#" title="Click to view actions "> <i class="fa fa-cog fa-fw"></i>Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+                        <ul class="dropdown-menu pull-right">
+                          <li><a  class="action-dropdown" href="/remove_iscsi_acl?target_name={{target.iqn}}&acl={{acl}}"  style="color:red" title="Remove this ACL" > <i class="fa fa-trash fa-fw"></i>Remove this ACL</a>
+                        </ul>
+                      </div>
+                    </td>
+                  </tr>
+                {%endfor%}
+              </table>
+            {%else%}
+              No ACLs defined.
+            {%endif%}
+            <p>
+          </div><!--panel-body-->
+        </div><!--panel-collapse-->
+      </div><!--panel-->
+
+    </div><!--panel-group-->
+  </div><!--container-->
+
+<script>
+    $('.closeall').click(function(){
+      $('.panel-collapse.in')
+        .collapse('hide');
+        $('#open_all').show();
+        $('#close_all').hide();
+    });
+    $('.openall').click(function(){
+      $('.panel-collapse:not(".in")')
+        .collapse('show');
+        $('#close_all').show();
+        $('#open_all').hide();
+    });
+</script>
 
 {%endblock%}
+
 {%block help_header%}
-ISCSI target details
+  ISCSI target details
 {%endblock%}
+
 {%block help_body%}
-<p>Use this screen to view details about a particular ISCSI targetthat has been created. </p>
+  <p>Use this screen to view details about a particular ISCSI targetthat has been created. </p>
 {%endblock%}
 
 {% block tab_active %}

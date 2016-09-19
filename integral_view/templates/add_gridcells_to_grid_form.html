@@ -1,0 +1,31 @@
+{% extends 'gridcell_base.html' %}
+
+{%block tab_header%}
+  Scan for new GRIDCells
+{%endblock%}
+
+{%block inside_content%}
+  {% if no_new_gridcells %}
+    The hardware scan did not detect any new GRIDCells.<br/><br/>
+    <a class="btn btn-default btn-sm" href="/view_gridcells" title="Click to go back to the GRIDCells list page"><i class="fa fa-list fa-fw" ></i> Back to GRIDCells list</a>
+  {%else%}
+    {%include 'add_hardware_form.html'%}
+  {%endif%}
+
+{%endblock%}
+
+{%block help_header%}
+  Scan for new hardware help
+{%endblock%}
+
+{%block help_body%}
+  <p>This screen results of scanning the network for new GRIDCells that are not yet a part of the grid.</p>
+  <p>If any new GRIDCells are found and displayed on this screen then you may select the ones that you want to add to the grid. The unselected ones may then be subsequently added at any later point in time by scanning for new GRIDCells. You could use this as a way to keep some GRIDCells as standby in case of any failures.</p>
+  <p> If you find that a particular unused/new GRIDCell is not showing up on this screen then please ensure that it is powered on and connected to the network before running this process again.</p> 
+{%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('gridcell_list_tab')
+  </script>
+{% endblock %}

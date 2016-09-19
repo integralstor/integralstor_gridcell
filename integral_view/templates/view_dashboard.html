@@ -1,185 +1,252 @@
 {% extends 'dashboard_base.html' %}
 
 {%block tab_header%}
-  Integralstor GRIDCell Dashboard
+  GRIDCell Dashboard
 {%endblock%}
 
 {%block inside_content%}
-{%load utilities%}
-<br><br>
-<div class="row margin-left-1">
-  <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-    <div class="box ">
-      <div class="box-header">
-          <h3 class="box-title">GRIDCell Status</h3>
-          <div class="box-tools pull-right">
-              <button data-original-title="Collapse" class="btn btn-default btn-sm" data-widget="collapse" data-toggle="tooltip" title=""><i class="fa fa-minus"></i></button>
-          </div>
-      </div>
-      <div class="box-body">
-        <br />
-        <br />
-          <table class="table ">
-            <tr>
-              <td>Total number of GRIDCells</td>
-              <td>{{nodes|length}}</td>
-            </tr>
-            <tr>
-              <td {%if num_nodes_bad > 0 %}style="color:red"{%endif%}>Number of degraded GRIDCells</td>
-              <td {%if num_nodes_bad > 0 %}style="color:red"{%endif%}>{{num_nodes_bad}}</td>
-            </tr>
-            {%if num_nodes_bad %}
-            <tr>
-              <td style="color:red">Degraded GRIDCells</td>
-              <td style="color:red">{{bad_nodes|join:","}}</td>
-            </tr>
+  <div class="container" style="width:98%">
+    <a href="#" id="open_all" style="display:block" class="btn btn-default btn-xs openall pull-right">open all <i class="fa fa-expand fa-fw"></i></a> <a id="close_all" style="display:none" href="#" class="btn btn-default btn-xs closeall pull-right">Close all <i class="fa fa-compress fa-fw"></i></a>
+    <br><br>
+    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+
+      <div class="panel panel-default">
+        <div class="panel-heading"  {%if num_nodes_bad %} style="padding: 15px 30px 15px 15px; border-left: 5px solid #c87f0a;"{%endif%} role="tab" id="heading1">
+          <h5 class="panel-title ">
+          <a role="button" data-toggle="collapse" data-parent="#accordion" href="#gridcell_status" aria-expanded="true" aria-controls="gridcell_status">
+            {% if num_nodes_bad %}
+              <i class="fa fa-exclamation-circle red fa-1x"></i>
+            {%else%}
+              <i class="fa fa-check-circle green fa-1x"></i>
             {%endif%}
-            <tr>
-              <td>Number of GRIDCells in the storage pool</td>
-              <td>{{total_pool}}</td>
-            </tr>
-            <tr>
-              <td {%if num_pools_bad > 0 %}style="color:red"{%endif%}>Number of GRIDCells with storage pool issues</td>
-              <td {%if num_pools_bad > 0 %}style="color:red"{%endif%}>{{num_pools_bad}}</td>
-            </tr>
-            {%if num_pools_bad %}
-            <tr>
-              <td style="color:red">GRIDCells with storage pool issues</td>
-              <td style="color:red">{{bad_node_pools|join:","}}</td>
-            </tr>
+            GRIDCell status 
+            <span class="caret"></span>
+          </a>
+          <a href="/view_gridcells"  class="cover-page pull-right" title="Click here to view detailed information about the GRIDCells"> Details <i class="fa fa-arrow-circle-right blue fa-fw"></i></a>
+          </h5>
+        </div> <!--panel-heading-->
+        <div id="gridcell_status" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading2">
+          <div class="panel-body">
+            <table class="table ">
+              <thead>
+                <tr>
+                  <th> GRIDCell </th>
+                  <th> Status </th>
+                  <th> Details </th>
+              </tr>
+              </thead>
+              {%for h, info in system_info.items%}
+              <tr {%if info.node_status != 0%} style="color:red" {%endif%}>
+                <td>{{h}} {%if 'bond0_ip' in info%} ({{info.bond0_ip}}){%endif%}</td>
+                <td>{%if info.node_status != 0%} Degraded {%else%}Healthy {%endif%}</td>
+                <td><a href="/view_gridcell?gridcell_name={{h}}" role="button" class="btn btn-default btn-xs"> <i class="fa fa-info-circle fa-fw"></i> GRIDCell details</a></td>
+              </tr>
+              {%endfor%}
+            </table>
+          </div><!--panel-body-->
+        </div><!--panel-collapse-->
+      </div><!--panel-->
+
+      <div class="panel panel-default">
+        <div class="panel-heading" {%if num_pools_bad %} style="padding: 15px 30px 15px 15px; border-left: 5px solid #c87f0a;" {%endif%} role="tab" id="heading2">
+          <h5 class="panel-title ">
+          <a role="button" data-toggle="collapse" data-parent="#accordion" href="#storage_pool_status" aria-expanded="true" aria-controls="storage_pool_status">
+            {% if num_pools_bad %}
+              <i class="fa fa-exclamation-circle red fa-1x"></i>
+            {%else%}
+              <i class="fa fa-check-circle green fa-1x"></i>
             {%endif%}
-            <tr>
-              <td>Number of GRIDCells with clustered CIFS access</td>
-              <td>{{num_ctdb_nodes}}</td>
-            </tr>
-            <tr>
-              <td {%if num_bad_ctdb_nodes > 0 %}style="color:red"{%endif%}>Number of GRIDCells with clustered CIFS access issues</td>
-              <td {%if num_bad_ctdb_nodes > 0 %}style="color:red"{%endif%}>{{num_bad_ctdb_nodes}}</td>
-            </tr>
-            {%if num_bad_ctdb_nodes > 0 %}
-            <tr>
-              <td style="color:red">GRIDCells with clustered CIFS access issues</td>
-              <td style="color:red">
-                {%for t in bad_ctdb_nodes %}
-                {{t.0}}({{t.1}}), 
+            Storage pool status 
+            <span class="caret"></span>
+          </a>
+          </h5>
+        </div> <!--panel-heading-->
+        <div id="storage_pool_status" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading2">
+          <div class="panel-body">
+            <table class="table ">
+              <thead>
+                <tr>
+                  <th> GRIDCell </th>
+                  <th> Status </th>
+                  <th> Details </th>
+              </tr>
+              </thead>
+              {%for h, info in system_info.items%}
+                <tr {% if info.in_cluster and info.cluster_status != 1 %} style="color:red"{%endif%}>
+                  <td>{{h}}{%if 'bond0_ip' in info%} ({{info.bond0_ip}}){%endif%}</td>
+                  <td>{% if 'cluster_status_str' in info %} {{info.cluster_status_str}} {%else%} Not in cluster {%endif%}</td>
+                  <td><a href="/view_gridcell?gridcell_name={{h}}" role="button" class="btn btn-default btn-xs"> <i class="fa fa-info-circle fa-fw"></i> GRIDCell details</a></td>
+                </tr>
+              {%endfor%}
+            </table>
+          </div><!--panel-body-->
+        </div><!--panel-collapse-->
+      </div><!--panel-->
+
+      <div class="panel panel-default">
+        <div class="panel-heading" {%if num_bad_ctdb_nodes %} style="padding: 15px 30px 15px 15px; border-left: 5px solid #c87f0a;"{%endif%} role="tab" id="heading3">
+          <h5 class="panel-title ">
+          <a role="button" data-toggle="collapse" data-parent="#accordion" href="#ctdb_status" aria-expanded="true" aria-controls="ctdb_status">
+            {% if num_bad_ctdb_nodes %}
+              <i class="fa fa-exclamation-circle red fa-1x"></i>
+            {%else%}
+              <i class="fa fa-check-circle green fa-1x"></i>
+            {%endif%}
+            Clustered Windows access status 
+            <span class="caret"></span>
+          </a>
+          </h5>
+        </div> <!--panel-heading-->
+        <div id="ctdb_status" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading3">
+          <div class="panel-body">
+            <table class="table ">
+              <thead>
+                <tr>
+                  <th> GRIDCell name</td>
+                  <th> Status</td>
+                  <th> GRIDCell details</td>
+                </tr>
+              </thead>
+              {%for h, info in system_info.items%}
+                <tr {%if 'ctdb_status' in info and info.ctdb_status.lower != 'ok'%} class="danger" style="color:red"{%endif%}>
+                  <td>{{h}}{%if 'bond0_ip' in info%} ({{info.bond0_ip}}){%endif%}</td>
+                  <td>{%if 'ctdb_status' in info %} {{info.ctdb_status}} {%else%} Not providing clustered Windows access.{%endif%}</td>
+                  <td><a href="/view_gridcell?gridcell_name={{h}}" role="button" class="btn btn-default btn-xs"> <i class="fa fa-info-circle fa-fw"></i> GRIDCell details</a></td>
+                </tr>
+              {%endfor%}
+            </table>
+          </div><!--panel-body-->
+        </div><!--panel-collapse-->
+      </div><!--panel-->
+
+      <div class="panel panel-default">
+        <div class="panel-heading" {%if num_bad_volumes or num_quotas_exceeded %} style="padding: 15px 30px 15px 15px; border-left: 5px solid #c87f0a;"{%endif%} role="tab" id="heading4">
+          <h5 class="panel-title ">
+          <a role="button" data-toggle="collapse" data-parent="#accordion" href="#volume_status" aria-expanded="true" aria-controls="volume_status">
+            {% if num_bad_volumes or num_quotas_exceeded %}
+              <i class="fa fa-exclamation-circle red fa-1x"></i>
+            {%else%}
+              <i class="fa fa-check-circle green fa-1x"></i>
+            {%endif%}
+            Volumes status 
+            <span class="caret"></span>
+          </a>
+          <a href="/view_volumes"  class="cover-page pull-right" title="Click here to view detailed information about all volume"> Details <i class="fa fa-arrow-circle-right blue fa-fw"></i></a>
+          </h5>
+        </div> <!--panel-heading-->
+        <div id="volume_status" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading4">
+          <div class="panel-body">
+            {% if volume_info_list %}
+              <table class="table ">
+                <thead>
+                  <tr>
+                    <th> Volume name</td>
+                    <th> Status</td>
+                    <th> Data access status</td>
+                    <th> Processes status</td>
+                    <th> Size used (%)</td>
+                    <th> Size free</td>
+                    <th> Quota status</td>
+                  </tr>
+                </thead>
+                {%for vol in volume_info_list%}
+                  <tr {%if vol.data_access_status_code != 0 or not vol.processes_ok%} class="danger" style="color:red"{%endif%}>
+                    <td>{{vol.name}}</td>
+                    <td>{{vol.status_str}}</td>
+                    <td>{{vol.data_access_status}}</td>
+                    <td>{%if vol.processes_ok%} Healthy {%else%}Degraded{%endif%}</td>
+                    <td>{{vol.size_used_percent}}% ({{vol.size_used}} of {{vol.size_total}})</td>
+                    <td>{{vol.size_free}} </td>
+                    <td>
+                      {%if vol.name in soft_quota_exceeded_vols%} Soft quota exceeded.<br/>{%endif%} 
+                      {%if vol.name in hard_quota_exceeded_vols%} Hard quota exceeded.<br/>{%endif%} 
+                      {%if vol.name not in soft_quota_exceeded_vols and vol.name not in hard_quota_exceeded_vols %} OK {%endif%}
+                    </td>
+                  </tr>
                 {%endfor%}
-              </td>
-            </tr>
+              </table>
+            {%else%}
+              No volumes created.
             {%endif%}
-          </table>
-        </p>
-      </div><!-- /.box-body -->
-      <div class="box-footer">
-        <span class="pull-right">
-          <a href="/show/gridcells" role="button" {%if num_nodes_bad > 0 %}class="btn btn-warning">More Details <i class="fa fa-bell-o"></i> {%else%}class="btn btn-success">More Details <i class="fa fa-arrow-right"></i>{%endif%} </a>
-        </span>
-      </div><!-- /.box-footer-->
-    </div>
+          </div><!--panel-body-->
+        </div><!--panel-collapse-->
+      </div><!--panel-->
+
+      <div class="panel panel-default">
+        <div class="panel-heading"  role="tab" id="heading5">
+          <h5 class="panel-title ">
+          <a role="button" data-toggle="collapse" data-parent="#accordion" href="#shares_targets" aria-expanded="true" aria-controls="shares_targets">
+            Shares and targets
+            <span class="caret"></span>
+          </a>
+          <a href="/view_cifs_shares"  class="cover-page pull-right" title="Click here to view detailed information about all shares and targets"> Details <i class="fa fa-arrow-circle-right blue fa-fw"></i></a>
+          </h5>
+        </div> <!--panel-heading-->
+        <div id="shares_targets" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading4">
+          <div class="panel-body">
+            <table class="table ">
+              <tr>
+                <td>{{num_shares}} Windows shares created</td>
+              </tr>
+              <tr>
+                <td>{{num_targets}} ISCSI targets created</td>
+              </tr>
+            </table>
+          </div><!--panel-body-->
+        </div><!--panel-collapse-->
+      </div><!--panel-->
+
+    </div><!--panel-group-->
   </div>
 
-  <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-    <div class="box">
-      <div class="box-header">
-          <h3 class="box-title">Shares and Targets Information</h3>
-          <div class="box-tools pull-right">
-              <button data-original-title="Collapse" class="btn btn-default btn-sm" data-widget="collapse" data-toggle="tooltip" title=""><i class="fa fa-minus"></i></button>
-          </div>
-      </div>
-      <div class="box-body">
-          <table class="table ">
-            <tr>
-              <td>Total number of CIFS shares</td>
-              <td>{{num_shares}}</td>
-            </tr>
-            <tr>
-              <td>Total number of ISCSI targets</td>
-              <td>{{num_targets}}</td>
-            </tr>
-          </table>
-      </div><!-- /.box-body -->
-      <div class="box-footer">
-        <span class="pull-right">
-          <a href="/display_shares" role="button" class="btn btn-success">More Details <i class="fa fa-arrow-right"></i> </a>
-        </span>
-      </div><!-- /.box-footer-->
-    </div>
-  </div>
-  <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-    <div class="box">
-      <div class="box-header">
-          <h3 class="box-title">Volume Status</h3>
-          <div class="box-tools pull-right">
-              <button data-original-title="Collapse" class="btn btn-default btn-sm" data-widget="collapse" data-toggle="tooltip" title=""><i class="fa fa-minus"></i></button>
-          </div>
-      </div>
-      <div class="box-body">
-          <table class="table ">
-            <tr>
-              <td>Total number of volumes</td>
-              <td>{{volume_info_list|length}}</td>
-            </tr>
-            <tr>
-              <td {%if num_vols_bad > 0 %}style="color:red"{%endif%}>Number of degraded volumes</td>
-              <td {%if num_vols_bad > 0 %}style="color:red"{%endif%}>{{num_vols_bad}}</td>
-            </tr>
-            {%if num_volumes_bad %}
-            <tr>
-              <td style="color:red">Degraded volumes</td>
-              <td style="color:red">{{bad_volumes|join:","}}</td>
-            </tr>
-            {%endif%}
-            <tr>
-              <td {%if num_quotas_exceeded > 0 %}style="color:red"{%endif%}>Number of volumes exceeding quotas</td>
-              <td {%if num_quotas_exceeded > 0 %}style="color:red"{%endif%}>{{num_quotas_exceeded}}</td>
-            </tr>
-            {%if num_quotas_exceeded %}
-            <tr>
-              <td style="color:red">Volumes exceeding quotas</td>
-              <td style="color:red">{{quota_exceeded_vols|join:","}}</td>
-            </tr>
-            {%endif%}
-          </table>
-      </div><!-- /.box-body -->
-      <div class="box-footer">
-        <span class="pull-right">
-          <a href="/show/volume_info_all" role="button" {%if num_vols_bad > 0 %}class="btn btn-warning">More Details<i class="fa fa-bell-o"></i> {%else%}class="btn btn-success">More Details <i class="fa fa-arrow-right"></i>{%endif%} </a>
-        </span>
-      </div><!-- /.box-footer-->
-    </div>
-  </div>
-</div>
-<script type="text/javascript" src="/static/js/jquery.easypiechart.min.js"></script>
-<link rel="stylesheet"type="text/css" href="/static/css/jquery.easy-pie-chart.css">
+<!--
+  <script type="text/javascript" src="/static/js/jquery.easypiechart.min.js"></script>
+  <link rel="stylesheet"type="text/css" href="/static/css/jquery.easy-pie-chart.css">
 
-<script type="text/javascript">
-$(function() {
-    $('.chart').easyPieChart({
-      barColor : function(percent){
-                        if (percent <= 50)
-                          return '#008D4C'
-                        else if (percent >50 && percent <= 75)
-                          return '#F39C12'
-                        else
-                          return '#F56954'
-                      },
-      lineCap : 'round',
-      lineWidth : 2,
-      trackColor: '#eee',
-      animate : true,
-      size : 100,
+  <script type="text/javascript">
+    $('.closeall').click(function(){
+      $('.panel-collapse.in')
+        .collapse('hide');
+        $('#open_all').show();
+        $('#close_all').hide();
     });
-});
-</script>
-{%endblock%}
-{%block help_header%}
-Dashboard
-{%endblock%}
-{%block help_body%}
-<p>The IntegralView dashboard is a one stop page that gives you an overall view of the status and health of the IntegralStor system. From this page, you can get an idea of the health of each GRIDCell, the storage pool and of all the data volumes.</p>
+    $('.openall').click(function(){
+      $('.panel-collapse:not(".in")')
+        .collapse('show');
+        $('#close_all').show();
+        $('#open_all').hide();
+    });
+    $(function() {
+      $('.chart').easyPieChart({
+        barColor : function(percent){
+          if (percent <= 50)
+            return '#008D4C'
+          else if (percent >50 && percent <= 75)
+            return '#F39C12'
+          else
+            return '#F56954'
+        },
+        lineCap : 'round',
+        lineWidth : 2,
+        trackColor: '#eee',
+        animate : true,
+        size : 100,
+      });
+    });
+  </script>
+-->
 {%endblock%}
 
-{% block menu_active %}
+{%block help_header%}
+  Dashboard
+{%endblock%}
+
+{%block help_body%}
+  <p>The IntegralView dashboard is a one stop page that gives you an overall view of the status and health of the IntegralStor system. From this page, you can get an idea of the health of each GRIDCell, the storage pool and of all the data volumes.</p>
+{%endblock%}
+
+{% block tab_active %}
 <script>
-  make_side_menu_active("dashboard_menu")
+  make_tab_active('dashboard_tab')
 </script>
 {% endblock%}

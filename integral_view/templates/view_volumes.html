@@ -1,0 +1,68 @@
+{% extends 'volume_base.html' %}
+
+{%block tab_header%}
+  Volume Configuration
+{%endblock%}
+
+{%block global_actions %}
+  <div class="btn-group btn-group-sm pull-right" >
+    <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Click for volume actions" href="#"> <i class="fa fa-cog fa-fw"></i> Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+    <ul class="dropdown-menu">
+      <li><a class="action-dropdown" href="/volume_creation_wizard/select_vol_name"  title="Create a new volume"> <i class="fa fa-plus fa-fw"></i>Create a new volume</a>
+    </ul>
+  </div>
+{%endblock%}
+
+{%block inside_content %}
+
+  {%if volume_info_list %}
+
+    <table class="table" style="width:95%;margin:0 auto">
+      <thead> 
+        <tr>
+          <th> Volume Name </th>
+          <th> Volume status </th>
+          <th> Actions </th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for volume_info in volume_info_list%}
+        <tr>
+          <td>{{volume_info.name}}</td>
+          <td>{{volume_info.status_str}}</td>
+          <td>
+            <div class="btn-group btn-group-xs " >
+              <a class="btn btn-default dropdown-toggle " data-toggle="dropdown" href="#" title="Click to view volume actions "> <i class="fa fa-cog fa-fw"></i>Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+              <ul class="dropdown-menu pull-right">
+                <li><a  class="action-dropdown" href="/view_volume?vol_name={{volume_info.name}}"  title="View volume details" > <i class="fa fa-cog fa-fw"></i>Volume details</a>
+                {%if volume_info.status == 1 %}
+                  <li><a  class="action-dropdown" href="/volume_browser?vol_name={{volume_info.name}}"   title="Browse this volume" > <i class="fa fa-sitemap fa-fw"></i>Browse volume</a>
+                  <li><a  class="action-dropdown" href="/change_volume_status?vol_name={{volume_info.name}}&action=stop"  style="color:red" title="Stop this volume" > <i class="fa fa-stop-circle fa-fw"></i>Stop volume</a>
+                {%else%}
+                  <li><a  class="action-dropdown" href="/change_volume_status?vol_name={{volume_info.name}}&action=start"  title="Start this volume" > <i class="fa fa-play-circle fa-fw"></i>Start volume</a>
+                {%endif%}
+              </ul>
+            </div>
+          </td>
+        </tr>
+        {%endfor%}
+      </tbody>
+    </table>
+  {%else %}
+    No volumes created
+  {% endif %}
+{%endblock%}
+
+{%block help_header%}
+  Volume information
+{%endblock%}
+
+{%block help_body%}
+  <p>This page lists all data volumes that have been created along with brief details about its configuration. For more details, please select the desired volume.</p>
+{%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('view_volumes_tab')
+  </script>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'services_base.html' %}
+
+{%block tab_header%}
+  Windows(CIFS) authentication settings 
+{%endblock%}
+{%block global_actions %}
+  <div class="btn-group btn-group-sm pull-right" >
+    <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Click for actions" href="#"> <i class="fa fa-cog fa-fw"></i> Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+    <ul class="dropdown-menu">
+      <li><a  class="action-dropdown" href="/edit_cifs_authentication_settings"   title="Modify authentication settings for current authentication method" > <i class="fa fa-cog fa-fw"></i>Modify authentication settings</a>
+      <li><a  class="action-dropdown" href="/edit_cifs_authentication_method"   title="Modify authentication method" > <i class="fa fa-cog fa-fw"></i>Modify authentication method</a>
+    </ul>
+  </div>
+{%endblock%}
+
+{%block inside_content%}
+
+  {% if not auth_settings_dict %}
+    <p id="p-instructional-text"> You have not configured authentication settings.</p><br>
+    <a href="/edit_cifs_authentication_settings" role="button" class="btn btn-default">Configure authentication settings</a>
+  {%else%}
+    <p id="p-instruction-text">{{conf}}</p>
+    <table class="table table-bordered" style="width:60%">
+      <tr>
+        <th> Authentication mode: </th>
+        <td>
+          {% if auth_settings_dict.security == "ads" %} 
+            Active directory
+          {% elif auth_settings_dict.security == "users" %} 
+            Local users
+          {%endif%}
+        </td>
+      </tr>
+      {% if auth_settings_dict.security == "ads" %} 
+        <tr>
+          <th> AD server DNS name: </th>
+          <td> {{ auth_settings_dict.password_server }} </td>
+        </tr>
+        <tr>
+          <th> AD server IP address: </th>
+          <td> {{ auth_settings_dict.password_server_ip }} </td>
+        </tr>
+        <tr>
+          <th> AD Domain/Realm: </th>
+          <td> {{ auth_settings_dict.realm }} </td>
+        </tr>
+        <tr>
+          <th> AD UNIX Services Manager : </th>
+          <td>
+            {% if auth_settings_dict.ad_schema_mode == "rfc2307" %}
+              Identity Management For Unix
+            {%else%}
+              Services For Unix
+            {%endif%}
+          </td>
+        </tr>
+        <tr>
+          <th>
+            AD UID Mapping range :
+          </th>
+          <td> {{ auth_settings_dict.id_map_min }} - {{auth_settings_dict.id_map_max}} </td>
+        </tr>
+      {%endif%}
+      <tr>
+        <th> Workgroup: </th>
+        <td> {{ auth_settings_dict.workgroup }} </td>
+      </tr>
+    </table>
+
+  {%endif%}
+
+{%endblock%}
+
+{%block help_header%}
+  Windows (CIFS) authentication settings
+{%endblock%}
+
+{%block help_body%}
+  <p>Use this screen to view the current Windows access configuration against which authentication for share access will happen. Please ensure that you provide the correct server name, IP address and administrative user password in order for the authentication to proceed properly.</p>
+{%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('service_cifs_access_tab')
+  </script>
+{% endblock %}

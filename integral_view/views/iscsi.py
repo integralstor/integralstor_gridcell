@@ -614,7 +614,7 @@ def iscsi_create_target(request):
 
   return_dict = {}
   try:
-    vil, err = volume_info.get_volume_info_all()
+    vil, err = volume_info.get_basic_volume_info_all()
     if err:
       raise Exception(err)
     vl, err = iscsi.load_iscsi_volumes_list(vil)
@@ -673,7 +673,7 @@ def iscsi_edit_target(request):
 
   return_dict = {}
   try:
-    vil, err = volume_info.get_volume_info_all()
+    vil, err = volume_info.get_basic_volume_info_all()
     if err:
       raise Exception(err)
     vl, err = iscsi.load_iscsi_volumes_list(vil)

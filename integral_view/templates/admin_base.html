@@ -1,31 +1,11 @@
 {% extends 'logged_in_base.html' %}
 
-
-{% block contents %}
-  <div class="nav-tabs-custom">
-	<ul class="nav nav-tabs">
-	  <li id="admin_change_pass_tab"><a href="/change_admin_password/">Change admin password</a></li>
-	  <li id="initiate_scrub_tab"><a href="/initiate_scrub/">Schedule ZFS Pool Scrub </a></li>
-	  <li id="download_config_tab"><a href="/download_system_config/">Download system configuration</a></li>
-	  <li id="scheduled_jobs_tab"><a href="/view_scheduled_jobs/"> View Scheduled Jobs </a></li>
-    	  {% include 'help_and_refresh.html' %}
-        </ul>
-        <div class="tab-content">
-          <div class="tab-pane active" id="content">
-             <span class="bigger-120">
-                <i class="fa fa-circle text-yellow"></i>
-                <span> {% block tab_header %}Information{% endblock %}</span>
-            </span>
-            <span class="white-space:pre-line"></span>
-             {% block inside_content %}
-              Information Not found. Please refresh the page
-             {% endblock inside_content %}
-          </div>
-        </div>
-      </div>
+{%block tab_items %}
+  <li id="admin_change_pass_tab"><a href="/change_admin_password/">Change admin password</a></li>
 {% endblock%}
+
 {% block menu_active %}
-<script>
-   make_side_menu_active("admin_menu")
-</script>
+  <script>
+    make_side_menu_active("admin_menu")
+  </script>
 {% endblock%}

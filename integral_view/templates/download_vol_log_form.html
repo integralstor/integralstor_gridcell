@@ -1,11 +1,19 @@
-{% extends 'volume_log_base.html' %}
+{% extends 'log_base.html' %}
 
 {%block tab_header%}
   Download volume logs
 {%endblock%}
 
+{%block global_actions %}
+  <div class="btn-group btn-group-sm pull-right" >
+    <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Click for volume log actions" href="#"> <i class="fa fa-cog fa-fw"></i> Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+    <ul class="dropdown-menu">
+      <li><a  class="action-dropdown" href="/rotate_volume_logs"   title="Rotate volume logs" > <i class="fa fa-rotate-right fa-fw"></i>Rotate volume logs</a>
+    </ul>
+  </div>
+{%endblock%}
+
 {%block inside_content%}
-<br><br>
 
 <p id="p-instruction-text"> The requested log will be fetched as a zip file which you can save on your computer.</p>
 <form name="myform"  method="post">

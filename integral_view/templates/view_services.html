@@ -1,0 +1,90 @@
+{% extends 'services_base.html' %}
+
+{% block tab_header %}
+	View service status on individual GRIDCells
+{% endblock %}
+
+{% block inside_content %}
+  <div class="container" style="width:98%">
+    <a href="#" id="open_all" style="display:block" class="btn btn-default btn-xs openall pull-right"><i class="fa fa-expand fa-fw"></i> Open all </a> <a id="close_all" style="display:none" href="#" class="btn btn-default btn-xs closeall pull-right"><i class="fa fa-compress fa-fw"></i> Close all </a>
+    <br><br>
+    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+  
+      {%for gridcell_name, gridcell_info in system_info.items %}
+        <div class="panel panel-default">
+          <div class="panel-heading"   role="tab" id="heading1">
+            <h5 class="panel-title ">
+            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#tab{{forloop.counter}}" aria-expanded="true" aria-controls="tab{{forloop.counter}}">
+              <i class="fa fa-info-circle blue fa-1x"></i>
+              GRIDCell {{gridcell_name}}<span class="caret"></span>
+            </a>
+            </h5>
+          </div> <!--panel-heading-->
+          <div id="tab{{forloop.counter}}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading1">
+            <div class="panel-body">
+              <table class="table">
+                <tr>
+                  <th> Service name</th>
+                  <th> Service status</th>
+                  <th> Action </th>
+                </tr>
+                {%for service_name, service_status in gridcell_info.services.items %}
+                  {%if service_name != 'nfs' %}
+                    <tr>
+                      <td> {{service_name}}</td>
+                      <td> {{service_status.0}}, {{service_status.1}} </td>
+                      <td> 
+                        <div class="btn-group btn-group-xs " >
+                          <a class="btn btn-default dropdown-toggle " data-toggle="dropdown" href="#" title="Click to view actions "> <i class="fa fa-cog fa-fw"></i>Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+                          <ul class="dropdown-menu pull-right">
+                            {%if 'running' in service_status.1 %} 
+                              <li><a  class="action-dropdown" href="/change_service_status_on_gridcell?service={{service_name}}&action=stop&gridcell={{gridcell_name}}"  style="color:red" title="Stop this service" > <i class="fa fa-stop fa-fw"></i>Stop this service</a>
+                              <li><a  class="action-dropdown" href="/change_service_status_on_gridcell?service={{service_name}}&action=restart&gridcell={{gridcell_name}}"  style="color:red" title="Restart this service" > <i class="fa fa-stop fa-fw"></i>Restart this service</a>
+                            {%else%}
+                              <li><a  class="action-dropdown" href="/change_service_status_on_gridcell?service={{service_name}}&action=start&gridcell={{gridcell_name}}"  title="Start this service" > <i class="fa fa-run fa-fw"></i>Start this service</a>
+                            {%endif%}
+                          </ul>
+                        </div>
+                      </td>
+                    </tr>
+                  {%endif%}
+                {%endfor%}
+              </table>
+            </div><!--panel-body-->
+          </div><!--panel-collapse-->
+        </div><!--panel-->
+      {%endfor%}
+    </div><!--panel-group-->
+  </div><!--container-->
+
+<script>
+    $('.closeall').click(function(){
+      $('.panel-collapse.in')
+        .collapse('hide');
+        $('#open_all').show();
+        $('#close_all').hide();
+    });
+    $('.openall').click(function(){
+      $('.panel-collapse:not(".in")')
+        .collapse('show');
+        $('#close_all').show();
+        $('#open_all').hide();
+    });
+</script>
+{% endblock %}
+
+{%block help_header%}
+  View services
+{%endblock%}
+
+{%block help_body%}
+  <p>
+    This screen displays the status of the services running on each of the GRIDCells that are part of the grid. You can also use this screen to start or stop these services on a particular GRIDCell
+  </p>
+{%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('service_status_tab')
+  </script>
+{% endblock %}

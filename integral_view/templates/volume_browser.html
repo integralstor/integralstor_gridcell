@@ -1,0 +1,63 @@
+{% extends 'volume_base.html' %}
+
+{%block tab_header%}
+  Volume browser
+{%endblock%}
+
+{%block global_actions %}
+  <div class="btn-group btn-group-sm pull-right" >
+    <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Click for volume actions" href="#"> <i class="fa fa-cog fa-fw"></i> Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+    <ul class="dropdown-menu">
+      <li><a  class="action-dropdown" id="id_create_dir" title="Create a new subdirectory under selected directory" > <i class="fa fa-plus fa-fw"></i>Create a new directory<sup>*</sup></a>
+      <li><a  class="action-dropdown" id="id_remove_dir" title="Remove the selected directory and all its contents" > <i class="fa fa-trash fa-fw"></i>Remove selected directory</a>
+      <li><a  class="action-dropdown" href="/view_volume?vol_name={{vol_name}}"   title="Back to volume information and configuration" > <i class="fa fa-cog fa-fw"></i>Volume details</a>
+      <li><a  class="action-dropdown" href="/view_volumes"   title="Back to volume list" > <i class="fa fa-list fa-fw"></i>Volume list</a>
+    </ul>
+  </div>
+{%endblock%}
+
+{%block inside_content %}
+
+  <table  class="table " style="width:90%">
+    {%include "vol_dir_select.html"%}
+  </table>
+
+  <br/><br/>
+  <sup>*</sup> - Any new subdirectory will be created under the selected directory.
+
+  <script>
+    var url_params = ""
+    function path_selected(vol_name,path, final_path){
+      url_params =  "?vol_name="+vol_name+"&path="+path;
+    } 
+    $("#id_create_dir").click(function(){
+      if (url_params != "") {
+        document.location.href = '/create_volume_dir'+url_params;
+        return
+      } else {
+        alert("Please first select a parent directory");
+      }
+    });
+    $("#id_remove_dir").click(function(){
+      if (url_params != "") {
+        document.location.href = '/remove_volume_dir'+url_params
+      } else {
+        alert("Please first select a directory to remove");
+      }
+    });
+  </script>
+{%endblock%}
+
+
+{%block help_header%}
+  Create a directory within a volume
+{%endblock%}
+
+{%block help_body%}
+  <p>Use this screen to browse a volume and create a directory at any point in the directory tree.</p>
+{%endblock%}
+{% block tab_active %}
+  <script>
+    make_tab_active('view_volumes_tab')
+  </script>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'shares_and_targets_base.html' %}
+
+{%block tab_header%}
+  Windows share details
+{%endblock%}
+
+{%block global_actions %}
+  <div class="btn-group btn-group-sm pull-right" >
+    <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Click for share actions" href="#"> <i class="fa fa-cog fa-fw"></i> Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+    <ul class="dropdown-menu">
+      <li><a  class="action-dropdown" href="/edit_cifs_share?share_id={{share.share_id}}"   title="Modify share properties" > <i class="fa fa-cog fa-fw"></i>Modify share properties</a>
+      <li><a  class="action-dropdown" href="/delete_cifs_share?share_id={{share.share_id}}&name={{share.name}}" style="color:red"  title="Remove this share" > <i class="fa fa-trash fa-fw"></i>Remove this share</a>
+      <li><a  class="action-dropdown" href="/view_cifs_shares"   title="Back to shares list" > <i class="fa fa-list fa-fw"></i>Shares list</a>
+    </ul>
+  </div>
+{%endblock%}
+
+{%block inside_content%}
+
+  <p style="color:red;"> {{form.errors}}</p>
+
+  <table class="table table-bordered">
+    <tr>
+      <th> Share name: </th>
+      <td> {{ share.name }} </td>
+    </tr>
+    <tr>
+      <th> Volume: </th>
+      <td> {{share.vol}} </td>
+    </tr>
+    <tr>
+      <th> Directory in volume: </th>
+      <td> {{ share.path }} </td>
+    </tr>
+    <tr>
+      <th> Description: </th>
+      <td> {{ share.comment }} </td>
+    </tr>
+    <tr>
+      <th> Permissions </th>
+      <td>
+        {% if share.read_only %}
+          Readonly
+        {%else%}
+          Read/Write
+        {%endif%}
+      </td>
+    </tr>
+    <tr>
+      <th> Visibility </th>
+      <td>
+        {% if share.browseable %}
+          Browseable
+        {%else%}
+          Hidden
+        {%endif%}
+      </td>
+    </tr>
+    <tr>
+      <th> Access control </th>
+      <td>
+        {% if share.guest_ok %}
+          Accessable to everyone (Guest ok)
+        {%else%}
+          Accessable only to {%if valid_users_list%}{%for user in valid_users_list%}{%if forloop.counter > 1%}, {%endif%}{{user.name}}{%if user.grp %}(Group) {%else%}(User){%endif%}{%endfor%}{%endif%}{{validusers}}
+        {%endif%}
+      </td>
+    </tr>
+  </table>
+
+
+{%endblock%}
+
+{%block help_header%}
+  Share details
+{%endblock%}
+
+{%block help_body%}
+  <p>Use this screen to view details about a particular share that has been created. </p>
+{%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('view_cifs_shares_tab')
+  </script>
+{% endblock %}

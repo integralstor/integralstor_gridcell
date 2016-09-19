@@ -1,83 +1,87 @@
 {% extends 'gridcell_base.html' %}
 
-
-{%block status_selected%}
-  style="background-color:white;color:white;"
-{%endblock%}
-
 {%block tab_header%}
   GRIDCells information
 {%endblock%}
 
-{%block inside_content %}
-<br><br>
+{%block global_actions %}
+  <div class="btn-group btn-group-sm pull-right" >
+    <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Click for GRIDCell actions" href="#"> <i class="fa fa-cog fa-fw"></i> Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+    <ul class="dropdown-menu">
+      <li><a class="action-dropdown" href="/scan_for_new_gridcells"  title="Scan for new GRIDCells"> <i class="fa fa-search-plus fa-fw"></i>Scan for new GRIDCells</a>
+    </ul>
+  </div>
+{%endblock%}
 
-{% if message %}
-<p><i>{{message}}</i></p>
-{%endif%}
+{%block inside_content %}
+
   {%if system_info %}
-    {%if pending_minions %}
-    <br>
-    {%endif%}
-    <table class="table table-bordered table-striped table-hover table-condensed datatable" width="100%">
-      <thead class="bg-gray">
-        <tr>
-          <th> <button class="btn"> Name </button></th>
-          <th> <button class="btn"> Status</button></th>
-          <th> <button class="btn"> Storage pool status</button></th>
-          <th> <button class="btn"> GRIDCell details</button></th>
-          <th> <button class="btn"> Add to storage pool</button></th>
-          <th> <button class="btn"> Remove from storage pool</button></th>
-        </tr>
-      </thead>
+    <table class="table" style="width:95%;margin:0 auto">
+      <tr>
+        <th> Name </th>
+        <th> Hardware status</th>
+        <th> Storage pool status </th>
+        <th> Clustered Windows access status </th>
+        <th> Volumes on GRIDCell</th>
+        <th> Actions</th>
+      </tr>
       <tbody>
-        {% for node_name, node in system_info.items%}
-        <tr>
-          <td>{{node_name}}</td>
-          <td>
-            {%if node.node_status == 0%}
-            <i class="fa fa-check-circle green fa-1x"></i>
-            {%elif node.node_status == 1%}
-      	    <i class="fa fa-remove orange fa-1x"></i>	
-            {%else%}
-      	    <i class="fa fa-remove red fa-1x"></i>	
-            {%endif%}<br>
-            ({{node.node_status_str}})
-          </td>
-          <td>
-            {%if node.cluster_status == 1%}
-            <i class="fa fa-check-circle green fa-1x"></i>
-            {%else%}
-      	    <i class="fa fa-remove red fa-1x"></i>	
-            {%endif%}<br>
-            ({{node.cluster_status_str}})
-          </td>
-          <td> 
-            <a href="/show/node_status/{{node_name}}" role="button" class="btn btn-info">Details</a>
-          </td>
-          <td>
-            {%if gluster_addable_nodes  and node_name in gluster_addable_nodes%}
-            <form action="/add_a_node_to_pool/" method="POST">
-            <input type="hidden" name="node_name" value="{{node_name}}">
-            <button type="submit" class="btn btn-primary cover-page" >Add to storage pool</button>
-            </form>
-            {%elif node.cluster_status == 1 %}
-            In storage pool.<sup>*</sup>
-            {%else%}
-            Unhealthy GRIDCell.<sup>*</sup>
-            {%endif%}
-          </td>
-          <td>
-            {%if gluster_removable_nodes and node_name in gluster_removable_nodes %}
-            <form action="/remove_node_from_pool" method="GET">
-            <input type="hidden" name="node_name" value="{{node_name}}">
-            <button type="submit" class="btn btn-primary cover-page" >Remove from storage pool</button>
-            </form>
-            {%else%}
-            Cannot be removed. <sup>#</sup>
-            {%endif%}
-          </td>
-        </tr>
+        {% for gridcell_name, gridcell_info in system_info.items%}
+          <tr>
+            <td>{{gridcell_name}} {%if 'bond0_ip' in gridcell_info%} <br>({{gridcell_info.bond0_ip}}){%endif%}</td>
+            <td>
+              {%if gridcell_info.node_status == 0%}
+                <i class="fa fa-check-circle green fa-fw"></i>
+              {%elif gridcell_info.node_status == 1%}
+          	    <i class="fa fa-remove orange fa-fw"></i>	
+              {%else%}
+          	    <i class="fa fa-remove red fa-fw"></i>	
+              {%endif%}
+              ({{gridcell_info.node_status_str}})
+            </td>
+            <td>
+              {%if gridcell_info.in_cluster%}
+                {{gridcell_info.cluster_status_str}}
+              {%else%}
+                Not part of storage pool.
+              {%endif%}
+            </td>
+            <td>
+              {%if gridcell_info.ctdb_status%}
+                {{gridcell_info.ctdb_status}}
+              {%else%}
+                Not part of clustered windows access.
+              {%endif%}
+            </td>
+            <td>
+              {%if gridcell_info.volume_list%}
+                {%for vol in gricell_info.volume_list %}
+                  {{vol}},
+                {%endfor%}
+              {%else%}
+                No user volumes
+              {%endif%}
+            </td>
+            <td>
+              <div class="btn-group btn-group-xs " >
+                <a class="btn btn-default dropdown-toggle " data-toggle="dropdown" href="#" title="Click to view GRIDCell actions "> <i class="fa fa-cog fa-fw"></i>Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+                <ul class="dropdown-menu pull-right">
+                  <li><a  class="action-dropdown" href="/view_gridcell?gridcell_name={{gridcell_name}}"  title="View GRIDCell details" > <i class="fa fa-cog fa-fw"></i>GRIDCell details</a>
+                  {%if gluster_removable_gridcells and gridcell_name in gluster_removable_gridcells %}
+                    <li><a  class="action-dropdown" href="/remove_a_gridcell_from_storage_pool?gridcell_name={{gridcell_name}}"  style="color:red" title="Remove this GRIDCell from the storage pool" > <i class="fa fa-trash-o fa-fw"></i>Remove from storage pool</a>
+                  {%endif%}
+                  {%if gluster_addable_gridcells  and gridcell_name in gluster_addable_gridcells%}
+                    <li><a  class="action-dropdown" href="/add_a_gridcell_to_storage_pool?gridcell_name={{gridcell_name}}"  title="Add this GRIDCell to the storage pool" > <i class="fa fa-plus fa-fw"></i>Add to storage pool</a>
+                  {%endif%}
+                  {%if gridcell_name != 'gridcell-pri.integralstor.lan' and gridcell_name != 'gridcell-sec.integralstor.lan' and not gridcell_info.in_cluster%}
+                    <li><a  class="action-dropdown" href="/remove_gridcell_from_grid?gridcell_name={{gridcell_name}}"  style="color:red" title="Remove this GRIDCell from the grid" > <i class="fa fa-trash-o fa-fw"></i>Remove from grid</a>
+                  {%endif%}
+                  {%if gridcell_name != 'gridcell-pri.integralstor.lan' and gridcell_name != 'gridcell-sec.integralstor.lan' and gridcell_info.volume_list%}
+                    <li><a  class="action-dropdown" href="/replace_gridcell?gridcell_name={{gridcell_name}}"  style="color:red" title="Replace this GRIDCell with another" > <i class="fa fa-exchange-o fa-fw"></i>Replace with another GRIDCell</a>
+                  {%endif%}
+                </ul>
+              </div>
+           </td>
         {%endfor%}
       </tbody>
     </table>
@@ -85,29 +89,17 @@
     No GRIDCells in the grid
   {% endif %}
 
-  <br>
-  <sup>*</sup> - Gridcells can only be added to the storage pools if they are healthy and are not already a part of the storage pool.<br>
-  <sup>#</sup> - GRIDCells can only be removed from the storage pools if there is no volume data present in them. Check the volumes tab to see data locations.The primary and secondary gridcells cannot be removed from the storage pool.
+  <br/><br/>
+  <p>GRIDCells can only be added to the storage pools if they are healthy and are not already a part of the storage pool.</p>
+  GRIDCells can only be removed from the storage pools if there is no volume data present in them. Check the volumes tab to see data locations.The primary and secondary gridcells cannot be removed from the storage pool.
 {%endblock%}
 
 {%block help_header%}
-GRIDCell information
+  GRIDCell information
 {%endblock%}
 
 {%block help_body%}
   <p>This page lists all the GRIDCells that are part of the grid and GRIDCells that are available to be added to the GRID. Click on the appropriate buttons for more details about individual hardware configuration or status details.</p>
-{%endblock%}
-
-{%block datatables%}
-      $('.datatable').DataTable({
-        ordering: true,
-        paging: false,
-        responsive: true,
-        aoColumnDefs: [
-          { aTargets: [4], bSortable: false }
-        ],
-        aaSorting: [ [0, 'asc'] ],   
-    });
 {%endblock%}
 
 {% block tab_active %}

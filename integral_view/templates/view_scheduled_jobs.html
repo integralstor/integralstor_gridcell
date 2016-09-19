@@ -1,0 +1,45 @@
+{% extends 'batch_base.html' %}
+
+{% block tab_header %}
+  Scheduled jobs
+{% endblock %}
+
+{% block inside_content %}
+  {% if back_jobs %}
+    {% load utilities %}
+    <table class="table table-bordered table-hover">
+      <thead>
+        <tr>
+          <td> Job Name </td>
+          <td> Status </td>
+          <td> Created at  </td>
+          <td> Scheduled for </td>
+        </tr>
+      </thead>
+      <tbody>
+        {% for job in back_jobs %}
+          <tr>
+            <td><a href="/view_scheduled_job/{{job.task_id}}"> {{job.task_name}}</a> </td>
+            <td> {{job.status}}  </td>
+            <td> {{job.create_time|print_timestamp}} </td>
+            <td> {{job.initiate_time|print_timestamp}} </td>
+          </tr>
+        {% endfor %}
+      </tbody> 
+    </table>
+    <sup>*</sup> Only jobs that have run in the past 24 hours and jobs scheduled to be run in the next 24 hours will be listed here.
+  {% else %}
+    No background tasks scheduled
+  {% endif %}
+{% endblock %}
+{%block help_header%}
+  Scheduled jobs
+{%endblock%}
+{%block help_body%}
+  <p>This page displays a list of jobs scheduled to be run on the system. 
+{%endblock%}
+{% block tab_active %}
+  <script>
+    make_tab_active('scheduled_jobs_tab')
+  </script>
+{% endblock %}

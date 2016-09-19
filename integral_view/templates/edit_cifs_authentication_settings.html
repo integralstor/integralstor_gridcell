@@ -1,0 +1,64 @@
+{% extends 'services_base.html' %}
+
+{%block tab_header%}
+  CIFS Authentication Settings (Edit)
+{%endblock%}
+
+{%block inside_content%}
+
+  {{form.errors}}
+
+  <form name="save_form" action="" method="post" >
+    {{form.security}}
+    <input type="hidden" name="netbios_name" value="Fractalio">
+    <div  style=" position:relative;border:0px solid #DDDDDD;width:600px; padding:15px 15px 15px;margin:0px 15px;border-radius:4px 4px 0px 0px">
+      {%if form.data.security == "ads" or form.initial.security == "ads"%}
+        <div class="form-group" >
+          <label for="id_password_server" >Authentication server DNS name:</label>
+          <input type="text"  name="password_server" class="form-control" id="id_password_server" placeholder="Authentication server DNS name" value="{{form.password_server.value}}"> 
+          {{ form.password_server.errors }}
+        </div>
+        <div class="form-group" >
+          <label for="id_password_server_ip" >Authentication server IP address:</label>
+          <input type="text"  name="password_server_ip" class="form-control" id="id_password_server_ip" placeholder="Authentication server IP Address" value="{{form.password_server_ip.value}}"> 
+          {{ form.password_server_ip.errors }}
+        </div>
+        <div class="form-group" >
+          <label for="id_realm" >AD Domain/Realm:</label>
+          <input type="text"  name="realm" class="form-control" id="id_realm" placeholder="AD Domain/Realm:" value="{{form.realm.value}}"> 
+          {{ form.realm.errors }}
+        </div>
+        <div class="form-group" >
+          <label for="id_password" >AD Admininstrator password  </label> (Never stored. Used only to initially join AD realm) 
+          <input type="password"  name="password" class="form-control" id="id_password" placeholder="AD Administrator password"> 
+          {{ form.password_server.errors }}
+        </div>
+      {%endif%}
+      <div class="form-group" >
+        <label for="id_workgroup" >Workgroup:</label>
+        <input type="text"  name="workgroup" class="form-control" id="id_workgroup" placeholder="Workgroup" value="{{form.workgroup.value}}"> 
+        {{ form.workgroup.errors }}
+      </div>
+      <div class="btn-group btn-group-sm " >
+        <a href="/view_cifs_authentication_settings/" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
+        <button type="submit" class="btn btn-primary cover-page"> Save </button>
+    </div>
+  </form>
+
+{%endblock%}
+
+{%block help_header%}
+  Modify authentication settings
+{%endblock%}
+
+{%block help_body%}
+  <p> Use this screen to provide information about the settings for Windows (CIFS) authentication services against which authentication for share access will happen. Please ensure that you provide the correct server name, IP address and administrative user password in order for the authentication to proceed properly.</p>
+{%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('service_cifs_access_tab')
+  </script>
+{% endblock %}
+
+

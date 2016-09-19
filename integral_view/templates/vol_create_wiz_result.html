@@ -1,48 +1,41 @@
 {% extends 'volume_base.html' %}
 
-
-{%block status_selected%}
-  style="background-color:white;color:white;"
-{%endblock%}
-
 {%block tab_header%}
   Volume creation wizard - Result
 {%endblock%}
 
+{%block global_actions %}
+  <div class="btn-group btn-group-sm pull-right" >
+    <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Click for volume actions" href="#"> <i class="fa fa-cog fa-fw"></i> Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+    <ul class="dropdown-menu">
+      <li><a  class="action-dropdown" href="/view_volume?vol_name={{vol_name}}"   title="Back to volume information and configuration" > <i class="fa fa-cog fa-fw"></i>Volume details</a>
+      <li><a  class="action-dropdown" href="/view_volumes"   title="Back to volume list" > <i class="fa fa-list fa-fw"></i>Volume list</a>
+    </ul>
+  </div>
+{%endblock%}
+
 {%block inside_content %}
-<br><br>
 
-{% if app_debug %}
-Debug info - begin <br>
-Executed {{cmd}}<br>
-{{result_dict}}<br>
-Debug info - end <br><br>
-{%endif%}
-
-{{node_list}}
-{% if result_dict.op_status.op_ret == 0  %}
   <p>The system has created a volume named <b>{{vol_name}}</b>. </p>
 
   <p> The {%if vol_access == 'iscsi' %} blocks {%else %}files{%endif%} in this volume will be {%if vol_type == "distributed" %} spread {%else%}copied{%endif%} across the following disks. {%if vol_type == "replicated"%} Each {%if vol_access == 'iscsi' %} block {%else %}file{%endif%} will have {{repl_count}} copies. {%endif%} </p>
   
-  <p> The volume date will reside on the following disks :  </p>
+  <p> The volume data will reside on the following disks :  </p>
 
-    {%autoescape off %}{{node_list_str }}{%endautoescape%}
-  <p> <b> You must first <a href="/volume_specific_op/vol_start"> start the volume</a> before using it.</b></p>
-{%else%}
-Volume creation failed (Errno. {{result_dict.op_status.op_errno}} - {{result_dict.op_status.op_errstr}}, {{result_dict.op_status.output}}{% if result_dict.error_list %}, additional error message - {{result_dict.error_list}} {%endif%})
-{%endif%}
-
+  {%autoescape off %}{{node_list_str }}{%endautoescape%}
 
 {%endblock%}
+
 {%block help_header%}
-Volume creation - results
+  Volume creation - results
 {%endblock%}
+
 {%block help_body%}
-<p>The volume creation wizard guides you through many steps to create a particular type of volume. This screen displays the result of the whole process.</p>
+  <p>The volume creation wizard guides you through many steps to create a particular type of volume. This screen displays the result of the whole process.</p>
 {%endblock%}
+
 {% block tab_active %}
   <script>
-    make_tab_active('create_volume_tab')
+    make_tab_active('view_volumes_tab')
   </script>
 {% endblock %}

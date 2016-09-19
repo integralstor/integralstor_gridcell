@@ -1,0 +1,386 @@
+{% extends 'volume_base.html' %}
+
+{%block tab_header%}
+  Volume details for volume "{{vol.name}}"
+{%endblock%}
+
+{%block global_actions %}
+  <div class="btn-group btn-group-sm pull-right" >
+    <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Click for volume actions" href="#"> <i class="fa fa-cog fa-fw"></i> Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+    <ul class="dropdown-menu">
+      {%if vol.status == 1 %}
+        <li><a  class="action-dropdown" href="/volume_browser?vol_name={{vol.name}}"   title="Browse this volume" > <i class="fa fa-sitemap fa-fw"></i>Browse volume</a>
+        <li><a  class="action-dropdown" href="/set_dir_quota?vol_name={{vol.name}}"   title="Set quota for a volume directory" > <i class="fa fa-cog fa-fw"></i>Set directory quota</a>
+        <li><a  class="action-dropdown" href="/change_volume_status?vol_name={{vol.name}}&action=stop"  style="color:red" title="Stop this volume" > <i class="fa fa-stop-circle fa-fw"></i>Stop volume</a>
+        {%if distribute %}
+          <li><a  class="action-dropdown" href="/initiate_volume_rebalance?vol_name={{vol.name}}"   title="Initiate a volume rebalance" > <i class="fa fa-cog fa-fw"></i>Initiate volume rebalance</a>
+        {%endif%}
+      {%else%}
+        <li><a  class="action-dropdown" href="/change_volume_status?vol_name={{vol.name}}&action=start"  title="Start this volume" > <i class="fa fa-play-circle fa-fw"></i>Start volume</a>
+        <li><a  class="action-dropdown" href="/delete_volume?vol_name={{vol.name}}"  style="color:red" title="Delete this volume" > <i class="fa fa-trash fa-fw"></i>Delete volume</a>
+      {%endif%}
+      <li><a  class="action-dropdown" href="/set_volume_options?vol_name={{vol.name}}"   title="Modify volume options" > <i class="fa fa-cog fa-fw"></i>Modify volume options</a>
+      <li><a  class="action-dropdown" href="/expand_volume?vol_name={{vol.name}}"   title="Expand this volume" > <i class="fa fa-trash fa-fw"></i>Expand volume</a>
+      <li class="divider"></li>
+      <li><a  class="action-dropdown" href="/view_volumes"   title="Back to volume list" > <i class="fa fa-list fa-fw"></i>Volume list</a>
+    </ul>
+  </div>
+{%endblock%}
+
+{%block inside_content %}
+  <div class="container" style="width:98%">
+    <a href="#" id="open_all" style="display:block" class="btn btn-default btn-xs openall pull-right"><i class="fa fa-expand fa-fw"></i> Open all </a> <a id="close_all" style="display:none" href="#" class="btn btn-default btn-xs closeall pull-right"><i class="fa fa-compress fa-fw"></i> Close all </a>
+    <br><br>
+    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+
+      <div class="panel panel-default">
+        <div class="panel-heading"   role="tab" id="heading1">
+          <h5 class="panel-title ">
+          <a role="button" data-toggle="collapse" data-parent="#accordion" href="#basic_info" aria-expanded="true" aria-controls="basic_info">
+            Basic information <span class="caret"></span>
+          </a>
+          </h5>
+        </div> <!--panel-heading-->
+        <div id="basic_info" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="heading1">
+          <div class="panel-body">
+            <table class="table table-bordered">
+              <tr>
+                <td> Name </td>
+                <td> {{vol.name}} </td>
+              </tr>
+              <tr>
+                <td> State </td>
+                <td> {{vol.status_str}} </td>
+              </tr>
+              <tr>
+                <td> Type </td>
+                <td> {{vol.type}} </td>
+              </tr>
+              <tr>
+                <td> Access mode </td>
+                <td> {% if iscsi %} ISCSI block access {%else %} NFS/CIFS file access {%endif%} </td>
+              </tr>
+              <tr>
+                <td> Number of Data locations used </td>
+                <td> {{vol.brick_count}} </td>
+              </tr>
+              <tr>
+                {% if replicate %} 
+                  <td> Data replicated across </td>
+                  <td>
+                    <span class="pull-right "> {{vol.replica_count}} GRIDCell{% if vol.replica_count != '1' %}'s {%endif%} </span>
+                  </td>
+                {% elif distribute %}
+                  <td> Data distributed across </td>
+                  <td>
+                    {{vol.brick_count}} GRIDCell{% if vol.brick_count != '1' %}'s {%endif%} 
+                  </td>
+                {%endif%}
+              </tr>
+              <tr>
+                <td> Data locations </td>
+                <td>
+                  {%if vol.bricks  %}
+                    {%for br_list in vol.bricks%}
+                      {%for br in br_list%}
+                        {{br}}<br>
+                      {%endfor%}
+                    {%endfor%}
+                  {%endif%}
+                </td>
+              </tr>
+              {% if vol.options %}
+                <tr>
+                  <td> Extra Options: </td>
+                  <td> 
+                    <ol>
+                      {%for o in vol.options%}
+                        {% if o.name == "auth.reject" %}
+                          <span > Disallowed hosts (all access methods) : {{o.value}}</span>
+                        {% elif o.name == "auth.allow" %}
+                          <span > Permitted hosts (all access methods) : {{o.value}}</span>
+                        {% elif o.name == "nfs.rpc-auth-reject" %}
+                          <span >Disallowed hosts (NFS only) : {{o.value}}</span>
+                        {% elif o.name == "nfs.rpc-auth-allow" %}
+                          <span >Permitted hosts (NFS only) : {{o.value}}</span>
+                        {%else%}
+                          <li>{{o.name}}::{{o.value}}</li>
+                        {%endif%}
+                      {%endfor%}
+                    </ol>
+                  </td>
+                </tr>
+              {%endif%}
+            </table>
+          </div><!--panel-body-->
+        </div><!--panel-collapse-->
+      </div><!--panel-->
+
+      <div class="panel panel-default">
+        <div class="panel-heading"   role="tab" id="heading1">
+          <h5 class="panel-title ">
+          <a role="button" data-toggle="collapse" data-parent="#accordion" href="#space_util" aria-expanded="true" aria-controls="space_util">
+            Space utilization <span class="caret"></span>
+          </a>
+          </h5>
+        </div> <!--panel-heading-->
+        <div id="space_util" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading1">
+          <div class="panel-body">
+            {%if vol.status == 1 %}
+              <table class="table ">
+                <tr>
+                  <th>Size used (%)</th>
+                  <td> {{vol.size_used_percent}}% used </td>
+                </tr>
+                <tr>
+                  <th>Total usable capacity</th>
+                  <td> {{vol.size_total}} </td>
+                </tr>
+                <tr>
+                  <th> Space Used</th>
+                  <td> {{vol.size_used}} </td>
+                </tr>
+                <tr>
+                  <th> Space Free</th>
+                  <td> {{vol.size_free}} </td>
+                </tr>
+              </table>
+            {%else%}
+              Cannot retrieve space utilization as the volume is currently stopped.
+            {%endif%}
+          </div><!--panel-body-->
+        </div><!--panel-collapse-->
+      </div><!--panel-->
+
+      <div class="panel panel-default">
+        <div class="panel-heading"   role="tab" id="heading1">
+          <h5 class="panel-title ">
+          <a role="button" data-toggle="collapse" data-parent="#accordion" href="#quota_info" aria-expanded="true" aria-controls="quota_info">
+            Quota information <span class="caret"></span>
+          </a>
+          </h5>
+        </div> <!--panel-heading-->
+        <div id="quota_info" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading1">
+          <div class="panel-body">
+            <b>Quota enabled :</b> {%if quota_enabled%} Yes {%else%} No {%endif%} &nbsp;&nbsp;
+            {%if vol.status == 1 %}
+              {%if quota_enabled%}
+                <a href="/change_quota_status?vol_name={{vol.name}}&action=disable" role="button" class="btn btn-default btn-xs"> <i class="fa fa-toggle-off fa-fw"></i> Disable quotas </a>
+              {%else%}
+                <a href="/change_quota_status?vol_name={{vol.name}}&action=enable" role="button" class="btn btn-default btn-xs"> <i class="fa fa-toggle-on fa-fw"></i> Enable quotas </a>
+              {%endif%}
+            {%endif%}
+            <br><br>
+            {%if vol.status == 1 %}
+              {% if vol.quotas %}
+                <table class="table">          
+                  <tr>
+                    <th> Directory </th>
+                    <th> Hard limit </th>
+                    <th> Soft limit </th>
+                    <th> Used </th>
+                    <th> Available </th>
+                    <th> Soft limit exceeded </th>
+                    <th> Hard limit exceeded </th>
+                    <th> &nbsp;</th>
+                    <th> &nbsp;</th>
+                  </tr>
+                  {%for dir, quota in vol.quotas.items%}
+                    {% if quota.soft_limit_exceeded == 'Yes' %}
+                      <tr class="warning">
+                    {% elif quota.hard_limit_exceeded == 'Yes' %}
+                      <tr class="danger">
+                    {%else%}
+                      <tr>
+                    {%endif%}
+                        <td> {{dir}} </td>
+                        <td> {{quota.hard_limit_human_readable}} </td>
+                        <td> {{quota.soft_limit_percent}} </td>
+                        <td> {{quota.used_space_human_readable}} </td>
+                        <td> {{quota.avail_space_human_readable}} </td>
+                        <td> {{quota.sl_exceeded}} </td>
+                        <td> {{quota.hl_exceeded}} </td>
+                        <td> <a href="/set_dir_quota?vol_name={{vol.name}}&dir={{dir}}" role="button" class="btn btn-primary btn-xs"> Modify </a> </td>
+                        <td> <a href="/remove_dir_quota?vol_name={{vol.name}}&dir={{dir}}" role="button" class="btn btn-danger btn-xs"> Remove </a> </td>
+                      </tr>
+                  {%endfor%}
+                </table>          
+              {%else%}
+                <span class="pull-left"> No directory quotas have been set for this volume.</span>
+              {%endif%}
+              <br><br>
+              {%if quota_enabled%}
+                <a href="/set_dir_quota?vol_name={{vol.name}}" role="button" class="btn btn-primary btn-xs"> Add a new directory quota </a>
+              {%endif%}
+            {%else%}
+              Cannot retrieve quota details as the volume is currently stopped.
+            {%endif%}
+          </div><!--panel-body-->
+        </div><!--panel-collapse-->
+      </div><!--panel-->
+
+      <div class="panel panel-default">
+        <div class="panel-heading"   role="tab" id="heading1">
+          <h5 class="panel-title ">
+          <a role="button" data-toggle="collapse" data-parent="#accordion" href="#volume_status" aria-expanded="true" aria-controls="volume_status">
+            Volume status <span class="caret"></span>
+          </a>
+          </h5>
+        </div> <!--panel-heading-->
+        <div id="volume_status" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading1">
+          <div class="panel-body">
+            <table class="table">
+              <tr>
+                <th> Volume status </th>
+                <td> {{vol.status_str}}</td>
+              </tr>
+              <tr>
+                <th> Data access status </th>
+                <td> 
+                  {%if vol.status == 1 %}
+                    {{vol.data_access_status}}
+                  {%else%}
+                    Cannot retrieve data access status as the volume is currently stopped.
+                  {%endif%}
+                </td>
+              </tr>
+            </table>
+          </div><!--panel-body-->
+        </div><!--panel-collapse-->
+      </div><!--panel-->
+
+      <div class="panel panel-default">
+        <div class="panel-heading"   role="tab" id="heading1">
+          <h5 class="panel-title ">
+          <a role="button" data-toggle="collapse" data-parent="#accordion" href="#brick_status" aria-expanded="true" aria-controls="brick_status">
+            Data locations status <span class="caret"></span>
+          </a>
+          </h5>
+        </div> <!--panel-heading-->
+        <div id="brick_status" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading1">
+          <div class="panel-body">
+            {%if vol.status == 1 %}
+              <table class="table table-bordered" style="width:70%">
+                <tr>
+                  <th> Data location</th>
+                  <th> Status</th>
+                  <th> PID</th>
+                </tr>
+                {% for k, v in vol.brick_status.items %}
+                  <tr>
+                    <td> {{v.hostname}} </td>
+                    <td> {%if v.status == 1 %} Healthy {%else%} Degraded {%endif%} </td>
+                    <td> {{v.pid}} </td>
+                  </tr>
+                {%endfor%}
+              </table>
+            {%else%}
+              Cannot retrieve data locations status as the volume is currently stopped.
+            {%endif%}
+          </div><!--panel-body-->
+        </div><!--panel-collapse-->
+      </div><!--panel-->
+
+      <div class="panel panel-default">
+        <div class="panel-heading"   role="tab" id="heading1">
+          <h5 class="panel-title ">
+          <a role="button" data-toggle="collapse" data-parent="#accordion" href="#proc_status" aria-expanded="true" aria-controls="proc_status">
+            Data access process status <span class="caret"></span>
+          </a>
+          </h5>
+        </div> <!--panel-heading-->
+        <div id="proc_status" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading1">
+          <div class="panel-body">
+            {%if vol.status == 1 %}
+              <table class="table table-bordered" style="width:90%">
+                <thead>
+                  <tr>
+                    <th> Data location </th>
+                    <th> Process </th>
+                    <th> Status </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {%for br, st in vol.brick_status.items %}
+                    {% if st.self_heal_deamon_status or st.nfs_status %}
+                      {%if "replicate" in vol.type.lower %}
+                        <tr>
+                          <td> {{st.hostname}} </td>
+                          <td> Self heal deamon </td>
+                          <td>
+                            {% if st.self_heal_deamon_status == 1 %} Healthy {%else%} Down {%endif%}
+                          </td>
+                        </tr>
+                      {%endif%}
+                      <tr>
+                        <td> {{st.hostname}} </td>
+                        <td>
+                          NFS Server
+                        </td>
+                        <td>
+                          {% if st.nfs_status == 1 %} Healthy {%else%} Down {%endif%}
+                        </td>
+                      </tr>
+                    {%endif%}
+                  {%endfor%}
+                </tbody>
+              </table>
+            {%else%}
+              Cannot retrieve data access processes status as the volume is currently stopped.
+            {%endif%}
+          </div><!--panel-body-->
+        </div><!--panel-collapse-->
+      </div><!--panel-->
+
+
+    </div><!--panel-group-->
+  </div><!--container-->
+
+  {% if vol.data_access_status_code and vol.data_access_status_code != 0 %}
+    <p>The following data locations are having issues :</p>
+    <table class="table table-bordered" style="width:70%">
+      <tr>
+        <th> Problem GRIDCell </th>
+        <th> GRIDCell status
+      </tr>
+      {% for k, v in vol.brick_status.items %}
+        {%if v.status != 1 %}
+          <tr>
+            <td> {{v.hostname}} </td>
+            <td> <a href="/view_gridcell?gridcell_name={{v.hostname}}" class="btn btn-warning "> Details</a> </td>
+          </tr>
+        {%endif%}
+      {%endfor%}
+    </table>
+  {%endif%}
+
+
+  <script>
+    $('.closeall').click(function(){
+      $('.panel-collapse.in')
+        .collapse('hide');
+        $('#open_all').show();
+        $('#close_all').hide();
+    });
+    $('.openall').click(function(){
+      $('.panel-collapse:not(".in")')
+        .collapse('show');
+        $('#close_all').show();
+        $('#open_all').hide();
+    });
+  </script>
+
+{%endblock%}
+
+{%block help_header%}
+  Volume configuration
+{%endblock%}
+{%block help_body%}
+  <p>This page provides details configuration information about the selected data volume including all options that have been set for the volume and its quota, if set.</p>
+{%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('view_volumes_tab')
+  </script>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends 'volume_base.html' %}
+
+{%block tab_header %}
+  Remove volume "{{vol_name}}" - confirmation
+{%endblock%}
+
+{% block inside_content %}
+
+
+  <p id="p-warning-text">Removing a volume will erase all information about the volume and all the data in the volume. Are you sure you want to remove the volume "{{vol_name}}" from the system? </p>
+  <br>
+  <form action="/delete_volume/" method="POST">
+    <input type=hidden name="vol_name" value="{{vol_name}}">
+    <div class="btn-group btn-group-sm " >
+      <input type="button" class="btn btn-default" value="Cancel" onClick="window.location='/view_volume?vol_name={{vol_name}}'"> &nbsp;&nbsp;
+      <button type="submit" class="btn btn-danger cover-page" >Confirm and remove</button>
+    </div>
+  </form>
+
+{%endblock%}
+
+{%block help_header%}
+  Removing a volume confirmation.
+{%endblock%}
+
+{%block help_body%}
+  <p> This confirmation screen is being displayed because this operation will cause a removal of data. Please ensure that this is the intended operation before proceeding. </p>
+{%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('view_volumes_tab')
+  </script>
+{% endblock %}

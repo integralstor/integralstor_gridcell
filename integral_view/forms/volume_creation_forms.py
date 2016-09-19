@@ -1,5 +1,5 @@
 from django import forms
-from integralstor_gridcell import volume_info
+from integralstor_gridcell import gluster_volumes
 
 class VolTypeForm(forms.Form):
   ch = [('distributed', r'Distribute my files across disks(Higher performance, no reduncancy)'), ('replicated', r'Make copies of  my files across multiple disks (Redundancy with higher storage overhead)')]
@@ -25,7 +25,7 @@ class VolumeNameForm(forms.Form):
 
   def clean_volume_name(self):
     name = self.cleaned_data["volume_name"]
-    vol_exists, err = volume_info.volume_exists(None, name)
+    vol_exists, err = gluster_volumes.volume_exists(None, name)
     if err:
       raise Exception(err)
     if vol_exists:

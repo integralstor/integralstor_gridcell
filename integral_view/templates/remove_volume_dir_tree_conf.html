@@ -1,0 +1,34 @@
+{% extends 'volume_base.html' %}
+
+{%block tab_header %}
+  Remove a volume directory - confirmation
+{%endblock%}
+
+{% block inside_content %}
+
+  <p id="p-warning-text">Are you sure you want to remove the complete directory tree at "{{path}}" in volume "{{vol_name}}"? </p>
+  <br>
+  <form action="/remove_volume_dir/" method="POST">
+    <input type=hidden name="vol_name" value="{{vol_name}}">
+    <input type=hidden name="path" value="{{path}}">
+    <div class="btn-group btn-group-sm " >
+      <input type="button" class="btn btn-default" value="Cancel" onClick="window.location='/volume_browser?vol_name={{vol_name}}'"> &nbsp;&nbsp;
+      <button type="submit" class="btn btn-danger cover-page" >Confirm and remove</button>
+    </div>
+  </form>
+
+{%endblock%}
+
+{%block help_header%}
+  Remove a volume directory confirmation
+{%endblock%}
+
+{%block help_body%}
+  <p>Confirming this operation results in the directory and all its contents and subdirectories being removed from the system. Please ensure that this is actually intended before continuing.</p>
+{%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('view_volumes_tab')
+  </script>
+{% endblock %}

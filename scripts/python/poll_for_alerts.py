@@ -2,7 +2,7 @@
 import urllib, urllib2, sys, os, time
 
 from integralstor_common import alerts, lock  
-from integralstor_gridcell import volume_info
+from integralstor_gridcell import gluster_volumes
 
 import atexit
 atexit.register(lock.release_lock, 'gluster_commands')
@@ -11,7 +11,7 @@ atexit.register(lock.release_lock, 'gridcell_poll_for_alerts')
 def check_quotas():
   alert_list = []
   try:
-    vil, err = volume_info.get_volume_info_all()
+    vil, err = gluster_volumes.get_complete_volume_info_all()
     if err:
       raise Exception(err)
     if vil:

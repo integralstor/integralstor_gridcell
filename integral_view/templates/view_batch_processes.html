@@ -1,0 +1,60 @@
+{% extends 'batch_base.html' %}
+
+{%block tab_header%}
+  Batch processes
+{%endblock%}
+
+{%block inside_content%}
+
+  {%if file_list %}
+    <table class="table table-condensed table-hover">
+      <thead>
+        <tr>
+          <th> Process </th>
+          <th> Time requested</th>
+          <th> Time started </th>
+          <th> Click for details </th>
+        </tr>
+      </thead>
+      {%for d in file_list %}
+        <tr>
+          <td> {{d.title}} </td>
+          <td> {{d.initiate_time}} </td>
+          <td>
+            {% if not d.start_time %}
+              Not started
+            {%else%}
+              {{d.start_time}}
+            {%endif%}
+          </td>
+          <td>
+            <div class="btn-group btn-group-xs " >
+              <a class="btn btn-default dropdown-toggle " data-toggle="dropdown" href="#" title="Click to view volume actions "> <i class="fa fa-cog fa-fw"></i>Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+              <ul class="dropdown-menu pull-right">
+                <li> <a class="action-dropdown" href="{{d.status_url}}"><i class="fa fa-info fa-fw"></i> Details</a>
+              </ul>
+            </div>
+          </td>
+        </tr>
+      {%endfor%}
+    </table>
+  {%else%}
+    No outstanding background processes.
+  {%endif%}
+
+{%endblock%}
+
+{%block help_header%}
+  Batch processes list
+{%endblock%}
+
+{%block help_body%}
+  <p>Anytime an action is performed from IntegralView that requires potentially large movement of data in volumes, a batch process is scheduled in order to perform this action. The batch processes are processed every minute. This page lists all such batch processes that have been scheduled. You can click on any particular process entry to view the details of that process.</p>
+{%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active("batch_processes_tab")
+  </script>
+{% endblock %}
+

@@ -1,43 +1,45 @@
 {% extends 'volume_base.html' %}
 
-
 {%block tab_header%}
-      Delete volume - results
+  Delete volume - results
 {%endblock%}
 
+{%block global_actions %}
+  <div class="btn-group btn-group-sm pull-right" >
+    <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Click for volume actions" href="#"> <i class="fa fa-cog fa-fw"></i> Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+    <ul class="dropdown-menu">
+      <li><a  class="action-dropdown" href="/view_volumes"   title="Back to volume list" > <i class="fa fa-list fa-fw"></i>Volume list</a>
+    </ul>
+  </div>
+{%endblock%}
 
 {%block inside_content %}
-<br><br>
-{% if app_debug %}
-Debug info - begin <br>
-{%for result_dict in result_list %}
-Executed {{result_dict.actual_command}}<br>
-{{result_dict}}<br>
-{%endfor%}
-Debug info - end <br><br>
-{%endif%}
 
-<table class="table table-condensed table-bordered">
-<tr>
-<th> Command </th>
-<th> Result </th>
-</tr>
-{%for result_dict in result_list %}
-<tr>
-<td> {{result_dict.command}} </td>
-<td> 
-{{result_dict.result }}
-</td>
-</tr>
-{%endfor%}
-</table>
-
-
+  <table class="table table-condensed table-bordered">
+    <tr>
+      <th> Command </th>
+      <th> Result </th>
+    </tr>
+    {%for result_dict in result_list %}
+      <tr>
+        <td> {{result_dict.command}} </td>
+        <td> {{result_dict.result }} </td>
+      </tr>
+    {%endfor%}
+  </table>
 
 {%endblock%}
+
 {%block help_header%}
-Delete volume help
+  Delete volume help
 {%endblock%}
+
 {%block help_body%}
-<p>Help about deleting volume results - need to be customized…</p>
+  <p>Help about deleting volume results - need to be customized…</p>
 {%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('view_volumes_tab')
+  </script>
+{% endblock %}

@@ -1,23 +1,24 @@
 {% extends 'services_base.html' %}
 
 {%block tab_header%}
-      NTP Settings (Edit)
+  NTP Settings (Edit)
 {%endblock%}
 
 {%block inside_content%}
-<br><br>
 
-<form action="/configure_ntp_settings/" method="post">
-<div  style=" position:relative;border:0px solid #DDDDDD;width:600px; padding:15px 15px 15px;margin:0px 15px;border-radius:4px 4px 0px 0px">
-  <div class="form-group" >
-    <label for="id_server_list" > NTP Server list (enter comma separated list of NTP server IP addresses or hostnames):</label>
-    <input type="text"  name="server_list" class="form-control" id="id_server_list" value="{{form.initial.server_list}}" placeholder="Enter comma separated list of NTP servers"> 
-    {{ form.server_list.errors }}
-  </div>
-  <a href="/show/ntp_settings/" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
-  <button type="submit" class="btn btn-primary cover-page">Save</button>
-</div>
-</form>
+  <form action="" method="post">
+    <div  style=" position:relative;border:0px solid #DDDDDD;width:600px; padding:15px 15px 15px;margin:0px 15px;border-radius:4px 4px 0px 0px">
+      <div class="form-group" >
+        <label for="id_server_list" > NTP Server list (enter comma separated list of NTP server IP addresses or hostnames):</label>
+        <input type="text"  name="server_list" class="form-control" id="id_server_list" value="{{form.initial.server_list}}" placeholder="Enter comma separated list of NTP servers"> 
+        {{ form.server_list.errors }}
+      </div>
+      <div class="btn-group btn-group-sm " >
+        <a href="/view_ntp_settings/" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
+        <button type="submit" class="btn btn-primary cover-page">Save</button>
+      </div>
+    </div>
+  </form>
 
 {%endblock%}
 
@@ -28,6 +29,7 @@
 {%block help_body%}
 	<p>The IntegralStor GRIDCells need to be time synchronised with your Active Directory server in order for Active Directory based authentication to work properly. This requires that the NTP time synchronisation protocol be setup. Please ensure that NTP is running on the Active Directory server and that these NTP settings point to the Active Directory server. Alternatively, you could have IntegralStor and the Active Directory servers point to the same external NTP server in order to synchronize the times.</p>
 {%endblock%}
+
 {% block tab_active %}
   <script>
     make_tab_active('service_ntp_tab')

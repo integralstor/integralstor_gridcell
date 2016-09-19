@@ -1,7 +1,7 @@
 #! /usr/bin/python
 import salt.wheel
 import sys, os, shutil
-from integralstor_gridcell import grid_ops, gluster_commands, system_info, ctdb
+from integralstor_gridcell import grid_ops, system_info, ctdb, gluster_trusted_pools, xml_parse
 from integralstor_common import common
 import salt.client
 from pwd import getpwnam
@@ -80,7 +80,7 @@ def check_for_primary_and_secondary(si):
 
 def empty_storage_pool(si, secondary):
   try :
-    d, err = gluster_commands.remove_node_from_pool(si, secondary)
+    d, err = gluster_trusted_pools.remove_a_gridcell_from_gluster_pool(secondary)
     if err:
       raise Exception(err)
   except Exception, e:
@@ -93,9 +93,6 @@ def create_admin_volume(client, primary, secondary):
 
   try :
     admin_vol_name, err = common.get_admin_vol_name()
-    if err:
-      raise Exception(err)
-    devel_files_path, err = common.get_devel_files_path()
     if err:
       raise Exception(err)
 
@@ -115,67 +112,35 @@ def create_admin_volume(client, primary, secondary):
 
     cmd = "gluster --mode=script volume create %s repl 2 %s:/frzpool/normal/%s %s:/frzpool/normal/%s force --xml"%(admin_vol_name, primary,  admin_vol_name, secondary, admin_vol_name)
     #print cmd
-    d, err = gluster_commands.run_gluster_command(cmd, "%s/create_volume.xml"%devel_files_path, "Admin volume creation")
+    #d, err = gluster_commands.run_gluster_command(cmd, "%s/create_volume.xml"%devel_files_path, "Admin volume creation")
+    d, err = xml_parse.run_gluster_command(cmd)
     if err:
-      raise Exception(err)
-    if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
-      print "Creating the IntegralStor Administration Volume... Done."
-      print
-    else:
-      err = ""
-      if "op_status" in d and "op_errstr" in d["op_status"]:
-        err = d["op_status"]["op_errstr"]
-      if "op_errno" in d["op_status"]:
-        err += ". Error number %d"%d["op_status"]["op_errno"]
       raise Exception("Error creating the admin volume : %s"%err)
+    print "Creating the IntegralStor Administration Volume... Done."
+    print
 
     '''
     # Not setting quorum for admin vol for now..
     print "Setting trusted pool client side quorum."
     cmd = "gluster volume set %s quorum-count 2 --xml"%admin_vol_name
-    d, err = gluster_commands.run_gluster_command(cmd, "%s/create_volume.xml"%devel_files_path, "Admin volume creation")
+    d, err = xml_parse.run_gluster_command(cmd)
     if err:
-      raise Exception(err)
-    if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
-      pass
-    else:
-      err = ""
-      if "op_status" in d and "op_errstr" in d["op_status"]:
-        err = d["op_status"]["op_errstr"]
-      if "op_errno" in d["op_status"]:
-        err += ". Error number %d"%d["op_status"]["op_errno"]
       raise Exception("Error setting trusted pool quorum count : %s"%err)
 
     cmd = "gluster volume set %s quorum-type fixed --xml"%admin_vol_name
-    d, err = gluster_commands.run_gluster_command(cmd, "%s/create_volume.xml"%devel_files_path, "Admin volume creation")
+    d, err = xml_parse.run_gluster_command(cmd)
     if err:
-      raise Exception(err)
-    if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
-      print "Setting trusted pool client side quorum... Done"
-      print
-    else:
-      err = ""
-      if "op_status" in d and "op_errstr" in d["op_status"]:
-        err = d["op_status"]["op_errstr"]
-      if "op_errno" in d["op_status"]:
-        err += ". Error number %d"%d["op_status"]["op_errno"]
       raise Exception("Error setting trusted pool quorum type : %s"%err)
+    print "Setting trusted pool client side quorum... Done"
+    print
     '''
 
     print "Starting the IntegralStor Administration Volume."
-    d, err = gluster_commands.run_gluster_command('gluster volume start %s --xml'%admin_vol_name, '', 'Starting admin vol')
+    d, err = xml_parse.run_gluster_command('gluster volume start %s --xml'%admin_vol_name)
     if err:
-      raise Exception(err)
-    if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
-      print "Starting the IntegralStor Administration Volume... Done."
-      print
-    else:
-      err = ""
-      if "op_status" in d and "op_errstr" in d["op_status"]:
-        err = d["op_status"]["op_errstr"]
-      if "op_errno" in d["op_status"]:
-        err += ". Error number %d"%d["op_status"]["op_errno"]
       raise Exception("Error starting the admin volume : %s"%err)
+    print "Starting the IntegralStor Administration Volume... Done."
+    print
     
   except Exception, e:
     return False, 'Error creating the admin volume : %s'%str(e)
@@ -188,41 +153,22 @@ def remove_admin_volume(client):
     admin_vol_name, err = common.get_admin_vol_name()
     if err:
       raise Exception(err)
-    devel_files_path, err = common.get_devel_files_path()
-    if err:
-      raise Exception(err)
 
 
     print "Stopping the IntegralStor Administration Volume."
-    d, err = gluster_commands.run_gluster_command('gluster --mode=script volume stop %s force --xml'%admin_vol_name, '', 'Stopping admin vol')
+    d, err = xml_parse.run_gluster_command('gluster --mode=script volume stop %s force --xml'%admin_vol_name)
     if err:
-      raise Exception(err)
-    if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
-      print "Stopping the IntegralStor Administration Volume... Done."
-      print
-    else:
-      err = ""
-      if "op_status" in d and "op_errstr" in d["op_status"]:
-        err = d["op_status"]["op_errstr"]
-      if "op_errno" in d["op_status"]:
-        err += ". Error number %d"%d["op_status"]["op_errno"]
       raise Exception("Error stopping the admin volume : %s"%err)
+    print "Stopping the IntegralStor Administration Volume... Done."
+    print
 
     cmd = "gluster --mode=script volume delete %s --xml"%admin_vol_name
     #print cmd
-    d, err = gluster_commands.run_gluster_command(cmd, "%s/delete_volume.xml"%devel_files_path, "Admin volume deletion")
+    d, err = xml_parse.run_gluster_command(cmd)
     if err:
-      raise Exception(err)
-    if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
-      print "Deleting the IntegralStor Administration Volume... Done."
-      print
-    else:
-      err = ""
-      if "op_status" in d and "op_errstr" in d["op_status"]:
-        err = d["op_status"]["op_errstr"]
-      if "op_errno" in d["op_status"]:
-        err += ". Error number %d"%d["op_status"]["op_errno"]
       raise Exception("Error deleting the admin volume : %s"%err)
+    print "Deleting the IntegralStor Administration Volume... Done."
+    print
 
     print "Deleting the bricks for the admin volume"
     r1 = client.cmd('roles:master', 'cmd.run_all', ['zfs destroy frzpool/normal/%s'%(admin_vol_name)], expr_form='grain')
@@ -552,7 +498,7 @@ def initiate_setup():
 
     do = raw_input("Create storage pool?")
     if do == 'y':
-      d, err = gluster_commands.add_a_node_to_pool(secondary)
+      d, err = gluster_trusted_pools.add_a_gridcell_to_gluster_pool(secondary)
       if not d:
         e = None
         if err:

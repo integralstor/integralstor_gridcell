@@ -1,97 +1,157 @@
 from django.conf.urls import patterns, include, url
+
 #from integral_view.views.iscsi import iscsi_display_global_config, iscsi_display_initiators, iscsi_display_targets, iscsi_view_initiator, iscsi_edit_initiator, iscsi_create_initiator, iscsi_delete_initiator, iscsi_display_auth_access_group_list, iscsi_create_auth_access_group, iscsi_view_auth_access_group, iscsi_delete_auth_access_group, iscsi_edit_auth_access_user, iscsi_edit_target_global_config, iscsi_view_target_global_config, iscsi_create_target,iscsi_view_target , iscsi_edit_target, iscsi_delete_target, iscsi_delete_auth_access_user, iscsi_create_auth_access_user
-from integral_view.views.stgt_iscsi_management import view_targets, view_target, create_iscsi_target, delete_iscsi_target, add_iscsi_user_authentication, remove_iscsi_user_authentication, create_iscsi_lun, delete_iscsi_lun, add_iscsi_acl, remove_iscsi_acl
-from integral_view.views.admin_auth  import login, logout, change_admin_password, configure_email_settings 
-from integral_view.views.trusted_pool_setup  import add_nodes_to_pool, remove_node_from_pool, add_a_node_to_pool
+
+from integral_view.views.stgt_iscsi_management import view_iscsi_targets, view_iscsi_target, create_iscsi_target, delete_iscsi_target, add_iscsi_user_authentication, remove_iscsi_user_authentication, create_iscsi_lun, delete_iscsi_lun, add_iscsi_acl, remove_iscsi_acl
+
+from integral_view.views.admin_auth  import login, logout, change_admin_password, configure_email_settings, view_email_settings
+
+from integral_view.views.gridcell_management  import view_gridcells, view_gridcell, remove_a_gridcell_from_storage_pool, add_a_gridcell_to_storage_pool, remove_a_gridcell_from_grid, scan_for_new_gridcells, replace_gridcell, replace_disk, identify_gridcell
+
 from integral_view.views.volume_creation import volume_creation_wizard, create_volume, create_volume_conf
-from integral_view.views.volume_management import volume_specific_op , expand_volume, replace_node, set_volume_options, delete_volume, replace_disk, deactivate_snapshot, activate_snapshot, create_snapshot, delete_snapshot, restore_snapshot, set_dir_quota, remove_dir_quota, change_quota_status
-from integral_view.views import perform_op
-from integral_view.views.common import show, refresh_alerts, raise_alert, internal_audit, configure_ntp_settings, reset_to_factory_defaults, flag_node, hardware_scan, remove_gridcell, download_configuration
-from integral_view.views.service_management import get_service_status,node_service_action,initiate_scrub,view_background_tasks,view_task_details,delete_task
-from integral_view.views.log_management import download_vol_log, download_sys_log, rotate_log, view_rotated_log_list, view_rotated_log_file, edit_integral_view_log_level
-#from integral_view.views.node_management import pull_node_status, node_status
-#from integral_view.views.share_management import samba_server_settings_basic, save_samba_server_settings_basic, samba_server_settings_security, save_samba_server_settings_security, display_shares, create_share, view_samba_share, edit_samba_share, display_users, edit_samba_user, create_user, create_unix_user, samba_server_settings, save_samba_server_settings, samba_server_settings, view_share, edit_share
-from integral_view.views.share_management import display_shares, create_share, samba_server_settings, save_samba_server_settings, view_share, edit_share, delete_share, edit_auth_method, view_local_users, create_local_user, change_local_user_password, delete_local_user
+
+from integral_view.views.batch_process_management import view_batch_processes, view_batch_process
+
+from integral_view.views.volume_management import view_volumes, view_volume, change_volume_status, expand_volume, set_volume_options, delete_volume, deactivate_snapshot, activate_snapshot, create_snapshot, delete_snapshot, restore_snapshot, set_dir_quota, remove_dir_quota, change_quota_status, initiate_volume_rebalance, volume_browser, create_volume_dir, remove_volume_dir, retrieve_volume_subdirs, volume_selector
+
+from integral_view.views.log_management import view_audit_trail, view_alerts, rotate_log, download_sys_log, view_rotated_log_list, view_rotated_log_file
+
+from integral_view.views.common import dashboard
+
+from integral_view.views.services_management import view_services,change_service_status_on_gridcell, view_ntp_settings, edit_ntp_settings
+
+from integral_view.views.scheduler_management import schedule_scrub,view_scheduled_jobs,view_scheduled_job,remove_scheduled_job
+
+from integral_view.views.log_management import download_vol_log, download_sys_log, rotate_log, view_rotated_log_list, view_rotated_log_file, refresh_alerts, raise_alert, internal_audit, download_system_configuration
+
+from integral_view.views.cifs_share_management import view_cifs_shares, create_cifs_share, view_cifs_share, edit_cifs_share, delete_cifs_share, edit_cifs_authentication_method , view_cifs_authentication_settings, edit_cifs_authentication_settings
+
+from integral_view.views.local_user_management import view_local_users, create_local_user, change_local_user_password, delete_local_user
+
 from django.contrib.auth.decorators import login_required
 from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
+    #From admin_auth
     url(r'^login/', login),
+    url(r'^logout/', logout),
     url(r'^$', login),
-    url(r'^raise_alert/', raise_alert),
-    url(r'^flag_node/', flag_node),
-    url(r'^internal_audit/', internal_audit),
     url(r'^change_admin_password/', login_required(change_admin_password),name="change_admin_password"),
-    url(r'^create_snapshot/', login_required(create_snapshot)),
-    url(r'^delete_snapshot/', login_required(delete_snapshot)),
-    url(r'^restore_snapshot/', login_required(restore_snapshot)),
-    url(r'^deactivate_snapshot/', login_required(deactivate_snapshot)),
-    url(r'^activate_snapshot/', login_required(activate_snapshot)),
-    url(r'^hardware_scan/', login_required(hardware_scan)),
-    url(r'^remove_gridcell/', login_required(remove_gridcell)),
+    url(r'^view_email_settings/', login_required(view_email_settings)),
     url(r'^configure_email_settings/', login_required(configure_email_settings)),
-    url(r'^reset_to_factory_defaults/', login_required(reset_to_factory_defaults)),
-    url(r'^configure_ntp_settings/', login_required(configure_ntp_settings)),
-    url(r'^display_shares/', login_required(display_shares)),
+
+
+    #From batch_process_management
+    url(r'^view_batch_processes/', login_required(view_batch_processes)),
+    url(r'^view_batch_process/', login_required(view_batch_process)),
+
+    #From cifs_share_management
+    url(r'^view_cifs_shares/', login_required(view_cifs_shares)),
+    url(r'^view_cifs_share/', login_required(view_cifs_share)),
+    url(r'^edit_cifs_share/', login_required(edit_cifs_share)),
+    url(r'^create_cifs_share/', login_required(create_cifs_share)),
+    url(r'^delete_cifs_share/', login_required(delete_cifs_share)),
+    url(r'^edit_cifs_authentication_method/', login_required(edit_cifs_authentication_method)),
+    url(r'^view_cifs_authentication_settings/', login_required(view_cifs_authentication_settings)),
+    url(r'^edit_cifs_authentication_settings/', login_required(edit_cifs_authentication_settings)),
+
+    #From common
+    url(r'^dashboard/', login_required(dashboard)),
+
+    #From gridcell_management
+    url(r'^view_gridcells/', login_required(view_gridcells)),
+    url(r'^view_gridcell/', login_required(view_gridcell)),
+    url(r'^scan_for_new_gridcells/', login_required(scan_for_new_gridcells)),
+    url(r'^remove_a_gridcell_from_grid/', login_required(remove_a_gridcell_from_grid)),
+    url(r'^add_a_gridcell_to_storage_pool/', login_required(add_a_gridcell_to_storage_pool)),
+    url(r'^remove_a_gridcell_from_storage_pool/', login_required(remove_a_gridcell_from_storage_pool)),
+    url(r'^replace_gridcell/', login_required(replace_gridcell)),
+    url(r'^replace_disk/', login_required(replace_disk)),
+    url(r'^identify_gridcell/', login_required(identify_gridcell)),
+
+    #From local_user_management
     url(r'^view_local_users/', login_required(view_local_users)),
     url(r'^create_local_user/', login_required(create_local_user)),
     url(r'^delete_local_user/', login_required(delete_local_user)),
     url(r'^change_local_user_password/', login_required(change_local_user_password)),
-    url(r'^create_share/', login_required(create_share)),
-    url(r'^view_share/', login_required(view_share)),
-    url(r'^edit_share/', login_required(edit_share)),
-    url(r'^view_service_status/', login_required(get_service_status)),
-    url(r'^node_service_action/', login_required(node_service_action)),
-    url(r'^edit_auth_method/', login_required(edit_auth_method)),
-    url(r'^delete_share/', login_required(delete_share)),
-    url(r'^auth_server_settings/', login_required(samba_server_settings)),
-    url(r'^save_samba_server_settings/', login_required(save_samba_server_settings)),
-    url(r'^replace_node/', login_required(replace_node)),
-    url(r'^replace_disk/', login_required(replace_disk)),
-    url(r'^edit_integral_view_log_level/', login_required(edit_integral_view_log_level)),
-    url(r'^set_volume_options/', login_required(set_volume_options)),
-    url(r'^set_dir_quota/', login_required(set_dir_quota)),
-    url(r'^remove_dir_quota/', login_required(remove_dir_quota)),
-    url(r'^change_quota_status/', login_required(change_quota_status)),
-    url(r'^remove_node_from_pool/', login_required(remove_node_from_pool)),
-    url(r'^show/([A-Za-z0-9_]+)/([a-zA-Z0-9_\-\.]*)', login_required(show),name="show_page"),
-    url(r'^refresh_alerts/([0-9_]*)', login_required(refresh_alerts)),
-    url(r'^logout/', logout,name="logout"),
-    url(r'^perform_op/([A-Za-z_]+)/([A-Za-z0-9_\-]*)/([A-Za-z0-9_\.\-\:\/]*)', login_required(perform_op.perform_op)),
-    url(r'^add_nodes_to_pool/', login_required(add_nodes_to_pool),name="add_nodes"),
-    url(r'^add_a_node_to_pool/', login_required(add_a_node_to_pool),name="add_a_node"),
-    url(r'^volume_creation_wizard/([A-Za-z_]+)', login_required(volume_creation_wizard)),
-    url(r'^create_volume/', login_required(create_volume)),
-    url(r'^delete_volume/', login_required(delete_volume)),
-    url(r'^create_volume_conf/', login_required(create_volume_conf)),
-    url(r'^volume_specific_op/([A-Za-z_]+)/([A-Za-z0-9_\-]*)', login_required(volume_specific_op)),
-    url(r'^expand_volume/', login_required(expand_volume)),
-    url(r'^volume_specific_op/create_volume_dir/', login_required(volume_specific_op),name="create_vol_dir"),
+
+    #From log_management
+    url(r'^view_alerts/', login_required(view_alerts)),
+    url(r'^view_audit_trail/', login_required(view_audit_trail)),
+    url(r'^rotate_log/([A-Za-z_]+)', login_required(rotate_log)),
     url(r'^download_vol_log/', login_required(download_vol_log)),
     url(r'^download_sys_log/', login_required(download_sys_log)),
-    url(r'^download_system_config/', login_required(download_configuration)),
-    url(r'^rotate_log/([A-Za-z_]+)', login_required(rotate_log)),
     url(r'^view_rotated_log_list/([A-Za-z_]+)', login_required(view_rotated_log_list)),
     url(r'^view_rotated_log_file/([A-Za-z_]+)', login_required(view_rotated_log_file)),
-    url(r'^first_login/', login_required(hardware_scan)),
-    url(r'^initiate_scrub/', login_required(initiate_scrub)),
+    url(r'^refresh_alerts/([0-9_]*)', login_required(refresh_alerts)),
+    url(r'^raise_alert/', login_required(raise_alert)),
+    url(r'^internal_audit/', login_required(internal_audit)),
+    url(r'^download_system_configuration/', login_required(download_system_configuration)),
 
+    #From scheduler_management
+    url(r'^schedule_scrub/', login_required(schedule_scrub)),
+    url(r'^view_scheduled_jobs/',login_required(view_scheduled_jobs)),
+    url(r'^view_scheduled_job/([0-9]*)',login_required(view_scheduled_job)),
 
-    url(r'^view_iscsi_targets/', login_required(view_targets)),
-    url(r'^view_iscsi_target/', login_required(view_target)),
+    #From services_management
+    url(r'^view_services/', login_required(view_services)),
+    url(r'^change_service_status_on_gridcell/', login_required(change_service_status_on_gridcell)),
+    url(r'^view_ntp_settings/', login_required(view_ntp_settings)),
+    url(r'^edit_ntp_settings/', login_required(edit_ntp_settings)),
+
+    #From stgt_iscsi_management
+    url(r'^view_iscsi_targets/', login_required(view_iscsi_targets)),
+    url(r'^view_iscsi_target/', login_required(view_iscsi_target)),
     url(r'^create_iscsi_target/', login_required(create_iscsi_target)),
     url(r'^delete_iscsi_target/', login_required(delete_iscsi_target)),
     url(r'^create_iscsi_lun/', login_required(create_iscsi_lun)),
     url(r'^delete_iscsi_lun/', login_required(delete_iscsi_lun)),
     url(r'^add_iscsi_user_authentication/', login_required(add_iscsi_user_authentication)),
+    url(r'^remove_iscsi_user_authentication/', login_required(remove_iscsi_user_authentication)),
     url(r'^add_iscsi_acl/', login_required(add_iscsi_acl)),
     url(r'^remove_iscsi_acl/', login_required(remove_iscsi_acl)),
-    url(r'^remove_iscsi_user_authentication/', login_required(remove_iscsi_user_authentication)),
-    url(r'^view_scheduled_jobs/',login_required(view_background_tasks)),
-    url(r'^delete_task/',login_required(delete_task)),
-    url(r'^view_task_details/([0-9]*)', login_required(view_task_details)),
+
+    #From volume_creation
+    url(r'^volume_creation_wizard/([A-Za-z_]+)', login_required(volume_creation_wizard)),
+    url(r'^create_volume_conf/', login_required(create_volume_conf)),
+    url(r'^create_volume/', login_required(create_volume)),
+
+    #From volume_management
+    url(r'^view_volumes/', login_required(view_volumes)),
+    url(r'^volume_selector/', login_required(volume_selector)),
+    url(r'^view_volume/', login_required(view_volume)),
+    url(r'^volume_browser/', login_required(volume_browser)),
+    url(r'^create_volume_dir/', login_required(create_volume_dir)),
+    url(r'^remove_volume_dir/', login_required(remove_volume_dir)),
+    url(r'^retrieve_volume_subdirs/', login_required(retrieve_volume_subdirs)),
+    url(r'^change_volume_status/', login_required(change_volume_status)),
+    url(r'^delete_volume/', login_required(delete_volume)),
+    url(r'^expand_volume/', login_required(expand_volume)),
+    url(r'^initiate_volume_rebalance/', login_required(initiate_volume_rebalance)),
+    url(r'^set_volume_options/', login_required(set_volume_options)),
+    url(r'^set_dir_quota/', login_required(set_dir_quota)),
+    url(r'^remove_dir_quota/', login_required(remove_dir_quota)),
+    url(r'^change_quota_status/', login_required(change_quota_status)),
+    url(r'^create_snapshot/', login_required(create_snapshot)),
+    url(r'^delete_snapshot/', login_required(delete_snapshot)),
+    url(r'^restore_snapshot/', login_required(restore_snapshot)),
+    url(r'^deactivate_snapshot/', login_required(deactivate_snapshot)),
+    url(r'^activate_snapshot/', login_required(activate_snapshot)),
+
+    #url(r'^edit_integral_view_log_level/', login_required(edit_integral_view_log_level)),
+    #url(r'^auth_server_settings/', login_required(samba_server_settings)),
+    #url(r'^save_samba_server_settings/', login_required(save_samba_server_settings)),
+    #url(r'^show/([A-Za-z0-9_]+)/([a-zA-Z0-9_\-\.]*)', login_required(show),name="show_page"),
+    #url(r'^perform_op/([A-Za-z_]+)/([A-Za-z0-9_\-]*)/([A-Za-z0-9_\.\-\:\/]*)', login_required(perform_op.perform_op)),
+    #url(r'^volume_specific_op/([A-Za-z_]+)/([A-Za-z0-9_\-]*)', login_required(volume_specific_op)),
+    #url(r'^volume_specific_op/create_volume_dir/', login_required(volume_specific_op),name="create_vol_dir"),
+    #url(r'^first_login/', login_required(hardware_scan)),
+
+
+    url(r'^remove_scheduled_job/',login_required(remove_scheduled_job)),
+    #url(r'^view_task_details/([0-9]*)', login_required(view_task_details)),
     
 )
 
