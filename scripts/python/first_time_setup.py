@@ -22,7 +22,7 @@ def scan_for_nodes():
     pending_nodes = ['gridcell-pri.integralstor.lan', 'gridcell-sec.integralstor.lan']
     print "Found the primary and secondary GRIDCells."
     print
-    (success, failed), err = grid_ops.add_nodes_to_grid("System setup process",pending_nodes, first_time = True, print_progress = True)
+    (success, failed), err = grid_ops.add_gridcells_to_grid("System setup process",pending_nodes, first_time = True, print_progress = True)
     if err:
       raise Exception(err)
     if (not success) :
@@ -272,7 +272,7 @@ def establish_default_configuration(client, si):
       if "interfaces" in node_info and "bond0" in node_info["interfaces"] and "inet" in node_info["interfaces"]["bond0"] and len(node_info["interfaces"]["bond0"]["inet"]) == 1:
         ip_list.append("%s"%node_info["interfaces"]["bond0"]["inet"][0]["address"])
 
-    rc, errors = ctdb.add_to_nodes_file(client, ip_list, False)
+    rc, errors = ctdb.add_to_nodes_file(ip_list)
     if not rc:
       if errors:
         raise Exception(errors)
@@ -295,7 +295,7 @@ def establish_default_configuration(client, si):
     # The initial add_nodes created the initial nodes file. So move this into the admin vol and link it all          
 
     print "Linking CTDB nodes files"
-    shutil.move('/etc/ctdb/nodes', '%s/lock/nodes'%config_dir)
+    #shutil.move('/etc/ctdb/nodes', '%s/lock/nodes'%config_dir)
     r2 = client.cmd('*', 'cmd.run_all', ['rm -f /etc/ctdb/nodes'])
     r2 = client.cmd('*', 'cmd.run_all', ['ln -s %s/lock/nodes /etc/ctdb/nodes'%config_dir])
     if r2:
