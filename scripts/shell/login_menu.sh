@@ -10,6 +10,12 @@ gluster_restart(){
 }
 
 set_cpu_cores(){
+  echo
+  TOTAL_CPU=$(nproc --all)
+  echo "Total CPU(s):" $TOTAL_CPU
+  onlin=$(getconf _NPROCESSORS_ONLN)
+  echo "Online cores are:" $onlin
+  echo
   read -p "Enter the number of cores to be disabled from [minimum 2][press 1 to reset]. " ip
   sh /opt/integralstor/integralstor_common/scripts/shell/cpu_core_dis.sh $ip
   sleep 1
@@ -68,6 +74,16 @@ set_as_secondary(){
   fi
 }
 
+salt_ping(){
+  if [ $primary == 0 -a $secondary == 0 ]
+  then
+    echo 'This functionality can only done on a primary or secondary GRIDCell'
+    pause
+  else
+    salt '*' test.ping
+    pause
+  fi
+}
 view_minion_status(){
   hn=`hostname`
   echo $hn
@@ -140,13 +156,16 @@ show_menu() {
     then
       echo "6. View minion status"
       echo "7. Initiate the first time grid setup"
+      echo "8. View GRIDCell salt responses"
     else
       echo "6. View minion status"
+      echo "8. View GRIDCell salt responses"
     fi
   fi
   if [ $secondary == 1 ]
   then
     echo "6. View minion status"
+    echo "8. View GRIDCell salt responses"
   fi
   echo "9. Restart GLUSTER Service"
   echo "10.Modify CPU cores"
@@ -188,6 +207,7 @@ read_input(){
         5) view_node_status;;
         6) view_minion_status ;;
         7) first_time_setup;;
+	8) salt_ping;;
         *)  echo "Not a Valid INPUT" && sleep 2
     	esac
     else
@@ -199,6 +219,7 @@ read_input(){
         4) view_node_config;;
         5) view_node_status;;
         6) view_minion_status ;;
+	8) salt_ping;;
         9) gluster_restart;;
         10)set_cpu_cores;;
         *)  echo "Not a Valid INPUT" && sleep 2
@@ -216,6 +237,7 @@ read_input(){
       4) view_node_config;;
       5) view_node_status;;
       6) view_minion_status ;;
+      8) salt_ping;;
       9) gluster_restart;;
       10)set_cpu_cores;;
       *)  echo "Not a Valid INPUT" && sleep 2
