@@ -1,0 +1,30 @@
+#!/bin/sh
+#
+# This script will be executed *after* all the other init scripts.
+# You can put your own initialization stuff in here if you don't
+# want to do the full Sys V style init stuff.
+set -x -v
+exec 1>/tmp/rc_local_log 2>&1
+touch /var/lock/subsys/local
+modprobe ipmi_devintf
+/usr/bin/python /opt/integralstor/integralstor_gridcell/scripts/python/configure_rc_local.py is_part_of_grid
+ret=$?
+if [[ $ret -eq 0 ]]
+then
+  /usr/bin/python /opt/integralstor/integralstor_gridcell/scripts/python/configure_rc_local.py mount_and_configure
+  ret=$?
+  if [[ $ret -eq 0 ]]
+  then
+    service ctdb restart
+    service winbind restart
+    service uwsgi restart
+    service nginx restart
+  fi
+  /usr/bin/python /opt/integralstor/integralstor_gridcell/scripts/python/configure_rc_local.py is_admin_gridcell
+  ret=$?
+  if [[ $ret -eq 0 ]]
+  then
+    service salt-master restart
+    service salt-minion restart
+  fi
+fi

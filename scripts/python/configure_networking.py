@@ -8,19 +8,36 @@ def configure_networking():
     change_ip = False
     change_netmask = False
     change_default_gateway = False
-    change_dns_primary = False
-    change_dns_secondary = False
-    change_dns_external = False
     change_bonding_type = False
     change_jumbo_frames = False
   
+    interfaces, err = networking.get_interfaces()
+    if err:
+      raise Exception(err)
+    if 'bond0' not in interfaces.keys():
+      if_list = interfaces.keys()
+      ret, err = networking.create_bond('bond0', if_list, 6)
+      if err:
+        raise Exception(err)
+      config_changed = True
+
     ip_info, err = networking.get_ip_info('bond0')
+    if err:
+      raise Exception(err)
+
+    '''
     if not ip_info :
       raise Exception("No bonding configured! Incorrect configuration. : %s"%err)
+    '''
   
     config_changed = False
-    ip = ip_info["ipaddr"]
-    str_to_print = "Enter IP address (currently %s, press enter to retain current value) : "%ip
+    if ip_info:
+      ip = ip_info["ipaddr"]
+      str_to_print = 'Enter IP address (currently "%s", press enter to retain current value) : '%ip
+    else:
+      ip = None
+      str_to_print = "Enter IP address (currently not configured) : "
+
     valid_input = False
     while not valid_input :
       input = raw_input(str_to_print)
@@ -32,13 +49,20 @@ def configure_networking():
           change_ip = True
           config_changed = True
       else:
-        valid_input = True
+        if ip:
+          #IP already existed and they are now not changing it so its ok.
+          valid_input = True
       if not valid_input:
         print "Invalid value. Please try again."
     print
   
-    netmask = ip_info["netmask"]
-    str_to_print = "Enter netmask (currently %s, press enter to retain current value) : "%netmask
+    if ip_info:
+      netmask = ip_info["netmask"]
+      str_to_print = 'Enter netmask (currently "%s", press enter to retain current value) : '%netmask
+    else:
+      netmask = None
+      str_to_print = "Enter netmask (currently not set) : "
+
     valid_input = False
     while not valid_input:
       input = raw_input(str_to_print)
@@ -50,20 +74,21 @@ def configure_networking():
           change_netmask = True
           config_changed = True
       else:
-        valid_input = True
+        if netmask:
+          #IP already existed and they are now not changing it so its ok.
+          valid_input = True
       if not valid_input:
         print "Invalid value. Please try again."
     print
   
-    hostname = socket.gethostname()
   
     default_gateway = None
-    if "default_gateway" in ip_info:
+    if ip_info and "default_gateway" in ip_info:
       default_gateway = ip_info["default_gateway"]
     else:
       default_gateway = None
     if default_gateway:
-      str_to_print = "Enter the default gateway's IP address (currently %s, press enter to retain current value) : "%default_gateway
+      str_to_print = 'Enter the default gateway\'s IP address (currently "%s", press enter to retain current value) : '%default_gateway
     else:
       str_to_print = "Enter the default gateway's IP address (currently not set, press enter to retain current value) : "
     valid_input = False
@@ -82,76 +107,27 @@ def configure_networking():
         print "Invalid value. Please try again."
     print
   
-    dns_list, err = networking.get_name_servers()
-    if err:
-      print 'Error retrieving current name servers : %s'%err
-    dns_primary = None
-    if not dns_list:
-      str_to_print = "Enter the IP address of the Integralstor primary GRIDCell (currently not set, press enter to retain current value) : "
-    else:
-      dns_primary = dns_list[0]
-      str_to_print = "Enter the IP address of the Integralstor primary GRIDCell (currently %s, press enter to retain current value) : "%dns_primary
+  
+    hostname = socket.gethostname()
+    str_to_print = 'Enter the GRIDCell hostname (currently "%s", press enter to retain current value) : '%hostname
     valid_input = False
+    change_hostname = False
     while not valid_input:
       input = raw_input(str_to_print)
       if input:
-        vi, err = networking.validate_ip(input)
+        vi, err = networking.validate_hostname(input)
         if vi:
           valid_input = True
-          dns_primary = input
-          change_dns_primary = True
+          hostname = input
+          change_hostname = True
           config_changed = True
       else:
         valid_input = True
       if not valid_input:
         print "Invalid value. Please try again."
     print
-  
-    dns_secondary = None
-    if (not dns_list) or (len(dns_list) <= 1):
-      str_to_print = "Enter the IP address of the Integralstor secondary GRIDCell (currently not set, press enter to retain current value) : "
-    else:
-      dns_secondary = dns_list[1]
-      str_to_print = "Enter the IP address of the Integralstor secondary GRIDCell (currently %s, press enter to retain current value) : "%dns_secondary
-    valid_input = False
-    while not valid_input:
-      input = raw_input(str_to_print)
-      if input:
-        vi, err = networking.validate_ip(input)
-        if vi:
-          valid_input = True
-          dns_secondary = input
-          change_dns_secondary = True
-          config_changed = True
-      else:
-        valid_input = True
-      if not valid_input:
-        print "Invalid value. Please try again."
-    print
-  
-    dns_external = None
-    if not dns_list:
-      str_to_print = "Enter the IP address of the customer's DNS server (currently not set, press enter to retain current value) : "
-    else:
-      if len(dns_list) > 2:
-        dns_external = dns_list[2]
-      str_to_print = "Enter the IP address of the customer's DNS server (currently %s, press enter to retain current value) : "%dns_external
-    valid_input = False
-    while not valid_input:
-      input = raw_input(str_to_print)
-      if input:
-        vi, err = networking.validate_ip(input)
-        if vi:
-          valid_input = True
-          dns_external = input
-          change_dns_external = True
-          config_changed = True
-      else:
-        valid_input = True
-      if not valid_input:
-        print "Invalid value. Please try again."
-    print
-  
+
+
     bonding_type, err = networking.get_bonding_type('bond0')
     print "Ethernet NIC bonding configuration"
     print "----------------------------------"
@@ -215,11 +191,8 @@ def configure_networking():
     print "The following are the choices that you have made :"
     print "IP address : %s"%ip
     print "Net Mask : %s"%netmask
-    #print "Hostname : %s"%hostname
+    print "Hostname : %s"%hostname
     print "Default gateway : %s"%default_gateway
-    print "IP address of the Integralstor primary GRIDCell : %s"%dns_primary
-    print "IP address of the Integralstor secondary GRIDCell : %s"%dns_secondary
-    print "IP address of the customer's DNS server: %s"%dns_external
     if bonding_type == 4:
       print "NIC Bonding mode : LACP"
     elif bonding_type == 6:
@@ -260,6 +233,8 @@ def configure_networking():
     restart_networking = False
     ip_dict = {}
     errors = []
+
+
     if change_ip or change_netmask or change_default_gateway or change_jumbo_frames:
       ip_dict["ip"] = ip
       ip_dict["netmask"] = netmask
@@ -275,34 +250,17 @@ def configure_networking():
         else:
           errors.append("Error setting IP configuration ")
       restart_networking = True
-      '''
-      #This is done to change the /etc/hosts file to the correct IP
-      rc = networking.change_hosts_file_entry(hostname, ip_info['ipaddr'], hostname, ip)
-      if rc == -1:
-        errors.append("Error setting IP configuration")
-      '''
 
-  
-    if change_dns_primary or change_dns_secondary or change_dns_external: 
-      fqdn = socket.getfqdn()
-      if fqdn == 'gridcell-pri.integralstor.lan':
-        if dns_external:
-          rc, err = networking.generate_default_primary_named_conf(dns_primary, netmask, dns_secondary, True, dns_external, True)
-        else:
-          rc, err = networking.generate_default_primary_named_conf(dns_primary, netmask, dns_secondary)
-        if err:
-          errors.append(err)
-        if not rc :
-          errors.append("Error setting DNS server configuration")
-      rc, err = networking.set_name_servers([dns_primary, dns_secondary, dns_external])
-      if not rc:
-        errors.append("Error setting name servers : %s"%err)
-  
-    if change_bonding_type:
-      rc, err = networking.set_bonding_type('bond0', bonding_type)
-      if not rc:
-        errors.append("Error setting bonding type : %s"%err)
+    if change_hostname:
+      ret, err = networking.set_hostname(hostname, 'integralstor.lan')
+      if err:
+        raise Exception(err)
       restart_networking = True
+
+    if change_hostname or change_ip:
+      ret, err = networking.set_hosts_file_entry(hostname, ip)
+      if err:
+        raise Exception(err)
   
     restart = False
     if restart_networking:
@@ -331,28 +289,6 @@ def configure_networking():
         print "Error restarting network services."
         raw_input('Press enter to return to the main menu')
         return -1
-      (r, rc), err = command.execute_with_rc('service salt-minion restart')
-      if err:
-        raise Exception(err)
-      if rc == 0:
-        print "Salt minion service restarted succesfully."
-      else:
-        print "Error restarting salt minion services."
-        raw_input('Press enter to return to the main menu')
-        return -1
-      '''
-      (r, rc), err = command.execute_with_rc('service named restart')
-      if err:
-        raise Exception(err)
-      if rc == 0:
-        print "DNS service restarted succesfully."
-        raw_input('Press enter to return to the main menu')
-        return 0
-      else:
-        print "Error restarting DNS services."
-        raw_input('Press enter to return to the main menu')
-        return -1
-      '''
   except Exception, e:
     print "Error configuring network settings : %s"%e
     return -1

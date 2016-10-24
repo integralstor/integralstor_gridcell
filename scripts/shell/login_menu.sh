@@ -3,10 +3,41 @@
 pause(){
   read -p "Press [Enter] key to continue..." key
 }
+
+update_ntp_date(){
+  clear
+  echo
+  echo
+  read -p "Enter the NTP server from which to synchronize the date : " server
+  echo
+  echo
+  echo 'Stopping NTP service..'
+  service ntpd stop
+  echo 'Synchronizing date..'
+  ntpdate -b $server
+  echo 'Starting NTP service..'
+  service ntpd start
+  pause
+}
  
 gluster_restart(){
-  read -p "Press [Enter] key to restart . . . Note this could cause a intermediate data disruption to all clients. " key
-  service glusterd restart
+  clear
+  echo
+  echo
+  read -p "That this could cause a short data access disruption to all clients! Proceed (y/n) : " input
+  case $input in
+    y)echo "Restarting distributed storage service on this GRIDCell.. ";service glusterd restart;pause;;
+  esac
+}
+
+integralview_restart(){
+  clear
+  echo
+  echo
+  read -p "This could cause a short disruption in access to IntegralView. Proceed (y/n)? : " input
+  case $input in
+    y)echo "Restarting IntegralView services.. ";service uwsgi restart;service nginx restart;pause;;
+  esac
 }
 
 set_cpu_cores(){
@@ -16,33 +47,33 @@ set_cpu_cores(){
 }
 
 configure_networking(){
-  #echo "configure networking called"
-  python /opt/integralstor/integralstor_gridcell/scripts/python/configure_networking.py
+  clear
+  echo
+  echo
+  read -p "If you have already configured the grid, then changing any network setting can cause data loss! Are you sure you want to continue (y/n)? : " input
+  case $input in
+    y) python /opt/integralstor/integralstor_gridcell/scripts/python/configure_networking.py;pause;;
+  esac
 }
 
-set_as_primary(){
-  #echo "set as primary called"
-  ping -c 1 gridcell-pri.integralstor.lan > /dev/null 2> /dev/null
-  ret=$?
-  if [ $ret != 0 ]
-  then
-    python /opt/integralstor/integralstor_gridcell/scripts/python/set_node_type.py primary
-    pause
-  else
-    echo 'A primary GRIDCell (with hostname gridcell-pri) seems to already exist in the LAN! A grid cannot have more than one primary.'
-    pause
-  fi
+configure_initial_salt_master(){
+  clear
+  echo
+  echo
+  read -p "If you have already configured the grid, then changing the admin master can cause data loss! Are you sure you want to continue (y/n)? : " input
+  case $input in
+    y) python /opt/integralstor/integralstor_gridcell/scripts/python/configure_initial_minion.py;pause;;
+  esac
 }
 
 first_time_setup(){
-  hn=`hostname`
-  if [ $hn == "gridcell-pri" ]
-  then
-    /opt/integralstor/integralstor_gridcell/scripts/python/first_time_setup.py
-    pause
-  else
-    echo 'This functionality can only initiated from the primary GRIDCell.'
-  fi
+  clear
+  echo
+  echo
+  read -p "If you have already configured the grid, then running the first time setup again will fail and cause data loss! Are you sure you want to continue (y/n)? : " input
+  case $input in
+    y) python /opt/integralstor/integralstor_gridcell/scripts/python/first_time_setup.py;pause;;
+  esac
 }
 
 view_node_status(){
@@ -54,51 +85,11 @@ view_node_config(){
   pause
 }
 
-set_as_secondary(){
-  #echo "set as secondary called"
-  ping -c 1 gridcell-sec.integralstor.lan > /dev/null 2> /dev/null
-  ret=$?
-  if [ $ret != 0 ]
-  then
-    python /opt/integralstor/integralstor_gridcell/scripts/python/set_node_type.py secondary
-    pause
-  else
-    echo 'A secondary GRIDCell (with hostname gridcell-sec) seems to already exist in the LAN! A grid cannot have more than one secondary.'
-    pause
-  fi
-}
-
-view_minion_status(){
-  hn=`hostname`
-  echo $hn
-  if [ $hn == "gridcell-pri" ]
-  then
-    /opt/integralstor/integralstor_gridcell/scripts/shell/view_minions.sh
-    pause
-  else
-    echo 'This functionality can only done on a primary GRIDCell'
-    pause
-  fi
-}
-
 reset_minion(){
   /opt/integralstor/integralstor_gridcell/scripts/shell/reset_salt_minion.sh
   pause
 }
 
-remove_minions(){
-  hn=`hostname`
-  if [ $hn == "gridcell-pri" ]
-  then
-    python /opt/integralstor/integralstor_gridcell/scripts/python/clear_minions.py
-    pause
-  else
-    echo 'This functionality can only done on a primary GRIDCell'
-    pause
-  fi
-}
-
- 
 
 goto_shell() {
   su -l integralstor
@@ -106,121 +97,95 @@ goto_shell() {
 }
 
 do_reboot() {
-  reboot now
-  pause
+  clear
+  echo
+  echo
+  read -p "That this could cause a data access disruption to all clients! Are you sure you want to reboot this GRIDCell? (y/n) : " input
+  case $input in
+    y)echo "Initiating a reboot of this GRIDCell.. ";reboot now;;
+  esac
 }
 
 
 do_shutdown() {
-  shutdown -h now
-  pause
+  clear
+  echo
+  echo
+  read -p "That this could cause a data access disruption to all clients! Are you sure you want to shutdown this GRIDCell? (y/n) : " input
+  case $input in
+    y)echo "Initiating a shutdown of this GRIDCell.. ";shutdown -h now;;
+  esac
 }
 
 show_menu() {
-  primary=$1
-  secondary=$2
   clear
-  echo "-------------------------------"	
+  echo
   echo " IntegralStor GRIDCell - Menu"
-  echo "-------------------------------"
-  echo "1. Configure Network Configuration"
-  echo "2. Reboot"
-  echo "3. Shutdown"
-  echo "4. View GRIDCell configuration"
-  echo "5. View GRIDCell process status"
-  if [ $primary == 0 -a $secondary == 0 ]
-  then
-    #Normal node
-    echo "6. Convert this GRIDCell to a primary"
-    echo "7. Convert this GRIDCell to a secondary"
-  fi
-  if [ $primary == 1 ]
-  then
-    if [ ! -f '/opt/integralstor/integralstor_gridcell/first_time_setup_completed' ]
-    then
-      echo "6. View minion status"
-      echo "7. Initiate the first time grid setup"
-    else
-      echo "6. View minion status"
-    fi
-  fi
-  if [ $secondary == 1 ]
-  then
-    echo "6. View minion status"
-  fi
-  echo "9. Restart GLUSTER Service"
-  echo "10.Modify CPU cores"
+  echo "============================="
+  echo
+  echo " GRIDCell configuration"
+  echo " ----------------------"
+  echo " 10. View GRIDCell configuration"
+  echo
+  echo " GRIDCell actions"
+  echo " ----------------"
+  echo " 20. Restart distributed storage services     21. Restart IntegralView services     22. Update date using NTP"
+  echo " 23. Shutdown GRIDCell                        24. Reboot GRIDCell"
+  echo
+  echo " Check IntegralView services "
+  echo " --------------------------- "
+  echo " 30. Check admin services            31. Check web services              32. Check admin volume status"
+  echo " 33. Check admin volume services     34. Check admin volume mountpoint"
+  echo
+  echo " Check grid accessibility"
+  echo " ------------------------"
+  echo " 40. Check GRIDCell network accessibility     41. Check GRIDCell name/address mapping"
+  echo
+  echo " Check underlying GRIDCell hardware"
+  echo " ----------------------------------"
+  echo " 50. Check hard drive status     51. Check hardware components"
+  echo
+
+  echo " Check grid storage status"
+  echo " -------------------------"
+  echo " 60. Check on-disk ZFS filesystem     61. Check Windows storage services             62. Check distributed storage services"
+  echo " 63. Check status of grid peers       64. Check distributed Windows access status"
+  echo
+  echo
+
 }
 
 read_input(){
-  primary=$1
-  secondary=$2
   local input 
-  if [ $primary == 0 -a $secondary == 0 ]
-  then
-    # Normal node
-    read -p "Enter choice " input 
-    case $input in
-      1) configure_networking ;;
-      2) do_reboot;;
-      3) do_shutdown;;
-      4) view_node_config;;
-      5) view_node_status;;
-      6) set_as_primary;;
-      7) set_as_secondary;;
-      9) gluster_restart;;
-      10)set_cpu_cores;;
-      *)  echo "Not a Valid INPUT" && sleep 2
-    esac
-  fi
-  if [ $primary == 1  ]
-  then
-    #Primary node
-    if [ ! -f '/opt/integralstor/integralstor_gridcell/first_time_setup_completed' ]
-    then
-        #Primary node with first time setup complete
-        read -p "Enter choice " input 
-        case $input in
-        1) configure_networking ;;
-        2) do_reboot;;
-        3) do_shutdown;;
-        4) view_node_config;;
-        5) view_node_status;;
-        6) view_minion_status ;;
-        7) first_time_setup;;
-        *)  echo "Not a Valid INPUT" && sleep 2
-    	esac
-    else
-        read -p "Enter choice " input 
-        case $input in
-        1) configure_networking ;;
-        2) do_reboot;;
-        3) do_shutdown;;
-        4) view_node_config;;
-        5) view_node_status;;
-        6) view_minion_status ;;
-        9) gluster_restart;;
-        10)set_cpu_cores;;
-        *)  echo "Not a Valid INPUT" && sleep 2
-    	esac
-    fi
-  fi
-  if [ $secondary == 1 ]
-  then
-    #Secondary node
-      read -p "Enter choice " input 
-      case $input in
-      1) configure_networking ;;
-      2) do_reboot;;
-      3) do_shutdown;;
-      4) view_node_config;;
-      5) view_node_status;;
-      6) view_minion_status ;;
-      9) gluster_restart;;
-      10)set_cpu_cores;;
-      *)  echo "Not a Valid INPUT" && sleep 2
-    	esac
-  fi
+  read -p "Enter the number corresponding to the desired choice : " input 
+  case $input in
+    10) view_node_config;;
+    20) gluster_restart;;
+    21) integralview_restart;;
+    22) update_ntp_date;;
+    23) do_shutdown;;
+    24) do_reboot;;
+    30) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py salt;pause;;
+    31) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py integralview_processes;pause;;
+    32) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py admin_vol_started;pause;;
+    33) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py admin_vol_status;pause;;
+    34) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py admin_vol_mountpoint;pause;;
+    40) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py ping;pause;;
+    41) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py dns;pause;;
+    50) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py disks;pause;;
+    51) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py ipmi;pause;;
+    60) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py zfs;pause;;
+    61) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py windows_processes;pause;;
+    62) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py gluster_processes;pause;;
+    63) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py gluster_peer_status;pause;;
+    64) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py ctdb;pause;;
+    91) configure_networking ;;
+    92) configure_initial_salt_master ;;
+    93) first_time_setup ;;
+    94) set_cpu_cores;;
+    95) goto_shell;;
+    *)  echo "Not a Valid INPUT" && sleep 2
+  esac
 }
  
 trap '' SIGINT SIGQUIT SIGTSTP
@@ -228,18 +193,7 @@ trap '' SIGINT SIGQUIT SIGTSTP
 while true
 do
   echo "The Integralstor menu has started" > /tmp/out
-  primary=0
-  secondary=0
-  hn=`hostname`
-  if [ $hn == "gridcell-pri" ]
-  then
-    primary=1
-  fi
-  if [ $hn == "gridcell-sec" ]
-  then
-    secondary=1
-  fi
-  show_menu $primary $secondary
-  read_input $primary $secondary
+  show_menu 
+  read_input
   echo "The Integralstor menu has stopped" >> /tmp/out
 done

@@ -1,195 +1,118 @@
 #! /usr/bin/python
 import salt.wheel
-import sys, os, shutil
+import sys, os, shutil, socket, struct, sys, shutil
 from integralstor_gridcell import grid_ops, system_info, ctdb, gluster_trusted_pools, xml_parse
-from integralstor_common import common
+from integralstor_common import common, networking
 import salt.client
-from pwd import getpwnam
-import shutil
+import distutils.dir_util
 from time import strftime,sleep
 
-def scan_for_nodes():
-  try :
-    tmp_pending_nodes, err = grid_ops.get_pending_minions()
-    if err:
-      raise Exception(err)
-    if not tmp_pending_nodes:
-      raise Exception("No GRIDCells found")
-    if 'gridcell-pri.integralstor.lan' not in tmp_pending_nodes:
-      raise Exception("A primary GRIDCell was not detected. Please verify that one of the GRIDCells has been configured to be a primary.")
-    if 'gridcell-sec.integralstor.lan' not in tmp_pending_nodes:
-      raise Exception( "A secondary GRIDCell was not detected. Please verify that one of the GRIDCells has been configured to be a secondary.")
-    pending_nodes = ['gridcell-pri.integralstor.lan', 'gridcell-sec.integralstor.lan']
-    print "Found the primary and secondary GRIDCells."
+def get_admin_gridcells():
+  admin_server_list = []
+  try:
+    me = socket.getfqdn()
+    print "Scanning the network for GRIDCells .."
     print
-    (success, failed), err = grid_ops.add_gridcells_to_grid("System setup process",pending_nodes, first_time = True, print_progress = True)
+
+    pending_minions, err = grid_ops.get_pending_minions()
     if err:
       raise Exception(err)
-    if (not success) :
-      if err:
-        raise Exception(err)
-      else:
-        raise Exception('Error adding GRIDCells to grid : Unknown error')
-  except Exception, e:
-    return False, 'Error scanning for nodes : %s'%str(e)
-  else:
-    return True, None
 
+    if me not in pending_minions:
+      raise Exception('Please configure the bootstrap admin agent on this GRIDCell to point to the local IP address before running the first time setup.')
 
-def remove_nodes_from_grid():
-  try :
-    minions, err = grid_ops.get_accepted_minions()
-    if err:
-      raise Exception("Error retrieving accepted minion list")
-    if minions:
-      for minion in minions:
-        print "Disconnecting GRIDCell %s"%minion
-        rc, err = grid_ops.delete_salt_key(minion)
-        if not rc:
-          if err:
-            raise Exception(err)
-          else:
-            raise Exception ("Error deleting salt key : Unknown error occurred")
-  except Exception, e:
-    return False, 'Error removing GRIDCells from grid : %s'%str(e)
-  else:
-    return True, None
+    if not pending_minions or len(pending_minions) < 3:
+      raise Exception('Please ensure that there are atleast three GRIDCells powered on and whose admin agent has been configured to point to this GRIDCell.')
 
-def check_for_primary_and_secondary(si):
-  try :
-    primary = None
-    secondary = None
-    for node_name, node in si.items():
-      if "roles" not in node:
+    print 'The GRIDCell on which you are running the first time setup will automatically be used as one of the admin GRIDCells.'
+    print 'In addition to this one, the system has detected the following GRIDCells that can be configured as admin GRIDCells: \n'
+    pending_minions.remove(me)
+    for index, minion in enumerate(pending_minions, start=1):
+      if minion == me:
         continue
-      roles = node["roles"]
-      if "primary" in roles:
-        primary = node_name
-      elif "secondary" in roles:
-        secondary = node_name
-    if not primary:
-      raise Exception("Could not detect a primary GRIDCell!")
-    if not secondary:
-      raise Exception("Could not detect a secondary GRIDCell!")
-      return (-1, primary, secondary)
+      print '%d. %s'%(index, minion)
+    print
+
+    str_to_print = 'Enter the numbers corresponding to two other GRIDCells(comma separated) from the above list that will act as admin GRIDCells (e.g: 1,2) : '
+
+    valid_input = False
+    while not valid_input:
+      input = raw_input(str_to_print)
+      if input:
+        try:
+          admin_server_index_list = [x.strip() for x in input.split(',')]
+        except Exception, e:
+          print "Invalid value. Please try again."
+          continue
+        #Check for uniqueness now
+        if (len(admin_server_index_list) > len(set(admin_server_index_list))):
+          print "Please enter two distinct GRIDCell numbers."
+          continue
+        if len(admin_server_index_list) != 2:
+          print "Please enter exactly two other GRIDCell numbers."
+          continue
+        admin_server_list = []
+        all_ok = True
+        for admin_server_index_str in admin_server_index_list:
+          try:
+            admin_server_index = int(admin_server_index_str)
+            if admin_server_index < 1 or admin_server_index > len(pending_minions):
+              raise Exception('Invalid index')
+          except Exception, e:
+            print 'Please enter a valid number from the list above'
+            all_ok = False
+            break
+          admin_server_list.append(pending_minions[admin_server_index-1])
+        if not all_ok:
+          continue
+        admin_server_list.append(me)
+        print "\nThe following are the choices that you have made :"
+        print
+        print 'Admin server(s) : %s'%','.join(admin_server_list)
+        print
+        print
+        conf_str = 'Confirm the use of the above choices? (y/n) :'
+      
+        commit = 'n'
+        valid_conf = False
+        while not valid_conf:
+          input = raw_input(conf_str)
+          if input:
+            if input.lower() in ['y', 'n']:
+              valid_conf = True
+              commit = input.lower()
+          if not valid_conf:
+            print "Invalid value. Please try again."
+        print
+  
+        if commit == 'y':
+          valid_input = True
   except Exception, e:
-    return None,  "Error checking for primary and secondary GRIDCells : %s"%e
+    return None, 'Error getting admin GRIDCells selection : %s'%str(e)
   else:
-    return (primary, secondary), None
+    return admin_server_list, None
 
-
-def empty_storage_pool(si, secondary):
+def empty_storage_pool(admin_gridcells):
   try :
-    d, err = gluster_trusted_pools.remove_a_gridcell_from_gluster_pool(secondary)
-    if err:
+    me = socket.getfqdn()
+    errors = []
+    for admin_gridcell in admin_gridcells:
+      if admin_gridcell != me:
+        print 'Removing %s from the distributed storage pool.'%admin_gridcell
+        d, err = gluster_trusted_pools.remove_a_gridcell_from_gluster_pool(admin_gridcell)
+        if err:
+          errors.append(err)
+        else:
+          print 'Removing %s from the distributed storage pool.. Done.'%admin_gridcell
+    if errors:
       raise Exception(err)
   except Exception, e:
-    return False, "Error emptying the storage pool : %s"%e
+    return False, "Error clearing the distributed storage pool : %s"%e
   else:
     return True, None
     
 
-def create_admin_volume(client, primary, secondary):
-
-  try :
-    admin_vol_name, err = common.get_admin_vol_name()
-    if err:
-      raise Exception(err)
-
-    print "Creating the bricks for the admin volume"
-    r1 = client.cmd('roles:master', 'cmd.run_all', ['zfs create frzpool/normal/%s'%(admin_vol_name)], expr_form='grain')
-    if r1:
-      for node, ret in r1.items():
-        #print ret
-        if ret["retcode"] != 0:
-          raise Exception("Error creating the brick path ZFS dataset on %s"%node)
-        else:
-          print "Brick path ZFS dataset created on %s"%node
-          print
-
-    print "Creating the IntegralStor Administration Volume."
-    print
-
-    cmd = "gluster --mode=script volume create %s repl 2 %s:/frzpool/normal/%s %s:/frzpool/normal/%s force --xml"%(admin_vol_name, primary,  admin_vol_name, secondary, admin_vol_name)
-    #print cmd
-    #d, err = gluster_commands.run_gluster_command(cmd, "%s/create_volume.xml"%devel_files_path, "Admin volume creation")
-    d, err = xml_parse.run_gluster_command(cmd)
-    if err:
-      raise Exception("Error creating the admin volume : %s"%err)
-    print "Creating the IntegralStor Administration Volume... Done."
-    print
-
-    '''
-    # Not setting quorum for admin vol for now..
-    print "Setting trusted pool client side quorum."
-    cmd = "gluster volume set %s quorum-count 2 --xml"%admin_vol_name
-    d, err = xml_parse.run_gluster_command(cmd)
-    if err:
-      raise Exception("Error setting trusted pool quorum count : %s"%err)
-
-    cmd = "gluster volume set %s quorum-type fixed --xml"%admin_vol_name
-    d, err = xml_parse.run_gluster_command(cmd)
-    if err:
-      raise Exception("Error setting trusted pool quorum type : %s"%err)
-    print "Setting trusted pool client side quorum... Done"
-    print
-    '''
-
-    print "Starting the IntegralStor Administration Volume."
-    d, err = xml_parse.run_gluster_command('gluster volume start %s --xml'%admin_vol_name)
-    if err:
-      raise Exception("Error starting the admin volume : %s"%err)
-    print "Starting the IntegralStor Administration Volume... Done."
-    print
-    
-  except Exception, e:
-    return False, 'Error creating the admin volume : %s'%str(e)
-  else:
-    return True, None
-
-
-def remove_admin_volume(client):
-  try :
-    admin_vol_name, err = common.get_admin_vol_name()
-    if err:
-      raise Exception(err)
-
-
-    print "Stopping the IntegralStor Administration Volume."
-    d, err = xml_parse.run_gluster_command('gluster --mode=script volume stop %s force --xml'%admin_vol_name)
-    if err:
-      raise Exception("Error stopping the admin volume : %s"%err)
-    print "Stopping the IntegralStor Administration Volume... Done."
-    print
-
-    cmd = "gluster --mode=script volume delete %s --xml"%admin_vol_name
-    #print cmd
-    d, err = xml_parse.run_gluster_command(cmd)
-    if err:
-      raise Exception("Error deleting the admin volume : %s"%err)
-    print "Deleting the IntegralStor Administration Volume... Done."
-    print
-
-    print "Deleting the bricks for the admin volume"
-    r1 = client.cmd('roles:master', 'cmd.run_all', ['zfs destroy frzpool/normal/%s'%(admin_vol_name)], expr_form='grain')
-    if r1:
-      for node, ret in r1.items():
-        #print ret
-        if ret["retcode"] != 0:
-          errors = "Error deleting the brick path ZFS dataset on %s"%node
-          raise Exception(errors)
-        else:
-          print "Brick path ZFS dataset deleted on %s"%node
-          print
-
-  except Exception, e:
-    return False, 'Error removing the admin volume : %s'%str(e)
-  else:
-    return True, None
-
-
-def establish_default_configuration(client, si):
-
+def establish_default_configuration(client, si, admin_gridcells):
 
   try :
 
@@ -210,8 +133,7 @@ def establish_default_configuration(client, si):
     if err:
       raise Exception(err)
 
-    print "Copying the default configuration onto the IntegralStor administration volume."
-    print
+    print "\nCopying the default configuration onto the IntegralStor administration volume."
 
     shutil.copytree("%s/db"%defaults_dir, "%s/db"%config_dir)
     shutil.copytree("%s/ntp"%defaults_dir, "%s/ntp"%config_dir)
@@ -221,22 +143,22 @@ def establish_default_configuration(client, si):
     r2 = client.cmd('roles:master', 'cmd.run_all', ['rm /etc/ntp.conf'], expr_form='grain')
 
     # Link the new NTP conf file on the primary onto the admin vol
-    r2 = client.cmd('roles:primary', 'cmd.run_all', ['ln -s %s/ntp/primary_ntp.conf /etc/ntp.conf'%config_dir], expr_form='grain')
+    ip_info, err = networking.get_ip_info('bond0')
+    if err:
+      raise Exception(err)
+    ip_l = struct.unpack('!L',socket.inet_aton(ip_info['ipaddr']))[0]
+    netmask_l = struct.unpack('!L',socket.inet_aton(ip_info['netmask']))[0]
+    network_l = ip_l&netmask_l
+    network = socket.inet_ntoa(struct.pack('!L',network_l))
+    r2 = client.cmd('roles:master', 'integralstor.configure_ntp_master',admin_gridcells, kwarg={'network':network, 'netmask':ip_info['netmask']}, expr_form='grain')
     if r2:
+      errors = ''
       for node, ret in r2.items():
-        if ret["retcode"] != 0:
+        if not ret[0]:
           print r2
-          errors = "Error linking to the NTP config file on %s"%node
-          raise Exception(errors)
-
-    # Link the new NTP conf file on the secondary onto the admin vol
-    r2 = client.cmd('roles:secondary', 'cmd.run_all', ['ln -s %s/ntp/secondary_ntp.conf /etc/ntp.conf'%config_dir], expr_form='grain')
-    if r2:
-      for node, ret in r2.items():
-        if ret["retcode"] != 0:
-          print r2
-          errors = "Error linking to the NTP config file on %s"%node
-          raise Exception(errors)
+          errors += "Error configuring NTP on %s : %s"%(node, ret[1])
+      if errors:
+        raise Exception(errors)
 
     # Create a home for the manifest and status files and move the previously generated files here..
     os.mkdir("%s/status"%config_dir)
@@ -250,10 +172,10 @@ def establish_default_configuration(client, si):
 
 
     print "Setting up CIFS access.."
-    print
 
     os.mkdir("%s/lock"%config_dir)
     os.mkdir("%s/samba"%config_dir)
+
 
     print "Creating CTDB config file"
     rc, errors = ctdb.create_config_file()
@@ -291,6 +213,8 @@ def establish_default_configuration(client, si):
           print r2
           errors = "Error linking to the CTDB config file on %s"%node
           raise Exception(errors)
+    print "Linking CTDB files.. Done."
+    print
 
     # The initial add_nodes created the initial nodes file. So move this into the admin vol and link it all          
 
@@ -305,6 +229,7 @@ def establish_default_configuration(client, si):
           errors = "Error linking to the CTDB nodes file on %s"%node
           raise Exception(errors)
     print "Linking CTDB nodes files. Done.."
+    print
 
     print "Linking smb.conf files"
     shutil.copyfile('%s/samba/smb.conf'%defaults_dir,'%s/lock/smb.conf'%config_dir)
@@ -335,10 +260,10 @@ def establish_default_configuration(client, si):
     print
 
     print "Setting appropriate boot time init files."
-    r2 = client.cmd('roles:master', 'cmd.run_all', ['rm /etc/rc.local'], expr_form='grain')
-    r2 = client.cmd('roles:master', 'cmd.run_all', ['rm /etc/rc.d/rc.local'], expr_form='grain')
-    r2 = client.cmd('roles:master', 'cmd.run_all', ['cp %s/rc_local/primary_and_secondary/rc.local /etc/rc.local'%defaults_dir], expr_form='grain')
-    r2 = client.cmd('roles:master', 'cmd.run_all', ['chmod 755 /etc/rc.local'], expr_form='grain')
+    r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/rc.local'])
+    r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/rc.d/rc.local'])
+    r2 = client.cmd('*', 'cmd.run_all', ['cp %s/rc_local/rc.local /etc/rc.local'%defaults_dir])
+    r2 = client.cmd('*', 'cmd.run_all', ['chmod 755 /etc/rc.local'])
     if r2:
       for node, ret in r2.items():
         if ret["retcode"] != 0:
@@ -357,8 +282,6 @@ def undo_default_configuration(client):
 
 
   try :
-    inp = raw_input ("Press <Enter> to undo the changes made so far : ")
-    print 
     platform_root, err = common.get_platform_root()
     if err:
       raise Exception(err)
@@ -379,7 +302,6 @@ def undo_default_configuration(client):
 
     r2 = client.cmd('roles:master', 'cmd.run_all', ['rm /etc/samba/smb.conf'], expr_form='grain')
     r2 = client.cmd('roles:master', 'cmd.run_all', ['rm /etc/rc.local'], expr_form='grain')
-    r2 = client.cmd('roles:master', 'cmd.run_all', ['cp %s/rc_local/normal/rc.local.not_in_cluster /etc/rc.local'%defaults_dir], expr_form='grain')
 
   except Exception, e:
     return False, 'Error undoing the default configuration : %s'%str(e)
@@ -387,58 +309,74 @@ def undo_default_configuration(client):
     return True, None
 
 
-
-
-def undo_setup(client, si, primary, secondary):
+def undo_setup(client, si, admin_gridcells):
   try :
     print '--------------------------------Undoing setup begin------------------------------'
     if client:
-      grid_ops.start_or_stop_services(client, [primary, secondary], 'stop')
-      print "Undoing the default IntegralStor configuration .. "
-      print
-      rc, err = undo_default_configuration(client)
-      if err:
-        print err
-      else:
-        print "Undoing the default IntegralStor configuration .. Done"
-        print
-      print 'Unmounting the admin volume'
-      print
-      ret, err = grid_ops.unmount_admin_volume(client, [primary, secondary])
-      if err:
-        print err
-        print
+      do = raw_input("Stop services?")
+      if do == 'y':
+        grid_ops.start_or_stop_services(client, admin_gridcells, 'stop')
 
-      print "Removing the IntegralStor Administration volume.."
-      print
-      ret, err = remove_admin_volume(client)
-      if err:
-        print "Error removing the IntegralStor Administration volume.. : %s"%err
-      print "Deleting the IntegralStor Administration volume.. Done."
-      print
-      if si and secondary:
-        print "Removing the initial storage pool with the primary and secondary GRIDCells..."
+      do = raw_input("Undo default configuration?")
+      if do == 'y':
+        print "Undoing the default IntegralStor configuration .. "
         print
-        rc, err = empty_storage_pool(si, secondary)
+        rc, err = undo_default_configuration(client)
         if err:
           print err
         else:
-          print "Removing the initial storage pool with the primary and secondary GRIDCells... Done."
+          print "Undoing the default IntegralStor configuration .. Done"
           print
-      print 'Restarting minions'
-      print
-      ret, err = grid_ops.restart_minions(client, [primary, secondary])
-      if err:
-        print err
+
+      do = raw_input("Undo default configuration?")
+      if do == 'y':
+        print 'Unmounting the admin volume'
         print
-      print "Removing GRIDCells from grid.."
-      print
-      ret, err = remove_nodes_from_grid()
-      if err:
-        print err
-      else:
-        print "Removing GRIDCells from grid.. Done."
+        ret, err = grid_ops.unmount_admin_volume(client, admin_gridcells)
+        if err:
+          print err
+          print
+
+      do = raw_input("Remove admin volume?")
+      if do == 'y':
+        print "Removing the IntegralStor Administration volume.."
         print
+        ret, err = grid_ops.remove_admin_volume(client)
+        if err:
+          print "Error removing the IntegralStor Administration volume.. : %s"%err
+        print "Deleting the IntegralStor Administration volume.. Done."
+        print
+
+      do = raw_input("Undo the distributed storage pool?")
+      if do == 'y':
+        print "Removing the distributed storage pool..."
+        print
+        rc, err = empty_storage_pool(admin_gridcells)
+        if err:
+          print err
+        else:
+          print "Removing the distributed storage pool... Done."
+          print
+
+      do = raw_input("Forget existing admin GRIDCells?")
+      if do == 'y':
+        print "Removing GRIDCells from grid.."
+        print
+        ret, err = grid_ops.delete_all_salt_keys()
+        if err:
+          print err
+        else:
+          print "Removing GRIDCells from grid.. Done."
+          print
+
+      do = raw_input("Restart minions?")
+      if do == 'y':
+        print 'Restarting minions'
+        print
+        ret, err = grid_ops.restart_minions(client, admin_gridcells)
+        if err:
+          print err
+          print
   except Exception, e:
     print "Error rolling back the setup : "%e
     print '--------------------------------Undoing setup end------------------------------'
@@ -447,36 +385,38 @@ def undo_setup(client, si, primary, secondary):
     print '--------------------------------Undoing setup end------------------------------'
     return 0
 
+
 def initiate_setup():
 
-  added_nodes = False
-  created_storage_pool = False
-  created_admin_vol = False
-  mounted_admin_vol = False
-  created_default_config = False
   client = None
   si = None
-  primary = None
-  secondary = None
+  admin_gridcells = []
 
   try :
     client = salt.client.LocalClient()
-    do = raw_input("Scan for new nodes?")
+    me = socket.getfqdn()
+
+    do = raw_input("Scan for and accept admin GRIDCells?")
     if do == 'y':
-      print "Scanning the network for GRIDCells .."
-      print
-      rc, err = scan_for_nodes()
-      if not rc :
-        if err:
-          e =  err
-        else:
-          e = 'Error scanning for GRIDCells'
-        raise Exception(e)
-      print "Scanning the network for GRIDCells.. Done."
-      print
+      #Get the hostnames of the three gridcells to be flagged as admin gridcells
+      admin_gridcells, err = get_admin_gridcells()
+      if err:
+        raise Exception(err)
+
+      #Accept their keys, get their bond0 IP, add them to the hosts file(DNS), sync modules, regenrate manifest and status, update the minions to point to the admin gridcells, flag them as admin gridcells by setting the appropriate grains and restart the minions.
+      (success, failed), err = grid_ops.add_gridcells_to_grid(None, admin_gridcells, admin_gridcells, first_time = True, print_progress = True, admin_gridcells = True)
+      #print success, failed, err
+      if err:
+        raise Exception(err)
+      if (not success) :
+        raise Exception('Error adding GRIDCells to grid : Unknown error')
+      else:
+        print 'Successfully added the following GRIDCells to the grid : %s'%','.join(success)
+
+      if failed:
+        raise Exception('Error adding %s to the grid. Error : '%(','.join(failed), err))
 
     print "Loading GRIDCell information"
-    print
 
     si, err = system_info.load_system_config(first_time = True)
     if not si:
@@ -485,184 +425,131 @@ def initiate_setup():
     print "Loading GRIDCell information...Done."
     print
 
-    print "Checking for primary and secondary GRIDCell presence."
-    print
-    tup, err = check_for_primary_and_secondary(si)
-    if tup:
-      primary = tup[0]
-      secondary = tup[1]
-    if err:
-      raise Exception(err)
-    print "Checking for primary and secondary GRIDCell presence.. Done."
-    print
-
-    do = raw_input("Create storage pool?")
+    #Create the gluster trusted storage pool
+    do = raw_input("Create the distributed storage pool?")
     if do == 'y':
-      d, err = gluster_trusted_pools.add_a_gridcell_to_gluster_pool(secondary)
-      if not d:
-        e = None
-        if err:
-          e =  "Error creating the storage pool : %s"%err
-        else:
-          e = "Error creating the storage pool : Unknown error"
-        raise Exception(e)
-
-    '''
-    try :
-      ipl = []
-      ip = si[primary]["interfaces"]["bond0"]["inet"][0]["address"]
-      if ip:
-        ipl.append(ip)
-      ip = si[secondary]["interfaces"]["bond0"]["inet"][0]["address"]
-      if ip:
-        ipl.append(ip)
-    except Exception, e:
-      raise Exception("Error retrieving IPs of primary and/or secondary GRIDCell(s)")
-
-    rc, err = ctdb.add_to_nodes_file(client, ipl, False)
-    if not rc :
-      if err:
-        raise Exception("Error adding IPs of the GRIDCell(s) to the CTDB nodes file : %s"%err)
-      else:
-        raise Exception("Error adding IPs of the GRIDCell(s) to the CTDB nodes file")
-    '''
-
-
-    do = raw_input("Create admin volume?")
-    if do == 'y':
-      print "Creating the IntegralStor Administration volume.."
+      print 'Creating the distributed storage pool.'
+      for admin_gridcell in admin_gridcells:  
+        if admin_gridcell != me:
+          d, err = gluster_trusted_pools.add_a_gridcell_to_gluster_pool(admin_gridcell)
+          if err:
+            raise Exception(err)
+      print 'Creating the distributed storage pool.. Done.'
       print
-      rc, err = create_admin_volume(client, primary, secondary)
+
+    #Create and start the admin volume
+    do = raw_input("Create the admin volume?")
+    if do == 'y':
+      rc, err = grid_ops.create_admin_volume(client, admin_gridcells)
       if not rc:
         if err:
           raise Exception(err)
         else:
           raise Exception('Error creating admin volume : unknown error')
-      print "Creating the IntegralStor Administration volume.. Done."
+
+
+    do = raw_input("Mount the admin volume?")
+    if do == 'y':
+      print "Mounting the IntegralStor Administration volume.."
+      rc, err  = grid_ops.mount_admin_volume(client, admin_gridcells)
+      if not rc :
+        e = None
+        if err:
+          e =  "Error mounting admin vol : %s"%err
+        else:
+          e =  "Error mounting admin vol"
+        raise Exception(e)
+      print "Mounting the IntegralStor Administration volume.. Done."
       print
 
-    created_admin_vol = True
+    do = raw_input("Create the default configuration?")
+    if do == 'y':
+      #Create all the required directories and link them to the appropriate places and setup CTDB and NTP as well.
+      print
+      print "Establishing the default IntegralStor configuration .."
+      rc, err = establish_default_configuration(client, si, admin_gridcells)
+      if not rc:
+        if err:
+          raise Exception(err)
+        else:
+          raise Exception('Unknown error')
+      print "Establishing the default IntegralStor configuration .. Done"
+      print
 
-    print "Mounting the IntegralStor Administration volume.."
-    print
-    rc, err  = grid_ops.mount_admin_volume(client, [primary, secondary])
-    if not rc :
-      e = None
-      if err:
-        e =  "Error mounting admin vol : %s"%err
-      else:
-        e =  "Error mounting admin vol"
-      raise Exception(e)
-    print "Mounting the IntegralStor Administration volume.. Done."
-    print
+    do = raw_input("Start services?")
+    if do == 'y':
+      #Start CTDB, samba and winbind on the nodes..
+      print "Starting services.."
+      rc,err = grid_ops.start_or_stop_services(client, admin_gridcells, 'start')
+      if not rc:
+        e = None
+        if err:
+          e =  "Error starting services on the GRIDCells : %s"%err
+        else:
+          e =  "Error starting services on the GRIDCells"
+        raise Exception(e)
+      print "Starting services.. Done."
+      print
 
-    print "Establishing the default IntegralStor configuration .."
-    print
-    rc, err = establish_default_configuration(client, si)
-    if not rc:
-      if err:
-        raise Exception(err)
-      else:
-        raise Exception('Unknown error')
-    print "Establishing the default IntegralStor configuration .. Done"
-    print
 
-    print "Starting services.."
-    print
-    rc,err = grid_ops.start_or_stop_services(client, [primary, secondary], 'start')
-    if not rc:
-      e = None
-      if err:
-        e =  "Error starting services on the GRIDCells : %s"%err
-      else:
-        e =  "Error starting services on the GRIDCells"
-      raise Exception(e)
-    print "Starting services.. Done."
-    print "Setting up the Secondary Master .."
-    client = salt.client.LocalClient()
+    do = raw_input("Setup high availability for the admin service?")
+    if do == 'y':
+      print "\nSetting up high availability for the admin service.."
+      print
  
-    sleep(10)
-    print "Creating the required folders"
-    try:
-      rc = client.cmd('gridcell-pri.integralstor.lan','cmd.run_all',['mkdir -p /opt/integralstor/integralstor_gridcell/config/salt/pki'])
-      if rc:
-        for node, ret in rc.items():
-          if ret["retcode"] != 0:
-            errors = "Error creating the required folder structure on admin vol. Error from : %s"%node
-            print errors
-    except Exception,e:  
-      print e
-      raise Exception(e)
-    try:
-      rc = client.cmd('gridcell-pri.integralstor.lan','cmd.run_all',['yes | cp -rf /etc/salt/pki/master /opt/integralstor/integralstor_gridcell/config/salt/pki/master'])
-      if rc:
-        for node, ret in rc.items():
-          if ret["retcode"] != 0:
-            errors = "Error copying the master config to admin dir on %s"%node
-            print errors
-    except Exception,e:  
-      print e
-      raise Exception(e)
 
-    sleep(10)
-    try:
-      rc = client.cmd('gridcell-sec.integralstor.lan','cmd.run_all',['yes | cp -rf /opt/integralstor/integralstor_gridcell/config/salt/pki/master /etc/salt/pki/master'])
+      #Create the pki directory in the admin dir so all admin gridcells can point to it..
+      os.makedirs('/opt/integralstor/integralstor_gridcell/config/salt/pki')
+      distutils.dir_util.copy_tree('/etc/salt/pki/master', '/opt/integralstor/integralstor_gridcell/config/salt/pki/master')
+
+      others = []
+      for admin_gridcell in admin_gridcells:
+        if admin_gridcell != me:
+          others.append(admin_gridcell)
+  
+      print 'Sharing the admin master keys'
+      rc = client.cmd(others,'cmd.run_all',['yes | cp -rf /opt/integralstor/integralstor_gridcell/config/salt/pki/master /etc/salt/pki/master'], expr_form='list')
       if rc:
         for node, ret in rc.items():
           if ret["retcode"] != 0:
             errors = "Error restoring master config on %s from admin vol "%node
             print errors
-    except Exception,e:  
-      print e
-      raise Exception(e)
-
-    sleep(10)
-    try:
+      print 'Sharing the admin master keys.. Done.'
+      print
+  
+      print 'Configuring the admin service to use the admin vol.'
       rc = client.cmd('*','cmd.run_all',['yes | cp /opt/integralstor/integralstor_gridcell/defaults/salt/master /etc/salt/master'])
       if rc:
         for node, ret in rc.items():
           if ret["retcode"] != 0:
             errors = "Error copying the master config on %s"%node
             print errors
-    except Exception,e:  
-      print e
-      raise Exception(e)
-    
-    sleep(10)
-    try:
-      rc = client.cmd('*','cmd.run_all',['yes | cp /opt/integralstor/integralstor_gridcell/defaults/salt/minion /etc/salt/minion'])
-      if rc:
-        for node, ret in rc.items():
-          if ret["retcode"] != 0:
-            errors = "Error copying the minion config on %s"%node
-            print errors
-    except Exception,e:  
-      print e
-      raise Exception(e)
-
-    sleep(10)
-    try:
+      print 'Configuring the admin service to use the admin vol.. Done.'
+      print
+      
+      print 'Restarting the admin master service'
       rc = client.cmd('*','cmd.run_all',['service salt-master restart'])
       if rc:
         for node, ret in rc.items():
           if ret["retcode"] != 0:
             errors = "Error restarting salt-master on %s"%node
             print errors
-    except Exception,e:  
-      print e
-      raise Exception(e)
+      print 'Restarting the admin master service.. Done.'
+      print
 
-    sleep(10)
-    try:
+      sleep(10)
+      print 'Restarting the admin slave service'
       rc = client.cmd('*','cmd.run_all',['service salt-minion restart'])    
       if rc:
         for node, ret in rc.items():
           if ret["retcode"] != 0:
             errors = "Error restarting salt-minion service on %s"%node
             print errors
-    except Exception,e:  
-      print e
-      raise Exception(e)
+      print 'Restarting the admin slave service.. Done.'
+      print
+
+      print "Setting up high availability for the admin service.. Done."
+      print
 
     platform_root, err = common.get_platform_root()
     if err:
@@ -675,7 +562,7 @@ def initiate_setup():
     print 'Error setting up the GRIDCell system : %s.\n\n We will now undo the setup that has been done do far'%str(e)
     print '----------------ERROR----------------------'
     print
-    undo_setup(client, si, primary, secondary)
+    undo_setup(client, si, admin_gridcells)
     return False, 'Error setting up the GRIDCell system : %s'%str(e)
   else:
     return True, None
@@ -691,18 +578,27 @@ def display_initial_screen():
   while i < 10:
     print
     i += 1
-  print "Please ensure that all your GRIDCells are connected to the network and powered on. It is especially important that the primary and secondary GRIDCells are powered on and connected for this process to complete successfully.".center(80, ' ')
+  print "Please ensure that you have selected three (3) GRIDCells to be your administration GRIDCells, that they are connected to the network, the ZFS pool has been created and the network configuration done on all of them.".center(80, ' ')
   print
   print
   print
-  inp = raw_input ("Press <Enter> when you are ready to proceed : ")
+  inp = raw_input ("Press <Enter> if you are ready to proceed or 'q <Enter>' to quit : ")
+  if not inp:
+    return True
+  else:
+    return False
   print 
 
 def main():
-  display_initial_screen()
+  ret = display_initial_screen()
+  if not ret:
+    print 'Exiting initial setup..'
+    sys.exit(0)
   ret, err = initiate_setup()
   if not err:
-    print "Successfully configured the primary and secondary GRIDCells! You can now use IntegralView to administer the system.".center(80, ' ')
+    print 'Successfully configured the administration GRIDCells!'
+    print
+    print 'You may now use IntegralView by typing "http://<ip_address_of_admin_gridcell>/" to configure the rest of the system.'.center(80, ' ')
   print
   print
 
@@ -710,254 +606,3 @@ if __name__ == "__main__":
   main()
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-'''
-    print "Setting the IntegralStor Administration volume to mount on reboot on the primary and secondary GRIDCells."
-    print
-    r2 = client.cmd('roles:master', 'mount.set_fstab', [fractalio.common.get_admin_vol_mountpoint(), 'localhost:/%s'%fractalio.common.get_admin_vol_name(), 'glusterfs', 'defaults, _netdev'], expr_form='grain')
-    if r2:
-      for node, ret in r2.items():
-        if ret not in ["new", "present"]:
-          errors = "Error setting the fstab entry for the admin volume on %s"%node
-          print errors
-          print "Exiting now.."
-          return -1
-        else:
-          print "Set the admin volume fstab entry on GRIDCell %s"%node
-    print "Setting the IntegralStor Administration volume to mount on reboot on the primary and secondary GRIDCells... Done."
-    print
-
-  #No need to mess around with DNS now. Keeping code temporarily in case things change
-  print "Stopping the DNS server on the primary and secondary GRIDCells."
-  print
-  #Stop the DNS servers and move the config to the admin volume and the restart it
-  r3 = client.cmd('roles:primary', 'cmd.run_all', ['service named stop'], expr_form='grain')
-  if r3:
-    for node, ret in r3.items():
-      if ret["retcode"] != 0:
-        errors = "Error stopping the DNS server on %s"%node
-        print errors
-        print "Exiting now.."
-        return -1
-      else:
-        print "Stopped the DNS server on GRIDCell %s"%node
-
-  print "Stopping the DNS server on the primary and secondary GRIDCells... Done."
-  print
-
-  shutil.copytree("%s/named"%fractalio.common.get_defaults_dir(), "%s/named"%fractalio.common.get_admin_vol_mountpoint())
-  #os.mkdir("%s/named/master"%fractalio.common.get_admin_vol_mountpoint())
-  #os.mkdir("%s/named/slave"%fractalio.common.get_admin_vol_mountpoint())
-  named_uid = getpwnam('named').pw_uid
-  named_gid = getpwnam('named').pw_gid
-  for root, dirs, files in os.walk("%s/named"%fractalio.common.get_admin_vol_mountpoint()):  
-    for d in dirs:  
-      os.chown(os.path.join(root, d), named_uid, named_gid)
-    for f in files:
-      os.chown(os.path.join(root, f), named_uid, named_gid)
-  r4 = client.cmd('roles:primary', 'cmd.run_all', ['rm /etc/named.conf'], expr_form='grain')
-  if r4:
-    for node, ret in r4.items():
-      if ret["retcode"] != 0:
-        errors += "Error deleting the DNS config file on %s"%node
-  r4 = client.cmd('roles:primary', 'cmd.run_all', ['cp %s/named/master/named.conf_primary /etc/named.conf'%fractalio.common.get_admin_vol_mountpoint()], expr_form='grain')
-  if r4:
-    for node, ret in r4.items():
-      if ret["retcode"] != 0:
-        errors += "Error copying the DNS config file to the config location on %s"%node
-  r4 = client.cmd('roles:secondary', 'cmd.run_all', ['rm /etc/named.conf'], expr_form='grain')
-  if r4:
-    for node, ret in r4.items():
-      if ret["retcode"] != 0:
-        errors += "Error deleting the DNS config file on %s"%node
-  r4 = client.cmd('roles:secondary', 'cmd.run_all', ['cp %s/named/slave/named.conf_slave /etc/named.conf'%fractalio.common.get_admin_vol_mountpoint()], expr_form='grain')
-  if r4:
-    for node, ret in r4.items():
-      if ret["retcode"] != 0:
-        errors += "Error copying the DNS config file to the config location on %s"%node
-  r4 = client.cmd('roles:master', 'cmd.run_all', ['service named start'], expr_form='grain')
-  if r4:
-    for node, ret in r4.items():
-      if ret["retcode"] != 0:
-        errors += "Error starting the DNS server from the new config location on %s"%node
-
-
-
-    r2 = client.cmd('*', 'cmd.run_all', ['chkconfig smb off'])
-    if r2:
-      for node, ret in r2.items():
-        if ret["retcode"] != 0:
-          errors = "Error turning off smbd autostart on %s"%node
-          print errors
-          print "Exiting now.."
-          return -1
-
-    r2 = client.cmd('*', 'cmd.run_all', ['chkconfig ctdb on'])
-    if r2:
-      for node, ret in r2.items():
-        if ret["retcode"] != 0:
-          errors = "Error turning on CTDB autostart on %s"%node
-          print errors
-          print "Exiting now.."
-          return -1
-
-def mount_admin_volume(client):
-  try :
-    config_dir, err = common.get_config_dir()
-    if err:
-      raise Exception(err)
-    admin_vol_name, err = common.get_admin_vol_name()
-    if err:
-      raise Exception(err)
-    print "Mounting the IntegralStor Administration volume on the primary and secondary GRIDCells."
-    r1 = client.cmd('roles:master', 'cmd.run_all', ['mount -t glusterfs localhost:/%s %s'%(admin_vol_name, config_dir)], expr_form='grain')
-    if r1:
-      for node, ret in r1.items():
-        #print ret
-        if ret["retcode"] != 0:
-          print ret['retcode']
-          errors = "Error mounting the admin volume on %s"%node
-          raise Exception(errors)
-          print errors
-        else:
-          print "Admin volume mounted on %s"%node
-          print
-  except Exception, e:
-    print "Encountered the following error : %s"%e
-    return -1
-  else:
-    print "Mounting the IntegralStor Administration volume on the primary and secondary GRIDCells... Done."
-    print
-    return 0
-
-def unmount_admin_volume(client):
-  try :
-    config_dir, err = common.get_config_dir()
-    if err:
-      raise Exception(err)
-    print "Unmounting the IntegralStor Administration volume on the primary and secondary GRIDCells."
-    r1 = client.cmd('roles:master', 'cmd.run_all', ['umount %s'%config_dir()], expr_form='grain')
-    if r1:
-      for node, ret in r1.items():
-        #print ret
-        if ret["retcode"] != 0:
-          errors = "Error unmounting the admin volume on %s"%node
-          print errors
-        else:
-          print "Admin volume unmounted on %s"%node
-          print
-  except Exception, e:
-    print "Encountered the following error : %s"%e
-    return -1
-  else:
-    print "Unmounting the IntegralStor Administration volume on the primary and secondary GRIDCells... Done."
-    print
-    return 0
-def restart_minions():
-  try:
-    client = salt.client.LocalClient()
-    r1 = client.cmd('roles:master', 'cmd.run', ['echo service salt-minion restart | at now + 1 minute'], expr_form='grain')
-  except Exception, e:
-    return -1
-  else:
-    return 0
-def start_services(client):
-
-  try :
-    print "Starting services on the active GRIDCells.."
-    print
-
-    r2 = client.cmd('roles:master', 'cmd.run_all', ['service ntpd restart'], expr_form='grain')
-    if r2:
-      for node, ret in r2.items():
-        if ret["retcode"] != 0:
-          errors = "Error restarting the NTP config file on %s"%node
-          print errors
-          print "Exiting now.."
-          return -1
-
-    r2 = client.cmd('*', 'cmd.run_all', ['service ctdb start'])
-    if r2:
-      for node, ret in r2.items():
-        if ret["retcode"] != 0:
-          errors = "Error starting CTDB service on %s"%node
-          raw_input('press a key')
-          print errors
-          print "Exiting now.."
-          return -1
-  except Exception, e:
-    print "Encountered the following error : %s"%e
-    return -1
-  else:
-    print "Starting services on the active GRIDCells.. Done."
-    print
-    return 0
-
-def stop_services(client):
-  try :
-    print "Stopping services on the active GRIDCells.."
-    print
-
-    r2 = client.cmd('roles:master', 'cmd.run_all', ['service ntpd restart'], expr_form='grain')
-    if r2:
-      for node, ret in r2.items():
-        if ret["retcode"] != 0:
-          errors = "Error stopping the NTP config file on %s"%node
-          print errors
-
-    r2 = client.cmd('*', 'cmd.run_all', ['service ctdb start'])
-    if r2:
-      for node, ret in r2.items():
-        if ret["retcode"] != 0:
-          errors = "Error stopping CTDB service on %s"%node
-          print errors
-  except Exception, e:
-    print "Encountered the following error : %s"%e
-    return -1
-  else:
-    print "Stopping services on the active GRIDCells.. Done."
-    print
-    return 0
-'''
-'''
-def create_storage_pool():
-  try :
-    print "Creating an initial storage pool with the primary and secondary GRIDCells..."
-    print
-    d, err = gluster_commands.run_gluster_command('gluster peer probe %s --xml'%secondary, '', 'Adding nodes to cluster')
-    if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
-      print "Creating an initial storage pool with the primary and secondary GRIDCells... Done"
-      print
-      return 0
-    else:
-      err = ""
-      if "op_status" in d and "op_errstr" in d["op_status"]:
-        err = d["op_status"]["op_errstr"]
-      if "op_errno" in d["op_status"]:
-        err += "Error number : %d"%d["op_status"]["op_errno"]
-      print "Error creating the storage pool : %s"%err
-      print "Please check to make sure that glusterd is running on the primary and secondary nodes."
-      return -1
-  except Exception, e:
-    print "Encountered the following error : %s"%e
-    return -1
-  else:
-    print "Creating an initial storage pool with the primary and secondary GRIDCells... Done."
-    print
-    return 0
-'''
