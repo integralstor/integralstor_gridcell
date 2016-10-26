@@ -40,6 +40,36 @@ integralview_restart(){
   esac
 }
 
+configure_zfs_pool() {
+  clear
+  echo
+  echo
+  read -p "Please ensure that the ZFS pool has not already been created before continuing. Proceed with creating the ZFS pool (y/n)? : " input
+  case $input in
+    y) python /opt/integralstor/integralstor_gridcell/scripts/python/configure_zfs_pool.py;pause;;
+  esac
+}
+
+salt_minion_restart(){
+  clear
+  echo
+  echo
+  read -p "Proceed with restarting the admin agent (y/n)? : " input
+  case $input in
+    y)echo "Restarting admin agent services.. ";service salt-minion restart;pause;;
+  esac
+}
+
+salt_master_restart(){
+  clear
+  echo
+  echo
+  read -p "Proceed with restarting the salt master (y/n)? : " input
+  case $input in
+    y)echo "Restarting salt-master services.. ";service salt-master restart;pause;;
+  esac
+}
+
 set_cpu_cores(){
   read -p "Enter the number of cores to be disabled from [minimum 2][press 1 to reset]. " ip
   sh /opt/integralstor/integralstor_common/scripts/shell/cpu_core_dis.sh $ip
@@ -130,7 +160,7 @@ show_menu() {
   echo " GRIDCell actions"
   echo " ----------------"
   echo " 20. Restart distributed storage services     21. Restart IntegralView services     22. Update date using NTP"
-  echo " 23. Shutdown GRIDCell                        24. Reboot GRIDCell"
+  echo " 23. Shutdown GRIDCell                        24. Reboot GRIDCell                   25. Restart admin agent"
   echo
   echo " Check IntegralView services "
   echo " --------------------------- "
@@ -165,6 +195,7 @@ read_input(){
     22) update_ntp_date;;
     23) do_shutdown;;
     24) do_reboot;;
+    25) salt_minion_restart;;
     30) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py salt;pause;;
     31) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py integralview_processes;pause;;
     32) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py admin_vol_started;pause;;
@@ -180,10 +211,12 @@ read_input(){
     63) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py gluster_peer_status;pause;;
     64) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py ctdb;pause;;
     91) configure_networking ;;
-    92) configure_initial_salt_master ;;
-    93) first_time_setup ;;
-    94) set_cpu_cores;;
-    95) goto_shell;;
+    92) configure_zfs_pool ;;
+    93) configure_initial_salt_master ;;
+    94) first_time_setup ;;
+    95) set_cpu_cores;;
+    96) goto_shell;;
+    97) salt_master_restart;;
     *)  echo "Not a Valid INPUT" && sleep 2
   esac
 }

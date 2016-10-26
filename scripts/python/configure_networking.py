@@ -14,6 +14,7 @@ def configure_networking():
     interfaces, err = networking.get_interfaces()
     if err:
       raise Exception(err)
+
     if 'bond0' not in interfaces.keys():
       if_list = interfaces.keys()
       ret, err = networking.create_bond('bond0', if_list, 6)
@@ -23,7 +24,7 @@ def configure_networking():
 
     ip_info, err = networking.get_ip_info('bond0')
     if err:
-      raise Exception(err)
+      ip_info = None
 
     '''
     if not ip_info :
