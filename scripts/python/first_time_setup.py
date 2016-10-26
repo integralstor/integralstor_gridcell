@@ -528,7 +528,8 @@ def initiate_setup():
       print
       
       print 'Restarting the admin master service'
-      rc = client.cmd('*','cmd.run_all',['service salt-master restart'])
+      #rc = client.cmd('*','cmd.run_all',['service salt-master restart'])
+      rc = client.cmd(others,'cmd.run_all',['service salt-master restart'], expr_form='list')
       if rc:
         for node, ret in rc.items():
           if ret["retcode"] != 0:
@@ -550,6 +551,13 @@ def initiate_setup():
 
       print "Setting up high availability for the admin service.. Done."
       print
+
+    rc = client.cmd('*','cmd.run_all',['service uwsgi start'])    
+    if rc:
+      for node, ret in rc.items():
+        if ret["retcode"] != 0:
+          errors = "Error restarting uwsgi service on %s"%node
+          print errors
 
     platform_root, err = common.get_platform_root()
     if err:
