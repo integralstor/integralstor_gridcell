@@ -448,8 +448,10 @@ def initiate_setup():
           raise Exception('Error creating admin volume : unknown error')
 
 
+
     do = raw_input("Mount the admin volume?")
     if do == 'y':
+      sleep(10)
       print "Mounting the IntegralStor Administration volume.."
       rc, err  = grid_ops.mount_admin_volume(client, admin_gridcells)
       if not rc :
@@ -464,6 +466,7 @@ def initiate_setup():
 
     do = raw_input("Create the default configuration?")
     if do == 'y':
+      sleep(10)
       #Create all the required directories and link them to the appropriate places and setup CTDB and NTP as well.
       print
       print "Establishing the default IntegralStor configuration .."
@@ -478,6 +481,7 @@ def initiate_setup():
 
     do = raw_input("Start services?")
     if do == 'y':
+      sleep(10)
       #Start CTDB, samba and winbind on the nodes..
       print "Starting services.."
       rc,err = grid_ops.start_or_stop_services(client, admin_gridcells, 'start')
