@@ -256,10 +256,13 @@ def download_sys_log(request):
   finally:
     lock.release_lock('gluster_commands')
 
-def view_rotated_log_list(request, log_type):
+def view_rotated_log_list(request, *args):
 
   return_dict = {}
   try:
+    log_type = ''
+    if args:
+      log_type = args[0]
     if log_type not in ["alerts", "audit_trail"]:
       raise Exception("Unknown log type")
     l = None
@@ -290,10 +293,13 @@ def view_rotated_log_list(request, log_type):
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
 
-def view_rotated_log_file(request, log_type):
+def view_rotated_log_file(request, *args):
 
   return_dict = {}
   try:
+    log_type = ''
+    if args:
+      log_type = args[0]
     return_dict['tab'] = 'view_rotated_alert_log_list_tab'
     if log_type not in ["alerts", "audit_trail"]:
       raise Exception("Unknown log type")
@@ -328,7 +334,7 @@ def view_rotated_log_file(request, log_type):
     return_dict["error_details"] = str(e)
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
-def refresh_alerts(request, random=None):
+def refresh_alerts(request):
   ret = None
   return_dict = {}
   try:
@@ -485,9 +491,13 @@ def edit_integral_view_log_level(request):
     else:
       return_dict["error"] = "An error occurred when processing your request : %s"%s
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
-def rotate_log(request, log_type=None):
+
+def rotate_log(request, *args):
   return_dict = {}
   try:
+    log_type = ''
+    if args:
+      log_type = args[0]
     return_dict['base_template'] = "system_log_base.html"
     return_dict["error"] = 'Error rotating logs'
     if log_type not in ["alerts", "audit_trail"]:

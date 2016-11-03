@@ -78,10 +78,13 @@ def view_scheduled_jobs(request):
     return_dict["error_details"] = str(e)
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
-def view_scheduled_job(request, task_id):
+def view_scheduled_job(request, *args):
   return_dict = {}
   db_path = settings.DATABASES["default"]["NAME"]
   try:
+    task_id = '-1'
+    if args:
+      task_id = args[0]
     task_name,err = scheduler_utils.get_background_job(db_path,int(task_id))
     return_dict["task"] = task_name[0]
     commands,err = scheduler_utils.get_task_details(db_path,int(task_id))

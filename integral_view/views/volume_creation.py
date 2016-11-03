@@ -13,12 +13,16 @@ from integral_view.utils import iv_logging
 import integral_view
 from integral_view.forms import volume_creation_forms
 
-def volume_creation_wizard(request, action):
+def volume_creation_wizard(request, *args):
   """ Used to redirect requests to step a user through a wizrd 
   to create a volume"""
 
   return_dict = {}
   try:
+    action = ''
+    if args:
+      action = args[0]
+
     return_dict['base_template'] = "volume_base.html"
     return_dict["page_title"] = 'Create a volume'
     return_dict['tab'] = 'view_volumes_tab'

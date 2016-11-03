@@ -7,7 +7,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 
 import integralstor_common
-from integralstor_common import db, common, audit, alerts, ntp, mail, lock
+from integralstor_common import db, common, audit, alerts, ntp, mail, lock, services_management
 from integralstor_common import cifs as cifs_common
 
 import integralstor_gridcell
@@ -16,11 +16,12 @@ from integralstor_gridcell import batch, gluster_volumes, system_info, grid_ops,
 
 import integral_view
 from integral_view.forms import common_forms
+from integral_view.decorators import login_and_admin_vol_mountpoint_required
 from integral_view.utils import iv_logging
 
 from glusterfs import gfapi
 
-@login_required
+@login_and_admin_vol_mountpoint_required
 def dashboard(request):
   return_dict = {}
   try:
@@ -152,6 +153,27 @@ def dashboard(request):
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
   finally:
     lock.release_lock('gluster_commands')
+
+def access_shell(request):
+  return_dict = {}
+  try:
+    status,err = services_management.get_service_status(['shellinaboxd'])
+    if err:
+      raise Exception(err)
+    if status['status_str'] == "Running":
+      return django.shortcuts.render_to_response("shell_access.html", return_dict, context_instance=django.template.context.RequestContext(request))
+    else:
+      raise Exception("Shell Service is not running. Start the service and visit the page again")
+    
+  except Exception, e:
+    return_dict['base_template'] = "system_base.html"
+    return_dict["page_title"] = 'Shell Access'
+    return_dict['tab'] = 'shell_tab'
+    return_dict["error"] = 'Error loading Shell, Check the service'
+    return_dict["error_details"] = str(e)
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+
+
 
 @login_required
 def show(request, page, info = None):
