@@ -1,79 +1,16 @@
 
-import os, socket, sys, subprocess
-from integralstor_common import common, networking, command
-
-def is_part_of_grid():
-  part = False
-  try:
-    platform_root, err = common.get_platform_root()
-    if err:
-      raise Exception(err)
-    if os.path.isfile('%s/part_of_grid'%platform_root):
-      part = True
-  except Exception, e:
-    return False, 'Error checking for grid membership : %s'%str(e)
-  else:
-    return part, None
-
-def is_admin_gridcell():
-  admin = False
-  try:
-    me = socket.getfqdn()
-    platform_root, err = common.get_platform_root()
-    if err:
-      raise Exception(err)
-    if os.path.isfile('%s/admin_gridcells'%platform_root):
-      lines = []
-      with open('%s/admin_gridcells'%platform_root, 'r') as f:
-        lines = f.readlines()
-      for line in lines:
-        if line.strip() == me:
-          admin = True
-          break
-  except Exception, e:
-    return False, 'Error checking for admin grid membership : %s'%str(e)
-  else:
-    return admin, None
-    
-def get_admin_gridcells():
-  admin_gridcells = []
-  try:
-    platform_root, err = common.get_platform_root()
-    if err:
-      raise Exception(err)
-    if os.path.isfile('%s/admin_gridcells'%platform_root):
-      lines = []
-      with open('%s/admin_gridcells'%platform_root, 'r') as f:
-        lines = f.readlines()
-      admin_gridcells = [line.strip() for line in lines]
-  except Exception, e:
-    return None, 'Error getting admin GRIDCells: %s'%str(e)
-  else:
-    return admin_gridcells, None
-
-def is_admin_vol_mounted():
-  mounted = False
-  try:
-    admin_vol_name, err = common.get_admin_vol_name()
-    if err:
-      raise Exception(err)
-    config_dir, err = common.get_config_dir()
-    if err:
-      raise Exception(err)
-    with open('/proc/self/mounts', 'r') as f:
-      for line in f:
-        if admin_vol_name in line and config_dir in line:
-          mounted = True
-          break
-  except Exception, e:
-    return False, 'Error checking if admin volume is mounted : %s'%str(e)
-  else:
-    return mounted, None
-
+import os, socket, sys, subprocess, logging
+from integralstor_common import common, networking, command, logger
+from integralstor_gridcell import grid_ops
 
 def mount_and_configure():
+  lg = None
   try:
-    pog, err = is_part_of_grid()
+    lg, err = logger.get_script_logger('Admin volume mounter', '/var/log/integralstor/scripts.log', level = logging.DEBUG)
+
+    logger.log_or_print('Admin volume mounter initiated.', lg, level='info')
+
+    pog, err = grid_ops.is_part_of_grid()
     if err:
       raise Exception(err)
     if pog:
@@ -86,15 +23,15 @@ def mount_and_configure():
       if err:
         raise Exception(err)
 
-      ag, err = is_admin_gridcell()
+      ag, err = grid_ops.is_admin_gridcell()
       if err:
         raise Exception(err)
 
-      admin_gridcells, err = get_admin_gridcells()
+      admin_gridcells, err = grid_ops.get_admin_gridcells()
       if err:
         raise Exception(err)
 
-      mounted, err = is_admin_vol_mounted()
+      mounted, err = grid_ops.is_admin_vol_mounted_local()
       if not mounted:
         for admin_gridcell in admin_gridcells:
           reachable, err = networking.can_ping(admin_gridcell)
@@ -111,9 +48,14 @@ def mount_and_configure():
                 subprocess.call(['service', 'salt-minion', 'restart'], shell=False)
               break
             else:
-              print 'Mount from %s failed.'%admin_gridcell
+              str =  'Mount from %s failed.'%admin_gridcell
+              logger.log_or_print(str, lg, level='warning')
+        if not mounted:
+          str =  'Failed to mounted admin volume!'
+          logger.log_or_print(str, lg, level='critical')
       else:
-        print 'Admin volume is already mounted'
+        str =  'Admin volume is already mounted'
+        logger.log_or_print(str, lg, level='info')
 
       '''
       if mounted:
@@ -127,8 +69,12 @@ def mount_and_configure():
         raise Exception('Could not mount the admin volume')
       '''
   except Exception, e:
+    str = 'Error mounting admin volume : %s'%str(e)
+    logger.log_or_print(str, lg, level='critical')
     return False, str(e)
   else:
+    str = 'Admin volume mounter completed.'
+    logger.log_or_print(str, lg, level='info')
     return True, None
 
 def main():

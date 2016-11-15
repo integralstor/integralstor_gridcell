@@ -1,10 +1,10 @@
 #!/usr/bin/python
 
-import json, time, re, os, tempfile, shutil, sys 
+import json, time, re, os, tempfile, shutil, sys, logging
 from xml.etree import ElementTree
 
-from integralstor_common import command,common, audit, lock
-from integralstor_gridcell import xml_parse
+from integralstor_common import command,common, audit, lock, logger
+from integralstor_gridcell import xml_parse, grid_ops
 
 import atexit
 atexit.register(lock.release_lock, 'batch_process')
@@ -17,7 +17,6 @@ def get_heal_count(cmd, type):
     batch_files_path, err = common.get_batch_files_path()
     if err:
       raise Exception(err)
-    devel_files_path, err = common.get_devel_files_path()
     r = None
     if type :
         cmd = cmd + " " + type
@@ -58,7 +57,6 @@ def process_batch(d, file):
     batch_files_path, err = common.get_batch_files_path()
     if err:
       raise Exception(err)
-    devel_files_path, err = common.get_devel_files_path()
     if not d:
       raise Exception("Error: No JSON info in %s/%s"%(batch_files_path, file))
   
@@ -318,25 +316,37 @@ def process_batch(d, file):
   
 
 def main():
+  lg = None
   try :
+    lg, err = logger.get_script_logger('Gluster batch processing', '/var/log/integralstor/scripts.log', level = logging.DEBUG)
+
+    logger.log_or_print('Batch processing initiated.', lg, level='info')
+
+    active, err = grid_ops.is_active_admin_gridcell()
+    if err:
+      raise Exception(err)
+
+    if not active:
+      logger.log_or_print('Not active admin GRIDCell so exiting.', lg, level='info')
+      sys.exit(0)
+
     batch_files_path, err = common.get_batch_files_path()
     if err:
       raise Exception(err)
-    devel_files_path, err = common.get_devel_files_path()
 
     ret, err = lock.get_lock('batch_process')
     if err:
       raise Exception(err)
+
     if not ret:
-      print 'Gluster batch processing : Could not acquire lock. Exiting.'
+      raise Exception('Could not acquire batch lock. Exiting.')
 
     gluster_lck, err = lock.get_lock('gluster_commands')
     if err:
       raise Exception(err)
 
     if not gluster_lck:
-        print 'Gluster batch processing : Could not acquire gluster lock. Exiting.'
-        sys.exit(-1)
+      raise Exception('Could not acquire gluster lock. Exiting.')
 
     fl = os.listdir(os.path.normpath(batch_files_path))
     if fl:
@@ -345,6 +355,7 @@ def main():
           #unknown file type so ignore
           continue
         else:
+          logger.log_or_print('Processing file %s/%s'%(batch_files_path,file), lg, level='info')
           with open(os.path.normpath("%s/%s"%(batch_files_path,file)), "r") as f:
             #print 'a'
             #print os.path.normpath("%s/%s"%(batch_files_path,file))
@@ -352,21 +363,27 @@ def main():
             #print 'a1'
             ret, err = process_batch(d, file)
             if err:
-              print "Error loading json content for %s/%s : %s"%(batch_files_path, file, err)
+              str =  "Error loading json content for %s/%s : %s"%(batch_files_path, file, err)
+              logger.log_or_print(str, lg, level='error')
               continue
     else:
-      print 'No batch processes pending'
+      logger.log_or_print('No batch processes pending.', lg, level='info')
 
     ret, err = lock.release_lock('gluster_commands')
     if err:
       raise Exception(err)
+
     ret, err = lock.release_lock('batch_process')
     if err:
       raise Exception(err)
+
   except Exception, e:
-    print "Error processing batch files : %s"%e
+    str =  "Error processing batch files : %s"%e
+    logger.log_or_print(str, lg, level='critical')
     sys.exit(-1)
   else:
+    str = 'Batch processing completed.'
+    logger.log_or_print(str, lg, level='info')
     sys.exit(0)
 
 if __name__ == '__main__':

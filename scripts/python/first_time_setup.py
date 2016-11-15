@@ -404,7 +404,7 @@ def initiate_setup():
         raise Exception(err)
 
       #Accept their keys, get their bond0 IP, add them to the hosts file(DNS), sync modules, regenrate manifest and status, update the minions to point to the admin gridcells, flag them as admin gridcells by setting the appropriate grains and restart the minions.
-      (success, failed), err = grid_ops.add_gridcells_to_grid(None, admin_gridcells, admin_gridcells, first_time = True, print_progress = True, admin_gridcells = True)
+      (success, failed), err = grid_ops.add_gridcells_to_grid(None, admin_gridcells, admin_gridcells, first_time = True, print_progress = True, admin_gridcells = True, restart_minions = False)
       #print success, failed, err
       if err:
         raise Exception(err)
@@ -495,6 +495,13 @@ def initiate_setup():
       print "Starting services.. Done."
       print
 
+      rc = client.cmd('*','cmd.run_all',['service uwsgi start'])    
+      if rc:
+        for node, ret in rc.items():
+          if ret["retcode"] != 0:
+            errors = "Error restarting uwsgi service on %s"%node
+            print errors
+
 
     do = raw_input("Setup high availability for the admin service?")
     if do == 'y':
@@ -543,8 +550,9 @@ def initiate_setup():
       print
 
       sleep(10)
-      print 'Restarting the admin slave service'
-      rc = client.cmd('*','cmd.run_all',['service salt-minion restart'])    
+      print 'Scheduling restarting of the admin slave service'
+      #rc = client.cmd('*','cmd.run_all',['service salt-minion restart'])    
+      rc = client.cmd('*','cmd.run',['echo service salt-minion restart | at now + 1 minute'])
       if rc:
         for node, ret in rc.items():
           if ret["retcode"] != 0:
@@ -556,12 +564,6 @@ def initiate_setup():
       print "Setting up high availability for the admin service.. Done."
       print
 
-    rc = client.cmd('*','cmd.run_all',['service uwsgi start'])    
-    if rc:
-      for node, ret in rc.items():
-        if ret["retcode"] != 0:
-          errors = "Error restarting uwsgi service on %s"%node
-          print errors
 
     platform_root, err = common.get_platform_root()
     if err:
