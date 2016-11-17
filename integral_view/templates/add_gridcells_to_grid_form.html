@@ -9,7 +9,30 @@
     The hardware scan did not detect any new GRIDCells.<br/><br/>
     <a class="btn btn-default btn-sm" href="/view_gridcells" title="Click to go back to the GRIDCells list page"><i class="fa fa-list fa-fw" ></i> Back to GRIDCells list</a>
   {%else%}
-    {%include 'add_hardware_form.html'%}
+    Please select the GRIDCells that you want to add to the grid. <br/><br/>
+    <form id="edit_form" name="edit_form" action="" method="post">
+      <table class="table table-hover table-bordered" style="width:60%">
+        <tr>
+          <td>
+            {% for choice in form.gridcells.field.choices %} 
+              <div class="radio">
+                <label>
+                  <input type="radio" name="gridcells" id="optionsRadios1" value="{{choice.0}}" {%if choice.0 in form.initial.gridcells %} checked="checked"{%endif%}> &nbsp;{{choice.0}}
+                </label>
+              </div>
+            {%endfor%}
+          </td>
+          <td> {{form.gridcells.errors}} </td>
+        </tr>
+      </table>
+      This process can take upto 2 minutes!
+      <br/>
+      <br/>
+      <div class="btn-group btn-group-sm " >
+        <a href="/view_gridcells" role="button" class="btn btn-sm btn-default"> Cancel</a>&nbsp;&nbsp;
+        <button type="submit" class="btn btn-primary cover-page">Add GRIDCells</button>
+      </div>
+    </form>
   {%endif%}
 
 {%endblock%}

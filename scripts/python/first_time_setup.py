@@ -21,8 +21,8 @@ def get_admin_gridcells():
     if me not in pending_minions:
       raise Exception('Please configure the bootstrap admin agent on this GRIDCell to point to the local IP address before running the first time setup.')
 
-    if not pending_minions or len(pending_minions) < 3:
-      raise Exception('Please ensure that there are atleast three GRIDCells powered on and whose admin agent has been configured to point to this GRIDCell.')
+    if not pending_minions or len(pending_minions) < 2:
+      raise Exception('Please ensure that there are atleast two GRIDCells powered on and whose admin agent has been configured to point to this GRIDCell.')
 
     print 'The GRIDCell on which you are running the first time setup will automatically be used as one of the admin GRIDCells.'
     print 'In addition to this one, the system has detected the following GRIDCells that can be configured as admin GRIDCells: \n'
@@ -33,12 +33,23 @@ def get_admin_gridcells():
       print '%d. %s'%(index, minion)
     print
 
-    str_to_print = 'Enter the numbers corresponding to two other GRIDCells(comma separated) from the above list that will act as admin GRIDCells (e.g: 1,2) : '
+    str_to_print = 'Enter the number corresponding to one other GRIDCells from the above list that will act as admin GRIDCells : '
 
     valid_input = False
     while not valid_input:
+      admin_server_list = []
       input = raw_input(str_to_print)
       if input:
+        try:
+          admin_server_index = int(input.strip())
+        except Exception, e:
+          print 'Please enter a valid number from the list above'
+          continue
+        if admin_server_index < 1 or admin_server_index > len(pending_minions):
+          print 'Please enter a valid number from the list above'
+          continue
+        admin_server_list.append(pending_minions[admin_server_index-1])
+        '''
         try:
           admin_server_index_list = [x.strip() for x in input.split(',')]
         except Exception, e:
@@ -65,6 +76,7 @@ def get_admin_gridcells():
           admin_server_list.append(pending_minions[admin_server_index-1])
         if not all_ok:
           continue
+        '''
         admin_server_list.append(me)
         print "\nThe following are the choices that you have made :"
         print
@@ -113,7 +125,6 @@ def empty_storage_pool(admin_gridcells):
     
 
 def establish_default_configuration(client, si, admin_gridcells):
-
   try :
 
     platform_root, err = common.get_platform_root()
@@ -302,6 +313,8 @@ def undo_default_configuration(client):
 
     r2 = client.cmd('roles:master', 'cmd.run_all', ['rm /etc/samba/smb.conf'], expr_form='grain')
     r2 = client.cmd('roles:master', 'cmd.run_all', ['rm /etc/rc.local'], expr_form='grain')
+    r2 = client.cmd('roles:master', 'cmd.run_all', ['cp %s/salt/master /etc/salt'%defaults_dir])
+    r2 = client.cmd('roles:master', 'cmd.run_all', ['cp %s/salt/minion /etc/salt'%defaults_dir])
 
   except Exception, e:
     return False, 'Error undoing the default configuration : %s'%str(e)
@@ -316,6 +329,17 @@ def undo_setup(client, si, admin_gridcells):
       do = raw_input("Stop services?")
       if do == 'y':
         grid_ops.start_or_stop_services(client, admin_gridcells, 'stop')
+
+      do = raw_input("Undo cron setup?")
+      if do == 'y':
+        print "Undoing the cron setup.. "
+        print
+        rc, err = grid_ops.undo_setup_cron(client, admin_gridcells, admin_gridcells = True)
+        if err:
+          print err
+        else:
+          print "Undoing the cron setup.. Done."
+          print
 
       do = raw_input("Undo default configuration?")
       if do == 'y':
@@ -369,6 +393,7 @@ def undo_setup(client, si, admin_gridcells):
           print "Removing GRIDCells from grid.. Done."
           print
 
+      '''
       do = raw_input("Restart minions?")
       if do == 'y':
         print 'Restarting minions'
@@ -377,8 +402,12 @@ def undo_setup(client, si, admin_gridcells):
         if err:
           print err
           print
+      '''
+      do = raw_input("Restart salt master?")
+      if do == 'y':
+        command.get_command_output('service salt-master restart')
   except Exception, e:
-    print "Error rolling back the setup : "%e
+    print "Error rolling back the setup : %s"%e
     print '--------------------------------Undoing setup end------------------------------'
     return -1
   else:
@@ -404,7 +433,7 @@ def initiate_setup():
         raise Exception(err)
 
       #Accept their keys, get their bond0 IP, add them to the hosts file(DNS), sync modules, regenrate manifest and status, update the minions to point to the admin gridcells, flag them as admin gridcells by setting the appropriate grains and restart the minions.
-      (success, failed), err = grid_ops.add_gridcells_to_grid(None, admin_gridcells, admin_gridcells, first_time = True, print_progress = True, admin_gridcells = True, restart_minions = False)
+      (success, failed), err = grid_ops.add_gridcells_to_grid(None, admin_gridcells, admin_gridcells, first_time = True, print_progress = True, admin_gridcells = True, restart_minions = False, establish_cron = False)
       #print success, failed, err
       if err:
         raise Exception(err)
@@ -502,6 +531,18 @@ def initiate_setup():
             errors = "Error restarting uwsgi service on %s"%node
             print errors
 
+    do = raw_input("Setup cron on the admin GRIDCells?")
+    if do == 'y':
+      print
+      print "Establishing the cron on the admin GRIDCells.."
+      rc, err = grid_ops.setup_cron(client, admin_gridcells, admin_gridcells = True)
+      if not rc:
+        if err:
+          raise Exception(err)
+        else:
+          raise Exception('Unknown error')
+      print "Establishing the cron on the admin GRIDCells.. Done."
+      print
 
     do = raw_input("Setup high availability for the admin service?")
     if do == 'y':
@@ -552,7 +593,7 @@ def initiate_setup():
       sleep(10)
       print 'Scheduling restarting of the admin slave service'
       #rc = client.cmd('*','cmd.run_all',['service salt-minion restart'])    
-      rc = client.cmd('*','cmd.run',['echo service salt-minion restart | at now + 1 minute'])
+      rc = client.cmd('*','cmd.run_all',['echo service salt-minion restart | at now + 1 minute'])
       if rc:
         for node, ret in rc.items():
           if ret["retcode"] != 0:

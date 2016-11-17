@@ -1,5 +1,5 @@
 
-import socket
+import socket, time
 
 from django.conf import settings
 import django, django.template
@@ -11,6 +11,8 @@ from integral_view.utils import iv_logging
 import integralstor_gridcell
 from integralstor_gridcell import gluster_volumes, system_info, grid_ops, gluster_trusted_pools
 from integralstor_common import audit, lock
+
+import salt.client
 
 def view_gridcells(request):
   return_dict = {}
@@ -30,6 +32,8 @@ def view_gridcells(request):
     if 'ack' in request.GET:
       if request.REQUEST['ack'] == 'added_to_storage_pool':
         return_dict['ack_message'] = 'Successfully added GRIDCell to the storage pool'
+      elif request.REQUEST['ack'] == 'removed_from_grid':
+        return_dict['ack_message'] = 'Successfully removed GRIDCell from the grid.'
       elif request.REQUEST['ack'] == 'replaced_gridcell':
         return_dict['ack_message'] = 'A GRIDCell replacement batch process has been scheduled. Please view the "Batch processes" screen to check the status'
 
@@ -179,10 +183,9 @@ def scan_for_new_gridcells(request):
       raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
 
     return_dict['base_template'] = "gridcell_base.html"
-    return_dict["page_title"] = 'Scan for new GRIDCells'
+    return_dict["page_title"] = 'Add GRIDCells to grid'
     return_dict['tab'] = 'gridcell_list_tab'
-    return_dict["error"] = 'Error scanning for new GRIDCells'
-
+    return_dict["error"] = 'Error adding new GRIDCells to grid'
 
     pending_minions, err = grid_ops.get_pending_minions()
     if err:
@@ -202,7 +205,10 @@ def scan_for_new_gridcells(request):
         #print 'form valid'
         # User has chosen some gridcells to be added so add them.
         cd = form.cleaned_data
-        (success, failed), errors = grid_ops.add_gridcells_to_grid(request.META,cd["gridcells"])
+        admin_gridcells, err = grid_ops.get_admin_gridcells()
+        if err:
+          raise Exception(err)
+        (success, failed), errors = grid_ops.add_gridcells_to_grid(request.META,cd["gridcells"], admin_gridcells)
         #print success, failed, errors
         url = 'add_gridcells_to_grid_result.html'
         return_dict["success"] = success
@@ -242,9 +248,9 @@ def remove_a_gridcell_from_grid(request):
     if request.method == "GET":
       return django.shortcuts.render_to_response("remove_gridcell_from_grid_conf.html", return_dict, context_instance=django.template.context.RequestContext(request))
     if request.method == "POST":
-      status,err = grid_ops.delete_salt_key(gridcell_name)
-      time.sleep(30)
-      status,err = grid_ops._regenerate_manifest_and_status()
+      ret, err = grid_ops.remove_a_gridcell_from_grid(gridcell_name)
+      if err:
+        raise Exception(err)
 
       audit_str = "Removed GRIDCell %s from the grid."%(gridcell_name)
       audit.audit("remove_gridcell_from_grid", audit_str, request.META)

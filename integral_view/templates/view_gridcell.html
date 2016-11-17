@@ -15,7 +15,7 @@
         <li><a  class="action-dropdown" href="/add_a_gridcell_to_storage_pool?gridcell_name={{gridcell_name}}"  title="Add this GRIDCell to the storage pool" > <i class="fa fa-plus fa-fw"></i>Add to storage pool</a>
       {%endif%}
       {%if gridcell_name != 'gridcell-pri.integralstor.lan' and gridcell_name != 'gridcell-sec.integralstor.lan' and not gridcell_info.in_cluster%}
-        <li><a  class="action-dropdown" href="/remove_gridcell_from_grid?gridcell_name={{gridcell_name}}"  style="color:red" title="Remove this GRIDCell from the grid" > <i class="fa fa-trash-o fa-fw"></i>Remove from grid</a>
+        <li><a  class="action-dropdown" href="/remove_a_gridcell_from_grid?gridcell_name={{gridcell_name}}"  style="color:red" title="Remove this GRIDCell from the grid" > <i class="fa fa-trash-o fa-fw"></i>Remove from grid</a>
       {%endif%}
       {%if gridcell_name != 'gridcell-pri.integralstor.lan' and gridcell_name != 'gridcell-sec.integralstor.lan' and gridcell_info.volume_list%}
         <li><a  class="action-dropdown" href="/replace_gridcell?gridcell_name={{gridcell_name}}"  style="color:red" title="Replace this GRIDCell with another" > <i class="fa fa-exchange-o fa-fw"></i>Replace with another GRIDCell</a>
@@ -301,6 +301,7 @@
           </div> <!--panel-heading-->
           <div id="disk_status" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading3">
             <div class="panel-body">
+              <!--
               <table border="8" cellpadding="1" cellspacing="1" style="width: 500px;" class="table table-bordered table-hover table-responsive container">
                 <tr>
                   <td id="chassis_pos_indicator_0_colour">
@@ -407,6 +408,7 @@
                 {%endfor%}
               </script>
               <br /> <br />
+              -->
               <table class="table table-bordered table-hover table-responsive" style="width:800px">
                 <tr>
                   <th > Disk serial number </th>
