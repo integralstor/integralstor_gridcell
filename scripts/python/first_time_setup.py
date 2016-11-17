@@ -2,7 +2,7 @@
 import salt.wheel
 import sys, os, shutil, socket, struct, sys, shutil
 from integralstor_gridcell import grid_ops, system_info, ctdb, gluster_trusted_pools, xml_parse
-from integralstor_common import common, networking
+from integralstor_common import common, networking, command
 import salt.client
 import distutils.dir_util
 from time import strftime,sleep
@@ -433,7 +433,7 @@ def initiate_setup():
         raise Exception(err)
 
       #Accept their keys, get their bond0 IP, add them to the hosts file(DNS), sync modules, regenrate manifest and status, update the minions to point to the admin gridcells, flag them as admin gridcells by setting the appropriate grains and restart the minions.
-      (success, failed), err = grid_ops.add_gridcells_to_grid(None, admin_gridcells, admin_gridcells, first_time = True, print_progress = True, admin_gridcells = True, restart_minions = False, establish_cron = False)
+      (success, failed), err = grid_ops.add_gridcells_to_grid(None, admin_gridcells, admin_gridcells, first_time = True, print_progress = True, admin_gridcells = True, restart_salt_minions = False, establish_cron = False)
       #print success, failed, err
       if err:
         raise Exception(err)
@@ -609,8 +609,14 @@ def initiate_setup():
     platform_root, err = common.get_platform_root()
     if err:
       raise Exception(err)
+
+
     with open('%s/first_time_setup_completed'%platform_root, 'w') as f:
       f.write('%s'%strftime("%Y-%m-%d %H:%M:%S"))
+
+    do = raw_input("Restart salt master?")
+    if do == 'y':
+      command.get_command_output('service salt-master restart')
 
   except Exception, e:
     print '----------------ERROR----------------------'

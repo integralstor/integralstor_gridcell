@@ -11,4 +11,4 @@ modprobe zfs
 #The following services will be started from the cron after the admin vol is mounted
 service ctdb stop
 service winbind stop
-service nginx stop
+service uwsgi stop
