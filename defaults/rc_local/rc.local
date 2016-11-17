@@ -9,8 +9,6 @@ touch /var/lock/subsys/local
 modprobe ipmi_devintf
 modprobe zfs
 #The following services will be started from the cron after the admin vol is mounted
-service salt-master stop
-service salt-minion stop
 service ctdb stop
 service winbind stop
 service nginx stop
