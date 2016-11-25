@@ -337,6 +337,7 @@ def create_cifs_share(request):
       if form.is_valid():
         #print return_dict
         cd = form.cleaned_data
+        #print cd
         name = cd["name"]
         path = "%s"%cd["path"]
         
@@ -371,6 +372,7 @@ def create_cifs_share(request):
           ret, err = gluster_gfapi.create_gluster_dir(vol,path)
           if err:
             raise Exception(err)
+        print users, groups
         ret, err = cifs_common.create_share(name, comment, guest_ok, read_only, path, "", browseable, users, groups, vol)
         if err:
           raise Exception(err)
@@ -473,6 +475,14 @@ def edit_cifs_authentication_settings(request):
           raise Exception(err)
         #print '1'
 
+        if cd["security"] == "ads":
+          client = salt.client.LocalClient()
+          results = client.cmd('*', 'integralstor.configure_name_servers',[cd['password_server_ip']])
+          if results:
+            for node, ret in results.items():
+              if not ret[0] :
+                raise Exception("Error updating the DNS configuration on GRIDCell %s"%node)
+        '''
         # We now need to add the AD server as the forwarder in our DNS config on the primary...
         nsl, err = networking.get_name_servers()
         if err:
@@ -501,6 +511,7 @@ def edit_cifs_authentication_settings(request):
             for node, ret in r2.items():
               if ret["retcode"] != 0:
                 raise Exception("Error updating the DNS configuration on the primary GRIDCell")
+        '''
   
         #print '2'
         if cd["security"] == "ads":
@@ -520,6 +531,7 @@ def edit_cifs_authentication_settings(request):
             raise Exception(err)
           if not rc:
             raise Exception("Kerberos init failure")
+        print cd
         if cd["security"] == "ads":
           rc, err = cifs_gridcell.net_ads_join("administrator", cd["password"], cd["password_server"])
           if err:

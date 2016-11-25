@@ -41,13 +41,31 @@ def check_for_gridcell_errors(si):
     if err:
       raise Exception(err)
 
-    alert_list = []
+    alerts_list = []
   
+    #print si.keys()
+    salt_connectivity, err = grid_ops.check_salt_connectivity(None, si.keys())
+    if err:
+      raise Exception(err)
+    #print salt_connectivity
+
     for node_name, node in si.items():
+      msg = 'GRIDCell  %s :  '%node_name
+      alerts = False
+      res, err = networking.can_ping(node_name)
+      if err:
+        raise Exception(err)
+      if not res:
+        alerts = True
+        msg += 'Cannot ping GRIDCell. '
+      if node_name not in salt_connectivity or not salt_connectivity[node_name]:
+        msg += 'Cannot contact admin agent on GRIDCell. '
       if 'errors' in node and node['errors']:
-        msg = 'GRIDCell : %s. '%node_name
+        alerts = True
         msg += '. '.join(node['errors'])
-        alert_list.append(msg)
+
+      if alerts:
+        alerts_list.append(msg)
 
   except Exception, e:
     return None, 'Error polling for alerts : %s'%e
@@ -86,6 +104,8 @@ def main():
     if not si:
       raise Exception('Could not load system information')
 
+    alerts_list = []
+
     alerts_list, err = check_quotas()
     if err:
       raise Exception("Error getting quota information : %s"%err)
@@ -107,7 +127,7 @@ def main():
 
     lock.release_lock('poll_for_alerts')
   except Exception, e:
-    str = 'Error running poll for alerts (common) : %s'%e
+    str = 'Error running poll for alerts  : %s'%e
     logger.log_or_print(str, lg, level='critical')
     sys.exit(-1)
   else:

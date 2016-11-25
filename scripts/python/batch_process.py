@@ -49,11 +49,10 @@ def get_heal_count(cmd, type):
     return rl, None
 
 
-def process_batch(d, file):
+def process_batch(d, file, logger = None):
   #Process each batch file
 
   try:
-    print file
     batch_files_path, err = common.get_batch_files_path()
     if err:
       raise Exception(err)
@@ -246,7 +245,7 @@ def process_batch(d, file):
     
             if nodes:
               for node in nodes:
-                status_str, err = xml_parse.get_text(node, "status")
+                status_str, err = xml_parse.get_subnode_text(node, "status")
                 if err:
                   raise Exception(err)
                 status = int(status_str)
@@ -256,9 +255,9 @@ def process_batch(d, file):
             node = tree.find(".//%s/aggregate"%rootStr)
       
             try :
-              ret, err = xml_parse.get_text(node, "files")
+              ret, err = xml_parse.get_subnode_text(node, "files")
               cd["files"] = int(ret)
-              ret, err = xml_parse.get_text(node, "size")
+              ret, err = xml_parse.get_subnode_text(node, "size")
               cd["size"] = int(ret)
             except Exception, e:
               #Trying to get only info so ok to fail
@@ -268,7 +267,7 @@ def process_batch(d, file):
             if done:
               if node:
                 try:
-                  ret, err = xml_parse.get_text(node, "status")
+                  ret, err = xml_parse.get_subnode_text(node, "status")
                   status = int(ret)
                   if status == 1:
                     done = False
@@ -361,7 +360,7 @@ def main():
             #print os.path.normpath("%s/%s"%(batch_files_path,file))
             d = json.load(f)
             #print 'a1'
-            ret, err = process_batch(d, file)
+            ret, err = process_batch(d, file, logger)
             if err:
               str =  "Error loading json content for %s/%s : %s"%(batch_files_path, file, err)
               logger.log_or_print(str, lg, level='error')

@@ -55,8 +55,8 @@
             </td>
             <td>
               {%if gridcell_info.volume_list%}
-                {%for vol in gricell_info.volume_list %}
-                  {{vol}},
+                {%for volume_name in gridcell_info.volume_list %}
+                  {{volume_name}},
                 {%endfor%}
               {%else%}
                 No user volumes
@@ -73,10 +73,10 @@
                   {%if gluster_addable_gridcells  and gridcell_name in gluster_addable_gridcells%}
                     <li><a  class="action-dropdown" href="/add_a_gridcell_to_storage_pool?gridcell_name={{gridcell_name}}"  title="Add this GRIDCell to the storage pool" > <i class="fa fa-plus fa-fw"></i>Add to storage pool</a>
                   {%endif%}
-                  {%if gridcell_name != 'gridcell-pri.integralstor.lan' and gridcell_name != 'gridcell-sec.integralstor.lan' and not gridcell_info.in_cluster%}
+                  {%if gridcell_name not in admin_gridcells and not gridcell_info.in_cluster%}
                     <li><a  class="action-dropdown" href="/remove_a_gridcell_from_grid?gridcell_name={{gridcell_name}}"  style="color:red" title="Remove this GRIDCell from the grid" > <i class="fa fa-trash-o fa-fw"></i>Remove from grid</a>
                   {%endif%}
-                  {%if gridcell_name != 'gridcell-pri.integralstor.lan' and gridcell_name != 'gridcell-sec.integralstor.lan' and gridcell_info.volume_list%}
+                  {%if gridcell_name not in admin_gridcells and gridcell_info.volume_list%}
                     <li><a  class="action-dropdown" href="/replace_gridcell?gridcell_name={{gridcell_name}}"  style="color:red" title="Replace this GRIDCell with another" > <i class="fa fa-exchange-o fa-fw"></i>Replace with another GRIDCell</a>
                   {%endif%}
                 </ul>

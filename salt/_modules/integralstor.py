@@ -1,6 +1,6 @@
 import pprint, shutil, os, time
 
-from integralstor_common import manifest_status, common
+from integralstor_common import manifest_status, common, networking
 
 def disk_info_and_status():
 
@@ -159,6 +159,18 @@ def flag_as_admin_gridcell():
   else:
     return True, None
       
+def configure_name_servers(*ns_list):
+  try:
+    if not ns_list:
+      raise Exception('No name servers specified')
+    ret, err = networking.set_name_servers(ns_list)
+    if err:
+      raise Exception(err)
+  except Exception, e:
+    return False, 'Error setting name servers : %s'%str(e)
+  else:
+    return True, None
+
 if __name__ == '__main__':
   #print configure_ntp_slave('a.b.c.d', 'e.f.g.h')
   print configure_ntp_master('0.ntp.org', '1.ntp.org', network='192.168.1.0', netmask='255.255.255.0')

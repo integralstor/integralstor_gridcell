@@ -30,6 +30,46 @@ gluster_restart(){
   esac
 }
 
+ctdb_restart(){
+  clear
+  echo
+  echo
+  read -p "That this could cause a short data access disruption to all clients! Proceed (y/n) : " input
+  case $input in
+    y)echo "Restarting distributed Windows service on this GRIDCell.. ";service ctdb restart;pause;;
+  esac
+}
+
+winbind_restart(){
+  clear
+  echo
+  echo
+  read -p "That this could cause a short data access disruption to all clients! Proceed (y/n) : " input
+  case $input in
+    y)echo "Restarting Windows winbind service on this GRIDCell.. ";service winbind restart;pause;;
+  esac
+}
+
+smb_restart(){
+  clear
+  echo
+  echo
+  read -p "That this could cause a short data access disruption to all clients! Proceed (y/n) : " input
+  case $input in
+    y)echo "Restarting Windows smb service on this GRIDCell.. ";service smb restart;pause;;
+  esac
+}
+
+ntpd_restart(){
+  clear
+  echo
+  echo
+  read -p "That this could cause a short data access disruption to all clients! Proceed (y/n) : " input
+  case $input in
+    y)echo "Restarting time service on this GRIDCell.. ";service ntpd restart;pause;;
+  esac
+}
+
 integralview_restart(){
   clear
   echo
@@ -161,6 +201,7 @@ show_menu() {
   echo " ----------------"
   echo " 20. Restart distributed storage services     21. Restart IntegralView services     22. Update date using NTP"
   echo " 23. Shutdown GRIDCell                        24. Reboot GRIDCell                   25. Restart admin agent"
+  echo " 26. Restart CTDB                             27. Restart Winbind                   28. Restart smb"
   echo
   echo " Check IntegralView services "
   echo " --------------------------- "
@@ -196,6 +237,9 @@ read_input(){
     23) do_shutdown;;
     24) do_reboot;;
     25) salt_minion_restart;;
+    26) ctdb_restart;;
+    27) winbind_restart;;
+    28) smb_restart;;
     30) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py salt;pause;;
     31) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py integralview_processes;pause;;
     32) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py admin_vol_started;pause;;

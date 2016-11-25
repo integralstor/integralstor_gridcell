@@ -33,7 +33,7 @@ def zip_gridcell_logs():
     if err:
       raise Exception(err)
 
-    zf = zipfile.ZipFile('/tmp/%s.zip'%hn, 'w', zipfile.ZIP_DEFLATED)
+    zf = zipfile.ZipFile('/tmp/gridcell_logs_tmp.zip', 'w', zipfile.ZIP_DEFLATED)
     if 'directories' in patterns.keys():
       for pattern in patterns['directories']:
         dirs = glob.glob(pattern)
@@ -51,8 +51,10 @@ def zip_gridcell_logs():
     zf.close()
     if not os.path.exists('%s/logs_backup/gridcells'%log_dir):
       os.makedirs('%s/logs_backup/gridcells'%log_dir)
-    shutil.move('/tmp/%s.zip'%hn, '%s/logs_backup/gridcells/%s.zip'%(log_dir, hn))
+    shutil.copy('/tmp/gridcell_logs_tmp.zip', '%s/logs_backup/gridcells/%s.zip'%(log_dir, hn))
+    shutil.move('/tmp/gridcell_logs_tmp.zip', '/tmp/gridcell_logs.zip')
   except Exception, e:
+    print e
     return False, 'Error zipping GRIDCell logs : %s'%str(e)
   else:
     return True, None
@@ -66,7 +68,7 @@ def zip_grid_logs():
     log_dir, err = common.get_log_folder_path()
     if err:
       raise Exception(err)
-    zf = zipfile.ZipFile('/tmp/grid_logs.zip', 'w', zipfile.ZIP_DEFLATED)
+    zf = zipfile.ZipFile('/tmp/grid_logs_tmp.zip', 'w', zipfile.ZIP_DEFLATED)
     for root, dirs, files in os.walk('%s/logs_backup/gridcells'%log_dir):
       for file in files:
         #print file
@@ -74,7 +76,8 @@ def zip_grid_logs():
     zf.close()
     if not os.path.exists('%s/logs_backup/grid'%log_dir):
       os.makedirs('%s/logs_backup/grid'%log_dir)
-    shutil.move('/tmp/grid_logs.zip', '%s/logs_backup/grid/grid_logs.zip'%log_dir)
+    shutil.copy('/tmp/grid_logs_tmp.zip', '%s/logs_backup/grid/grid_logs.zip'%log_dir)
+    shutil.move('/tmp/grid_logs_tmp.zip', '/tmp/grid_logs.zip')
   except Exception, e:
     return False, 'Error zipping GRID logs : %s'%str(e)
   else:
@@ -116,7 +119,7 @@ def main():
       raise Exception(err)
   except Exception, e:
     st =  'Error backing up logs: %s'%e
-    logger.log_or_print(str, lg, level='critical')
+    logger.log_or_print(st, lg, level='critical')
     sys.exit(-1)
   else:
     str = '%s completed.'%action

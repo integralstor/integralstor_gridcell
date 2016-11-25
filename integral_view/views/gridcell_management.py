@@ -48,8 +48,14 @@ def view_gridcells(request):
     #Get the list of gridcells that can be removed from the storage pool. Can be removed if its not the local node(we need it to be part of the pool to run integralview!), its not the primary or secondary and if it is part of the storage pool and does not have any volumes.
     rnl = []
     anl = []
+
+    admin_gridcells, err = grid_ops.get_admin_gridcells()
+    if err:
+      raise Exception(err)
+    return_dict['admin_gridcells'] = admin_gridcells
+
     for hostname in si.keys():
-      ret, err = gluster_trusted_pools.can_remove_gridcell_from_storage_pool(hostname, si)
+      ret, err = gluster_trusted_pools.can_remove_gridcell_from_storage_pool(hostname, admin_gridcells, si)
       if err:
         raise Exception(err)
       if ret:
@@ -106,12 +112,17 @@ def view_gridcell(request):
     if not si:
       raise Exception('Could not obtain system information')
 
+    admin_gridcells, err = grid_ops.get_admin_gridcells()
+    if err:
+      raise Exception(err)
+    return_dict['admin_gridcells'] = admin_gridcells
+
     return_dict['system_info'] = si
     return_dict['gridcell_info'] = si[gridcell_name]
     if si[gridcell_name]['errors']:
       print si[gridcell_name]['errors']
 
-    ret, err = gluster_trusted_pools.can_remove_gridcell_from_storage_pool(gridcell_name, si)
+    ret, err = gluster_trusted_pools.can_remove_gridcell_from_storage_pool(gridcell_name, admin_gridcells, si)
     if err:
       raise Exception(err)
     return_dict['can_remove_from_trusted_pool'] = ret
@@ -284,12 +295,9 @@ def add_a_gridcell_to_storage_pool(request):
 
     error_list = []
   
-    if request.method != 'POST':
-      raise Exception('Invalid access. Please try using the menus')
-
-    if 'gridcell_name' not in request.POST:
+    if 'gridcell_name' not in request.REQUEST:
       raise Exception('Invalid request. Please try using the menus')
-    gridcell_name = request.POST['gridcell_name']
+    gridcell_name = request.REQUEST['gridcell_name']
 
     si, err = system_info.load_system_config()
     if err:
@@ -312,7 +320,7 @@ def add_a_gridcell_to_storage_pool(request):
       raise Exception(errors)
     if d:
       if  ("op_status" in d) and d["op_status"]["op_ret"] == 0:
-        audit.audit("add_storage", d["audit_str"], request.META["REMOTE_ADDR"])
+        audit.audit("add_storage", 'Added GRIDCell %s to the storage pool'%gridcell_name, request.META["REMOTE_ADDR"])
       else:
         err = 'Operation failed : Error number : %s, Error : %s, Output : %s, Additional info : %s'%(d['op_status']['op_errno'], d['op_status']['op_errstr'], d['op_status']['output'], d['op_status']['error_list'])
         raise Exception(err)
@@ -355,13 +363,13 @@ def remove_a_gridcell_from_storage_pool(request):
       if 'gridcell_name' not in request.GET:
         raise Exception('GRIDCell not chosen. Please use the menus')
       return_dict['gridcell_name'] = request.GET['gridcell_name']
-      url = 'remove_node_from_grid_conf.html'
+      url = 'remove_gridcell_from_storage_pool_conf.html'
       
     else:
       if 'gridcell_name' not in request.POST:
         raise Exception('GRIDCell not specified. Please use the menus')
       gridcell_name = request.POST['gridcell_name']
-      d, error = grid_ops.remove_a_node_from_storage_pool(si, gridcell_name)
+      d, error = grid_ops.remove_a_gridcell_from_storage_pool(si, gridcell_name)
       #if error:
       #  raise Exception(error)
       return_dict['gridcell_name'] = gridcell_name
@@ -370,8 +378,7 @@ def remove_a_gridcell_from_storage_pool(request):
       if not error:
         audit_str =  "Removed GRIDCell from the storage pool %s"%gridcell_name
         audit.audit("remove_storage", audit_str, request.META["REMOTE_ADDR"])
-      return_dict["result_dict"] = d
-      url = 'remove_node_result.html'
+      url = 'remove_gridcell_from_storage_pool_result.html'
   
     #return_dict['form'] = form
     if settings.APP_DEBUG:

@@ -257,9 +257,8 @@ def establish_default_configuration(client, si, admin_gridcells):
 
     print "Linking Kerberos config file"
     r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/krb5.conf'])
-    with open('%s/krb5.conf'%config_dir, 'w') as f:
+    with open('%s/lock/krb5.conf'%config_dir, 'w') as f:
       f.close()
-    r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/krb5.conf'])
     r2 = client.cmd('*', 'cmd.run_all', ['ln -s %s/lock/krb5.conf /etc/krb5.conf'%config_dir])
     if r2:
       for node, ret in r2.items():

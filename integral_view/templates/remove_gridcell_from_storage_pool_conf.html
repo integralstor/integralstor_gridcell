@@ -1,7 +1,7 @@
 {% extends 'gridcell_base.html' %}
 
 {%block tab_header%}
-  Remove a GRIDCell from the grid - confirmation
+  Remove a GRIDCell from the storage pool - confirmation
 {%endblock%}
 
 {%block inside_content %}
@@ -10,7 +10,7 @@
     <input type=hidden name="conf" value="1">
     <input type=hidden name="gridcell_name" value="{{gridcell_name}}">
 
-    <p > You have chosen to remove GRIDCell {{gridcell_name}} from the grid.</p><br>
+    <p > You have chosen to remove GRIDCell {{gridcell_name}} from the storage pool.</p><br>
 
     <div class="btn-group btn-group-sm " >
       <a href="/view_gridcells" role="button" class="btn btn-sm btn-default"> Cancel</a>&nbsp;&nbsp;
@@ -26,7 +26,7 @@
 {%endblock%}
 
 {%block help_body%}
-  <p> This screen is a confirmation prompt before removing the chosen GRIDCell from the grid. You would normally remove the GRIDCell from the storage pool in order to do some planned maintanance.</p>
+  <p> This screen is a confirmation prompt before removing the chosen GRIDCell from the storage pool. You would normally remove the GRIDCell from the storage pool in order to do some planned maintanance.</p>
 {%endblock%}
 
 {% block tab_active %}
