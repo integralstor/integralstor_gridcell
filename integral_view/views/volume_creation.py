@@ -291,7 +291,7 @@ def create_volume(request):
     #print d, errors
     if not errors:
       #All ok so mount and change the owner and group of the volume to integralstor
-      (ret, rc), err = command.execute_with_rc("gluster volume set "+request.POST['vol_name']+" storage.owner-gid 500")
+      (ret, rc), err = command.execute_with_rc("gluster volume set "+request.POST['vol_name']+" storage.owner-gid 1000")
       if err:
         raise Exception('Error setting volume owner : %s'%err)
 

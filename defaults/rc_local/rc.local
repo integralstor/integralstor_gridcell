@@ -12,3 +12,4 @@ modprobe zfs
 service ctdb stop
 service winbind stop
 service uwsgi stop
+/usr/bin/python /opt/integralstor/integralstor_gridcell/scripts/python/conditional_salt_start.py

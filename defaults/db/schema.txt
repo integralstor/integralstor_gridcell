@@ -19,6 +19,7 @@ CREATE TABLE "scheduler_tasks" (
     "node" varchar(200),
     "deleteble" integer,
     "execute_after" integer NOT NULL
+, user_name VARCHAR(100) NOT NULL DEFAULT 'root'
  );
 
 CREATE TABLE "scheduler_commands" (
