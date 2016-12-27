@@ -99,6 +99,12 @@ def view_gridcell(request):
       raise Exception('Invalid request. Please use the menus.')
     gridcell_name = request.REQUEST['gridcell_name']
 
+    if 'ack' in request.GET:
+      if request.REQUEST['ack'] == 'disk_blink':
+        return_dict['ack_message'] = 'Successfully activated the disk LED on GRIDCell %s'%gridcell_name
+      elif request.REQUEST['ack'] == 'disk_unblink':
+        return_dict['ack_message'] = 'Successfully deactivated the disk LED on GRIDCell %s'%gridcell_name
+
     gluster_lck, err = lock.get_lock('gluster_commands')
     if err:
       raise Exception(err)
@@ -505,7 +511,7 @@ def replace_gridcell(request):
                   
 
             d, err = gluster_batch.create_replace_command_file(si, vol_list, src_node, dest_node)
-            print d, err
+            #print d, err
             if err or (d and "error" in d):
               if revert_list:
                 #Undo the creation of the datasets
@@ -554,6 +560,42 @@ def replace_gridcell(request):
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
   finally:
     lock.release_lock('gluster_commands')
+
+def identify_disk(request):
+  return_dict = {}
+  try:
+    return_dict['base_template'] = "gridcell_base.html"
+    return_dict['tab'] = 'gridcell_list_tab'
+    return_dict["page_title"] = 'Identify a disk in a GRIDCell'
+    return_dict["error"] = 'Error identifying a disk in a GRIDCell'
+    if 'gridcell_name' not in request.REQUEST or 'action' not in request.REQUEST or 'hw_platform' not in request.REQUEST:
+      raise Exception('Invalid request. Please use the menus.')
+    if request.REQUEST['hw_platform'] not in ['dell']:
+      raise Exception('This operation is not supported on your hardware platform')
+    gridcell_name=request.REQUEST['gridcell_name']
+    action=request.REQUEST['action']
+    hw_platform=request.REQUEST['hw_platform']
+    if request.REQUEST['hw_platform'] == 'dell':
+      if 'controller' not in request.REQUEST or  'target_id' not in request.REQUEST or  'channel' not in request.REQUEST or  'enclosure_id' not in request.REQUEST:
+        raise Exception('Invalid request. Please use the menus.')
+      client = salt.client.LocalClient()
+      rc = client.cmd(gridcell_name, 'integralstor.disk_action', kwarg={'controller':request.REQUEST['controller'], 'target_id':request.REQUEST['target_id'],'channel':request.REQUEST['channel'],'enclosure_id':request.REQUEST['enclosure_id'], 'action':request.REQUEST['action']})
+      #print rc
+      if rc:
+        for node, ret in rc.items():
+          #print ret
+          if not ret[0] :
+            error = 'Error performing disk identification task : %s'%ret[1]
+            raise Exception(error)
+      else:
+        raise Exception('Error contacting the GRIDCell to perform the action!')
+    else:
+      raise Exception('Unsupported platform for this action')
+    return django.http.HttpResponseRedirect('/view_gridcell?gridcell_name=%s&ack=%s'%(gridcell_name, action))
+  except Exception, e:
+    s = str(e)
+    return_dict["error_details"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
 def replace_disk(request):
 

@@ -104,6 +104,33 @@ def configure_ntp_slave(*masters):
   else:
     return True, None
 
+def disk_action(**kwargs):
+  ret = False
+  try:
+    if 'action' not in kwargs or kwargs['action'] not in ['disk_blink', 'disk_unblink']:
+      raise Exception('Invalid disk action')
+
+    our_hw_platform, err = common.get_hardware_platform()
+    if err:
+      raise Exception(err)
+    if our_hw_platform == 'dell':
+      if 'controller' not in kwargs or  'target_id' not in kwargs or  'channel' not in kwargs or  'enclosure_id' not in kwargs:
+        raise Exception('Insufficient information received for the specified action')
+      from integralstor_common.platforms import dell
+      err = None
+      if kwargs['action'] == 'disk_blink':
+        ret, err = dell.blink_unblink_disk('blink', kwargs['controller'], kwargs['channel'], kwargs['enclosure_id'], kwargs['target_id'])
+      elif kwargs['action'] == 'disk_unblink':
+        ret, err = dell.blink_unblink_disk('unblink', kwargs['controller'], kwargs['channel'], kwargs['enclosure_id'], kwargs['target_id'])
+      if err:
+        raise Exception(err)
+    else:
+      raise Exception('Unsupported hardware platform for the specified action')
+  except Exception, e:
+    return ret, str(e)
+  else:
+    return ret, None
+
 def configure_ntp_master(*external_masters, **kwargs):
   try:
     if 'network' not in kwargs.keys():
@@ -172,12 +199,13 @@ def configure_name_servers(*ns_list):
     return True, None
 
 if __name__ == '__main__':
+  pass
   #print configure_ntp_slave('a.b.c.d', 'e.f.g.h')
-  print configure_ntp_master('0.ntp.org', '1.ntp.org', network='192.168.1.0', netmask='255.255.255.0')
+  #print configure_ntp_master('0.ntp.org', '1.ntp.org', network='192.168.1.0', netmask='255.255.255.0')
   #print status()
   #print status()
   #print _diskmap()
-  pp = pprint.PrettyPrinter(indent=4)
+  #pp = pprint.PrettyPrinter(indent=4)
   #pp.pprint(disk_info_and_status())
   #d = pool_status()
   #pp.pprint(d)

@@ -37,6 +37,15 @@
       </div>
     </div>
   </div>
+  {%if 'hardware_specific_dict' in gridcell_info and gridcell_info.hardware_specific_dict%}
+    <br/>
+    {%if gridcell_info.hardware_specific_dict.hw_platform == 'dell'%}
+      <div class="row" style="width:98%;margin:0 auto">
+        <a href="{{gridcell_info.hardware_specific_dict.idrac_url}}" target=_new> <h5>Click here to view detailed hardware status</h5></a>
+      </div>      
+    {%endif%}
+    <br/>
+  {%endif%}
 
   {% if gridcell_info.errors %}
     <div class="" style="border:1px solid #ddd;border-radius: 3px; padding: 5px 10px 5px 10px; border-left: 5px solid #c87f0a;background-color:white;color:black;width:95%;margin:0 auto;">
@@ -415,20 +424,39 @@
                   <th> S.M.A.R.T status </th>
                   <th> Capacity </th>
                   <th> Disk replacement </th>
+                  <th> Disk identification </th>
                 </tr>
                 {%for sn, disk in gridcell_info.disks.items %}
                   {%if disk.os_device %}
                     <tr>
                       <td> {{sn}}  (OS disk) </td>
                       <td>
-                        {{disk.status}} &nbsp;&nbsp;
-                        {%if disk.status == 'PASSED' or disk.status == 'OK'%}
-                          <i class="fa fa-check green fa-2x"></i>
+                        {% if disk.hw_raid%}
+                          Under hardware RAID so no S.M.A.R.T status.
                         {%else%}
-                          <i class="fa fa-remove red fa-2x"></i>
+                          {{disk.status}} &nbsp;&nbsp;
+                          {%if disk.status == 'PASSED' or disk.status == 'OK'%}
+                            <i class="fa fa-check green fa-2x"></i>
+                          {%else%}
+                            <i class="fa fa-remove red fa-2x"></i>
+                          {%endif%}
                         {%endif%}
                       </td>
+                      <td> {{disk.capacity}} </td>
                       <td> &nbsp; </td>
+                      <td>
+                        {%if 'hardware_specific_dict' in gridcell_info and gridcell_info.hardware_specific_dict%}
+                          {%if gridcell_info.hardware_specific_dict.hw_platform == 'dell'%}
+                            <div class="btn-group btn-group-xs pull-right" >
+                              <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#" title="Click for disk specific actions"> <i class="fa fa-cog fa-fw"></i>Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+                              <ul class="dropdown-menu">
+                                <li><a  class="action-dropdown" href="/identify_disk?gridcell_name={{gridcell_name}}&action=disk_blink&hw_platform=dell&controller=0&target_id={{disk.target_id}}&channel={{disk.channel}}&enclosure_id={{disk.enclosure_id}}"  title="Select to physically identify this disk" > <i class="fa fa-lightbulb-o fa-fw"></i>Blink disk LED</a>
+                                <li><a  class="action-dropdown" href="/identify_disk?gridcell_name={{gridcell_name}}&action=disk_unblink&hw_platform=dell&controller=0&target_id={{disk.target_id}}&channel={{disk.channel}}&enclosure_id={{disk.enclosure_id}}"  title="Select to turn off disk identification LED" > <i class="fa fa-remove fa-fw"></i>Turn off disk LED</a>
+                              </ul>
+                            </div>
+                          {%endif%}
+                        {%endif%}
+                      </td>
                     </tr>
                   {%endif%}
                 {%endfor%}
@@ -459,6 +487,19 @@
                           {%endif%}
                         {%else%}
                           Healthy disk. No replacement necessary.
+                        {%endif%}
+                      </td>
+                      <td>
+                        {%if 'hardware_specific_dict' in gridcell_info and gridcell_info.hardware_specific_dict%}
+                          {%if gridcell_info.hardware_specific_dict.hw_platform == 'dell'%}
+                            <div class="btn-group btn-group-xs pull-right" >
+                              <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#" title="Click for disk specific actions"> <i class="fa fa-cog fa-fw"></i>Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+                              <ul class="dropdown-menu">
+                                <li><a  class="action-dropdown" href="/identify_disk?gridcell_name={{gridcell_name}}&action=disk_blink&hw_platform=dell&controller=0&target_id={{disk.target_id}}&channel={{disk.channel}}&enclosure_id={{disk.enclosure_id}}"  title="Select to physically identify this disk" > <i class="fa fa-lightbulb-o fa-fw"></i>Blink disk LED</a>
+                                <li><a  class="action-dropdown" href="/identify_disk?gridcell_name={{gridcell_name}}&action=disk_unblink&hw_platform=dell&controller=0&target_id={{disk.target_id}}&channel={{disk.channel}}&enclosure_id={{disk.enclosure_id}}"  title="Select to turn off disk identification LED" > <i class="fa fa-remove fa-fw"></i>Turn off disk LED</a>
+                              </ul>
+                            </div>
+                          {%endif%}
                         {%endif%}
                       </td>
                     </tr>

@@ -6,7 +6,7 @@ from integral_view.views.stgt_iscsi_management import view_iscsi_targets, view_i
 
 from integral_view.views.admin_auth  import login, logout, change_admin_password, configure_email_settings, view_email_settings
 
-from integral_view.views.gridcell_management  import view_gridcells, view_gridcell, remove_a_gridcell_from_storage_pool, add_a_gridcell_to_storage_pool, remove_a_gridcell_from_grid, scan_for_new_gridcells, replace_gridcell, replace_disk, identify_gridcell
+from integral_view.views.gridcell_management  import view_gridcells, view_gridcell, remove_a_gridcell_from_storage_pool, add_a_gridcell_to_storage_pool, remove_a_gridcell_from_grid, scan_for_new_gridcells, replace_gridcell, replace_disk, identify_gridcell, identify_disk
 
 from integral_view.views.volume_creation import volume_creation_wizard, create_volume, create_volume_conf
 
@@ -74,6 +74,7 @@ urlpatterns = patterns('',
     url(r'^replace_gridcell/', login_and_admin_vol_mountpoint_required(replace_gridcell)),
     url(r'^replace_disk/', login_and_admin_vol_mountpoint_required(replace_disk)),
     url(r'^identify_gridcell/', login_and_admin_vol_mountpoint_required(identify_gridcell)),
+    url(r'^identify_disk/', login_and_admin_vol_mountpoint_required(identify_disk)),
 
     #From local_user_management
     url(r'^view_local_users/', login_and_admin_vol_mountpoint_required(view_local_users)),

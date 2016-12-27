@@ -73,6 +73,21 @@ def zip_grid_logs():
       for file in files:
         #print file
         zf.write(os.path.join(root, file), file)
+
+    alerts_dir, err = common.get_alerts_dir()
+    if err:
+      raise Exception(err)
+    audit_dir, err = common.get_audit_dir()
+    if err:
+      raise Exception(err)
+    for d in [('audit', audit_dir), ('alerts', alerts_dir)]:
+      for root, dirs, files in os.walk(d[1]):
+        for file in files:
+          full_path = os.path.join(root, file)
+          needed_path = full_path[len(d[1]):]
+          #print needed_path
+          zf.write(os.path.join(root, file), '%s/%s'%(d[0], needed_path))
+
     zf.close()
     if not os.path.exists('%s/logs_backup/grid'%log_dir):
       os.makedirs('%s/logs_backup/grid'%log_dir)
@@ -127,4 +142,6 @@ def main():
     sys.exit(0)
 
 if __name__ == '__main__':
+  #alerts_dir, err = common.get_alerts_dir()
+  #print alerts_dir
   print main()
