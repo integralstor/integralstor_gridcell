@@ -144,6 +144,12 @@ salt_master_restart(){
 }
 
 set_cpu_cores(){
+  echo
+  TOTAL_CPU=$(nproc --all)
+  echo "Total CPU(s):" $TOTAL_CPU
+  onlin=$(getconf _NPROCESSORS_ONLN)
+  echo "Online cores are:" $onlin
+  echo
   read -p "Enter the number of cores to be disabled from [minimum 2][press 1 to reset]. " ip
   sh /opt/integralstor/integralstor_common/scripts/shell/cpu_core_dis.sh $ip
   sleep 1
@@ -188,6 +194,8 @@ view_node_config(){
   pause
 }
 
+
+
 reset_minion(){
   /opt/integralstor/integralstor_gridcell/scripts/shell/reset_salt_minion.sh
   pause
@@ -224,6 +232,7 @@ show_menu() {
   clear
   echo
   echo " IntegralStor GRIDCell - Menu"
+
   echo "============================="
   echo
   echo " GRIDCell configuration"
@@ -262,10 +271,12 @@ show_menu() {
   echo
   echo
 
+
 }
 
 read_input(){
   local input 
+
   read -p "Enter the number corresponding to the desired choice : " input 
   case $input in
     10) view_node_config;;
@@ -305,6 +316,7 @@ read_input(){
     97) salt_master_restart;;
     *)  echo "Not a Valid INPUT" && sleep 2
   esac
+
 }
  
 trap '' SIGINT SIGQUIT SIGTSTP
