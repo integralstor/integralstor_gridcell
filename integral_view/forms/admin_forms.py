@@ -43,6 +43,20 @@ class ChangeAdminPasswordForm(forms.Form):
   newPasswd1 = forms.CharField(min_length=6, widget=forms.PasswordInput())
   newPasswd2 = forms.CharField(min_length=6, widget=forms.PasswordInput())
 
+  '''
+  def clean(self):
+    #cd = super(ChangeAdminPasswordForm, self).clean()
+    np1 = self.cleaned_data['newPasswd1']
+    np2 = self.cleaned_data['newPasswd2']
+    print 'np1 is', np1
+    print np2
+    if np1 != np2:
+      print 'not ok'
+      self._errors["newPasswd1"] = self.error_class(["The new passwords do not match"])
+      self._errors["newPasswd2"] = self.error_class(["The new passwords do not match"])
+    return cd
+  '''
+
 class ConfigureEmailForm(forms.Form):
 
   email_server = forms.CharField()

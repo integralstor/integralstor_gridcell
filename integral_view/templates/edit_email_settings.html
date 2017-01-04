@@ -1,87 +1,88 @@
-{% extends 'services_base.html' %}
+{% extends 'system_base.html' %}
 
 {%block tab_header%}
-      Email Settings (Edit)
+  Email Settings (Edit)
 {%endblock%}
 
 {%block inside_content%}
-<br><br>
 
-{{conf_message}}
+  {{form.errors}}
+  <form role="form" action="/configure_email_settings/" method="post">
+    <div  style=" position:relative;border:0px solid #DDDDDD;width:600px; padding:15px 15px 15px;margin:0px 15px;border-radius:4px 4px 0px 0px">
+      <div class="form-group" >
+        <label for="id_email_server" >SMTP server:</label>
+        <input type="text"  name="email_server" class="form-control" id="id_email_server" placeholder="Enter SMTP server" value="{{form.email_server.value|default_if_none:''}}"> 
+        {{ form.email_server.errors }}
+      </div>
+      <div class="form-group" >
+        <label for="id_email_server_port" >SMTP server port:</label>
+        <input type="text"  name="email_server_port" class="form-control" id="id_email_server_port" placeholder="Enter SMTP server port" value="{{form.email_server_port.value|default_if_none:''}}"> 
+        {{ form.email_server_port.errors }}
+      </div>
+      <div class="form-group" >
+        <label for="id_username" >SMTP server account username:</label>
+        <input type="text"  name="username" class="form-control" id="id_username" placeholder="Enter SMTP server username" value="{{form.username.value|default_if_none:''}}" > 
+        {{ form.username.errors }}
+      </div>
+      <div class="form-group" >
+        <label for="id_pswd" >SMTP server account password:</label>
+        <input type="password"  name="pswd" class="form-control" id="id_pswd" placeholder="Enter SMTP server account password" > 
+        {{ form.pswd.errors }}
+      </div>
+      <div class="checkbox">
+        <label for="id_tls">
+          <input name="tls" type="checkbox" {% if form.initial.tls%} checked="checked" {%endif%}>
+          Use TLS
+        </label>
+        {{ form.tls.errors }}
+      </div>
+      <div class="checkbox">
+        <label for="id_email_alerts">
+          <input name="email_alerts" type="checkbox" {% if form.initial.email_alerts%} checked="checked" {%endif%}>
+          Send email for system errors/alerts
+        </label>
+        {{ form.email_alerts.errors }}
+      </div>
+       <div class="checkbox">
+        <label for="id_email_audit">
+          <input name="email_audit" type="checkbox" {% if form.email_audit%} checked="checked" {%endif%}>
+          Send email for modifications in Integral View
+        </label>
+        {{ form.email_audit.errors }}
+      </div>
+      <div class="checkbox">
+        <label for="id_email_quota">
+          <input name="email_quota" type="checkbox" {% if form.email_quota%} checked="checked" {%endif%}>
+          Send email for volume quota limits
+        </label>
+        {{ form.email_quota.errors }}
+      </div>
 
-{{form.errors}}
-
-<form role="form" action="/configure_email_settings/" method="post">
-<div  style=" position:relative;border:0px solid #DDDDDD;width:600px; padding:15px 15px 15px;margin:0px 15px;border-radius:4px 4px 0px 0px">
-  <div class="form-group" >
-    <label for="id_email_server" >SMTP server:</label>
-    <input type="text"  name="email_server" class="form-control" id="id_email_server" placeholder="Enter SMTP server" value="{{form.email_server.value|default_if_none:''}}"> 
-    {{ form.email_server.errors }}
-  </div>
-  <div class="form-group" >
-    <label for="id_email_server_port" >SMTP server port:</label>
-    <input type="text"  name="email_server_port" class="form-control" id="id_email_server_port" placeholder="Enter SMTP server port" value="{{form.email_server_port.value|default_if_none:''}}"> 
-    {{ form.email_server_port.errors }}
-  </div>
-  <div class="form-group" >
-    <label for="id_username" >SMTP server account username:</label>
-    <input type="text"  name="username" class="form-control" id="id_username" placeholder="Enter SMTP server username" value="{{form.username.value|default_if_none:''}}" > 
-    {{ form.username.errors }}
-  </div>
-  <div class="form-group" >
-    <label for="id_pswd" >SMTP server account password:</label>
-    <input type="password"  name="pswd" class="form-control" id="id_pswd" placeholder="Enter SMTP server account password" > 
-    {{ form.pswd.errors }}
-  </div>
-  <div class="checkbox">
-    <label for="id_tls">
-      <input name="tls" type="checkbox" {% if form.initial.tls%} checked="checked" {%endif%}>
-      Use TLS
-    </label>
-    {{ form.tls.errors }}
-  </div>
-  <div class="checkbox">
-    <label for="id_email_alerts">
-      <input name="email_alerts" type="checkbox" {% if form.initial.email_alerts%} checked="checked" {%endif%}>
-      Send email for system errors/alerts
-    </label>
-    {{ form.email_alerts.errors }}
-  </div>
-   <div class="checkbox">
-    <label for="id_email_audit">
-      <input name="email_audit" type="checkbox" {% if form.email_audit%} checked="checked" {%endif%}>
-      Send email for modifications in Integral View
-    </label>
-    {{ form.email_audit.errors }}
-  </div>
-  <div class="checkbox">
-    <label for="id_email_quota">
-      <input name="email_quota" type="checkbox" {% if form.email_quota%} checked="checked" {%endif%}>
-      Send email for volume quota limits
-    </label>
-    {{ form.email_quota.errors }}
-  </div>
-
-  <div class="form-group" >
-    <label for="id_rcpt_list" >Email recipient list:</label>
-    <input type="text"  name="rcpt_list" class="form-control" id="id_rcpt_list" placeholder="Enter email recipient list" value="{{form.rcpt_list.value|default_if_none:''}}" required> 
-    {{ form.rcpt_list.errors }}
-  </div>
-  <a href="/show/email_settings" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
-  <button type="submit" class="btn btn-primary cover-page"> Save </button>
-</div>
-</form>
+      <div class="form-group" >
+        <label for="id_rcpt_list" >Email recipient list:</label>
+        <input type="text"  name="rcpt_list" class="form-control" id="id_rcpt_list" placeholder="Enter email recipient list" value="{{form.rcpt_list.value|default_if_none:''}}" required> 
+        {{ form.rcpt_list.errors }}
+      </div>
+      <div class="btn-group btn-group-sm " >
+        <a href="/view_email_settings" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
+        <button type="submit" class="btn btn-primary cover-page"> Save </button>
+      </div>
+    </div>
+  </form>
 
 {%endblock%}
+
 {%block help_header%}
-Email settings
+  Email settings
 {%endblock%}
+
 {%block help_body%}
-<p>You can configure the IntegralStor systems to send emails for every alert that the system generates. For this to happen, use this screen to enter details about the SMTP server that the system should use to send emails. The SMTP server should be accessible to the IntegralStor system in order for the emails to go through properly. A test email will be sent once you enter all the details and save. You can enter multiple email recipients by entering a comma separated list of email addresses in the recipient list.</p>
+  <p>You can configure the IntegralStor systems to send emails for every alert that the system generates. For this to happen, use this screen to enter details about the SMTP server that the system should use to send emails. The SMTP server should be accessible to the IntegralStor system in order for the emails to go through properly. A test email will be sent once you enter all the details and save. You can enter multiple email recipients by entering a comma separated list of email addresses in the recipient list.</p>
 {%endblock%}
+
 {% block tab_active %}
   <script>
-    make_tab_active('service_config_email_tab')
+    make_tab_active('email_settings_tab')
   </script>
 {% endblock %}
 

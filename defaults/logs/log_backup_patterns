@@ -1,0 +1,13 @@
+files /var/log/*message*
+files /var/log/*boot.log*
+files /var/log/nginx/*error.log*
+files /var/log/*smblog.vfs*
+files /var/log/*log.ctdb*
+files /var/log/*dmesg*
+files /var/log/*ntpd.log*
+files /var/log/*log.winbind*
+directories /var/log/glusterfs
+directories /var/log/samba
+directories /var/log/integralstor
+directories /var/log/salt
+directories /var/spool/mail

@@ -1,26 +1,24 @@
 {% extends 'volume_base.html' %}
 
-
-{%block status_selected%}
-  style="background-color:white;color:white;"
-{%endblock%}
-
 {%block tab_header%}
   Volume creation wizard - volume name selection
 {%endblock%}
 
 {%block inside_content %}
 
-	<form role="form" action="/volume_creation_wizard/select_vol_type" method="post">
-	<div  style=" position:relative;border:0px solid #DDDDDD;width:600px; padding:15px 15px 15px;margin:0px 15px;border-radius:4px 4px 0px 0px">
-	  <div class="form-group" >
-	    <label for="id_volume_name" >Volume name :</label>
-	    <input type="text"  name="volume_name" class="form-control" id="id_volume_name" placeholder="Enter volume name" required> 
-	    {{ form.volume_name.errors }}
-	  </div>
-	  <button type="submit" class="btn btn-primary cover-page">Next</button>
-	</div>
-	</form>
+  <div  style=" position:relative;border:0px solid #DDDDDD;width:600px; padding:15px 15px 15px;margin:0px 15px;border-radius:4px 4px 0px 0px">
+    <form role="form" action="/volume_creation_wizard/select_vol_type" method="post">
+      <div class="form-group" >
+        <label for="id_volume_name" >Volume name :</label>
+        <input type="text"  name="volume_name" class="form-control" id="id_volume_name" placeholder="Enter volume name" required/> 
+        {{ form.volume_name.errors }}
+      </div>
+      <div class="btn-group btn-group-sm " >
+        <a href="/view_volumes/"  class="btn btn-default btn-sm">Cancel</button></a>
+        <button type="submit" class="btn btn-primary btn-sm cover-page"><i class="fa fa-arrow-circle-o-right fa-fw"></i> Next</button>
+      </div>
+    </form>
+  </div>
 
 {%endblock%}
 
@@ -31,3 +29,9 @@
 {%block help_body%}
 	<p>The volume creation wizard guides you through many steps to create a particular type of volume. This is the first step of the wizard where you need to choose a name for the volume.</p>
 {%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('view_volumes_tab')
+  </script>
+{% endblock %}

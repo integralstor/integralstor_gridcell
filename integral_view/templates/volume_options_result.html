@@ -4,54 +4,58 @@
   Set volume options - results
 {%endblock%}
 
+{%block global_actions %}
+  <div class="btn-group btn-group-sm pull-right" >
+    <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Click for volume actions" href="#"> <i class="fa fa-cog fa-fw"></i> Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+    <ul class="dropdown-menu">
+      <li><a  class="action-dropdown" href="/view_volume?vol_name={{vol_name}}"   title="Back to volume information and configuration" > <i class="fa fa-cog fa-fw"></i>Volume details</a>
+      <li><a  class="action-dropdown" href="/view_volumes"   title="Back to volume list" > <i class="fa fa-list fa-fw"></i>Volume list</a>
+    </ul>
+  </div>
+{%endblock%}
+
 {%block inside_content %}
-<br><br>
 
-{% if app_debug %}
-Debug info - begin <br>
-{%for result_dict in result_list %}
-Executed {{result_dict.actual_command}}<br>
-{{result_dict}}<br>
-{%endfor%}
-Debug info - end <br><br>
-{%endif%}
-
-<table class="table table-condensed table-bordered">
-<tr>
-<th> Command </th>
-<th> Result </th>
-<th> Error information </th>
-</tr>
-{%for result_dict in result_list %}
-<tr>
-<td> {{result_dict.display_command}} </td>
-<td> 
-{% if result_dict.op_status.op_ret == 0  %}
-Successful
-</td>
-<td>&nbsp;</td>
-{%else%}
-Failed </td>
-<td>(Errno. {{result_dict.op_status.op_errno}} - {{result_dict.op_status.op_errstr}}, {{result_dict.op_status.output}}{% if result_dict.error_list %}, additional error message - {{result_dict.error_list}} {%endif%})
-</td>
-{%endif%}
-</tr>
-{%endfor%}
-</table>
-
-
+  <table class="table table-condensed table-bordered">
+    <tr>
+      <th> Command </th>
+      <th> Result </th>
+      <th> Error information </th>
+    </tr>
+    {%for result_dict in result_list %}
+      <tr>
+        <td> {{result_dict.audit_str}} </td>
+        <td> 
+          {% if result_dict.op_status.op_ret == 0  %}
+            Successful
+          {%else%}
+            Failed
+          {%endif%}
+        </td>
+        <td> 
+          {% if result_dict.op_status.op_ret == 0  %}
+            <td>&nbsp;</td>
+          {%else%}
+            <td>(Errno. {{result_dict.op_status.op_errno}} - {{result_dict.op_status.op_errstr}}, {{result_dict.op_status.output}}{% if result_dict.error_list %}, additional error message - {{result_dict.error_list}} {%endif%})
+          {%endif%}
+        </td>
+      </tr>
+    {%endfor%}
+  </table>
 
 {%endblock%}
+
 {%block help_header%}
-Set volume options  - results
+  Set volume options  - results
 {%endblock%}
+
 {%block help_body%}
-<p>This page displays the results of changes made to volume options. These options may be changed at any point in time.</p>
+  <p>This page displays the results of changes made to volume options. These options may be changed at any point in time.</p>
 {%endblock%}
 
 {% block tab_active %}
   <script>
-    make_tab_active('volume_configuration_tab')
+    make_tab_active('view_volumes_tab')
   </script>
 {% endblock %}
 

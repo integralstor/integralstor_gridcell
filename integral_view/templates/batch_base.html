@@ -1,0 +1,12 @@
+{% extends 'logged_in_base.html' %}
+
+{%block tab_items %}
+  <li id="batch_processes_tab"><a href="/view_batch_processes/">Batch processes</a></li>
+  <li id="scheduled_jobs_tab"><a href="/view_scheduled_jobs/"> Scheduled jobs </a></li>
+{%endblock tab_items%}
+
+{% block menu_active %}
+  <script>
+    make_side_menu_active("batch_menu")
+  </script>
+{% endblock%}

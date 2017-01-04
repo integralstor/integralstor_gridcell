@@ -1,0 +1,117 @@
+{% extends 'batch_base.html' %}
+
+{%block tab_header%}
+  Batch process status
+{%endblock%}
+
+{%block global_actions %}
+  <div class="btn-group btn-group-sm pull-right" >
+    <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Click for batch process actions" href="#"> <i class="fa fa-cog fa-fw"></i> Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+    <ul class="dropdown-menu">
+      <li><a  class="action-dropdown" href="/view_batch_processes"   title="Back to batch process list" > <i class="fa fa-list fa-fw"></i>Batch process list</a>
+    </ul>
+  </div>
+{%endblock%}
+
+{%block inside_content %}
+
+  <table class="table table-bordered">
+    <tr>
+      <th> Process </th>
+      <td> {{process_info.title}} </td>
+    </tr>
+    {% if process_info.volume_list %}
+      <tr>
+        <th> Volumes to be migrated </th>
+        <td>
+          <ul>
+            {% for i in process_info.volume_list %}
+              <li>{{i}}
+            {%endfor%}
+          </ul>
+        </td>
+      </tr>
+    {%endif%}
+    <tr>
+      <th> Status </th>
+      <td> {{process_info.status}} </td>
+    </tr>
+    <tr>
+      <th> Time requested </th>
+      <td> {{process_info.initiate_time}} </td>
+    </tr>
+    <tr>
+      <th> Time started </th>
+      <td>
+        {%if process_info.start_time%}
+          {{process_info.start_time}}
+        {%else%}
+          Not yet started
+        {%endif%}
+      </td>
+    </tr>
+    {% if process_info.start_time  and process_info.progress_url%}
+      <tr>
+        <th colspan=2>
+          <a href="{{process_info.progress_url}}">Click on this link for detailed process progress status</a>
+        </th>
+      </tr>
+    {%endif%}
+  </table>
+
+  <table class="table table-bordered">
+    <tr>
+      <th> Subprocess </th>
+      <th> Subprocess status </th>
+      <th> Additional subprocess info </th>
+    </tr>
+    {% for cmd in process_info.command_list %}
+      <tr>
+        <td> {{cmd.desc}} </td>
+        <td>
+          {% if cmd.status_code == 0 %}
+            Not yet started
+          {% elif cmd.status_code == 1 %}
+            In progress
+          {% elif cmd.status_code == 3 %}
+            Complete 
+          {% elif cmd.status_code == -1 %}
+            Error - {{cmd.err_msg}} 
+          {%endif%}
+        </td>
+        <td>
+          <ul>
+            {%if cmd.files  or cmd.files_healed %}
+              <li>Files processed - {% if cmd.files %} {{cmd.files}} {%elif cmd.files_healed %} {{cmd.files_healed}} {%endif%}
+            {%endif%}
+            {%if cmd.size %}
+              <li>Data size - {{cmd.size}} bytes
+            {%endif%}
+            {%if cmd.files_remaining%}
+              <li>Files remaining - {{cmd.files_remaining}}
+            {%endif%}
+            {%if cmd.files_failed%}
+              <li>Files failed - {{cmd.files_failed}}
+            {%endif%}
+          </ul>
+        </td>
+      </tr>
+    {%endfor%}
+  </table>
+
+{%endblock%}
+
+{%block help_header%}
+  Batch processes details
+{%endblock%}
+
+{%block help_body%}
+  <p>Anytime an action is performed from IntegralView that requires potentially large movement of data in volumes, a batch process is scheduled in order to perform this action. The batch processes are processed every minute. This page lists the details and status of one such batch process. </p>
+{%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('batch_processes_tab')
+  </script>
+{% endblock %}
+

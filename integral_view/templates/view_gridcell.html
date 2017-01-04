@@ -1,0 +1,731 @@
+{% extends 'gridcell_base.html' %}
+
+{%block tab_header%}
+  {{gridcell_name}} status
+{%endblock%}
+
+{%block global_actions %}
+  <div class="btn-group btn-group-sm pull-right" >
+    <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Click for GRIDCell actions" href="#"> <i class="fa fa-cog fa-fw"></i> Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+    <ul class="dropdown-menu">
+      {%if can_remove_from_trusted_pool %}
+        <li><a  class="action-dropdown" href="/remove_a_gridcell_from_storage_pool?gridcell_name={{gridcell_name}}"  style="color:red" title="Remove this GRIDCell from the storage pool" > <i class="fa fa-trash-o fa-fw"></i>Remove from storage pool</a>
+      {%endif%}
+      {%if can_add_to_trusted_pool %}
+        <li><a  class="action-dropdown" href="/add_a_gridcell_to_storage_pool?gridcell_name={{gridcell_name}}"  title="Add this GRIDCell to the storage pool" > <i class="fa fa-plus fa-fw"></i>Add to storage pool</a>
+      {%endif%}
+      {%if gridcell_name not in admin_gridcells and not gridcell_info.in_cluster%}
+        <li><a  class="action-dropdown" href="/remove_a_gridcell_from_grid?gridcell_name={{gridcell_name}}"  style="color:red" title="Remove this GRIDCell from the grid" > <i class="fa fa-trash-o fa-fw"></i>Remove from grid</a>
+      {%endif%}
+      {%if gridcell_name not in admin_gridcells and gridcell_info.volume_list%}
+        <li><a  class="action-dropdown" href="/replace_gridcell?gridcell_name={{gridcell_name}}"  style="color:red" title="Replace this GRIDCell with another" > <i class="fa fa-exchange-o fa-fw"></i>Replace with another GRIDCell</a>
+      {%endif%}
+      <li><a class="action-dropdown" id="activate_led" href="#"  title="Activate the GRIDCell identification LED"> <i class="fa fa-lightbulb-o fa-fw"></i>Activate GRIDCell identification LED.</a>
+      <li class="divider"></li>
+      <li> <a class="action-dropdown" href="/view_gridcells"><i class="fa fa-list fa-fw" ></i>Back to GRIDCell list</a>
+    </ul>
+  </div>
+{%endblock%}
+
+{%block inside_content%}
+  <!-- For displaying the gridcell id light activation confirmation -->
+  <div id="message" style="display:none; margin:0 auto;width:95%;font-size:12px;">
+    <div class="alert alert-dismissable">
+      <button type="button" class="close" data-dismiss="alert" aria-hidden="true"><i class="fa fa-times-circle-o fa-fw "></i></button>
+      <div id="message_content">
+
+      </div>
+    </div>
+  </div>
+  {%if 'hardware_specific_dict' in gridcell_info and gridcell_info.hardware_specific_dict%}
+    <br/>
+    {%if gridcell_info.hardware_specific_dict.hw_platform == 'dell'%}
+      <div class="row" style="width:98%;margin:0 auto">
+        <a href="{{gridcell_info.hardware_specific_dict.idrac_url}}" target=_new> <h5>Click here to view detailed hardware status</h5></a>
+      </div>      
+    {%endif%}
+    <br/>
+  {%endif%}
+
+  {% if gridcell_info.errors %}
+    <div class="" style="border:1px solid #ddd;border-radius: 3px; padding: 5px 10px 5px 10px; border-left: 5px solid #c87f0a;background-color:white;color:black;width:95%;margin:0 auto;">
+      <h5>GRIDCell Errors</h5>
+      <ul>
+        {% for err in gridcell_info.errors %}
+          <li>{{err}}</li>
+        {%endfor%}
+      </ul>
+    </div>
+  {% endif %}
+
+  {% if gridcell_info.node_status != -1 %}
+    <br>
+    <div class="container" style="width:98%">
+      <a href="#" id="open_all" style="display:block" class="btn btn-default btn-xs openall pull-right"><i class="fa fa-expand fa-fw"></i> Open all </a> <a id="close_all" style="display:none" href="#" class="btn btn-default btn-xs closeall pull-right"><i class="fa fa-compress fa-fw"></i> Close all </a>
+      <br><br>
+      <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+  
+        <div class="panel panel-default">
+          <div class="panel-heading"   role="tab" id="heading1">
+            <h5 class="panel-title ">
+            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#memory_status" aria-expanded="true" aria-controls="memory_status">
+              <i class="fa fa-info-circle blue fa-1x"></i>
+              Memory usage <span class="caret"></span>
+            </a>
+            </h5>
+          </div> <!--panel-heading-->
+          <div id="memory_status" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading1">
+            <div class="panel-body">
+              <table class="table" style="width"60%">
+                <tr>
+                  <th>Total memory</th>
+                  <td>{{ gridcell_info.memory.mem_total.value|floatformat:2}} {{gridcell_info.memory.mem_total.unit}} </td>
+                </tr>
+                <tr>
+                  <th>Free memory</th>
+                  <td>{{ gridcell_info.memory.mem_free.value|floatformat:2}} {{gridcell_info.memory.mem_free.unit}} </td>
+                </tr>
+              </table>
+            </div><!--panel-body-->
+          </div><!--panel-collapse-->
+        </div><!--panel-->
+
+        <div class="panel panel-default">
+          <div class="panel-heading"  {%if flag_cpu %} style="padding: 15px 30px 15px 15px; border-left: 5px solid #c87f0a;"{%endif%} role="tab" id="heading2">
+            <h5 class="panel-title ">
+            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#load_avg" aria-expanded="true" aria-controls="load_avg">
+              {% if flag_cpu %}
+                <i class="fa fa-exclamation-circle red fa-1x"></i>
+              {%else%}
+                <i class="fa fa-check-circle green fa-1x"></i>
+              {%endif%}
+              CPU & Load average
+              <span class="caret"></span>
+            </a>
+            </h5>
+          </div> <!--panel-heading-->
+          <div id="load_avg" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading2">
+            <div class="panel-body">
+              <table class="table" style="width"60%">
+                <tr>
+                  <th>CPU</th>
+                  <td>{{gridcell_info.cpu_model}} </td>
+                </tr>
+                <tr>
+                  <th>Active CPU cores</th>
+                  <td>{{gridcell_info.load_avg.cpu_cores}} </td>
+                </tr>
+                <tr>
+                  <th>15 min Load Average</th>
+                  <td>{{gridcell_info.load_avg.15_min}} </td>
+                </tr>
+                <tr>
+                  <th>5 min Load Average</th>
+                  <td>{{gridcell_info.load_avg.5_min}} </td>
+                </tr>
+                <tr>
+                  <th>1 min Load Average</th>
+                  <td>{{gridcell_info.load_avg.1_min}} </td>
+                </tr>
+              </table>
+            </div><!--panel-body-->
+          </div><!--panel-collapse-->
+        </div><!--panel-->
+
+        <div class="panel panel-default">
+          <div class="panel-heading"  {%if flag_interfaces %} style="padding: 15px 30px 15px 15px; border-left: 5px solid #c87f0a;""{%endif%} role="tab" id="heading3">
+            <h5 class="panel-title ">
+            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#network_interfaces" aria-expanded="true" aria-controls="network_interfaces">
+              {% if flag_interfaces %}
+                <i class="fa fa-exclamation-circle red fa-1x"></i>
+              {%else%}
+                <i class="fa fa-check-circle green fa-1x"></i>
+              {%endif%}
+              Network interfaces
+              <span class="caret"></span>
+            </a>
+            </h5>
+          </div> <!--panel-heading-->
+          <div id="network_interfaces" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading3">
+            <div class="panel-body">
+              <table class="table table-bordered" style="width:60%">
+                <thead>
+                  <th> Name </th>
+                  <th> MAC Address </th>
+                  <th> IP Address </th>
+                  <th> Status </th>
+                </thead>
+                {% for if_name,interface in gridcell_info.interfaces.items %}
+                  <tr>
+                    <td> {{if_name}} </td>
+                    <td> {{interface.hwaddr}} </td>
+                    <td> {{interface.inet.0.address}} </td>
+                    <td> ({{interface.status}})
+                      {% if interface.status == "up"%}
+                        <i class="fa fa-check-circle-o green fa-fw fa-lg"></i>
+                      {%else%}
+                        <i class="fa fa-times-circle-o fa-fw fa-lg"></i>
+                      {%endif%}
+                    </td>
+                  </tr>
+                {%endfor%}
+              </table>
+            </div><!--panel-body-->
+          </div><!--panel-collapse-->
+        </div><!--panel-->
+
+        <div class="panel panel-default">
+          <div class="panel-heading"  {%if flag_ipmi %} style="padding: 15px 30px 15px 15px; border-left: 5px solid #c87f0a;"{%endif%} role="tab" id="heading3">
+            <h5 class="panel-title ">
+            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#ipmi_status" aria-expanded="true" aria-controls="ipmi_status">
+              {% if flag_ipmi %}
+                <i class="fa fa-exclamation-circle red fa-1x"></i>
+              {%else%}
+                <i class="fa fa-check-circle green fa-1x"></i>
+              {%endif%}
+              Hardware components
+              <span class="caret"></span>
+            </a>
+            </h5>
+          </div> <!--panel-heading-->
+          <div id="ipmi_status" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading3">
+            <div class="panel-body">
+              <table class="table table-bordered" style="width:60%">
+                {%for ipmi in gridcell_info.ipmi_status%}
+                  <tr>
+                    <th>{{ipmi.parameter_name}} </th>
+                    <td> {{ipmi.reading}}
+                      {% if ipmi.status == "ok" %}
+                        <i class="fa fa-check-circle-o green fa-fw fa-lg"></i>
+                      {%else%}
+                        <i class="fa fa-times-circle-o red fa-fw fa-lg"></i>
+                      {%endif%}
+                    </td>
+                  </tr>
+                {%endfor%}
+              </table>
+            </div><!--panel-body-->
+          </div><!--panel-collapse-->
+        </div><!--panel-->
+
+        <div class="panel panel-default">
+          <div class="panel-heading"  {%if flag_services %} style="padding: 15px 30px 15px 15px; border-left: 5px solid #c87f0a;"{%endif%} role="tab" id="heading3">
+            <h5 class="panel-title ">
+            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#services_status" aria-expanded="true" aria-controls="services_status">
+              {% if flag_services %}
+                <i class="fa fa-exclamation-circle red fa-1x"></i>
+              {%else%}
+                <i class="fa fa-check-circle green fa-1x"></i>
+              {%endif%}
+              Services
+              <span class="caret"></span>
+            </a>
+            </h5>
+          </div> <!--panel-heading-->
+          <div id="services_status" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading3">
+            <div class="panel-body">
+              <table class="table table-bordered" style="width:60%">
+                {%for name, status in services.items%}
+                  {%if name != 'nfs' %}
+                    <tr>
+                      <th>{{name}} </th>
+                      <td> {{status.1}}
+                        {% if status.0 == 0 %}
+                          <i class="fa fa-check-circle-o green fa-fw fa-lg"></i>
+                        {%else%}
+                          <i class="fa fa-times-circle-o red fa-fw fa-lg"></i>
+                        {%endif%}
+                      </td>
+                    </tr>
+                  {%endif%}
+                {%endfor%}
+              </table>
+            </div><!--panel-body-->
+          </div><!--panel-collapse-->
+        </div><!--panel-->
+
+        <div class="panel panel-default">
+          <div class="panel-heading"  {%if flag_gluster_ctdb %} style="padding: 15px 30px 15px 15px; border-left: 5px solid #c87f0a;"{%endif%} role="tab" id="heading3">
+            <h5 class="panel-title ">
+            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#gluster_ctdb_status" aria-expanded="true" aria-controls="gluster_ctdb_status">
+              {% if flag_gluster_ctdb %}
+                <i class="fa fa-exclamation-circle red fa-1x"></i>
+              {%else%}
+                <i class="fa fa-check-circle green fa-1x"></i>
+              {%endif%}
+              Storage cluster and Windows clustering status
+              <span class="caret"></span>
+            </a>
+            </h5>
+          </div> <!--panel-heading-->
+          <div id="gluster_ctdb_status" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading3">
+            <div class="panel-body">
+              <table class="table table-bordered" style="width:60%">
+                <tr>
+                  <th> Storage cluster status</th>
+                  <td>
+                    {%if gridcell_info.in_cluster %}
+                      {{gridcell_info.cluster_status_str}}
+                        {% if gridcell_info.cluster_status == 1 %}
+                          <i class="fa fa-check-circle-o green fa-fw fa-lg"></i>
+                        {%else%}
+                          <i class="fa fa-times-circle-o red fa-fw fa-lg"></i>
+                        {%endif%}
+                    {%else%} Not in storage cluster.
+                    {%endif%}
+                  </td>
+                </tr>
+                <tr>
+                  <th> Windows clustering status</th>
+                  <td>
+                    {%if gridcell_info.ctdb_status %}
+                      {{gridcell_info.ctdb_status}}
+                        {% if gridcell_info.ctdb_status.lower == 'ok' %}
+                          <i class="fa fa-check-circle-o green fa-fw fa-lg"></i>
+                        {%else%}
+                          <i class="fa fa-times-circle-o red fa-fw fa-lg"></i>
+                        {%endif%}
+                    {%else%} Windows clustering not enabled on this GRIDCell.
+                    {%endif%}
+                  </td>
+                </tr>
+              </table>
+            </div><!--panel-body-->
+          </div><!--panel-collapse-->
+        </div><!--panel-->
+
+        <div class="panel panel-default">
+          <div class="panel-heading"  {%if flag_disks %} style="padding: 15px 30px 15px 15px; border-left: 5px solid #c87f0a;"{%endif%} role="tab" id="heading3">
+            <h5 class="panel-title ">
+            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#disk_status" aria-expanded="true" aria-controls="disk_status">
+              {% if flag_disks %}
+                <i class="fa fa-exclamation-circle red fa-1x"></i>
+              {%else%}
+                <i class="fa fa-check-circle green fa-1x"></i>
+              {%endif%}
+              Disks status
+              <span class="caret"></span>
+            </a>
+            </h5>
+          </div> <!--panel-heading-->
+          <div id="disk_status" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading3">
+            <div class="panel-body">
+              <!--
+              <table border="8" cellpadding="1" cellspacing="1" style="width: 500px;" class="table table-bordered table-hover table-responsive container">
+                <tr>
+                  <td id="chassis_pos_indicator_0_colour">
+                    <strong class="spacing">
+                      <span id="chassis_pos_indicator_0_serial">No disk</span>
+                      <br />
+                      <span id="chassis_pos_indicator_0_status">No status</span>
+                    </strong>
+                  </td>
+                  <td id="chassis_pos_indicator_1_colour">
+                    <strong class="spacing">
+                      <span id="chassis_pos_indicator_1_serial">No disk</span>
+                      <br />
+                      <span id="chassis_pos_indicator_1_status">No status</span>
+                    </strong>
+                  </td>
+                  <td id="chassis_pos_indicator_2_colour">
+                    <strong class="spacing">
+                      <span id="chassis_pos_indicator_2_serial">No disk</span>
+                      <br />
+                      <span id="chassis_pos_indicator_2_status">No status</span>
+                    </strong>
+                  </td>
+                  <td id="chassis_pos_indicator_3_colour">
+                    <strong class="spacing">
+                      <span id="chassis_pos_indicator_3_serial">No disk</span>
+                      <br />
+                      <span id="chassis_pos_indicator_3_status">No status</span>
+                    </strong>
+                  </td>
+                </tr>
+                <tr>
+                  <td id="chassis_pos_indicator_4_colour">
+                    <strong class="spacing">
+                      <span id="chassis_pos_indicator_4_serial">No disk</span>
+                      <br />
+                      <span id="chassis_pos_indicator_4_status">No status</span>
+                    </strong>
+                  </td>
+                  <td id="chassis_pos_indicator_5_colour">
+                    <strong class="spacing">
+                      <span id="chassis_pos_indicator_5_serial">No disk</span>
+                      <br />
+                      <span id="chassis_pos_indicator_5_status">No status</span>
+                    </strong>
+                  </td>
+                  <td id="chassis_pos_indicator_12_colour">
+                    <strong class="spacing">
+                      <span id="chassis_pos_indicator_12_serial">No disk</span>
+                      <br />
+                      <span id="chassis_pos_indicator_12_status">No status</span>
+                    </strong>
+                  </td>
+                  <td id="chassis_pos_indicator_13_colour">
+                    <strong class="spacing">
+                      <span id="chassis_pos_indicator_13_serial">No disk</span>
+                      <br />
+                      <span id="chassis_pos_indicator_13_status">No status</span>
+                    </strong>
+                  </td>
+                </tr>
+                <tr>
+                  <td id="chassis_pos_indicator_6_colour">
+                    <strong class="spacing">
+                      <span id="chassis_pos_indicator_6_serial">No disk</span>
+                      <br />
+                      <span id="chassis_pos_indicator_6_status">No status</span>
+                    </strong>
+                  </td>
+                  <td id="chassis_pos_indicator_7_colour">
+                    <strong class="spacing">
+                      <span id="chassis_pos_indicator_7_serial">No disk</span>
+                      <br />
+                      <span id="chassis_pos_indicator_7_status">No status</span>
+                    </strong>
+                  </td>
+                  <td id="chassis_pos_indicator_8_colour">
+                    <strong class="spacing">
+                      <span id="chassis_pos_indicator_8_serial">No disk</span>
+                      <br />
+                      <span id="chassis_pos_indicator_8_status">No status</span>
+                    </strong>
+                  </td>
+                  <td id="chassis_pos_indicator_9_colour">
+                    <strong class="spacing">
+                      <span id="chassis_pos_indicator_9_serial">No disk</span>
+                      <br />
+                      <span id="chassis_pos_indicator_9_status">No status</span>
+                    </strong>
+                  </td>
+                </tr>
+              </table>
+              <script>
+                {%for sn, disk in gridcell_info.disks.items %}
+                  {%if disk.status != 'PASSED' and disk.status != 'OK' and not disk.os_device%}
+                    $('#chassis_pos_indicator_{{disk.chassis_pos_indicator}}_serial').html("{{sn}}")
+                    $('#chassis_pos_indicator_{{disk.chassis_pos_indicator}}_status').text("Status :{{disk.status}}")
+                    $('#chassis_pos_indicator_{{disk.chassis_pos_indicator}}_colour').removeClass('bg-gray').addClass('bg-red-active')
+                  {%elif not disk.os_device%}
+                    $('#chassis_pos_indicator_{{disk.chassis_pos_indicator}}_serial').html("{{sn}}")
+                    $('#chassis_pos_indicator_{{disk.chassis_pos_indicator}}_status').text("Status :OK")
+                    $('#chassis_pos_indicator_{{disk.chassis_pos_indicator}}_colour').removeClass('bg-grey').addClass('bg-green-active')
+                  {%endif%}
+                {%endfor%}
+              </script>
+              <br /> <br />
+              -->
+              <table class="table table-bordered table-hover table-responsive" style="width:800px">
+                <tr>
+                  <th > Disk serial number </th>
+                  <th> S.M.A.R.T status </th>
+                  <th> Capacity </th>
+                  <th> Disk replacement </th>
+                  <th> Disk identification </th>
+                </tr>
+                {%for sn, disk in gridcell_info.disks.items %}
+                  {%if disk.os_device %}
+                    <tr>
+                      <td> {{sn}}  (OS disk) </td>
+                      <td>
+                        {% if disk.hw_raid%}
+                          Under hardware RAID so no S.M.A.R.T status.
+                        {%else%}
+                          {{disk.status}} &nbsp;&nbsp;
+                          {%if disk.status == 'PASSED' or disk.status == 'OK'%}
+                            <i class="fa fa-check green fa-2x"></i>
+                          {%else%}
+                            <i class="fa fa-remove red fa-2x"></i>
+                          {%endif%}
+                        {%endif%}
+                      </td>
+                      <td> {{disk.capacity}} </td>
+                      <td> &nbsp; </td>
+                      <td>
+                        {%if 'hardware_specific_dict' in gridcell_info and gridcell_info.hardware_specific_dict%}
+                          {%if gridcell_info.hardware_specific_dict.hw_platform == 'dell'%}
+                            <div class="btn-group btn-group-xs pull-right" >
+                              <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#" title="Click for disk specific actions"> <i class="fa fa-cog fa-fw"></i>Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+                              <ul class="dropdown-menu">
+                                <li><a  class="action-dropdown" href="/identify_disk?gridcell_name={{gridcell_name}}&action=disk_blink&hw_platform=dell&controller=0&target_id={{disk.target_id}}&channel={{disk.channel}}&enclosure_id={{disk.enclosure_id}}"  title="Select to physically identify this disk" > <i class="fa fa-lightbulb-o fa-fw"></i>Blink disk LED</a>
+                                <li><a  class="action-dropdown" href="/identify_disk?gridcell_name={{gridcell_name}}&action=disk_unblink&hw_platform=dell&controller=0&target_id={{disk.target_id}}&channel={{disk.channel}}&enclosure_id={{disk.enclosure_id}}"  title="Select to turn off disk identification LED" > <i class="fa fa-remove fa-fw"></i>Turn off disk LED</a>
+                              </ul>
+                            </div>
+                          {%endif%}
+                        {%endif%}
+                      </td>
+                    </tr>
+                  {%endif%}
+                {%endfor%}
+                {%for sn, disk in gridcell_info.disks.items %}
+                  {%if not disk.os_device %}
+                    <tr>
+                      <td> {{sn}}  (Data disk) </td>
+                      <td>
+                        {{disk.status}} &nbsp;&nbsp;
+                        {%if disk.status == 'PASSED' or disk.status == 'OK'%}
+                          <i class="fa fa-check green fa-2x"></i>
+                        {%else%}
+                          <i class="fa fa-remove red fa-2x"></i>
+                        {%endif%}
+                      </td>
+                      <td> {{disk.capacity}} </td>
+                      <td>
+                        {%if disk.status != 'PASSED' and disk.status != 'OK'%}
+                          {%if disk.pool%}
+                            <form method="POST" action="/replace_disk/">
+                              <input type="hidden" name="node" value="{{gridcell_name}}">
+                              <input type="hidden" name="serial_number" value="{{sn}}">
+                              <input type="hidden" name="step" value="offline_disk">
+                                <button type="submit" class="btn btn-primary btn-sm cover-page" > Replace (swap out) this disk </button>
+                            </form>
+                          {%else%}
+                            <button  class="btn btn-primary btn-sm" onClick ="alert('This disk is not part of any ZFS pool so you can go ahead and replace it safely');"> Replace (swap out) this disk </button>
+                          {%endif%}
+                        {%else%}
+                          Healthy disk. No replacement necessary.
+                        {%endif%}
+                      </td>
+                      <td>
+                        {%if 'hardware_specific_dict' in gridcell_info and gridcell_info.hardware_specific_dict%}
+                          {%if gridcell_info.hardware_specific_dict.hw_platform == 'dell'%}
+                            <div class="btn-group btn-group-xs pull-right" >
+                              <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#" title="Click for disk specific actions"> <i class="fa fa-cog fa-fw"></i>Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+                              <ul class="dropdown-menu">
+                                <li><a  class="action-dropdown" href="/identify_disk?gridcell_name={{gridcell_name}}&action=disk_blink&hw_platform=dell&controller=0&target_id={{disk.target_id}}&channel={{disk.channel}}&enclosure_id={{disk.enclosure_id}}"  title="Select to physically identify this disk" > <i class="fa fa-lightbulb-o fa-fw"></i>Blink disk LED</a>
+                                <li><a  class="action-dropdown" href="/identify_disk?gridcell_name={{gridcell_name}}&action=disk_unblink&hw_platform=dell&controller=0&target_id={{disk.target_id}}&channel={{disk.channel}}&enclosure_id={{disk.enclosure_id}}"  title="Select to turn off disk identification LED" > <i class="fa fa-remove fa-fw"></i>Turn off disk LED</a>
+                              </ul>
+                            </div>
+                          {%endif%}
+                        {%endif%}
+                      </td>
+                    </tr>
+                  {%endif%}
+                {%endfor%}
+              </table>
+            </div><!--panel-body-->
+          </div><!--panel-collapse-->
+        </div><!--panel-->
+
+        <div class="panel panel-default">
+          <div class="panel-heading"  {%if flag_pools %} style="padding: 15px 30px 15px 15px; border-left: 5px solid #c87f0a;"{%endif%} role="tab" id="heading2">
+            <h5 class="panel-title ">
+            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#zfs_status" aria-expanded="true" aria-controls="zfs_status">
+              {% if flag_pools %}
+                <i class="fa fa-exclamation-circle red fa-1x"></i>
+              {%else%}
+                <i class="fa fa-check-circle green fa-1x"></i>
+              {%endif%}
+              Ondisk filesystem (ZFS) status
+              <span class="caret"></span>
+            </a>
+            </h5>
+          </div> <!--panel-heading-->
+          <div id="zfs_status" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading2">
+            <div class="panel-body">
+              {%if not gridcell_info.pools %}
+                No storage pools created
+              {%else%}
+                {%for pool in gridcell_info.pools %}
+
+                  <h4> Pool name : {{pool.pool_name}} </h4>
+                  <table class="table table-bordered table-hover table-responsive" style="width:800px">
+                    <thead>
+                      <th > Pool type </th>
+                      <th> Status details </th>
+                      <th> Errors </th>
+                      <th> Scan status </th>
+                    </thead>
+                    <tr>
+                      <td> {{pool.config.pool.type}} </td>
+                      <td>
+                        {{pool.config.pool.root.status.read}} read errors, <br>{{pool.config.pool.root.status.write}} write errors, <br>{{pool.config.pool.root.status.read}} checksum errors
+                      </td>
+                      <td> {{pool.errors}} </td>
+                      <td> {{pool.scan}} </td>
+                    </tr>
+                  </table>
+
+                  <h4>Component status :</h4>
+                  <h5>Pool status</h5>
+                  <ul>
+                    <li> 
+                      Pool Status - State ({{pool.config.pool.root.status.state}}), Read ({{pool.config.pool.root.status.read}}), Write ({{pool.config.pool.root.status.write}}), Checksum ({{pool.config.pool.root.status.chksum}})
+                      {%if pool.config.pool.root.status.state == 'ONLINE'%}
+                        <i class="fa fa-check green fa-2x"></i>
+                      {%else%}
+                        <i class="fa fa-remove red fa-2x"></i>
+                      {%endif%}
+                      <ul>
+                        {%for child in pool.config.pool.root.children %}
+                          <li> 
+                            Name - {{child.name}}, Type - {{child.type}}, Status - State ({{child.status.state}}), Read ({{child.status.read}}), Write ({{child.status.write}}), Chksum ({{child.status.chksum}})
+                            {%if child.status.state == 'ONLINE'%}
+                              <i class="fa fa-check green fa-2x"></i>
+                            {%else%}
+                              <i class="fa fa-remove red fa-2x"></i>
+                            {%endif%}
+                            {%if child.children %}
+                              <ul>
+                                {%for gr_child in child.children %}
+                                  <li> 
+                                    Name - {{gr_child.name}}, Type - {{gr_child.type}}, Status - State ({{gr_child.status.state}}), Read ({{gr_child.status.read}}), Write ({{gr_child.status.write}}), Chksum ({{gr_child.status.chksum}})
+                                    {%if gr_child.status.state == 'ONLINE'%}
+                                      <i class="fa fa-check green fa-2x"></i>
+                                    {%else%}
+                                      <i class="fa fa-remove red fa-2x"></i>
+                                    {%endif%}
+                                    {%if gr_child.children %}
+                                      <ul>
+                                        {%for gr_gr_child in gr_child.children %}
+                                          <li> 
+                                            Name - {{gr_gr_child.name}}, Type - {{gr_gr_child.type}}, Status - State ({{gr_gr_child.status.state}}), Read ({{gr_gr_child.status.read}}), Write ({{gr_gr_child.status.write}}), Chksum ({{gr_gr_child.status.chksum}})
+                                            {%if gr_gr_child.status.state == 'ONLINE'%}
+                                              <i class="fa fa-check green fa-2x"></i>
+                                            {%else%}
+                                              <i class="fa fa-remove red fa-2x"></i>
+                                            {%endif%}
+                                          </li>
+                                        {%endfor%}
+                                      </ul>
+                                    {%endif%}
+                                  </li>
+                                {%endfor%}
+                              </ul>
+                            {%endif%}
+                          </li>
+                        {%endfor%}
+                      </ul>
+                    </li>
+                  </ul>
+
+                  {% if pool.config.logs %}
+                    <h5>Write cache status</h5>
+                    <ul>
+                      {%if pool.config.logs.root.status %}
+                        <li>  
+                          Write cache Status - State ({{pool.config.logs.root.status.state}}), Read ({{pool.config.logs.root.status.read}}), Write ({{pool.config.logs.root.status.write}}), Checksum ({{pool.config.logs.root.status.chksum}})
+                          {%if pool.config.logs.root.status.state == 'ONLINE'%}
+                            <i class="fa fa-check green fa-2x"></i>
+                          {%else%}
+                            <i class="fa fa-remove red fa-2x"></i>
+                          {%endif%}
+                          <ul>
+                      {%endif%}
+
+                      {%for child in pool.config.logs.root.children %}
+                        <li> 
+                          Name - {{child.name}}, Type - {{child.type}}, Status - State ({{child.status.state}}), Read ({{child.status.read}}), Write ({{child.status.write}}), Chksum ({{child.status.chksum}})
+                          {%if child.status.state == 'ONLINE'%}
+                            <i class="fa fa-check green fa-2x"></i>
+                          {%else%}
+                            <i class="fa fa-remove red fa-2x"></i>
+                          {%endif%}
+                          {%if child.children %}
+                            <ul>
+                              {%for gr_child in child.children %}
+                                <li> 
+                                  Name - {{gr_child.name}}, Type - {{gr_child.type}}, Status - State ({{gr_child.status.state}}), Read ({{gr_child.status.read}}), Write ({{gr_child.status.write}}), Chksum ({{gr_child.status.chksum}})
+                                  {%if gr_child.status.state == 'ONLINE'%}
+                                    <i class="fa fa-check green fa-2x"></i>
+                                  {%else%}
+                                    <i class="fa fa-remove red fa-2x"></i>
+                                  {%endif%}
+                                  {%if gr_child.children %}
+                                    <ul>
+                                      {%for gr_gr_child in gr_child.children %}
+                                        <li> 
+                                          Name - {{gr_gr_child.name}}, Type - {{gr_gr_child.type}}, Status - State ({{gr_gr_child.status.state}}), Read ({{gr_gr_child.status.read}}), Write ({{gr_gr_child.status.write}}), Chksum ({{gr_gr_child.status.chksum}})
+                                          {%if gr_gr_child.status.state == 'ONLINE'%}
+                                            <i class="fa fa-check green fa-2x"></i>
+                                          {%else%}
+                                            <i class="fa fa-remove red fa-2x"></i>
+                                          {%endif%}
+                                        </li>
+                                      {%endfor%}
+                                    </ul>
+                                  {%endif%}
+                                </li>
+                              {%endfor%}
+                            </ul>
+                          {%endif%}
+                        </li>
+                      {%endfor%}
+                      {%if pool.config.logs.root.status %}
+                        </ul>
+                      {%endif%}
+                    </ul>
+                  {%endif%}
+                {%endfor%}
+              {%endif%}
+            </div><!--panel-body-->
+          </div><!--panel-collapse-->
+        </div><!--panel-->
+
+      </div><!--panel-group-->
+    </div><!--container-->
+
+  {%else%}
+    <div class="row">
+      <div class="col-sm-12 col-md-6 col-lg-6 col-md-offset-3 col-lg-offset-3">
+        <div class="callout callout-danger">
+            <p>It appears as though this GRIDCell is down. Please identify it using the "Activate LED button below".
+              <br />
+          </div>
+      </div>
+    </div>
+  {%endif%}
+
+
+<br><br>
+<p class="text-green"> Activating the GRIDCell identification LED will cause a blue LED on that GRIDCell to blink for 4 minutes, to help you physically identify this GRIDCell.</p>
+
+<script>
+    $('.closeall').click(function(){
+      $('.panel-collapse.in')
+        .collapse('hide');
+        $('#open_all').show();
+        $('#close_all').hide();
+    });
+    $('.openall').click(function(){
+      $('.panel-collapse:not(".in")')
+        .collapse('show');
+        $('#close_all').show();
+        $('#open_all').hide();
+    });
+  $("#activate_led").click(function(){
+    $.ajax({
+      type : 'GET',
+      url :"/identify_gridcell?gridcell_name={{gridcell_name}}",
+      data : {},
+      success : function(){
+        $(".alert").addClass("alert-success")
+        $("#message_content").html('The GRIDCell identification LED has been activated and should be now be blinking.')
+        $("#message").show();
+      },
+      error : function(){
+        $(".alert").addClass("alert-danger")
+        $("#message_content").html('An error occured when attempting to activate the GRIDCell identification LED. Plese try again.')
+        $("#message").show();
+      }
+    });
+  });
+</script>
+{%endblock%}
+
+{%block help_header%}
+  View GRIDCell status
+{%endblock%}
+
+{%block help_body%}
+  <p>This page displays the status of all the components in the selected GRIDCell. Details of any problems with any faulty component in the GRIDCell are also displayed here.</p>
+{%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('gridcell_list_tab')
+  </script>
+{% endblock %}

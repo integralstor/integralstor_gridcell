@@ -1,43 +1,27 @@
 
-      <tr>
-        <td>
-          <label for="id_vol">Volume :</label>
-        </td>
-        <td>
-          <select id="id_vol" name="vol" class="form-control">
-          {% for choice in vol_list %} 
-            <option value="{{choice}}" {%if vol_name == choice%} selected="selected" {%endif%}>{{choice}}</option>
-          {%endfor%}
-          </select>
-        </td>
-        <td>
-      {{ form.vol.errors }}
-        </td>
-      </tr>
+<!-- Need to set the vol_name in return dict and the forms should have a path and a final_path -->
+  <tr>
+    <td> <label for="id_vol">Volume :</label> </td>
+    <td>
+      <input id="id_vol" name="vol" class="form-control" value={{vol_name}} readonly>
+    </td>
+    <td> {{ form.vol.errors }} </td>
+  </tr>
 
-      <tr>
-        <td>
-          <label for="id_path">Select parent directory :</label>
-        </td>
-        <td>
-          <input type="text"  name="path" class="form-control" id="id_path" placeholder="Click the Browse button to choose the parent directory" disabled> 
-          <a href="#" class="btn btn-info" onClick="displayTree();return true;"> Browse..</a>
-          <div id="pathdiv" style="display:inline"></div>
-        </td>
-        <td>
-          {{ form.path.errors }}
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <label for="id_final_path">Final Path :</label>
-        </td>
-        <td>
-          <input id="id_final_path" name="final_path" class="form-control" readonly>
-        </td>
-        <td>
-        </td>
-      </tr>
+  <tr>
+    <td> <label for="id_path">Volume browser:</label> </td>
+    <td>
+      <input type="hidden"  name="path" class="form-control" id="id_path" placeholder="Click the Browse button to select a directory" > 
+      <a href="#" class="btn btn-info btn-sm" onClick="displayTree();return true;"> Browse..</a>
+      <div id="pathdiv" style="display:inline"></div>
+    </td>
+    <td> {{ form.path.errors }} </td>
+  </tr>
+  <tr>
+    <td> <label for="id_final_path">Selected directory :</label> </td>
+    <td> <input id="id_final_path" name="final_path" class="form-control" readonly> </td>
+    <td> </td> 
+  </tr>
 
   <script src="/static/jstree/dist/jstree.js"></script>
   <script>
@@ -48,31 +32,33 @@
             'full_path': 'dummy',
             'url' : function (node) {
               return node.id === '#' ? 
-                '/show/dir_contents?first=1&dir=/' : 
-                '/show/dir_contents'; 
+                '/retrieve_volume_subdirs?first=1&dir=/' : 
+                '/retrieve_volume_subdirs'; 
             },
             'data' : function (node) {
               var e = document.getElementById("id_vol");
               if (node.data) {
-                return {  'dir' : node.data['dir'] , 'id':node.id, "vol_name": e.options[e.selectedIndex].value};
+                return {  'dir' : node.data['dir'] , 'id':node.id, "vol_name": e.value};
               }
               else
-                return { 'dir' : node.text , 'id':node.id, "vol_name": e.options[e.selectedIndex].value};
+                return { 'dir' : node.text , 'id':node.id, "vol_name": e.value};
             }
           }
         }
-      });
-   $(function () {
+        });
+      $(function () {
       $('#pathdiv').on('changed.jstree', function (e, data) {
           var i, j, r = [];
-          var e = document.getElementById("id_vol");
           r = data.instance.get_node(data.selected[0]).text;
           rfp = data.instance.get_node(data.selected[0]).data["dir"];
           var path = rfp;
-          var vol_name  = e.options[e.selectedIndex].value;
+          var vol_element = document.getElementById("id_vol");
+          var vol_name  = vol_element.value;
           document.getElementById("pathdiv").style.display = "none";
           document.getElementById("id_final_path").value="/"+vol_name+path;
-          changed_vol_params(vol_name,path);
+          document.getElementById("id_path").value=path;
+          var final_path = document.getElementById("id_final_path").value;
+          path_selected(vol_name,path, final_path);
         })
         .jstree();
     });

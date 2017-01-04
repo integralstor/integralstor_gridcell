@@ -1,0 +1,51 @@
+{% extends 'gridcell_base.html' %}
+
+{%block tab_header%}
+  Remove a GRIDCell from the storage pool
+{%endblock%}
+
+{%block inside_content %}
+
+  <table style="width:60%" class="table table-condensed table-bordered" >
+    <tr>
+      <th> Operation </th>
+      <th> Result </th>
+    </tr>
+    <tr>
+      <td>
+        {% if result_dict %}
+          {{result_dict.display_command}}
+        {%else%}
+          Removing GRIDCell {{node_name}} from storage pool
+        {%endif%}
+      </td>
+      <td>
+        {%if errors%}
+          Failed with the following errors :<br>
+          {{errors}}
+        {%else%}
+          {% if result_dict  and result_dict.op_status.op_errno == 0%}
+            Success
+          {%else%}
+            Failed (Errno. {{result_dict.op_status.op_errno}} - {{result_dict.op_status.op_errstr}}, {{result_dict.op_status.output}}{% if result_dict.error_list %}, additional error message - {{result_dict.error_list}} {%endif%})
+          {%endif%}
+        {%endif%}
+      </td>
+    </tr>
+  </table>
+
+{%endblock%}
+
+{%block help_header%}
+  Remove a GRIDCell from the storage pool - result
+{%endblock%}
+
+{%block help_body%}
+  <p> This screen displays the result of removing a GRIDCell from the storage pool. </p>
+{%endblock%}
+
+{% block tab_active %}
+	<script>
+		make_tab_active('gridcell_list_tab')
+	</script>
+{% endblock %}

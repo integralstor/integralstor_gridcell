@@ -1,27 +1,32 @@
 {% extends 'volume_base.html' %}
 
-
 {%block tab_header%}
-  Set volume directory quota 
+  Set volume directory quota for directory "{{form.initial.dir}}" in volume "{{form.vol_name.value}}"
 {%endblock%}
 
 {%block inside_content %}
-<br><br>
-{{conf_message}}
-<form id="edit_form" class="form-inline" name="edit_form" action="/set_dir_quota/" method="post">
-<input name="vol_name" type="hidden" value="{{ form.vol_name.value }}">
-{%if form.initial.dir %}
-  <input name="dir" type="hidden" value="{{ form.dir.value }}">
-{%endif%}
-<div  style=" position:relative;border:0px solid #DDDDDD;width:600px; padding:15px 15px 15px;margin:0px 15px;border-radius:4px 4px 0px 0px">
-  <label >Volume :</label> {{form.vol_name.value}} </br>
-  {%if form.initial.dir %}
-    <label >Directory in volume  :</label> {{form.initial.dir}} </br>
+  <b>Current quota </b>: 
+  {% if current_quota %}
+    {{current_quota}} 
   {%else%}
-    <div class="form-group" >
-      <input type="text"  name="path" class="form-control" id="id_path" placeholder="Click the Browse button to choose a directory.." disabled> 
-       <button type="button" class="btn btn-info" onClick="displayTree();return false;"> Browse..</button>
-       <div id="pathdiv" style="display:inline">
+    None
+  {%endif%}
+  <br/><br/>
+
+  <form id="edit_form" class="form-inline" name="edit_form" action="/set_dir_quota/" method="post">
+    <input name="vol_name" type="hidden" value="{{ form.vol_name.value }}">
+    <input name="dir" type="hidden" value="{{ form.dir.value }}">
+<!--      {%if form.initial.dir %}
+        <input name="dir" type="hidden" value="{{ form.dir.value }}">
+      {%endif%}
+    <label >Volume :</label> {{form.vol_name.value}} </br>
+    <label >Directory in volume  :</label> {{form.initial.dir}} </br>
+    {%if form.initial.dir %}
+    {%else%}-->
+      <div class="form-group" >
+        <input type="text"  name="path" class="form-control" id="id_path" placeholder="Click the Browse button to choose a directory.." disabled> 
+         <button type="button" class="btn btn-info" onClick="displayTree();return false;"> Browse..</button>
+         <div id="pathdiv" style="display:inline">
        </div>
     </div>
     <div class="form-group" >
@@ -30,58 +35,29 @@
       <input type="text"  name="dir" class="form-control" id="id_dir" value="{{form.initial.dir}}" placeholder="Enter directory within volume" style="display:none;" readonly><br/>
     {{ form.dir.errors }}
     </div>
-  {%endif%}
-  <div class="form-group" >
-    <label for="id_limit" >Quota limit:</label>
-    <input type="text"  name="limit" class="form-control" id="id_limit" value="{{form.initial.limit}}" placeholder=""> 
-    <select id="id_unit" name="unit" class="form-control" onChange="display_access_info('id_discovery_auth_group', 'id_discovery_auth_group_info');">
-    
-    {% for choice in form.unit.field.choices %} 
+  {%endif%}-->
+
+
+    <div class="form-group" >
+      <label for="id_limit" >New quota limit:</label>
+      <input type="text"  name="limit" class="form-control" id="id_limit" value="{{form.initial.limit}}" placeholder=""> 
+      <select id="id_unit" name="unit" class="form-control"> 
+        {% for choice in form.unit.field.choices %} 
           <option value="{{choice.0}}" {%if choice.0 == form.initial.unit %} selected{%endif%} >{{choice.0}}</option>
-    {%endfor%}
-    </select>
-    {{ form.limit.errors }}
-  </div>
-  <br><br>
-        <input type="button" class="btn btn-default" value="Cancel" onClick="window.location='/show/volume_info/{{form.vol_name.value}}'"> &nbsp;&nbsp;
-        <button type="submit" class="btn btn-primary cover-page">Save</button>
-</div>
-</form>
-<script type="text/javascript">
-function set_select_field_disabled(f, val) {
-  f.disabled = val
-}
-function set_field_disabled(f, val) {
-  f.disabled = val;
-}
-$("form input[name='set_quota']").click(function () { 
-    // Handle the click event here
-    //alert("clicked");
-    if (document.forms["edit_form"].elements["set_quota"].checked) {
-      set_field_disabled(document.forms["edit_form"].elements["limit"], false);
-      set_select_field_disabled(document.forms["edit_form"].elements["unit"], false);
-    } else {
-      set_select_field_disabled(document.forms["edit_form"].elements["unit"], true);
-      set_field_disabled(document.forms["edit_form"].elements["limit"], true);
-    }
-    });
-$(window).load(function() {
-  // Handler for .load() called.
-    //alert("loaded");
-    //alert(document.forms["edit_form"].elements["set_quota"].checked);
-    if (document.forms["edit_form"].elements["set_quota"].checked) {
-      set_field_disabled(document.forms["edit_form"].elements["limit"], false);
-      set_select_field_disabled(document.forms["edit_form"].elements["unit"], false);
-    } else {
-      set_select_field_disabled(document.forms["edit_form"].elements["unit"], true);
-      set_field_disabled(document.forms["edit_form"].elements["limit"], true);
-    }
-  });
-</script>
+        {%endfor%}
+      </select>
+      {{ form.limit.errors }}
+      <br><br>
+      <div class="btn-group btn-group-sm " >
+        <input type="button" class="btn btn-default btn-sm" value="Cancel" onClick="window.location='/view_volume?vol_name={{form.vol_name.value}}'"> &nbsp;&nbsp;
+        <button type="submit" class="btn btn-primary  btn-sm cover-page">Save</button>
+      </div>
+    </div>
+  </form>
 
   <script src="/static/jstree/dist/jstree.js"></script>
   <script>
-  function displayTree() {
+    function displayTree() {
       document.getElementById("pathdiv").style.display = "block";
       $('#pathdiv').jstree({ 'core' : {
         'multiple':false,
@@ -89,8 +65,8 @@ $(window).load(function() {
           'full_path': 'dummy',
           'url' : function (node) {
             return node.id === '#' ? 
-              '/show/dir_contents?first=1&dir=/' : 
-              '/show/dir_contents'; 
+              '/retrieve_volume_subdirs?first=1&dir=/' : 
+              '/retrieve_volume_subdirs'; 
           },
           'data' : function (node) {
             var e = "{{form.vol_name.value}}"
@@ -99,35 +75,36 @@ $(window).load(function() {
             }
             else
               return { 'dir' : node.text , 'id':node.id, "vol_name": e};
-            }
           }
         }
-    });
- $(function () {
-    $('#pathdiv').on('changed.jstree', function (e, data) {
-        var i, j, r = [];
-          var e = "{{form.vol_name.value}}"
-          r = data.instance.get_node(data.selected[0]).text;
-          rfp = data.instance.get_node(data.selected[0]).data["dir"];
-          document.forms["edit_form"].elements["dir"].value = rfp;
-          document.getElementById("id_final_path").value = "/"+e+rfp;
-      })
-      .jstree();
-  });
-  }
-</script>
+      }
+      });
+      $(function () {
+        $('#pathdiv').on('changed.jstree', function (e, data) {
+          var i, j, r = [];
+            var e = "{{form.vol_name.value}}"
+            r = data.instance.get_node(data.selected[0]).text;
+            rfp = data.instance.get_node(data.selected[0]).data["dir"];
+            document.forms["edit_form"].elements["dir"].value = rfp;
+            document.getElementById("id_final_path").value = "/"+e+rfp;
+        })
+        .jstree();
+      });
+    }
+  </script>
+{%endblock%}
 
-{%endblock%}
 {%block help_header%}
-Set volume quota
+  Set volume quota
 {%endblock%}
+
 {%block help_body%}
-<p>Use this screen to either enable or disable volume quotas or to set the usage quota for a particular volume.</p>
+  <p>Use this screen to either enable or disable volume quotas or to set the usage quota for a particular volume.</p>
 {%endblock%}
 
 {% block tab_active %}
   <script>
-    make_tab_active('volume_configuration_tab')
+    make_tab_active('view_volumes_tab')
   </script>
 {% endblock %}
 

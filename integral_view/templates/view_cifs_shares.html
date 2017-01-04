@@ -1,0 +1,66 @@
+{% extends 'shares_and_targets_base.html' %}
+
+{%block tab_header%}
+  Windows shares
+{%endblock%}
+
+{%block global_actions %}
+  <div class="btn-group btn-group-sm pull-right" >
+    <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Click for Windows share actions" href="#"> <i class="fa fa-cog fa-fw"></i> Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+    <ul class="dropdown-menu">
+      <li><a class="action-dropdown" href="/volume_selector?action=cifs_share_creation"  title="Create a new Windows share"> <i class="fa fa-plus fa-fw"></i>Create a new Windows share</a>
+    </ul>
+  </div>
+{%endblock%}
+
+{%block inside_content%}
+
+  {% if not shares_list %}
+    No shares appear to have been created. 
+  {%else %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th> Share name </th>
+          <th> Volume </th>
+          <th> Directory </th>
+          <th> Description </th>
+          <th> &nbsp; </th>
+      </thead>
+      {%for share_dict in shares_list %}
+        <tr>
+          <td> {{share_dict.name}} </td>
+          <td> {{share_dict.vol}} </td>
+          <td> {{share_dict.path}} </td>
+          <td> {{share_dict.comment}} </td>
+          <td> 
+            <div class="btn-group btn-group-xs " >
+              <a class="btn btn-default dropdown-toggle " data-toggle="dropdown" href="#" title="Click to view share actions "> <i class="fa fa-cog fa-fw"></i>Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+              <ul class="dropdown-menu pull-right">
+                <li><a  class="action-dropdown" href="/view_cifs_share?access_mode=by_id&index={{share_dict.share_id}}"  title="View share details" > <i class="fa fa-cog fa-fw"></i>Share details</a>
+                <li><a  class="action-dropdown" href="/edit_cifs_share?share_id={{share_dict.share_id}}"  title="Modify share" > <i class="fa fa-cog fa-fw"></i>Modify share</a>
+                <li><a  class="action-dropdown" href="/delete_cifs_share?share_id={{share_dict.share_id}}&name={{share_dict.name}}"  style="color:red" title="Remove share" > <i class="fa fa-trash fa-fw"></i>Remove share</a>
+              </ul>
+            </div>
+          </td>
+        </tr>
+      {%endfor%}
+    </table>
+  {%endif%}
+
+{%endblock%}
+
+{%block help_header%}
+  View all Windows shares 
+{%endblock%}
+
+{%block help_body%}
+  <p> This screen provides the list of all the shares that have been created on this IntegralStor system. To view details about a particular share, please select the the desired share from the list.</p>
+{%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('view_cifs_shares_tab')
+  </script>
+{% endblock %}
+

@@ -1,43 +1,41 @@
 {% extends 'volume_base.html' %}
 
-
 {%block tab_header%}
    Set volume directory quota 
 {%endblock%}
 
 {%block inside_content %}
-<br><br>
-    <table  class="table " style="width:800px">
-       {% include 'vol_dir_select.html'%}
-     </table>
+  <table  class="table " style="width:90%">
+    {% include 'vol_dir_select.html'%}
+  </table>
  
-    <button type="button" class="btn btn-primary" onClick="document.getElementById('id_path').disabled = false;return true;") id="id_set_quota"> Set Quota</button>
+  <button type="button" class="btn btn-primary btn-sm" onClick="document.getElementById('id_path').disabled = false;return true;") id="id_set_quota"> Set Quota</button>
 
-<script>
-  var url = ""
-  function changed_vol_params(vol_name,path){
-    url = document.location.pathname + "?vol_name="+vol_name+"&dir="+path;
-  } 
-  $("#id_set_quota").click(function(){
-    if (url != "") {
-      document.location.href = url
-
-    } else {
-      alert("Please Select a Directory");
-    }
-  });
-</script>
+  <script>
+    var url = ""
+    function path_selected(vol_name,path, final_path){
+      url = document.location.pathname + "?vol_name="+vol_name+"&dir="+path;
+    } 
+    $("#id_set_quota").click(function(){
+      if (url != "") {
+        document.location.href = url
+      } else {
+        alert("Please Select a Directory");
+      }
+    });
+  </script>
 {%endblock%}
 
 {%block help_header%}
-  Create a directory within a volume
+  Set directory quota
 {%endblock%}
 
 {%block help_body%}
-  <p>Use this screen to browse a volume and create a directory at any point in the directory tree.</p>
+  <p>Use this screen to browse a volume and set a quota for the selected directory at any point in the directory tree.</p>
 {%endblock%}
+
 {% block tab_active %}
   <script>
-    make_tab_active('volume_dir_quota_tab')
+    make_tab_active('view_volumes_tab')
   </script>
 {% endblock %}

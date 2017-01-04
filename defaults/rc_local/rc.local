@@ -1,0 +1,15 @@
+#!/bin/sh
+#
+# This script will be executed *after* all the other init scripts.
+# You can put your own initialization stuff in here if you don't
+# want to do the full Sys V style init stuff.
+set -x -v
+exec 1>/tmp/rc_local_log 2>&1
+touch /var/lock/subsys/local
+modprobe ipmi_devintf
+modprobe zfs
+#The following services will be started from the cron after the admin vol is mounted
+service ctdb stop
+service winbind stop
+service uwsgi stop
+/usr/bin/python /opt/integralstor/integralstor_gridcell/scripts/python/conditional_salt_start.py

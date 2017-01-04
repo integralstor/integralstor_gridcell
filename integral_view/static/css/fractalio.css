@@ -1,11 +1,12 @@
 
+
 #container {
 
 /*  margin: auto;*/
 /*  width: 98%;*/
   width: ;
   background: #ffffff;
-  font-size:small;
+  font-size:x-small;
 /*  font-family: Trebuchet MS,Tahoma,Verdana,Arial,sans-serif;*/
   font-family: Avant Garde, Arial, Sans-Serif;
 /*  font-family: Avant Garde, Arial, Sans-Serif;font-size: 0.8rem; font-weight: 200; line-height: 1.0;*/
@@ -25,7 +26,7 @@
   float:left;
   width:210px;
   background: #fffffff;
-  font-size:small;
+  font-size:x-small;
 /*  font-family: Trebuchet MS,Tahoma,Verdana,Arial,sans-serif;*/
   font-family: Avant Garde, Arial, Sans-Serif;
 /*  font:family: Tahoma, Arial, "Trebuchet MS", Helvetica, sans-serif;*/
@@ -47,7 +48,7 @@ background: lightgray;
   margin: auto;
   background: #ffffff;
   width:100%;
-  font-size:small;
+  font-size:x-small;
 /*  font-family: Trebuchet MS,Tahoma,Verdana,Arial,sans-serif;*/
   font-family: Avant Garde, Arial, Sans-Serif;
 /*  font:family: Tahoma, Arial, "Trebuchet MS", Helvetica, sans-serif;*/
@@ -62,6 +63,10 @@ border: 0px solid blue;
   border-top-left-radius: 4px;*/
 
 }
+
+body {
+  font-size:small;
+}
 #footer {
 
   margin: auto;
@@ -70,7 +75,7 @@ border: 0px solid blue;
   clear:both;
 /*  float: left;*/
   background: #ffffff;
-  font-size:small;
+  font-size:x-small;
 /*  font-family: Trebuchet MS,Tahoma,Verdana,Arial,sans-serif;*/
   font-family: Avant Garde, Arial, Sans-Serif;
 /*  font:family: Tahoma, Arial, "Trebuchet MS", Helvetica, sans-serif;*/
@@ -81,7 +86,7 @@ border: 0px solid blue;
 }
 .commandOutput {
   background: #ffffff;
-  font-size:small;
+  font-size:x-small;
   font-family: Trebuchet MS,Tahoma,Verdana,Arial,sans-serif;
 /*  font:family: Tahoma, Arial, "Trebuchet MS", Helvetica, sans-serif;*/
   text-align: left;
@@ -151,7 +156,7 @@ table#header_table {
 }
 #p-warning-text{
   /*font-family: 'Roboto Slab',serif; font-size: 1.6rem; font-weight: 300; line-height: 1.625;*/
-  font-family: Avant Garde, Arial, Sans-Serif;font-size: 1.0rem; font-weight: 200; line-height: 1.0;color:red;
+  font-family: Avant Garde, Arial, Sans-Serif;font-size: 1.4rem; font-weight: 200; line-height: 1.0;color:red;
 }
 #p-warning-text-small{
   /*font-family: 'Roboto Slab',serif; font-size: 1.6rem; font-weight: 300; line-height: 1.625;*/
@@ -163,12 +168,12 @@ table#header_table {
 }
 #p-error-text{
   /*font-family: 'Roboto Slab',serif; font-size: 1.6rem; font-weight: 300; line-height: 1.625;*/
-  font-family: Avant Garde, Arial, Sans-Serif;font-size: 0.8rem; font-weight: 200; line-height: 1.625;color:red;
+  font-family: Avant Garde, Arial, Sans-Serif;font-size: 1.2rem; font-weight: 200; line-height: 1.625;color:red;
 }
 
 td {
   padding: 5px;
-  font-size:small;
+  font-size:x-small;
 /*  font-family: Trebuchet MS,Tahoma,Verdana,Arial,sans-serif;*/
   font-family: Avant Garde, Arial, Sans-Serif;
 /*  font:family: Tahoma, Arial, "Trebuchet MS", Helvetica, sans-serif;*/
@@ -208,6 +213,10 @@ input {
  background-color:#ffffff;
  border:1px solid;
  border-color: #696 #363 #363 #696;
+}
+
+#fileinput {
+  border:0px none;
 }
 .nav > li > a {
   padding-left:10px;
@@ -312,6 +321,10 @@ input {
   color: #dd5a43 !important;
 }
 
+.yellow {
+  color: yellow !important;
+}
+
 .pink {
   color : #c6699f !important ;
 }
@@ -321,7 +334,7 @@ input {
 }
 
 .middle {
-  vertical-align: middle;
+  margin-left: 50%;
 }
 .uppercase{
   text-transform: uppercase;
@@ -510,6 +523,7 @@ input {
 .smaller-75 {
   font-size: 75%;
 }
+
 /*End of Utilities*/
 
 /*Font Awesome Utilities*/
@@ -550,4 +564,30 @@ text-align: center;
 top: 0;
 left: 0;
 background: rgba(0,0,0,0.8);
+}
+
+
+.action-dropdown {
+  font-size: 11px;
+}
+
+.btn-default {
+  background-color: #fff;
+  color: #444;
+  border-color: #ccc;
+}
+.required{
+  color:#3c8dbc;
+}
+.table >  tbody > tr > th,
+.table-bordered >  tbody > tr > th,
+.table-striped >  tbody > tr > th,
+.table-bordered >  tr > th,
+.table-striped >  tr > th,
+.table >  tr > th
+{
+  vertical-align:middle;
+}
+.content-wrapper {
+  background-color:white;
 }

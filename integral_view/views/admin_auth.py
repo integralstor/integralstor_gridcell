@@ -3,11 +3,9 @@ import django
 import django.template
 from django.contrib import auth
 from django.contrib.sessions.models import Session
-import json
 
-import integral_view
 from integral_view.forms import admin_forms
-from integral_view.utils import iv_logging
+#from integral_view.utils import iv_logging
 
 import integralstor_common
 from integralstor_common import audit, mail 
@@ -17,12 +15,16 @@ def login(request):
 
   """ Used to login a user into the management utility"""
 
+  return_dict = {}
   try:
-    return_dict = {}
+    return_dict['base_template'] = "base.html"
+    return_dict["page_title"] = 'Login'
+    return_dict['tab'] = 'create_volume_tab'
+    return_dict["error"] = 'Error logging in.'
     authSucceeded = False
 
     if request.method == 'POST':
-      iv_logging.info("Login request posted")
+      #iv_logging.info("Login request posted")
       # Someone is submitting info so check it
       form = admin_forms.LoginForm(request.POST)
       if form.is_valid():
@@ -47,14 +49,15 @@ def login(request):
                 pass
           # authentication succeeded! Login and send to home screen
           django.contrib.auth.login(request, user)
-          iv_logging.info("Login request from user '%s' succeeded"%username)
+          #iv_logging.info("Login request from user '%s' succeeded"%username)
           authSucceeded = True
         else:
-          iv_logging.info("Login request from user '%s' failed"%username)
+          #iv_logging.info("Login request from user '%s' failed"%username)
           return_dict['invalidUser'] = True
       else:
         #Invalid form
-        iv_logging.debug("Invalid login information posted")
+        #iv_logging.debug("Invalid login information posted")
+        pass
     else:
       # GET request so create a new form and send back to user
       form = admin_forms.LoginForm()
@@ -67,7 +70,7 @@ def login(request):
     return_dict['form'] = form
 
     if authSucceeded:
-      return django.http.HttpResponseRedirect('/show/dashboard')
+      return django.http.HttpResponseRedirect('/dashboard')
 
     # For all other cases, return to login screen with return_dict 
     # appropriately populated
@@ -81,8 +84,9 @@ def login(request):
 
 def logout(request):
   """ Used to logout a user into the management utility"""
+  return_dict = {}
   try:
-    iv_logging.info("User '%s' logged out"%request.user)
+    #iv_logging.info("User '%s' logged out"%request.user)
     # Clear the session if the user has been logged in anywhere else.
     sessions = Session.objects.all()
     for s in sessions:
@@ -106,55 +110,97 @@ def change_admin_password(request):
     return_dict = {}
 
     if request.user and request.user.is_authenticated():
-      if request.method == 'POST':
-        iv_logging.debug("Admin password change posted")
+      if "ack" in request.GET:
+        if request.GET["ack"] == "modified":
+          return_dict['ack_message'] = "Password successfully modified."
+        elif request.GET["ack"] == "bad_password":
+          return_dict['ack_message'] = "Invalid current password. Please try again."
+        elif request.GET["ack"] == "passwd_mismatch":
+          return_dict['ack_message'] = "The new passwords do not match. Please try again."
+      if request.method == 'GET':
+        form = admin_forms.ChangeAdminPasswordForm()
+        return_dict['form'] = form
+        return django.shortcuts.render_to_response('change_admin_password_form.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      else:
+        #iv_logging.debug("Admin password change posted")
         #user has submitted the password info
         form = admin_forms.ChangeAdminPasswordForm(request.POST)
         if form.is_valid():
+          print 'valid'
           cd = form.cleaned_data
           oldPasswd = cd['oldPasswd']
           newPasswd1 = cd['newPasswd1']
-          newPasswd2 = cd['newPasswd2']
           #Checking for old password is done in the form itself
           if request.user.check_password(oldPasswd):
-            if newPasswd1 == newPasswd2:
-              # all systems go so now change password
-              request.user.set_password(newPasswd1);
-              request.user.save()
-              return_dict['success'] = True
-              iv_logging.info("Admin password change request successful.")
-              audit_str = "Changed admin password"
-              audit.audit("modify_admin_password", audit_str, request.META["REMOTE_ADDR"])
-            else:
-  	          return_dict['error'] = 'New passwords do not match'
-        # else invalid form or error so existing form data to return_dict and 
-        # fall through to redisplay the form
-        if 'success' not in return_dict:
+            if cd['newPasswd1'] != cd['newPasswd2']:
+              return django.http.HttpResponseRedirect('/change_admin_password?ack=passwd_mismatch')
+            # all systems go so now change password
+            request.user.set_password(newPasswd1);
+            request.user.save()
+            #iv_logging.info("Admin password change request successful.")
+            audit_str = "Changed admin password"
+            audit.audit("modify_admin_password", audit_str, request.META["REMOTE_ADDR"])
+            return django.http.HttpResponseRedirect('/change_admin_password?ack=modified')
+          else:
+            #Invalid old password
+            return django.http.HttpResponseRedirect('/change_admin_password?ack=bad_password')
+        else:
+          #invalid form
           return_dict['form'] = form
-          iv_logging.info("Admin password change request failed.")
-      else:
-        form = admin_forms.ChangeAdminPasswordForm()
-        return_dict['form'] = form
-  
-      return django.shortcuts.render_to_response('change_admin_password_form.html', return_dict, context_instance = django.template.context.RequestContext(request))
+          return django.shortcuts.render_to_response('change_admin_password_form.html', return_dict, context_instance = django.template.context.RequestContext(request))
     else:
       #User not authenticated so return a login screen
       return django.http.HttpResponseRedirect('/login/')
   except Exception, e:
     return_dict['base_template'] = "admin_base.html"
     return_dict["page_title"] = 'Change admininistrator password'
-    return_dict['tab'] = 'change_admin_pswd_tab'
+    return_dict['tab'] = 'admin_change_pass_tab'
     return_dict["error"] = 'Error changing administrator password'
     return_dict["error_details"] = str(e)
     return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
+def view_email_settings(request):
+  return_dict = {}
+  try:
+    return_dict['base_template'] = "system_base.html"
+    return_dict["page_title"] = 'View Email settings'
+    return_dict['tab'] = 'email_settings_tab'
+    return_dict["error"] = 'Error loading Email settings'
+    d, err = mail.load_email_settings()
+    if err:
+      raise Exception(err)
+    if not d:
+      return_dict["email_not_configured"] = True
+    else:
+      if d["tls"]:
+        d["tls"] = True
+      else:
+        d["tls"] = False
+      if d["email_alerts"]:
+        d["email_alerts"] = True
+      else:
+        d["email_alerts"] = False
+      return_dict["email_settings"] = d
+    ack_msg = ''
+    if "ack" in request.GET:
+      if request.GET["ack"] == "saved":
+        ack_message = "Email settings have been saved. "
+    if "err" in request.REQUEST:
+      ack_message += 'The following errors were reported : %s'%request.REQUEST["err"]
+    return django.shortcuts.render_to_response('view_email_settings.html', return_dict, context_instance = django.template.context.RequestContext(request))
+  except Exception, e:
+    return_dict["error_details"] = str(e)
+    return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
   
 def configure_email_settings(request):
 
+  return_dict = {}
   try:
-    return_dict = {}
-    url = "edit_email_settings.html"
+    return_dict['base_template'] = "system_base.html"
+    return_dict["page_title"] = 'Configure email settings'
+    return_dict['tab'] = 'email_settings_tab'
+    return_dict["error"] = 'Error configuring email settings'
     if request.method=="GET":
       d, err = mail.load_email_settings()
       if err:
@@ -209,18 +255,15 @@ def configure_email_settings(request):
         if err:
           raise Exception(err)
         if ret:
-          return django.http.HttpResponseRedirect("/show/email_settings?saved=1")
+          return django.http.HttpResponseRedirect("/view_email_settings?ack=saved")
         else:
-          return django.http.HttpResponseRedirect("/show/email_settings?saved=1&err=%s"%err)
+          return django.http.HttpResponseRedirect("/view_email_settings?ack=saved&err=%s"%err)
       else:
-        print 'invalid'
+        #print 'invalid form'
+        pass
     return_dict["form"] = form
-    return django.shortcuts.render_to_response(url, return_dict, context_instance = django.template.context.RequestContext(request))
+    return django.shortcuts.render_to_response('edit_email_settings.html', return_dict, context_instance = django.template.context.RequestContext(request))
   except Exception, e:
-    return_dict['base_template'] = "services_base.html"
-    return_dict["page_title"] = 'Configure email settings'
-    return_dict['tab'] = 'service_config_email_tab'
-    return_dict["error"] = 'Error configuring email settings'
     return_dict["error_details"] = str(e)
     return django.shortcuts.render_to_response('logged_in_error.html', return_dict, context_instance = django.template.context.RequestContext(request))
 
@@ -231,7 +274,7 @@ def configure_email_settings(request):
 def remove_email_settings(request):
 
   response = django.http.HttpResponse()
-  iv_logging.info("Email settings deleted")
+  #iv_logging.info("Email settings deleted")
   try:
     mail.delete_email_settings()
     response.write("Deleted email settings")

@@ -1,0 +1,45 @@
+{% extends 'batch_base.html' %}
+
+{% block tab_header %}
+  Background tasks
+{% endblock %}
+
+{% block inside_content %}
+  {% if tasks %}
+    {% load utilities %}
+    <table class="table table-bordered table-hover">
+      <thead>
+        <tr>
+          <td> Task description </td>
+          <td> Status </td>
+          <td> Created at  </td>
+          <td> Scheduled for </td>
+        </tr>
+      </thead>
+      <tbody>
+        {% for task in tasks %}
+          <tr>
+            <td><a href="/view_task/{{task.task_id}}"> {{task.description}}</a> </td>
+            <td> {{task.status}}  </td>
+            <td> {{task.create_time|print_timestamp}} </td>
+            <td> {{task.initiate_time|print_timestamp}} </td>
+          </tr>
+        {% endfor %}
+      </tbody> 
+    </table>
+    <sup>*</sup> Only tasks that have run in the past 24 hours and tasks scheduled to be run in the next 24 hours will be listed here.
+  {% else %}
+    No background tasks scheduled
+  {% endif %}
+{% endblock %}
+{%block help_header%}
+  Background tasks
+{%endblock%}
+{%block help_body%}
+  <p>This page displays a list of tasks scheduled to be run on the system. 
+{%endblock%}
+{% block tab_active %}
+  <script>
+    make_tab_active('scheduled_jobs_tab')
+  </script>
+{% endblock %}

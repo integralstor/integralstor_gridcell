@@ -1,45 +1,46 @@
 {% extends 'volume_base.html' %}
 
-
-{%block status_selected%}
-  style="background-color:white;color:white;"
-{%endblock%}
-
 {%block tab_header%}
   Volume creation wizard - ondisk storage type selection
 {%endblock%}
 
 {%block inside_content %}
-<br><br>
 
-
-<form  role="form" action="/create_volume_conf/" method="post" class="margin-left-5">
-{{ form.vol_name }}
-{{ form.vol_access }}
-{{ form.vol_type }}
-
-  <label for="id_ondisk_storage">Please select how you would like the data to be stored on disk</label>
-  <div class="form-group" >
-    {% for choice in form.ondisk_storage.field.choices %} 
-        <label class="radio">
-          <input type="radio" name="ondisk_storage" id="id_{{choice.0}}" value="{{choice.0}}" {%if choice.0 == form.initial.ondisk_storage %} checked{%endif%} />{{choice.1}}
-        </label>
-    {%endfor%}
+  <form role="form" action="/create_volume_conf/" method="post" >
+    {{ form.vol_name }}
+    {{ form.vol_access }}
+    {{ form.vol_type }}
+    <label for="id_ondisk_storage">Please select how you would like the data to be stored on disk</label>
+    <table style="border:0px solid">
+      {% for choice in form.ondisk_storage.field.choices %} 
+        <tr>
+          <td>
+            <input type="radio" name="ondisk_storage" id="id_{{choice.0}}" value="{{choice.0}}" {%if choice.0 == form.initial.ondisk_storage %} checked{%endif%} />
+          </td>
+          <td> {{choice.1}} </td>
+        </tr>
+      {%endfor%}
+    </table>
     {{ form.ondisk_storage.errors }}
-  </div>
- <button type="submit" class="btn btn-primary cover-page"  >Next</button>
-</form>
-
+    <br/>
+    <div class="btn-group btn-group-sm " >
+      <a href="/view_volumes/"  class="btn btn-default btn-sm">Cancel</button></a>
+      <button type="submit" class="btn btn-primary btn-sm cover-page" ><i class="fa fa-arrow-circle-o-right fa-fw"></i> Next</button>
+    </div>
+  </form>
 
 {%endblock%}
+
 {%block help_header%}
-Volume creation help
+  Volume creation help
 {%endblock%}
+
 {%block help_body%}
-<p>The volume creation wizard guides you through many steps to create a particular type of volume. This step of the wizrd prompts you for on disk storage options on each GRIDCell. You can choose from either compressed storage, deduplicated storage (within the GRIDCell) or neither. Please note that selecting either compressed or dedplicated would result in a small performance penalty. Use these options for volumes that do not have any performance constraints.</p>
+  <p>The volume creation wizard guides you through many steps to create a particular type of volume. This step of the wizrd prompts you for on disk storage options on each GRIDCell. You can choose from either compressed storage, deduplicated storage (within the GRIDCell) or neither. Please note that selecting either compressed or dedplicated would result in a small performance penalty. Use these options for volumes that do not have any performance constraints.</p>
 {%endblock%}
+
 {% block tab_active %}
   <script>
-    make_tab_active('create_volume_tab')
+    make_tab_active('view_volumes_tab')
   </script>
 {% endblock %}

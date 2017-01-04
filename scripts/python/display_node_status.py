@@ -7,129 +7,34 @@ def display_status():
 
   try :
     hostname = socket.gethostname()
-    if hostname and hostname in ['gridcell-pri', 'gridcell-sec']:
-      print "DNS service status :"
-      (r, rc), err = command.execute_with_rc('service named status')
-      if err:
-        raise Exception(err)
-      l, err = command.get_output_list(r)
-      if err:
-        raise Exception(err)
-      if l:
-        print '\n'.join(l)
-      else:
-        l, err = command.get_error_list(r)
-        if err:
-          raise Exception(err)
-        if l:
-          print '\n'.join(l)
-      print "Salt master service status :"
-      (r, rc), err = command.execute_with_rc('service salt-master status')
-      if err:
-        raise Exception(err)
-      l, err = command.get_output_list(r)
-      if err:
-        raise Exception(err)
-      if l:
-        print '\n'.join(l)
-      else:
-        l, err = command.get_error_list(r)
-        if err:
-          raise Exception(err)
-        if l:
-          print '\n'.join(l)
-    print "Salt minion service status :",
-    (r, rc), err = command.execute_with_rc('service salt-minion status')
+    status, err = command.get_command_output('service salt-master status')
     if err:
       raise Exception(err)
-    l, err = command.get_output_list(r)
+    print '\n'.join(status)
+    status, err = command.get_command_output('service salt-minion status')
     if err:
       raise Exception(err)
-    if l:
-      print '\n'.join(l)
-    else:
-      l, err = command.get_error_list(r)
-      if err:
-        raise Exception(err)
-      print l
-      if l:
-        print '\n'.join(l)
-    print "Samba service status :",
-    (r, rc), err = command.execute_with_rc('service smb status')
+    print '\n'.join(status)
+    status, err = command.get_command_output('service smb status')
     if err:
       raise Exception(err)
-    l, err = command.get_output_list(r)
+    print '\n'.join(status)
+    status, err = command.get_command_output('service winbind status')
     if err:
       raise Exception(err)
-    if l:
-      print '\n'.join(l)
-    else:
-      l, err = command.get_error_list(r)
-      if err:
-        raise Exception(err)
-      if l:
-        print '\n'.join(l)
-    print "Winbind service status :",
-    (r, rc), err = command.execute_with_rc('service winbind status')
+    print '\n'.join(status)
+    status, err = command.get_command_output('service ctdb status')
     if err:
       raise Exception(err)
-    l, err = command.get_output_list(r)
+    print '\n'.join(status)
+    status, err = command.get_command_output('service glusterd status')
     if err:
       raise Exception(err)
-    if l:
-      print '\n'.join(l)
-    else:
-      l, err = command.get_error_list(r)
-      if err:
-        raise Exception(err)
-      if l:
-        print '\n'.join(l)
-    print "CTDB service status :",
-    (r, rc), err = command.execute_with_rc('service ctdb status')
+    print '\n'.join(status)
+    status, err = command.get_command_output('ctdb status')
     if err:
       raise Exception(err)
-    l, err = command.get_output_list(r)
-    if err:
-      raise Exception(err)
-    if l:
-      print '\n'.join(l)
-    else:
-      l, err = command.get_error_list(r)
-      if err:
-        raise Exception(err)
-      if l:
-        print '\n'.join(l)
-    print "Gluster service status :",
-    (r, rc), err = command.execute_with_rc('service glusterd status')
-    if err:
-      raise Exception(err)
-    l, err = command.get_output_list(r)
-    if err:
-      raise Exception(err)
-    if l:
-      print '\n'.join(l)
-    else:
-      l, err = command.get_error_list(r)
-      if err:
-        raise Exception(err)
-      if l:
-        print '\n'.join(l)
-    print
-    print "GRIDCell CTDB status :"
-    (r, rc), err = command.execute_with_rc('ctdb status')
-    if err:
-      raise Exception(err)
-    l, err = command.get_output_list(r)
-    if err:
-      raise Exception(err)
-    if l:
-      print '\n'.join(l)
-    else:
-      l, err = command.get_error_list(r)
-      if err:
-        raise Exception(err)
-      if l:
-        print '\n'.join(l)
+    print '\n'.join(status)
   except Exception, e:
     return False,  "Error displaying GRIDCell status : %s"%e
   else:

@@ -1,32 +1,25 @@
 {% extends 'volume_base.html' %}
 
 <script type="text/javascript">
-function subm() {
-
-  var el = document.forms[0].elements["vol_type"]
-  val=""
-  for (i=0;i<el.length;i++) {
-    if (el[i].checked)
-      val = el[i].value
+  function subm() {
+    var el = document.forms[0].elements["vol_type"]
+    val=""
+    for (i=0;i<el.length;i++) {
+      if (el[i].checked)
+        val = el[i].value
+    }
+    if (val == "replicated")
+      document.forms[0].action = "/create_volume_conf/";
+    else if (val == "distributed")
+      document.forms[0].action = "/create_volume_conf/";
+    else {
+      alert("Please make a selection");
+      return false;
+    }
+    document.forms[0].submit();
+    return true;
   }
-  if (val == "replicated")
-    document.forms[0].action = "/create_volume_conf/";
-//    document.forms[0].action = "/volume_creation_wizard/repl_count/";
-  else if (val == "distributed")
-    document.forms[0].action = "/create_volume_conf/";
-  else {
-    alert("Please make a selection");
-    return false;
-  }
-  document.forms[0].submit();
-  return true;
-
-}
 </script>
-
-{%block status_selected%}
-  style="background-color:white;color:white;"
-{%endblock%}
 
 {%block tab_header%}
   Volume creation wizard - volume type (data storage model) selection
@@ -34,43 +27,46 @@ function subm() {
 
 {%block inside_content %}
 
-<br><br>
-
-
-<form  role="form" action="/volume_creation_wizard/select_ondisk_storage_type" method="post" class="margin-left-5">
-{{ form.vol_name }}
-{{ form.vol_access }}
-{% if form.initial.vol_access == 'iscsi' %}
-<input type="hidden" name="vol_type" value="replicated">
-
-  <label >All data in this volume will be replicated in order to maintain redundancy for the block device. </label>
-  <br><br>
-{%else%}
-
-  <label for="id_vol_type">Please select a volume type (data distribution model)</label>
-  <div class="form-group" >
-    {% for choice in form.vol_type.field.choices %} 
-        <label class="radio">
-          <input type="radio" name="vol_type" id="id_{{choice.0}}" value="{{choice.0}}" {%if choice.0 == form.initial.vol_type %} checked{%endif%} />{{choice.1}}
-        </label>
-    {%endfor%}
-    {{ form.vol_type.errors }}
-  </div>
-{%endif%}
-<br>
- <button type="submit" class="btn btn-primary cover-page" onClick="subm();return false;" >Next</button>
-</form>
-
+  <form  role="form" action="/volume_creation_wizard/select_ondisk_storage_type" method="post" >
+    {{ form.vol_name }}
+    {{ form.vol_access }}
+    {% if form.initial.vol_access == 'iscsi' %}
+      <input type="hidden" name="vol_type" value="replicated">
+      <label >All data in this volume will be replicated in order to maintain redundancy for the block device. </label>
+      <br><br>
+    {%else%}
+      <label for="id_vol_type">Please select a volume type (data distribution model)</label>
+      <table style="border:0px solid">
+        {% for choice in form.vol_type.field.choices %} 
+          <tr>
+            <td>
+              <input type="radio" name="vol_type" id="id_{{choice.0}}" value="{{choice.0}}" {%if choice.0 == form.initial.vol_type %} checked{%endif%} />
+            </td>
+            <td> {{choice.1}} </td>
+          </tr>
+        {%endfor%}
+      </table>
+      {{ form.vol_type.errors }}
+    {%endif%}
+    <br>
+    <div class="btn-group btn-group-sm " >
+      <a href="/view_volumes/"  class="btn btn-default btn-sm">Cancel</button></a>
+      <button type="submit" class="btn btn-primary btn-sm cover-page" onClick="subm();return false;"><i class="fa fa-arrow-circle-o-right fa-fw"></i> Next</button>
+    </div>
+  </form>
 
 {%endblock%}
+
 {%block help_header%}
-Volume creation help
+  Volume creation help
 {%endblock%}
+
 {%block help_body%}
-<p>The volume creation wizard guides you through many steps to create a particular type of volume. This step allows you to choose the type of redundancy that you require for the volume data. The IntegralStor system always provides a GRIDCell level RAID-5 protection for all volumes. Over and above that you can choose to have GRIDCell level redundancy (where every file will be stored in two GRIDCells - slower writes, faster reads, more data redundancy) or file distribution (where each file is stored in only one GRIDCell - slower reads, faster writes, less data redundancy). Choose the GRIDCell level redundancy if data protection is crucial.</p>
+  <p>The volume creation wizard guides you through many steps to create a particular type of volume. This step allows you to choose the type of redundancy that you require for the volume data. The IntegralStor system always provides a GRIDCell level RAID-5 protection for all volumes. Over and above that you can choose to have GRIDCell level redundancy (where every file will be stored in two GRIDCells - slower writes, faster reads, more data redundancy) or file distribution (where each file is stored in only one GRIDCell - slower reads, faster writes, less data redundancy). Choose the GRIDCell level redundancy if data protection is crucial.</p>
 {%endblock%}
+
 {% block tab_active %}
   <script>
-    make_tab_active('create_volume_tab')
+    make_tab_active('view_volumes_tab')
   </script>
 {% endblock %}

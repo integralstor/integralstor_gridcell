@@ -1,75 +1,60 @@
 {% extends 'users_base.html' %}
 
 {%block tab_header%}
-      Create a local user
+  Create a local user
 {%endblock%}
 
 {%block inside_content%}
-<br><br>
-{{conf_message}}
 
-
-<form class="form-horizontal" role="form" name="create_form" action="" method="post">
-  <table  class="table " style="width:80%">
-    <tr>
-      <td>
-        <label for="id_userid">User's username :</label>
-      </td>
-      <td>
-        <input type="text"  name="userid" class="form-control" id="id_userid" value="{%if form.userid.value%}{{form.userid.value}}{%endif%}" placeholder="Enter userid for local user"> 
-      </td>
-      <td>
-    {{ form.userid.errors }}
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <label for="id_name">User's real name :</label>
-      </td>
-      <td>
-        <input type="text"  name="name" class="form-control" id="id_name" value="{%if form.name.value %}{{form.name.value}}{%endif%}" placeholder="Enter the name of the user"> 
-      </td>
-      <td>
-    {{ form.name.errors }}
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <label for="id_password">Password :</label>
-      </td>
-      <td>
-        <input type="password"  name="password" class="form-control" id="id_password" placeholder="Enter the password for this user"> 
-      </td>
-      <td>
-    {{ form.password.errors }}
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <label for="id_password_conf">Confirm password :</label>
-      </td>
-      <td>
-        <input type="password"  name="password_conf" class="form-control" id="id_password_conf" placeholder="Enter the password again for confirmation"> 
-      </td>
-      <td>
-    {{ form.password_conf.errors }}
-      </td>
-    </tr>
+  <form class="form-horizontal" role="form" name="create_form" action="" method="post">
+    <table  class="table " style="width:80%">
+      <tr>
+        <td> <label for="id_userid">User's username :</label> </td>
+        <td>
+          <input type="text"  name="userid" class="form-control" id="id_userid" value="{%if form.userid.value%}{{form.userid.value}}{%endif%}" placeholder="Enter userid for local user"> 
+        </td>
+        <td> {{ form.userid.errors }} </td>
+      </tr>
+      <tr>
+        <td> <label for="id_name">User's real name :</label> </td>
+        <td>
+          <input type="text"  name="name" class="form-control" id="id_name" value="{%if form.name.value %}{{form.name.value}}{%endif%}" placeholder="Enter the name of the user"> 
+        </td>
+        <td> {{ form.name.errors }} </td>
+      </tr>
+      <tr>
+        <td> <label for="id_password">Password :</label> </td>
+        <td>
+          <input type="password"  name="password" class="form-control" id="id_password" placeholder="Enter the password for this user"> 
+        </td>
+        <td> {{ form.password.errors }} </td>
+      </tr>
+      <tr>
+        <td> <label for="id_password_conf">Confirm password :</label> </td>
+        <td>
+          <input type="password"  name="password_conf" class="form-control" id="id_password_conf" placeholder="Enter the password again for confirmation"> 
+        </td>
+        <td> {{ form.password_conf.errors }} </td>
+      </tr>
     </table>
-
-<a href="/view_local_users" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
-<button type="submit" class="btn btn-primary cover-page"> Create</button>
-</form>
+    <div class="btn-group btn-group-sm " >
+      <a href="/view_local_users" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
+      <button type="submit" class="btn btn-primary cover-page"> Create</button>
+    </div>
+  </form>
 
 {%endblock%}
+
 {%block help_header%}
-Create local users help
+  Create local users help
 {%endblock%}
+
 {%block help_body%}
-<p>Use local user authentication when you want CIFS access but do not want to use or deploy Active Directory authentication. For local user authentication, you will need to create local user accounts using this screen and then deploy access control using these user accounts. These accounts are used only for IntegralStor access and not for any other purpose.</p>
+  <p>Use local user authentication when you want CIFS access but do not want to use or deploy Active Directory authentication. For local user authentication, you will need to create local user accounts using this screen and then deploy access control using these user accounts. These accounts are used only for IntegralStor access and not for any other purpose.</p>
 {%endblock%}
+
 {% block tab_active %}
   <script>
-    make_tab_active('create_local_user_tab')
+    make_tab_active('local_user_tab')
   </script>
 {% endblock %}

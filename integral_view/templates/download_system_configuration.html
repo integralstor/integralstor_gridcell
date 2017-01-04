@@ -1,0 +1,29 @@
+{% extends 'system_base.html' %}
+
+{%block tab_header%}
+  Download system configuration
+{%endblock%}
+
+{%block inside_content%}
+
+  <p id="p-instruction-text"> The requested configuration will be fetched as a zip file which you can save on your computer.</p>
+  <form name="myform"  action="" method="post">
+    <button type="submit" class="btn btn-default btn-sm "><i class="fa fa-download fa-fw"></i>&nbsp; Download</button>
+  </form>
+
+{%endblock%}
+
+{%block help_header%}
+  Download system configuration
+{%endblock%}
+
+{%block help_body%}
+  <p>Periodically downloading and saving the system configuration helps in tracking down potential issues in the grid or when there are major issues. The configuration will be downloaded onto your system in the form of a compressed ZIP file.</p>
+{%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('download_config_tab')
+  </script>
+{% endblock %}
+

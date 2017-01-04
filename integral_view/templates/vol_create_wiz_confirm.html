@@ -1,105 +1,84 @@
 {% extends 'volume_base.html' %}
 
-
-{%block status_selected%}
-  style="background-color:white;color:white;"
-{%endblock%}
-
 {%block tab_header%}
   Volume creation wizard - confirmation prompt
 {%endblock%}
 
 {%block inside_content %}
 
+  <form  action = "/create_volume/" method="post">
+    <input type=hidden name="vol_type" value="{{vol_type}}">
+    <input type=hidden name="vol_name" value="{{vol_name}}">
+    <input type=hidden name="vol_access" value="{{vol_access}}">
+    {% if vol_type == "replicated" %}
+      <input type=hidden name="repl_count" value="{{repl_count}}">
+    {%endif%}
+    <input type=hidden name="cmd" value="{{cmd}}">
 
-<form  action = "/create_volume/" method="post">
-<input type=hidden name="vol_type" value="{{vol_type}}">
-<input type=hidden name="vol_name" value="{{vol_name}}">
-<input type=hidden name="vol_access" value="{{vol_access}}">
-{% if vol_type == "replicated" %}
-<input type=hidden name="repl_count" value="{{repl_count}}">
-{%endif%}
-<input type=hidden name="cmd" value="{{cmd}}">
-{%for d in dataset_list%}
-{%for k, v in d.items%}
-<input type="hidden" name="dataset_list" value="{{k}}:{{v}}">
-{%endfor%}
-{%endfor%}
-<input type=hidden name="node_list_str" value="{{node_list_str}}">
+    {%for d in dataset_list%}
+      {%for k, v in d.items%}
+        <input type="hidden" name="dataset_list" value="{{k}}:{{v}}">
+      {%endfor%}
+    {%endfor%}
+    <input type=hidden name="node_list_str" value="{{node_list_str}}">
 
+    You have chosen to create a volume with the following parameters. <br>
+    The disk choices are automatically determined by the system and are displayed for information only.
+    <br><br>
 
-<br><br>
-
-You have chosen to create a volume with the following parameters. <br>
-The disk choices are automatically determined by the system and are displayed for information only.
-<br><br>
-        <div class="field">
-            <table class="table table-bordered table-condensed table-stripped" style="width:40%">
-            <tr>
-              <td>
-              Volume Name
-              </td>
-              <td>
-                {{vol_name}}
-              </td>
-            </tr>
-            <tr>
-              <td>
-              Volume type
-              </td>
-              <td>
-                {{vol_type}}
-              </td>
-            </tr>
-            <tr>
-              <td>
-              Data access method
-              </td>
-              <td>
-                {%if vol_access == 'iscsi' %}
-                  ISCSI block device access 
-                {%else %}
-                  File based access (NFS or CIFS)
-                {%endif%}
-              </td>
-            </tr>
-            {% if vol_type == "replicated" %}
-            <tr>
-              <td>
-              Number of copies for each file/block
-              </td>
-              <td>
-                {{repl_count}}
-              </td>
-            </tr>
-            {%endif%}
-            <tr>
-              <td>
-              GRIDCells on which data will be stored
-              </td>
-              <td>
-                {%autoescape off %}{{node_list_str }}{%endautoescape%}
-              </td>
-            </tr>
-            <tr align="center">
-              <td  colspan=2 style="text-align:center;">
-                <input type="button" class="btn btn-default" value="Cancel" onClick="window.location='/show/volume_info_all'"> &nbsp;&nbsp;
-                <button type="submit" class="btn btn-primary cover-page" >Create</button>
-              </td>
-            </tr>
-            </table>
-        </div>
-</form>
-
+    <table class="table table-bordered table-condensed table-stripped" style="width:40%">
+      <tr>
+        <td> Volume Name </td>
+        <td> {{vol_name}} </td>
+      </tr>
+      <tr>
+        <td> Volume type </td>
+        <td> {{vol_type}} </td>
+      </tr>
+      <tr>
+        <td> Data access method </td>
+        <td>
+          {%if vol_access == 'iscsi' %}
+            ISCSI block device access 
+          {%else %}
+            File based access (NFS or CIFS)
+          {%endif%}
+        </td>
+      </tr>
+      {% if vol_type == "replicated" %}
+        <tr>
+          <td> Number of copies for each file/block </td>
+          <td> {{repl_count}} </td>
+        </tr>
+      {%endif%}
+      <tr>
+        <td> GRIDCells on which data will be stored </td>
+        <td>
+          {%autoescape off %}{{node_list_str }}{%endautoescape%}
+        </td>
+      </tr>
+      <tr align="center">
+        <td  colspan=2 style="text-align:center;">
+          <div class="btn-group btn-group-sm " >
+            <input type="button" class="btn btn-default" value="Cancel" onClick="window.location='/view_volumes'"> &nbsp;&nbsp;
+            <button type="submit" class="btn btn-primary cover-page" >Create</button>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </form>
 {%endblock%}
+
 {%block help_header%}
-Volume creation help
+  Volume creation help
 {%endblock%}
+
 {%block help_body%}
-<p>The volume creation wizard guides you through many steps to create a particular type of volume. This is the final step of the wizard and is a prompt for final confirmation of all selected parameters. Please check to see if all the information is as desired and if so, continue to actually create the volume.</p>
+  <p>The volume creation wizard guides you through many steps to create a particular type of volume. This is the final step of the wizard and is a prompt for final confirmation of all selected parameters. Please check to see if all the information is as desired and if so, continue to actually create the volume.</p>
 {%endblock%}
+
 {% block tab_active %}
   <script>
-    make_tab_active('create_volume_tab')
+    make_tab_active('view_volumes_tab')
   </script>
 {% endblock %}

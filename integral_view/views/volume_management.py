@@ -1,4 +1,4 @@
-import re
+import re, json
 
 import django.http, django
 from  django.contrib import auth
@@ -7,15 +7,1299 @@ from django.conf import settings
 import salt.client
 
 import integralstor_gridcell
-from integralstor_gridcell import volume_info, system_info, gluster_commands, gluster_batch, iscsi
+from integralstor_gridcell import gluster_volumes, system_info, gluster_batch, iscsi, gluster_quotas, gluster_snapshots, xml_parse , gluster_gfapi
 import integralstor_common
-from integralstor_common import command, audit, common, scheduler_utils,cifs, lock
+from integralstor_common import command, audit, common, cifs, lock, filesize
 
 import integral_view
 from integral_view.forms import volume_management_forms
 from integral_view.utils import iv_logging
 
+def view_volumes(request):
+  """ Display the list of all user created volumes"""
+  return_dict = {}
+  try:
+    return_dict['base_template'] = "volume_base.html"
+    return_dict["page_title"] = 'View volume information'
+    return_dict['tab'] = 'view_volumes_tab'
+    return_dict["error"] = 'Error loading volume information'
 
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
+    vil, err  = gluster_volumes.get_basic_volume_info_all()
+    if err:
+      raise Exception(err)
+    return_dict['volume_info_list'] = vil
+
+    '''
+    ivl, err = iscsi.load_iscsi_volumes_list(vil)
+    if err:
+      raise Exception(err)
+    return_dict['iscsi_volumes'] = ivl
+    '''
+    return django.shortcuts.render_to_response('view_volumes.html', return_dict, context_instance=django.template.context.RequestContext(request))
+
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
+
+def volume_selector(request):
+  """A generic volume selector view to precede other actions"""
+  return_dict = {}
+  try:
+    if 'action' not in request.REQUEST or request.REQUEST['action'] not in ['cifs_share_creation']:
+      return_dict['base_template'] = "volume_base.html"
+      return_dict["page_title"] = 'Volume selection'
+      return_dict['tab'] = 'view_volumes_tab'
+      return_dict["error"] = 'Error selecting volume'
+      raise Exception('Invalid request. Please use the menus.')
+
+    action = request.REQUEST['action']
+    return_dict['action'] = action
+    if action == 'cifs_share_creation':
+      return_dict['base_template'] = "shares_and_targets_base.html"
+      return_dict["page_title"] = 'Create a Windows share'
+      return_dict['tab'] = 'view_cifs_shares_tab'
+      return_dict['cancel_url'] = '/view_cifs_shares'
+      return_dict["error"] = 'Error creating a Windows share'
+      template = 'create_cifs_share.html'
+      redirect_url="/create_cifs_share"
+
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
+    vil, err  = gluster_volumes.get_basic_volume_info_all()
+    if err:
+      raise Exception(err)
+    if not vil:
+      raise Exception('No volumes created. Please create a volume before performing this action.')
+    vol_list = []
+    for v in vil:
+      vol_list.append(v['name'])
+    if request.method == 'GET':
+      form = integral_view.forms.volume_management_forms.VolumeNameForm(vol_list = vol_list)
+      return_dict['form'] = form
+      return django.shortcuts.render_to_response('volume_selector.html', return_dict, context_instance=django.template.context.RequestContext(request))
+    else:
+      form = integral_view.forms.volume_management_forms.VolumeNameForm(request.POST, vol_list = vol_list)
+      if not form.is_valid():
+        return_dict['form'] = form
+        return django.shortcuts.render_to_response('volume_selector.html', return_dict, context_instance=django.template.context.RequestContext(request))
+      cd = form.cleaned_data
+      return django.http.HttpResponseRedirect('%s?vol_name=%s'%(redirect_url, cd['vol_name']))
+
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
+def view_volume(request):
+  """Display the information about a specific volume"""
+  return_dict = {}
+  try:
+    return_dict['base_template'] = "volume_base.html"
+    return_dict["page_title"] = 'View volume information'
+    return_dict['tab'] = 'view_volumes_tab'
+    return_dict["error"] = 'Error loading volume information'
+
+    if "ack" in request.GET:
+      if request.GET["ack"] == "set_quota":
+        return_dict['ack_message'] = "Volume quota successfully updated."
+      elif request.GET["ack"] == "removed_quota":
+        return_dict['ack_message'] = "Volume quota successfully removed."
+      elif request.GET["ack"] == "enabled_quota":
+        return_dict['ack_message'] = "Volume quota successfully enabled."
+      elif request.GET["ack"] == "disabled_quota":
+        return_dict['ack_message'] = "Volume quota successfully disabled."
+      elif request.GET["ack"] == "stopped":
+        return_dict['ack_message'] = "Volume successfully stopped."
+      elif request.GET["ack"] == "started":
+        return_dict['ack_message'] = "Volume successfully started."
+      elif request.GET["ack"] == "expanded":
+        return_dict['ack_message'] = "Volume successfully expanded. Please rebalance the volume in order to use all the GRIDCells."
+      elif request.GET["ack"] == "rebalance_started":
+        return_dict['ack_message'] = 'A volume rebalance batch process has been scheduled. Please view the "Batch processes" screen to check the status.'
+
+    if 'vol_name' not in request.GET:
+      raise Exception('Invalid request. Please use the menus.')
+    vol_name = request.GET['vol_name']
+
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
+    vil, err  = gluster_volumes.get_basic_volume_info_all()
+    if err:
+      raise Exception(err)
+
+    vol, err = gluster_volumes.get_complete_volume_info(vol_name)
+    if err:
+      raise Exception(err)
+    if not vol:
+      raise Exception("Could not locate information for volume %s"%vol_name)
+    return_dict["vol"] = vol
+
+    quota_enabled = False
+    if "options" in vol :
+      for o in vol["options"]:
+        if "features.quota" == o["name"] and  o["value"] == "on":
+          quota_enabled = True
+          break
+    return_dict['quota_enabled'] = quota_enabled
+
+    data_locations_list, err = gluster_volumes.get_brick_hostname_list(vol)
+    if err:
+      raise Exception(err)
+    #print data_locations_list
+    return_dict["data_locations_list"] = data_locations_list
+
+    ivl, err = iscsi.load_iscsi_volumes_list(vil)
+    if err:
+      raise Exception(err)
+    if ivl and vol["name"] in ivl:
+      return_dict["iscsi"] = True
+
+    if 'replicate' in vol["type"].lower():
+      return_dict["replicate"] = True
+    if 'distribute' in vol["type"].lower():
+      return_dict["distribute"] = True
+
+    return django.shortcuts.render_to_response('view_volume.html', return_dict, context_instance=django.template.context.RequestContext(request))
+
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
+
+def volume_browser(request):
+  """Volume directory browser for a specific volume"""
+  return_dict = {}
+  try:
+    return_dict['base_template'] = "volume_base.html"
+    return_dict["page_title"] = 'Volume browser'
+    return_dict["error"] = 'Error browsing volume'
+    return_dict['tab'] = 'view_volumes_tab'
+
+    if 'vol_name' not in request.GET:
+      raise Exception('Invalid request. Please use the menus.')
+    vol_name = request.GET['vol_name']
+    return_dict['vol_name'] = vol_name
+
+    if "ack" in request.GET:
+      if request.GET["ack"] == "dir_created":
+        return_dict['ack_message'] = "Volume directory successfully created."
+      elif request.GET["ack"] == "dir_removed":
+        return_dict['ack_message'] = "Volume directory successfully removed."
+
+    '''
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+    '''
+
+    return django.shortcuts.render_to_response('volume_browser.html', return_dict, context_instance=django.template.context.RequestContext(request))  
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  '''
+  finally:
+    lock.release_lock('gluster_commands')
+  '''
+
+def create_volume_dir(request):
+  return_dict = {}
+  try:
+    return_dict['base_template'] = "volume_base.html"
+    return_dict["page_title"] = 'Create volume directory'
+    return_dict["error"] = 'Error creating volume directory'
+    return_dict['tab'] = 'view_volumes_tab'
+
+    if request.method == 'GET':
+      if 'vol_name' not in request.GET or 'path' not in request.GET :
+        raise Exception('Invalid request. Please use the menus.')
+      vol_name = request.REQUEST["vol_name"]
+      path = request.REQUEST["path"]
+      init = {}
+      init['vol_name'] = vol_name
+      init['path'] = path
+      form = integral_view.forms.volume_management_forms.CreateVolumeDirForm(initial=init)
+      return_dict['form'] = form
+      return django.shortcuts.render_to_response('create_volume_dir.html', return_dict, context_instance=django.template.context.RequestContext(request))  
+    else:
+      form = integral_view.forms.volume_management_forms.CreateVolumeDirForm(request.POST)
+      if not form.is_valid():
+        return_dict['form'] = form
+        return django.shortcuts.render_to_response('create_volume_dir.html', return_dict, context_instance=django.template.context.RequestContext(request))  
+      else:
+        cd = form.cleaned_data
+        ret, err = gluster_gfapi.create_gluster_dir(cd['vol_name'],(cd['path']+cd['dir_name']),0777)
+        if err:
+          raise Exception(err)
+        if ret:
+          return django.http.HttpResponseRedirect('/volume_browser?vol_name=%s&ack=dir_created'%cd['vol_name'])
+        else:
+          raise Exception('Volume directory creation error')
+      
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  '''
+  finally:
+    lock.release_lock('gluster_commands')
+  '''
+
+def remove_volume_dir(request):
+  return_dict = {}
+  try:
+    return_dict['base_template'] = "volume_base.html"
+    return_dict["page_title"] = 'Remove volume directory'
+    return_dict["error"] = 'Error removing volume directory'
+    return_dict['tab'] = 'view_volumes_tab'
+
+    vol_name = request.REQUEST["vol_name"]
+    path = request.REQUEST["path"]
+    return_dict['vol_name'] = vol_name
+    return_dict['path'] = path
+
+    if request.method == 'GET':
+      if 'vol_name' not in request.GET or 'path' not in request.GET :
+        raise Exception('Invalid request. Please use the menus.')
+
+      return django.shortcuts.render_to_response('remove_volume_dir_tree_conf.html', return_dict, context_instance=django.template.context.RequestContext(request))  
+    else:
+      ret, err = gluster_gfapi.remove_gluster_dir_tree(vol_name,path)
+      if err:
+        raise Exception(err)
+      if ret:
+        return django.http.HttpResponseRedirect('/volume_browser?vol_name=%s&ack=dir_removed'%vol_name)
+      else:
+        raise Exception('Volume directory removal error')
+      
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  '''
+  finally:
+    lock.release_lock('gluster_commands')
+  '''
+def retrieve_volume_subdirs(request):
+  return_dict = {}
+  try:
+    return_dict['base_template'] = "volume_base.html"
+    return_dict["page_title"] = 'Get volume subdirectory'
+    return_dict["error"] = 'Error retrieving volume sub directories'
+    return_dict['tab'] = 'view_volumes_tab'
+
+    dir_name = None
+    error = False
+    path_base = None
+    vol_name = ""
+    dir_list = []
+    try:
+      if ("vol_name" in request.GET) and ("dir" in request.GET):
+        vol_name = request.GET.get("vol_name")
+        dir_name = request.GET.get("dir")
+        first = request.GET.get("first")
+        #print first
+      else:
+        raise Exception ("No volume or Directory Specified")
+      if first:
+          dirs, err  = gluster_gfapi.get_gluster_dir_list(vol_name ,"")
+      else:
+        dirs, err  = gluster_gfapi.get_gluster_dir_list(vol_name ,dir_name)
+      if err:
+        raise Exception(err)
+
+      dir_list = json.dumps(dirs)
+
+    except Exception as e:
+      return django.http.HttpResponse("Exception Occured : %s"%str(e))
+      #iv_logging.debug("Exception while getting dir listing : "%e)
+    else:
+      return django.http.HttpResponse(dir_list,mimetype='application/json')
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+def change_volume_status(request):
+  """ Used to either stop or start a gluster volume"""
+  return_dict = {}
+  try:
+    return_dict['base_template'] = "volume_base.html"
+    return_dict["page_title"] = 'Changing volume status'
+    return_dict['tab'] = 'view_volumes_tab'
+    return_dict["error"] = 'Error changing volume status'
+
+    if 'action' not in request.REQUEST or 'vol_name' not in request.REQUEST:
+      raise Exception('Invalid request. Please use the menus')
+    action = request.REQUEST['action']
+    if action not in ['start', 'stop']:
+      raise Exception('Invalid request. Please use the menus')
+
+    vol_name = request.REQUEST['vol_name']
+    return_dict['vol_name'] = vol_name
+
+    if action=='stop':
+      if 'conf' not in request.REQUEST:
+        return django.shortcuts.render_to_response('stop_volume_conf.html', return_dict, context_instance=django.template.context.RequestContext(request))
+        
+
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
+    ret, err = gluster_volumes.volume_stop_or_start(vol_name, action)
+    if err:
+      raise Exception(err)
+
+    if action=='start':
+      audit_code = 'vol_start'
+      audit_str = 'Started volume "%s"'%vol_name
+      redirect_ack = 'started'
+    else:
+      audit_code = 'vol_stop'
+      audit_str = 'Stopped volume "%s"'%vol_name
+      redirect_ack = 'stopped'
+
+    ret, err = audit.audit(audit_code, audit_str, request.META)
+    if err:
+      raise Exception(err)
+
+    return django.http.HttpResponseRedirect('/view_volume?vol_name=%s&ack=%s'%(vol_name, redirect_ack))
+
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
+
+def delete_volume(request):
+
+  return_dict = {}
+  try:
+    return_dict['base_template'] = "volume_base.html"
+    return_dict['tab'] = 'view_volumes_tab'
+    return_dict["page_title"] = 'Delete a volume'
+    return_dict["error"] = 'Error deleting a volume'
+
+    if 'vol_name' not in request.REQUEST:
+      raise Exception('Invalid request. Please use the menus.')
+    vol_name = request.REQUEST['vol_name']
+    return_dict['vol_name'] = vol_name
+
+    shares_list, err = cifs.load_shares_list()
+    if err:
+      raise Exception("Unable to check for shares in the volume selected")
+
+    shrs = []
+    for share in shares_list:
+      if vol_name == share['vol']:
+        shrs.append(share['name'])
+    if shrs:
+      raise Exception("A volume can be removed only if all its underlying shares are removed. The share(s) with name(s) %s exists under volume. Please delete the share(s) and try again"%','.join(shrs))
+
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
+    form = None
+  
+    vol_info_dict, err = gluster_volumes.get_basic_volume_info(vol_name)
+    if err:
+      raise Exception(err)
+
+    si, err = system_info.load_system_config()
+    if err:
+      raise Exception(err)
+    if not si:
+      raise Exception('Could not load system information')
+
+    return_dict['system_config_list'] = si
+  
+    if request.method == "GET":
+      return django.shortcuts.render_to_response('delete_volume_conf.html', return_dict, context_instance = django.template.context.RequestContext(request))
+    else:
+      result_list = []
+
+      result_dict = {}
+      result_dict["command"] = "Deleting volume %s"%vol_name
+
+      cmd = 'gluster --mode=script volume delete %s --xml'%vol_name
+      d, err = xml_parse.run_gluster_command(cmd)
+      #print d, err
+      if err:
+        raise Exception(err)
+      result_dict["result"] = "Success"
+      result_list.append(result_dict)
+
+      ret, err = audit.audit("vol_delete", "Deleted volume %s"%(vol_name), request.META)
+      if err:
+        d["result"] = "Failed with error : %s"%estr
+        result_list.append(result_dict)
+      else:
+        # Now delete the brick directories
+        for bricks in  vol_info_dict["bricks"]:
+          for b in bricks:
+            result_dict = {}
+            l = b.split(':')
+            result_dict["command"] = "Deleting volume storage on GRIDCell %s"%l[0]
+            #print "executing command"
+            client = salt.client.LocalClient()
+            cmd_to_run = 'zfs destroy %s'%l[1][1:]
+            #print 'Running %s'%cmd_to_run
+            rc = client.cmd(l[0], 'cmd.run_all', [cmd_to_run])
+            if rc:
+              for hostname, res in rc.items():
+                #print ret
+                if res["retcode"] != 0:
+                  errors = "Error destroying the brick path ZFS dataset on %s"%hostname
+                  result_dict["result"] = "Failed with error : %s"%errors
+                else:
+                  result_dict["result"] = "Success"
+                result_list.append(result_dict)
+ 
+      return_dict["result_list"] = result_list
+      return django.shortcuts.render_to_response('volume_delete_results.html', return_dict, context_instance = django.template.context.RequestContext(request))
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
+
+
+def expand_volume(request):
+
+  return_dict = {}
+  try:
+    return_dict['base_template'] = "volume_base.html"
+    return_dict['tab'] = 'view_volumes_tab'
+    return_dict["page_title"] = 'Expand a volume'
+    return_dict["error"] = 'Error expanding a volume'
+
+    if 'vol_name' not in request.REQUEST:
+      raise Exception('Invalid request. Please use the menus.')
+    vol_name = request.REQUEST['vol_name']
+
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
+    form = None
+  
+    vol, err = gluster_volumes.get_basic_volume_info(vol_name)
+    if err:
+      raise Exception(err)
+
+    si, err = system_info.load_system_config()
+    if err:
+      raise Exception(err)
+  
+    if request.method == "GET":
+      count = 0
+      replicated = False
+      repl_count = 0
+  
+      if "replicate" in vol["type"].lower():
+        replica_count = int(vol["replica_count"])
+        replicated = True
+  
+      d, err = gluster_volumes.build_expand_volume_command(vol, si)
+      if err:
+        raise Exception(err)
+  
+      return_dict['cmd'] = d['cmd']
+      return_dict['node_list'] = d['node_list']
+      return_dict['count'] = d['count']
+      return_dict['dataset_list'] = d['dataset_list']
+      return_dict['vol_name'] = vol["name"]
+      if vol["type"] == "Replicate":
+        return_dict['vol_type'] = "replicated"
+      else:
+        return_dict['vol_type'] = "distributed"
+
+      return django.shortcuts.render_to_response('expand_volume_form.html', return_dict, context_instance=django.template.context.RequestContext(request))
+    else:
+      # POST method processing
+  
+      if "cmd" not in request.POST or "vol_name" not in request.POST or "count" not in request.POST:
+        raise Exception("Invalid request. Please use the menu options.")
+  
+      cmd = request.POST['cmd']
+      count = request.POST['count']
+      dsl = request.POST.getlist('dataset_list')
+      dataset_dict = {}
+      for ds in dsl:
+        tl = ds.split(':')
+        dataset_dict[tl[0]] = tl[1]
+
+      #First create the datasets on which the bricks will reside
+      client = salt.client.LocalClient()
+      revert_list = []
+      errors = ""
+      for node, dataset in dataset_dict.items():
+        dataset_cmd = 'zfs create %s'%dataset
+        #print dataset_cmd
+        dataset_revert_cmd = 'zfs destroy %s'%dataset
+        #print dataset_revert_cmd
+        r1 = client.cmd(node, 'cmd.run_all', [dataset_cmd])
+        if r1:
+          for node, ret in r1.items():
+            #print ret
+            if ret["retcode"] != 0:
+              errors += ", Error creating the underlying storage brick on %s"%node
+              #print errors
+            else:
+              revert_list.append({node:dataset_revert_cmd})
+  
+      if errors != "":
+        if revert_list:
+          #Undo the creation of the datasets
+          for revert in revert_list:
+            for node, dsr_cmd in revert.items():
+              r1 = client.cmd(node, 'cmd.run_all', [dsr_cmd])
+              if r1:
+                for node, ret in r1.items():
+                  #print ret
+                  if ret["retcode"] != 0:
+                    errors += ", Error undoing the creating the underlying storage brick on %s"%node
+        raise Exception(errors)
+  
+  
+      #iv_logging.info("Running volume expand : %s"%cmd)
+      #print cmd
+      #Now run the actual expand volume command
+      d, err = xml_parse.run_gluster_command(cmd)
+      #print d, err
+      if err:
+        raise Exception(err)
+  
+      #Success so audit the change
+      audit_str = "Expanded volume %s by adding %s storage units."%(vol_name, count)
+      ret, err = audit.audit("expand_volume", audit_str, request.META)
+
+      if err:
+        if revert_list:
+          #Undo the creation of the datasets
+          #print 'undoing'
+          for revert in revert_list:
+            #print revert
+            for node, dsr_cmd in revert.items():
+              r1 = client.cmd(node, 'cmd.run_all', [dsr_cmd])
+              if r1:
+                for node, ret in r1.items():
+                  #print ret
+                  if ret["retcode"] != 0:
+                    err += ", Error undoing the creating the underlying storage brick on %s"%node
+        raise Exception(errors)
+  
+      return django.http.HttpResponseRedirect('/view_volume?vol_name=%s&ack=expanded'%vol_name)
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
+
+def initiate_volume_rebalance(request):
+  return_dict = {}
+  try:
+    return_dict['base_template'] = "volume_base.html"
+    return_dict['tab'] = 'view_volumes_tab'
+    return_dict["page_title"] = 'Initiate volume rebalance'
+    return_dict["error"] = 'Error initiating volume rebalance'
+
+    if 'vol_name' not in request.REQUEST:
+      raise Exception('Invalid request. Please use the menus.')
+    vol_name = request.REQUEST['vol_name']
+    return_dict['vol_name'] = vol_name
+
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
+    d, err = gluster_batch.create_rebalance_command_file(vol_name)
+    if err:
+      raise Exception(err)
+    ret, err = audit.audit("vol_rebalance_start", "Scheduled volume rebalance start for volume %s"%vol_name, request.META)
+    if err:
+      raise Exception(err)
+
+    return django.http.HttpResponseRedirect('/view_volume?vol_name=%s&ack=rebalance_started'%vol_name)
+
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
+
+def set_volume_options(request):
+
+  return_dict = {}
+  try:
+    return_dict['base_template'] = "volume_base.html"
+    return_dict['tab'] = 'view_volumes_tab'
+    return_dict["page_title"] = 'Set volume options'
+    return_dict["error"] = 'Error setting volume options'
+
+    if 'vol_name' not in request.REQUEST:
+      raise Exception('Invalid request. Please use the menus.')
+    vol_name = request.REQUEST['vol_name']
+    return_dict['vol_name'] = vol_name
+
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
+    if request.method == "GET":
+      vol_dict, err = gluster_volumes.get_basic_volume_info(vol_name)
+      if err:
+        raise Exception(err)
+      if not vol_dict:
+        raise Exception('Could not retrieve the information for volume %s'%vol_name)
+      d = {}
+      #Set default values
+      d["auth_allow"] = '*'
+      d["auth_reject"] = 'NONE'
+      d["readonly"] = False
+      d["nfs_disable"] = False
+      d['nfs_volume_access'] = 'read-write'
+      d["vol_name"] = vol_name
+  
+      # Now fill in current values and pass to the form
+      if "options" in vol_dict:
+        for option in vol_dict["options"]:
+          if option["name"] == "auth.allow": 
+            d["auth_allow"] = option["value"]
+          if option["name"] == "auth.reject": 
+            d["auth_reject"] = option["value"]
+          if option["name"] == "nfs.disable": 
+            if option["value"] == "on":
+              d["nfs_disable"] = True
+          if option["name"] == "nfs.volume-access": 
+            d["nfs_volume_access"] = option["value"]
+          if option["name"] == "features.read-only": 
+            d["readonly"] = option["value"]
+          if option["name"] == "features.worm": 
+            d["enable_worm"] = option["value"]
+      form = integral_view.forms.volume_management_forms.VolumeOptionsForm(initial=d)
+      return_dict["form"] = form
+      return django.shortcuts.render_to_response('volume_options_form.html', return_dict, context_instance=django.template.context.RequestContext(request))
+    else:
+      #POST request so form submission
+      form = integral_view.forms.volume_management_forms.VolumeOptionsForm(request.POST)
+      if not form.is_valid():
+        return_dict["form"] = form
+        return django.shortcuts.render_to_response('volume_options_form.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      cd = form.cleaned_data
+      ol, err = gluster_volumes.set_volume_options(cd)
+      if err:
+        raise Exception(err)
+      if ol:
+        for d in ol:
+          if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
+            #Success so audit the change
+            ret, err = audit.audit("set_vol_options", d["audit_str"], request.META)
+            if err:
+              raise Exception(err)
+  
+      return_dict["result_list"] = ol
+      return django.shortcuts.render_to_response('volume_options_result.html', return_dict, context_instance = django.template.context.RequestContext(request))
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
+
+def set_dir_quota(request):
+  return_dict = {}
+  try:
+    return_dict['base_template'] = "volume_base.html"
+    return_dict['tab'] = 'view_volumes_tab'
+    return_dict["page_title"] = 'Set volume directory quota'
+    return_dict["error"] = 'Error setting volume directory quota'
+
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
+    vil, err = gluster_volumes.get_basic_volume_info_all()
+    if err:
+      raise Exception(err)
+
+    if 'vol_name' not in request.REQUEST:
+      raise Exception('Invalid request. Please use the menus.')
+
+    vol_name = request.REQUEST['vol_name']
+    return_dict['vol_name'] = vol_name
+
+    dir = None
+    if 'dir' in request.REQUEST:
+      dir = request.REQUEST['dir']
+
+    vd, err = gluster_volumes.get_basic_volume_info(vol_name)
+    if err:
+      raise Exception(err)
+    return_dict['vol'] = vd
+
+    quota_dict, err = gluster_volumes.get_volume_quota(vol_name, vd)
+    if err:
+      raise Exception(err)
+
+    quota_enabled = False
+    if "options" in vd :
+      for o in vd["options"]:
+        if "features.quota" == o["name"] and o["value"] == "on":
+          quota_enabled = True
+          break
+
+    if request.method == 'GET':
+      init = {}
+      if vol_name:
+        init['vol_name'] = vol_name
+      if dir:
+        return_dict['dir'] = dir
+        init['dir'] = dir
+        if quota_dict and request.REQUEST['dir'] in quota_dict:
+          q = quota_dict[request.REQUEST['dir']]
+          #print q
+          return_dict['current_quota'] = filesize.naturalsize(q['hard_limit'])
+      form = volume_management_forms.VolumeQuotaForm(initial=init)
+      return_dict["form"] = form
+      if vol_name and dir:
+        return django.shortcuts.render_to_response('edit_volume_dir_quota.html', return_dict, context_instance=django.template.context.RequestContext(request))
+      else:
+        return django.shortcuts.render_to_response('set_volume_dir_quota.html', return_dict, context_instance=django.template.context.RequestContext(request))
+    else:
+      form = integral_view.forms.volume_management_forms.VolumeQuotaForm(request.POST)
+      if not form.is_valid():
+        return_dict["form"] = form
+        return django.shortcuts.render_to_response('edit_volume_dir_quota.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      cd = form.cleaned_data
+      vol_name = cd["vol_name"]
+      if not quota_enabled:
+        res, err = gluster_quotas.change_quota_status(vol_name, 'enable')
+        if err:
+          raise Exception(err)
+        result_message = 'Auto enabled quota for volume %s'%vol_name
+        ret, err = audit.audit("change_quota_status", result_message, request.META)
+      res, err = gluster_quotas.set_volume_dir_quota(cd["vol_name"], cd["dir"], cd["limit"], cd["unit"])
+      if err:
+        raise Exception(err)
+      result_message = 'Successfully set quota for directory %s on volume %s to %s %s'%(cd['dir'], cd['vol_name'], cd['limit'], cd['unit'])
+      return_dict['result_message'] = result_message
+      ret, err = audit.audit("set_vol_quota", result_message, request.META)
+      return django.http.HttpResponseRedirect('/view_volume?vol_name=%s&ack=set_quota'%vol_name)
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
+
+def remove_dir_quota(request):
+  return_dict = {}
+  try:
+    return_dict['base_template'] = "volume_base.html"
+    return_dict['tab'] = 'view_volumes_tab'
+    return_dict["page_title"] = 'Remove volume directory quota'
+    return_dict["error"] = 'Error removing volume directory quota '
+
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
+    if 'vol_name' not in request.REQUEST or 'dir' not in request.REQUEST:
+      raise Exception('Invalid request. Please use the menus.')
+    vol_name = request.REQUEST['vol_name']
+    return_dict['vol_name'] = vol_name
+
+    dir = request.REQUEST['dir']
+    return_dict['dir'] = dir
+
+    if request.method == 'GET':
+      return django.shortcuts.render_to_response('remove_volume_dir_quota_conf.html', return_dict, context_instance=django.template.context.RequestContext(request))
+    else:
+      res, err = gluster_quotas.remove_volume_dir_quota(vol_name, dir)
+      if err:
+        raise Exception(err)
+      audit_str = 'Successfully removed quota for directory %s on volume %s'%(dir, vol_name)
+      ret, err = audit.audit("remove_vol_quota", audit_str, request.META)
+      return django.http.HttpResponseRedirect('/view_volume?vol_name=%s&ack=removed_quota'%vol_name)
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
+
+def change_quota_status(request):
+  return_dict = {}
+  try:
+    return_dict['base_template'] = "volume_base.html"
+    return_dict['tab'] = 'view_volumes_tab'
+    return_dict["page_title"] = 'Change quota status'
+    return_dict["error"] = 'Error changing quota status'
+
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
+    if 'vol_name' not in request.REQUEST or 'action' not in request.REQUEST:
+      raise Exception('Invalid request. Please use the menus.')
+    vol_name = request.REQUEST['vol_name']
+    action = request.REQUEST['action']
+    return_dict['vol_name'] = vol_name
+    return_dict['action'] = action
+    if request.method == 'GET' and  action == 'disable':
+        return django.shortcuts.render_to_response('disable_volume_quota_conf.html', return_dict, context_instance=django.template.context.RequestContext(request))
+    else:
+      res, err = gluster_quotas.change_quota_status(vol_name, action)
+      if err:
+        raise Exception(err)
+      result_message = 'Successfully %sd quota for volume %s'%(action, vol_name)
+      return_dict['result_message'] = result_message
+      ret, err = audit.audit("change_quota_status", result_message, request.META)
+      if action == 'enable':
+        ack = 'enabled_quota'
+      else:
+        ack = 'disabled_quota'
+      return django.http.HttpResponseRedirect('/view_volume?vol_name=%s&ack=%s'%(vol_name, ack))
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
+
+
+def create_snapshot(request):
+
+  return_dict = {}
+  try:
+    return_dict['base_template'] = "snapshot_base.html"
+    return_dict['tab'] = 'snapshot_create_tab'
+    return_dict["page_title"] = 'Create a volume snapshot'
+    return_dict["error"] = 'Error creating volume snapshot'
+
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
+    vil, err = gluster_volumes.get_basic_volume_info_all()
+    if err:
+      raise Exception(err)
+    if not vil:
+      return_dict['no_volumes'] = True
+      return django.shortcuts.render_to_response('create_snapshot.html', return_dict, context_instance = django.template.context.RequestContext(request))
+    l = []
+    for v in vil:
+      l.append(v["name"])
+    if request.method == "GET":
+      form = integral_view.forms.volume_management_forms.CreateSnapshotForm(vol_list=l)
+      return_dict["form"] = form
+      return django.shortcuts.render_to_response('create_snapshot.html', return_dict, context_instance = django.template.context.RequestContext(request))
+    else:
+      form = integral_view.forms.volume_management_forms.CreateSnapshotForm(request.POST, vol_list=l)
+      if not form.is_valid():
+        return_dict["form"] = form
+        return django.shortcuts.render_to_response('create_snapshot.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      cd = form.cleaned_data
+      d, err  = gluster_snapshots.create_snapshot(cd)
+      if err:
+        raise Exception(err)
+      if d and  ("op_status" in d) and d["op_status"]["op_ret"] == 0:
+        #Success so audit the change
+        ret, err = audit.audit("create_snapshot", d["display_command"], request.META)
+        if err:
+          raise Exception(err)
+        return_dict["op"] = "Create snapshot"
+        return_dict["conf"] = d["display_command"]
+        return django.shortcuts.render_to_response('snapshot_op_result.html', return_dict, context_instance = django.template.context.RequestContext(request))
+      else:
+        err = "Error creating the snapshot : "
+        #assert False
+        if d:
+          if "error_list" in d:
+            err += " ".join(d["error_list"])
+          if "op_status" in d and "op_errstr" in d["op_status"]:
+            if d["op_status"]["op_errstr"]:
+              err += d["op_status"]["op_errstr"]
+        else:
+          err += "The snapshot command did not return a result. Please try again."
+        raise Exception(err)
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
+
+def delete_snapshot(request):
+
+  return_dict = {}
+  try:
+    return_dict['base_template'] = "snapshot_base.html"
+    return_dict['tab'] = 'snapshot_view_tab'
+    return_dict["page_title"] = 'Delete a volume snapshot'
+    return_dict["error"] = 'Error deleting a volume snapshot'
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
+
+    if request.method == "GET":
+      # Disallowed GET method so return error.
+      return_dict["error"] = "Invalid request. Please use the menu options."
+    else:
+      # POST method processing
+      if "snapshot_name" not in request.POST:
+        return_dict["error"] = "Snapshot name not specified. Please use the menu options."
+      elif "conf" not in request.POST:
+        #Get a conf from the user before we proceed
+        return_dict["snapshot_name"] = request.POST["snapshot_name"]
+        template = "delete_snapshot_conf.html"
+      else:
+        #Got a conf from the user so proceed
+        snapshot_name = request.POST["snapshot_name"]
+        d, err = gluster_snapshots.delete_snapshot(snapshot_name)
+        if err:
+          raise Exception(err)
+        if d:
+          #assert False
+          if "op_status" in d:
+            if d["op_status"]["op_errno"] == 0:
+              return_dict["conf"] = "Successfully deleted snapshot - %s"%snapshot_name
+              return_dict["op"] = "Delete snapshot"
+              audit_str = "Deleted snapshot %s."%snapshot_name
+              ret, err = audit.audit("delete_snapshot", audit_str, request.META)
+              if err:
+                raise Exception(err)
+              template = "snapshot_op_result.html"
+            else:
+              err = "Error deleting the snapshot :"
+              if "op_status" in d and "op_errstr" in d["op_status"]:
+                err += d["op_status"]["op_errstr"]
+              if "error_list" in d:
+                err += " ".join(d["error_list"])
+              raise Exception(err)
+          else:
+            raise Exception("Could not detect the status of the snapshot deletion. Please try again.")
+  
+    return django.shortcuts.render_to_response(template, return_dict, context_instance = django.template.context.RequestContext(request))
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
+
+
+def restore_snapshot(request):
+
+  return_dict = {}
+  try:
+    return_dict['base_template'] = "snapshot_base.html"
+    return_dict['tab'] = 'snapshot_view_tab'
+    return_dict["page_title"] = 'Restore a volume snapshot'
+    return_dict["error"] = 'Error restoring a volume snapshot'
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
+    form = None
+  
+    if request.method == "GET":
+      # Disallowed GET method so return error.
+      return_dict["error"] = "Invalid request. Please use the menu options."
+    else:
+      # POST method processing
+      if "snapshot_name" not in request.POST:
+        return_dict["error"] = "Snapshot name not specified. Please use the menu options."
+      elif "conf" not in request.POST:
+        #Get a conf from the user before we proceed
+        return_dict["snapshot_name"] = request.POST["snapshot_name"]
+        return_dict["vol_name"] = request.POST["vol_name"]
+        template = "restore_snapshot_conf.html"
+      else:
+        #Got a conf from the user so proceed
+        snapshot_name = request.POST["snapshot_name"]
+        vol_name = request.POST["vol_name"]
+        d, err = gluster_snapshots.restore_snapshot(snapshot_name)
+        if err:
+          raise Exception(err)
+        if d:
+          #assert False
+          if "op_status" in d:
+            if d["op_status"]["op_errno"] == 0:
+              return_dict["conf"] = "Successfully restored snapshot %s onto volume %s"%(snapshot_name, vol_name)
+              return_dict["op"] = "Restore snapshot"
+              audit_str = "Restored snapshot %s onto volume %s."%(snapshot_name, vol_name)
+              ret, err = audit.audit("restore_snapshot", audit_str, request.META)
+              if err:
+                raise Exception(err)
+              template = "snapshot_op_result.html"
+            else:
+              err = "Error restoring the snapshot :"
+              if "op_status" in d and "op_errstr" in d["op_status"]:
+                err += d["op_status"]["op_errstr"]
+              if "error_list" in d:
+                err += " ".join(d["error_list"])
+              raise Exception(err)
+          else:
+            raise Exception("Could not detect the status of the snapshot restoration. Please try again.")
+  
+    return django.shortcuts.render_to_response(template, return_dict, context_instance = django.template.context.RequestContext(request))
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
+
+          
+def deactivate_snapshot(request):
+
+  return_dict = {}
+  try:
+    return_dict['base_template'] = "snapshot_base.html"
+    return_dict['tab'] = 'snapshot_view_tab'
+    return_dict["page_title"] = 'Deactivate a volume snapshot'
+    return_dict["error"] = 'Error deactivating a volume snapshot'
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
+    form = None
+  
+    if request.method == "GET":
+      # Disallowed GET method so return error.
+      raise Exception("Invalid request. Please use the menu options.")
+    else:
+      # POST method processing
+      if "snapshot_name" not in request.POST:
+        raise Exception("Snapshot name not specified. Please use the menu options.")
+      elif "conf" not in request.POST:
+        #Get a conf from the user before we proceed
+        return_dict["snapshot_name"] = request.POST["snapshot_name"]
+        template = "deactivate_snapshot_conf.html"
+      else:
+        #Got a conf from the user so proceed
+        snapshot_name = request.POST["snapshot_name"]
+        d, err = gluster_snapshots.deactivate_snapshot(snapshot_name)
+        if err:
+          raise Exception(err)
+        if d:
+          #assert False
+          if "op_status" in d:
+            if d["op_status"]["op_errno"] == 0:
+              return_dict["conf"] = "Successfully deactivated snapshot - %s"%snapshot_name
+              return_dict["op"] = "Deactivate snapshot"
+              audit_str = "Deactivated snapshot %s."%snapshot_name
+              ret, err = audit.audit("deactivate_snapshot", audit_str, request.META)
+              if err:
+                raise Exception(err)
+              template = "snapshot_op_result.html"
+            else:
+              err = "Error deactivating the snapshot :"
+              if "op_status" in d and "op_errstr" in d["op_status"]:
+                err += d["op_status"]["op_errstr"]
+              if "error_list" in d:
+                err += " ".join(d["error_list"])
+              raise Exception(err)
+          else:
+            raise Exception("Could not detect the status of the snapshot deactivation. Please try again.")
+  
+    return django.shortcuts.render_to_response(template, return_dict, context_instance = django.template.context.RequestContext(request))
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
+
+def activate_snapshot(request):
+
+  return_dict = {}
+  try:
+    return_dict['base_template'] = "snapshot_base.html"
+    return_dict['tab'] = 'snapshot_view_tab'
+    return_dict["page_title"] = 'Activate a volume snapshot'
+    return_dict["error"] = 'Error activating a volume snapshot'
+    gluster_lck, err = lock.get_lock('gluster_commands')
+    if err:
+      raise Exception(err)
+
+    if not gluster_lck:
+      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
+
+    form = None
+  
+    if request.method == "GET":
+      # Disallowed GET method so return error.
+      return_dict["error"] = "Invalid request. Please use the menu options."
+    else:
+      # POST method processing
+      if "snapshot_name" not in request.POST:
+        return_dict["error"] = "Snapshot name not specified. Please use the menu options."
+      else:
+        snapshot_name = request.POST["snapshot_name"]
+        d, err = gluster_snapshots.activate_snapshot(snapshot_name)
+        if err:
+          raise Exception(err)
+        if d:
+          #assert False
+          if "op_status" in d:
+            if d["op_status"]["op_errno"] == 0:
+              return_dict["conf"] = "Successfully activated snapshot - %s"%snapshot_name
+              return_dict["op"] = "Activate snapshot"
+              audit_str = "Activated snapshot %s."%snapshot_name
+              ret, err = audit.audit("activate_snapshot", audit_str, request.META)
+              if err:
+                raise Exception(err)
+              template = "snapshot_op_result.html"
+            else:
+              err = "Error activating the snapshot :"
+              if "op_status" in d and "op_errstr" in d["op_status"]:
+                err += d["op_status"]["op_errstr"]
+              if "error_list" in d:
+                err += " ".join(d["error_list"])
+              raise Exception(err)
+          else:
+            raise Exception("Could not detect the status of the snapshot activation. Please try again.")
+  
+    return django.shortcuts.render_to_response(template, return_dict, context_instance = django.template.context.RequestContext(request))
+  except Exception, e:
+    s = str(e)
+    if "Another transaction is in progress".lower() in s.lower():
+      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
+    else:
+      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
+    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
+  finally:
+    lock.release_lock('gluster_commands')
+
+  
+'''    
 def volume_specific_op(request, operation, vol_name=None):
   """ Used to carry out various volume related operations which is specified in the operation parameter. 
   The volume to be operated on is specified in the vol_name parameter"""
@@ -80,7 +1364,7 @@ def volume_specific_op(request, operation, vol_name=None):
     return_dict['op'] = operation
     form = None
   
-    vil, err = volume_info.get_volume_info_all()
+    vil, err = gluster_volumes.get_basic_volume_info_all()
     if err:
       raise Exception(err)
     if not vil:
@@ -166,7 +1450,7 @@ def volume_specific_op(request, operation, vol_name=None):
         vol_name = request.POST["vol"]
         path = request.POST["path"]
   
-        vol_creation, err = gluster_commands.create_gluster_dir(vol_name,(path+dir_name),0777)
+        vol_creation, err = gluster_gfapi.create_gluster_dir(vol_name,(path+dir_name),0777)
         if err:
           raise Exception(err)
         if vol_creation:
@@ -207,7 +1491,7 @@ def volume_specific_op(request, operation, vol_name=None):
         elif operation == 'vol_quota':
           init = {}
           init["vol_name"] = vol_name
-          vd, err = volume_info.get_volume_info(None, vol_name)
+          vd, err = gluster_volumes.get_basic_volume_info(None, vol_name)
           if err:
             raise Exception(err)
           if not vd:
@@ -229,10 +1513,10 @@ def volume_specific_op(request, operation, vol_name=None):
           return_dict["form"] = form
           return django.shortcuts.render_to_response('edit_volume_quota.html', return_dict, context_instance=django.template.context.RequestContext(request))
         elif operation == 'view_snapshots':
-          l, err = volume_info.get_snapshots(vol_name)
+          l, err = gluster_volumes.get_snapshots(vol_name)
           if err:
             raise Exception(err)
-          vd, err = volume_info.get_volume_info(vil, vol_name)
+          vd, err = gluster_volumes.get_basic_volume_info(vil, vol_name)
           if err:
             raise Exception(err)
           if not vd:
@@ -245,7 +1529,7 @@ def volume_specific_op(request, operation, vol_name=None):
           return_dict["vol_name"] = vol_name
           return django.shortcuts.render_to_response('view_snapshots.html', return_dict, context_instance=django.template.context.RequestContext(request))
         elif operation == "vol_options":
-          vol_dict, err = volume_info.get_volume_info(vil, vol_name)
+          vol_dict, err = gluster_volumes.get_basic_volume_info(vil, vol_name)
           if err:
             raise Exception(err)
           if not vol_dict:
@@ -283,7 +1567,7 @@ def volume_specific_op(request, operation, vol_name=None):
           if err:
             raise Exception(err)
           if not "error" in d:
-            ret, err = audit.audit("vol_rebalance_start", "Scheduled volume rebalance start for volume %s"%vol_name, request.META["REMOTE_ADDR"])
+            ret, err = audit.audit("vol_rebalance_start", "Scheduled volume rebalance start for volume %s"%vol_name, request.META)
             if err:
               raise Exception(err)
             return django.http.HttpResponseRedirect('/show/batch_start_conf/%s'%d["file_name"])
@@ -306,7 +1590,7 @@ def volume_specific_op(request, operation, vol_name=None):
             replica_count = int(vol["replica_count"])
             replicated = True
   
-          d, err = gluster_commands.build_expand_volume_command(vol, si)
+          d, err = gluster_volumes.build_expand_volume_command(vol, si)
           if err:
             raise Exception(err)
           if "error" in d:
@@ -348,554 +1632,7 @@ def volume_specific_op(request, operation, vol_name=None):
   finally:
     lock.release_lock('gluster_commands')
 
-
-def create_snapshot(request):
-
-  return_dict = {}
-  try:
-    gluster_lck, err = lock.get_lock('gluster_commands')
-    if err:
-      raise Exception(err)
-
-    if not gluster_lck:
-      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
-
-    return_dict['base_template'] = "snapshot_base.html"
-    return_dict['tab'] = 'snapshot_create_tab'
-    return_dict["page_title"] = 'Create a volume snapshot'
-    return_dict["error"] = 'Error creating volume snapshot'
-    vil, err = volume_info.get_volume_info_all()
-    if err:
-      raise Exception(err)
-    if not vil:
-      return_dict['no_volumes'] = True
-      return django.shortcuts.render_to_response('create_snapshot.html', return_dict, context_instance = django.template.context.RequestContext(request))
-    l = []
-    for v in vil:
-      l.append(v["name"])
-    if request.method == "GET":
-      form = integral_view.forms.volume_management_forms.CreateSnapshotForm(vol_list=l)
-      return_dict["form"] = form
-      return django.shortcuts.render_to_response('create_snapshot.html', return_dict, context_instance = django.template.context.RequestContext(request))
-    else:
-      form = integral_view.forms.volume_management_forms.CreateSnapshotForm(request.POST, vol_list=l)
-      if not form.is_valid():
-        return_dict["form"] = form
-        return django.shortcuts.render_to_response('create_snapshot.html', return_dict, context_instance = django.template.context.RequestContext(request))
-      cd = form.cleaned_data
-      d, err  = gluster_commands.create_snapshot(cd)
-      if err:
-        raise Exception(err)
-      if d and  ("op_status" in d) and d["op_status"]["op_ret"] == 0:
-        #Success so audit the change
-        ret, err = audit.audit("create_snapshot", d["display_command"], request.META["REMOTE_ADDR"])
-        if err:
-          raise Exception(err)
-        return_dict["op"] = "Create snapshot"
-        return_dict["conf"] = d["display_command"]
-        return django.shortcuts.render_to_response('snapshot_op_result.html', return_dict, context_instance = django.template.context.RequestContext(request))
-      else:
-        err = "Error creating the snapshot : "
-        #assert False
-        if d:
-          if "error_list" in d:
-            err += " ".join(d["error_list"])
-          if "op_status" in d and "op_errstr" in d["op_status"]:
-            if d["op_status"]["op_errstr"]:
-              err += d["op_status"]["op_errstr"]
-        else:
-          err += "The snapshot command did not return a result. Please try again."
-        raise Exception(err)
-  except Exception, e:
-    s = str(e)
-    if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
-    else:
-      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
-    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
-  finally:
-    lock.release_lock('gluster_commands')
-
-def delete_snapshot(request):
-
-  return_dict = {}
-  try:
-    gluster_lck, err = lock.get_lock('gluster_commands')
-    if err:
-      raise Exception(err)
-
-    if not gluster_lck:
-      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
-
-    return_dict['base_template'] = "snapshot_base.html"
-    return_dict['tab'] = 'snapshot_view_tab'
-    return_dict["page_title"] = 'Delete a volume snapshot'
-    return_dict["error"] = 'Error deleting a volume snapshot'
-
-    if request.method == "GET":
-      # Disallowed GET method so return error.
-      return_dict["error"] = "Invalid request. Please use the menu options."
-    else:
-      # POST method processing
-      if "snapshot_name" not in request.POST:
-        return_dict["error"] = "Snapshot name not specified. Please use the menu options."
-      elif "conf" not in request.POST:
-        #Get a conf from the user before we proceed
-        return_dict["snapshot_name"] = request.POST["snapshot_name"]
-        template = "delete_snapshot_conf.html"
-      else:
-        #Got a conf from the user so proceed
-        snapshot_name = request.POST["snapshot_name"]
-        d, err = gluster_commands.delete_snapshot(snapshot_name)
-        if err:
-          raise Exception(err)
-        if d:
-          #assert False
-          if "op_status" in d:
-            if d["op_status"]["op_errno"] == 0:
-              return_dict["conf"] = "Successfully deleted snapshot - %s"%snapshot_name
-              return_dict["op"] = "Delete snapshot"
-              audit_str = "Deleted snapshot %s."%snapshot_name
-              ret, err = audit.audit("delete_snapshot", audit_str, request.META["REMOTE_ADDR"])
-              if err:
-                raise Exception(err)
-              template = "snapshot_op_result.html"
-            else:
-              err = "Error deleting the snapshot :"
-              if "op_status" in d and "op_errstr" in d["op_status"]:
-                err += d["op_status"]["op_errstr"]
-              if "error_list" in d:
-                err += " ".join(d["error_list"])
-              raise Exception(err)
-          else:
-            raise Exception("Could not detect the status of the snapshot deletion. Please try again.")
-  
-    return django.shortcuts.render_to_response(template, return_dict, context_instance = django.template.context.RequestContext(request))
-  except Exception, e:
-    s = str(e)
-    if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
-    else:
-      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
-    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
-  finally:
-    lock.release_lock('gluster_commands')
-
-
-def restore_snapshot(request):
-
-  return_dict = {}
-  try:
-    gluster_lck, err = lock.get_lock('gluster_commands')
-    if err:
-      raise Exception(err)
-
-    if not gluster_lck:
-      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
-
-    return_dict['base_template'] = "snapshot_base.html"
-    return_dict['tab'] = 'snapshot_view_tab'
-    return_dict["page_title"] = 'Restore a volume snapshot'
-    return_dict["error"] = 'Error restoring a volume snapshot'
-    form = None
-  
-    if request.method == "GET":
-      # Disallowed GET method so return error.
-      return_dict["error"] = "Invalid request. Please use the menu options."
-    else:
-      # POST method processing
-      if "snapshot_name" not in request.POST:
-        return_dict["error"] = "Snapshot name not specified. Please use the menu options."
-      elif "conf" not in request.POST:
-        #Get a conf from the user before we proceed
-        return_dict["snapshot_name"] = request.POST["snapshot_name"]
-        return_dict["vol_name"] = request.POST["vol_name"]
-        template = "restore_snapshot_conf.html"
-      else:
-        #Got a conf from the user so proceed
-        snapshot_name = request.POST["snapshot_name"]
-        vol_name = request.POST["vol_name"]
-        d, err = gluster_commands.restore_snapshot(snapshot_name)
-        if err:
-          raise Exception(err)
-        if d:
-          #assert False
-          if "op_status" in d:
-            if d["op_status"]["op_errno"] == 0:
-              return_dict["conf"] = "Successfully restored snapshot %s onto volume %s"%(snapshot_name, vol_name)
-              return_dict["op"] = "Restore snapshot"
-              audit_str = "Restored snapshot %s onto volume %s."%(snapshot_name, vol_name)
-              ret, err = audit.audit("restore_snapshot", audit_str, request.META["REMOTE_ADDR"])
-              if err:
-                raise Exception(err)
-              template = "snapshot_op_result.html"
-            else:
-              err = "Error restoring the snapshot :"
-              if "op_status" in d and "op_errstr" in d["op_status"]:
-                err += d["op_status"]["op_errstr"]
-              if "error_list" in d:
-                err += " ".join(d["error_list"])
-              raise Exception(err)
-          else:
-            raise Exception("Could not detect the status of the snapshot restoration. Please try again.")
-  
-    return django.shortcuts.render_to_response(template, return_dict, context_instance = django.template.context.RequestContext(request))
-  except Exception, e:
-    s = str(e)
-    if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
-    else:
-      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
-    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
-  finally:
-    lock.release_lock('gluster_commands')
-
-          
-def deactivate_snapshot(request):
-
-  return_dict = {}
-  try:
-    gluster_lck, err = lock.get_lock('gluster_commands')
-    if err:
-      raise Exception(err)
-
-    if not gluster_lck:
-      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
-
-    return_dict['base_template'] = "snapshot_base.html"
-    return_dict['tab'] = 'snapshot_view_tab'
-    return_dict["page_title"] = 'Deactivate a volume snapshot'
-    return_dict["error"] = 'Error deactivating a volume snapshot'
-    form = None
-  
-    if request.method == "GET":
-      # Disallowed GET method so return error.
-      raise Exception("Invalid request. Please use the menu options.")
-    else:
-      # POST method processing
-      if "snapshot_name" not in request.POST:
-        raise Exception("Snapshot name not specified. Please use the menu options.")
-      elif "conf" not in request.POST:
-        #Get a conf from the user before we proceed
-        return_dict["snapshot_name"] = request.POST["snapshot_name"]
-        template = "deactivate_snapshot_conf.html"
-      else:
-        #Got a conf from the user so proceed
-        snapshot_name = request.POST["snapshot_name"]
-        d, err = gluster_commands.deactivate_snapshot(snapshot_name)
-        if err:
-          raise Exception(err)
-        if d:
-          #assert False
-          if "op_status" in d:
-            if d["op_status"]["op_errno"] == 0:
-              return_dict["conf"] = "Successfully deactivated snapshot - %s"%snapshot_name
-              return_dict["op"] = "Deactivate snapshot"
-              audit_str = "Deactivated snapshot %s."%snapshot_name
-              ret, err = audit.audit("deactivate_snapshot", audit_str, request.META["REMOTE_ADDR"])
-              if err:
-                raise Exception(err)
-              template = "snapshot_op_result.html"
-            else:
-              err = "Error deactivating the snapshot :"
-              if "op_status" in d and "op_errstr" in d["op_status"]:
-                err += d["op_status"]["op_errstr"]
-              if "error_list" in d:
-                err += " ".join(d["error_list"])
-              raise Exception(err)
-          else:
-            raise Exception("Could not detect the status of the snapshot deactivation. Please try again.")
-  
-    return django.shortcuts.render_to_response(template, return_dict, context_instance = django.template.context.RequestContext(request))
-  except Exception, e:
-    s = str(e)
-    if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
-    else:
-      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
-    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
-  finally:
-    lock.release_lock('gluster_commands')
-
-def activate_snapshot(request):
-
-  return_dict = {}
-  try:
-    gluster_lck, err = lock.get_lock('gluster_commands')
-    if err:
-      raise Exception(err)
-
-    if not gluster_lck:
-      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
-
-    return_dict['base_template'] = "snapshot_base.html"
-    return_dict['tab'] = 'snapshot_view_tab'
-    return_dict["page_title"] = 'Activate a volume snapshot'
-    return_dict["error"] = 'Error activating a volume snapshot'
-    form = None
-  
-    if request.method == "GET":
-      # Disallowed GET method so return error.
-      return_dict["error"] = "Invalid request. Please use the menu options."
-    else:
-      # POST method processing
-      if "snapshot_name" not in request.POST:
-        return_dict["error"] = "Snapshot name not specified. Please use the menu options."
-      else:
-        snapshot_name = request.POST["snapshot_name"]
-        d, err = gluster_commands.activate_snapshot(snapshot_name)
-        if err:
-          raise Exception(err)
-        if d:
-          #assert False
-          if "op_status" in d:
-            if d["op_status"]["op_errno"] == 0:
-              return_dict["conf"] = "Successfully activated snapshot - %s"%snapshot_name
-              return_dict["op"] = "Activate snapshot"
-              audit_str = "Activated snapshot %s."%snapshot_name
-              ret, err = audit.audit("activate_snapshot", audit_str, request.META["REMOTE_ADDR"])
-              if err:
-                raise Exception(err)
-              template = "snapshot_op_result.html"
-            else:
-              err = "Error activating the snapshot :"
-              if "op_status" in d and "op_errstr" in d["op_status"]:
-                err += d["op_status"]["op_errstr"]
-              if "error_list" in d:
-                err += " ".join(d["error_list"])
-              raise Exception(err)
-          else:
-            raise Exception("Could not detect the status of the snapshot activation. Please try again.")
-  
-    return django.shortcuts.render_to_response(template, return_dict, context_instance = django.template.context.RequestContext(request))
-  except Exception, e:
-    s = str(e)
-    if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
-    else:
-      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
-    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
-  finally:
-    lock.release_lock('gluster_commands')
-
-
-  
-def set_volume_options(request):
-
-  return_dict = {}
-  try:
-    gluster_lck, err = lock.get_lock('gluster_commands')
-    if err:
-      raise Exception(err)
-
-    if not gluster_lck:
-      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
-
-    return_dict['base_template'] = "volume_base.html"
-    return_dict['tab'] = 'volume_configuration_tab'
-    return_dict["page_title"] = 'Set volume options'
-    return_dict["error"] = 'Error setting volume options'
-
-    if request.method == "GET":
-      # Disallowed GET method so return error.
-      raise Exception("Invalid request. Please use the menu options.")
-    form = integral_view.forms.volume_management_forms.VolumeOptionsForm(request.POST)
-  
-    if not form.is_valid():
-      return_dict["form"] = form
-      return django.shortcuts.render_to_response('volume_options_form.html', return_dict, context_instance = django.template.context.RequestContext(request))
-    cd = form.cleaned_data
-    ol, err = volume_info.set_volume_options(cd)
-    if err:
-      raise Exception(err)
-    if ol:
-      for d in ol:
-        if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
-          #Success so audit the change
-          ret, err = audit.audit("set_vol_options", d["display_command"], request.META["REMOTE_ADDR"])
-          if err:
-            raise Exception(err)
-  
-    return_dict["result_list"] = ol
-    return django.shortcuts.render_to_response('volume_options_result.html', return_dict, context_instance = django.template.context.RequestContext(request))
-  except Exception, e:
-    s = str(e)
-    if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
-    else:
-      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
-    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
-  finally:
-    lock.release_lock('gluster_commands')
-
-def set_dir_quota(request):
-  return_dict = {}
-  try:
-    gluster_lck, err = lock.get_lock('gluster_commands')
-    if err:
-      raise Exception(err)
-
-    if not gluster_lck:
-      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
-
-    vil, err = volume_info.get_volume_info_all()
-    if err:
-      raise Exception(err)
-    if not vil:
-      if operation != "view_snapshots":
-        raise Exception('Could not load volume information')
-    vol_list = []
-    for v in vil:
-      if v["status"] == 1:
-        vol_list.append(v["name"])
-    return_dict['vol_list'] = vol_list
-
-    dir = None
-    if 'dir' in request.REQUEST:
-      dir = request.REQUEST['dir']
-
-    vol_name = None
-    if 'vol_name' in request.REQUEST:
-      vol_name = request.REQUEST['vol_name']
-    if vol_name:
-      return_dict['vol_name'] = vol_name
-      vd, err = volume_info.get_volume_info(None, vol_name)
-      if err:
-        raise Exception(err)
-      return_dict['vol'] = vd
-      quota_enabled = False
-      if "options" in vd :
-        for o in vd["options"]:
-          if "features.quota" == o["name"] and o["value"] == "on":
-            quota_enabled = True
-            break
-    if request.method == 'GET':
-      init = {}
-      if vol_name:
-        init['vol_name'] = vol_name
-      if dir:
-        #if request.REQUEST['dir'] not in vd['quotas']:
-        #  raise Exception('Could not determine quota information for chosen directory. Please retry using the menus.')
-        return_dict['dir'] = dir
-        init['dir'] = dir
-        if vd and vol_name and 'quotas' in vd and dir and dir in vd['quotas']:
-          q = vd["quotas"][request.REQUEST['dir']]
-          match = re.search('([0-9.]+)([A-Za-z]+)', q["limit"])
-          if match:
-            r  = match.groups()
-            init["limit"] = r[0]
-            init["unit"] = r[1].upper()
-      form = volume_management_forms.VolumeQuotaForm(initial=init)
-      return_dict["form"] = form
-      if vol_name and dir:
-        return django.shortcuts.render_to_response('edit_volume_dir_quota.html', return_dict, context_instance=django.template.context.RequestContext(request))
-      else:
-        return django.shortcuts.render_to_response('set_volume_dir_quota.html', return_dict, context_instance=django.template.context.RequestContext(request))
-    else:
-      form = integral_view.forms.volume_management_forms.VolumeQuotaForm(request.POST)
-      if not form.is_valid():
-        return_dict["form"] = form
-        return django.shortcuts.render_to_response('edit_volume_dir_quota.html', return_dict, context_instance = django.template.context.RequestContext(request))
-      cd = form.cleaned_data
-      vol_name = cd["vol_name"]
-      vd, err = volume_info.get_volume_info(None, vol_name)
-      if err:
-        raise Exception(err)
-      if not quota_enabled:
-        res, err = gluster_commands.change_quota_status(vol_name, 'enable')
-	if err:
-          raise Exception(err)
-        result_message = 'Auto enabled quota for volume %s'%vol_name
-        ret, err = audit.audit("change_quota_status", result_message, request.META["REMOTE_ADDR"])
-      res, err = gluster_commands.set_volume_dir_quota(cd["vol_name"], cd["dir"], cd["limit"], cd["unit"])
-      if err:
-        raise Exception(err)
-      result_message = 'Successfully set quota for directory %s on volume %s to %s %s'%(cd['dir'], cd['vol_name'], cd['limit'], cd['unit'])
-      return_dict['result_message'] = result_message
-      ret, err = audit.audit("set_vol_quota", result_message, request.META["REMOTE_ADDR"])
-      return django.shortcuts.render_to_response('volume_quota_result.html', return_dict, context_instance = django.template.context.RequestContext(request))
-  except Exception, e:
-    s = str(e)
-    if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
-    else:
-      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
-    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
-  finally:
-    lock.release_lock('gluster_commands')
-
-def remove_dir_quota(request):
-  return_dict = {}
-  try:
-    gluster_lck, err = lock.get_lock('gluster_commands')
-    if err:
-      raise Exception(err)
-
-    if not gluster_lck:
-      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
-
-    if 'vol_name' not in request.REQUEST or 'dir' not in request.REQUEST:
-      raise Exception('Invalid request. Please use the menus.')
-    vol_name = request.REQUEST['vol_name']
-    dir = request.REQUEST['dir']
-    return_dict['vol_name'] = vol_name
-    return_dict['dir'] = dir
-    if request.method == 'GET':
-      return django.shortcuts.render_to_response('remove_volume_dir_quota_conf.html', return_dict, context_instance=django.template.context.RequestContext(request))
-    else:
-      res, err = gluster_commands.remove_volume_dir_quota(vol_name, dir)
-      if err:
-        raise Exception(err)
-      result_message = 'Successfully removed quota for directory %s on volume %s'%(dir, vol_name)
-      return_dict['result_message'] = result_message
-      ret, err = audit.audit("remove_vol_quota", result_message, request.META["REMOTE_ADDR"])
-      return django.shortcuts.render_to_response('volume_quota_result.html', return_dict, context_instance = django.template.context.RequestContext(request))
-  except Exception, e:
-    s = str(e)
-    if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
-    else:
-      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
-    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
-  finally:
-    lock.release_lock('gluster_commands')
-
-def change_quota_status(request):
-  return_dict = {}
-  try:
-    gluster_lck, err = lock.get_lock('gluster_commands')
-    if err:
-      raise Exception(err)
-
-    if not gluster_lck:
-      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
-
-    if 'vol_name' not in request.REQUEST or 'action' not in request.REQUEST:
-      raise Exception('Invalid request. Please use the menus.')
-    vol_name = request.REQUEST['vol_name']
-    action = request.REQUEST['action']
-    return_dict['vol_name'] = vol_name
-    return_dict['action'] = action
-    if request.method == 'GET' and  action == 'disable':
-        return django.shortcuts.render_to_response('disable_volume_quota_conf.html', return_dict, context_instance=django.template.context.RequestContext(request))
-    else:
-      res, err = gluster_commands.change_quota_status(vol_name, action)
-      if err:
-        raise Exception(err)
-      result_message = 'Successfully %sd quota for volume %s'%(action, vol_name)
-      return_dict['result_message'] = result_message
-      ret, err = audit.audit("change_quota_status", result_message, request.META["REMOTE_ADDR"])
-      return django.shortcuts.render_to_response('volume_quota_result.html', return_dict, context_instance = django.template.context.RequestContext(request))
-  except Exception, e:
-    s = str(e)
-    if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
-    else:
-      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
-    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
-  finally:
-    lock.release_lock('gluster_commands')
-
+'''    
 '''
 def set_volume_quota(request):
   return_dict = {}
@@ -915,7 +1652,7 @@ def set_volume_quota(request):
       return django.shortcuts.render_to_response('edit_volume_quota.html', return_dict, context_instance = django.template.context.RequestContext(request))
     cd = form.cleaned_data
     vol_name = cd["vol_name"]
-    vd, err = volume_info.get_volume_info(None, vol_name)
+    vd, err = gluster_volumes.get_basic_volume_info(None, vol_name)
     if err:
       raise Exception(err)
     enable_quota = True
@@ -924,7 +1661,7 @@ def set_volume_quota(request):
         if o["name"] == "features.quota" and o["value"] == "on":
           enable_quota = False
           break
-    ol, err = gluster_commands.set_volume_quota(cd["vol_name"], enable_quota, cd["set_quota"], cd["limit"], cd["unit"])
+    ol, err = gluster_quotas.set_volume_quota(cd["vol_name"], enable_quota, cd["set_quota"], cd["limit"], cd["unit"])
     if err:
       raise Exception(err)
     print ol, err
@@ -932,7 +1669,7 @@ def set_volume_quota(request):
       for d in ol:
         if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
           #Success so audit the change
-          ret, err = audit.audit("set_vol_quota", d["display_command"], request.META["REMOTE_ADDR"])
+          ret, err = audit.audit("set_vol_quota", d["display_command"], request.META)
           if err:
             raise Exception(err)
     # This is setup so as to make sure windows share also reflect the quota applied on gluster volumes
@@ -951,114 +1688,7 @@ def set_volume_quota(request):
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
 '''
-  
-def delete_volume(request):
-
-  return_dict = {}
-  try:
-    gluster_lck, err = lock.get_lock('gluster_commands')
-    if err:
-      raise Exception(err)
-
-    if not gluster_lck:
-      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
-
-    return_dict['base_template'] = "volume_base.html"
-    return_dict['tab'] = 'volume_configuration_tab'
-    return_dict["page_title"] = 'Delete a volume'
-    return_dict["error"] = 'Error deleting a volume'
-    form = None
-  
-    vil, err = volume_info.get_volume_info_all()
-    if err:
-      raise Exception(err)
-    if not vil:
-      raise Exception('Could not load volume information')
-    si, err = system_info.load_system_config()
-    if err:
-      raise Exception(err)
-    if not si:
-      raise Exception('Could not load system information')
-
-    return_dict['system_config_list'] = si
-  
-    if request.method == "GET":
-      raise Exception("Invalid access. Please use the menus to perform functions.")
-    else:
-      if "vol_name" not in request.POST:
-        raise Exception("Volume not specified. Please use the menus to perform functions.")
-      vol_name = request.POST["vol_name"]
-      v, err = volume_info.get_volume_info(vil, vol_name)
-      if err:
-        raise Exception(err)
-      if not v:
-        raise Exception('Could not load volume information')
-      #assert False
-      result_list = []
-      d = {}
-      cmd = 'gluster --mode=script volume delete %s '%vol_name
-      d["command"] = "Deleting volume %s"%vol_name
-      d["actual_command"] = cmd
-      (r, rc), err = command.execute_with_rc(cmd)
-      if err:
-        raise Exception(err)
-      if rc == 0:
-        ret, err = audit.audit("vol_delete", "Deleted volume %s"%(vol_name), request.META["REMOTE_ADDR"])
-        if err:
-          raise Exception(err)
-        # Now delete the brick directories
-        d["result"] = "Success"
-        result_list.append(d)
-        for bricks in  v["bricks"]:
-          for b in bricks:
-            d = {}
-            l = b.split(':')
-            d["command"] = "Deleting volume storage on GRIDCell %s"%l[0]
-            #print "executing command"
-            client = salt.client.LocalClient()
-            cmd_to_run = 'zfs destroy %s'%l[1][1:]
-            #print 'Running %s'%cmd_to_run
-            #assert False
-            rc = client.cmd(l[0], 'cmd.run_all', [cmd_to_run])
-            if rc:
-              for hostname, res in rc.items():
-                #print ret
-                if res["retcode"] != 0:
-                  errors = "Error destroying the brick path ZFS dataset on %s"%hostname
-                  d["result"] = "Failed with error : %s"%errors
-                else:
-                  d["result"] = "Success"
-                result_list.append(d)
- 
-      else:
-        el, err = command.get_error_list(r)
-        if err:
-          raise Exception(err)
-        ol, err = command.get_output_list(r)
-        if err:
-          raise Exception(err)
-        estr = ""
-        if el:
-          estr = " , ".join(el)
-        if ol:
-          estr += " , ".join(ol)
-        d["result"] = "Failed with error : %s"%estr
-        result_list.append(d)
-  
-      return_dict["result_list"] = result_list
-      return_dict["app_debug"] = settings.APP_DEBUG
-      return django.shortcuts.render_to_response('volume_delete_results.html', return_dict, context_instance = django.template.context.RequestContext(request))
-  except Exception, e:
-    s = str(e)
-    if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
-    else:
-      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
-    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
-  finally:
-    lock.release_lock('gluster_commands')
-
-
+'''
 def replace_node(request):
 
   return_dict = {}
@@ -1076,7 +1706,7 @@ def replace_node(request):
     return_dict["error"] = 'Error replacing a GRIDCell'
     form = None
   
-    vil, err = volume_info.get_volume_info_all()
+    vil, err = gluster_volumes.get_basic_volume_info_all()
     if err:
       raise Exception(err)
     si, err = system_info.load_system_config()
@@ -1118,21 +1748,21 @@ def replace_node(request):
           src_node = cd["src_node"]
           dest_node = cd["dest_node"]
   
-          vol_list, err = volume_info.get_volumes_on_node(src_node, vil)
+          vol_list, err = gluster_volumes.get_volumes_on_node(src_node, vil)
           if err:
             raise Exception(err)
           client = salt.client.LocalClient()
           revert_list = []
           if vol_list:
             for vol in vol_list:
-              vol_dict, err = volume_info.get_volume_info(vil, vol)
+              vol_dict, err = gluster_volumes.get_basic_volume_info(vil, vol)
               if err:
                 raise Exception(err)
               #Get the brick path and the data set name
               if 'bricks' in vol_dict and vol_dict['bricks']:
                 for brick_list in vol_dict['bricks']:
                   for brick in brick_list:
-                    d, err = volume_info.get_components(brick)
+                    d, err = gluster_volumes.get_components(brick)
                     if err:
                       raise Exception(err)
                     if not d:
@@ -1184,7 +1814,7 @@ def replace_node(request):
               else:
                 raise Exception('Error creating the replace batch command file')
             else:
-              ret, err = audit.audit("replace_node", "Scheduled replacement of GRIDCell %s with GRIDCell %s"%(src_node, dest_node), request.META["REMOTE_ADDR"])
+              ret, err = audit.audit("replace_node", "Scheduled replacement of GRIDCell %s with GRIDCell %s"%(src_node, dest_node), request.META)
               if err:
                 raise Exception(err)
               return django.http.HttpResponseRedirect('/show/batch_start_conf/%s'%d["file_name"])
@@ -1214,396 +1844,5 @@ def replace_node(request):
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
   finally:
     lock.release_lock('gluster_commands')
-
-
-
-def replace_disk(request):
-
-  return_dict = {}
-  try:
-    gluster_lck, err = lock.get_lock('gluster_commands')
-    if err:
-      raise Exception(err)
-
-    if not gluster_lck:
-      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
-
-    return_dict['base_template'] = "gridcell_base.html"
-    return_dict['tab'] = 'gridcell_list_tab'
-    return_dict["page_title"] = 'Replace a disk in a GRIDCell'
-    return_dict["error"] = 'Error replacing a disk in a GRIDCell'
-    form = None
-  
-    vil, err = volume_info.get_volume_info_all()
-    if err:
-      raise Exception(err)
-    #if not vil:
-    #  raise Exception('Could not load volume information')
-    si, err = system_info.load_system_config()
-    if err:
-      raise Exception(err)
-    if not si:
-      raise Exception('Could not load system information')
-    return_dict['system_config_list'] = si
-    
-  
-    python_scripts_path, err = common.get_python_scripts_path()
-    if err:
-      raise Exception(err)
-    common_python_scripts_path, err = common.get_common_python_scripts_path()
-    if err:
-      raise Exception(err)
-    if request.method == "GET":
-      raise Exception("Incorrect access method. Please use the menus")
-    else:
-      node = request.POST["node"]
-      serial_number = request.POST["serial_number"]
-  
-      if "conf" in request.POST:
-        if "node" not in request.POST or  "serial_number" not in request.POST:
-          return_dict["error"] = "Incorrect access method. Please use the menus"
-        elif request.POST["node"] not in si:
-          return_dict["error"] = "Unknown GRIDCell. Please use the menus"
-        elif "step" not in request.POST :
-          return_dict["error"] = "Incomplete request. Please use the menus"
-        elif request.POST["step"] not in ["offline_disk", "scan_for_new_disk", "online_new_disk"]:
-          return_dict["error"] = "Incomplete request. Please use the menus"
-        else:
-          step = request.POST["step"]
-  
-          # Which step of the replace disk are we in?
-  
-          if step == "offline_disk":
-  
-            #get the pool corresponding to the disk
-            #zpool offline pool disk
-            #send a screen asking them to replace the disk
-  
-            pool = None
-            if serial_number in si[node]["disks"]:
-              disk = si[node]["disks"][serial_number]
-              if "pool" in disk:
-                pool = disk["pool"]
-              disk_id = disk["id"]
-            if not pool:
-              raise Exception("Could not find the storage pool on that disk. Please use the menus")
-            else:
-              '''
-              pid = -1
-              #Got the pool so now find the brick pid corresponding to the pool.
-              for vol in vil:
-                if "brick_status" not in vol:
-                  continue
-                bs = vol["brick_status"]
-                for brick_name, brick_status_dict in bs.items():
-                  if node in brick_name: 
-                    path = brick_status_dict["path"]
-                    r = re.search('/%s/[\S]+'%pool, path)
-                    if r:
-                      pid = brick_status_dict['pid']
-                      break
-                if pid != -1:
-                  break
-              if pid != -1:
-              #issue the kill to the process here, using salt
-              '''
-  
-              #issue a zpool offline pool disk-id using salt
-              client = salt.client.LocalClient()
-              cmd_to_run = 'zpool offline %s %s'%(pool, disk_id)
-              #print 'Running %s'%cmd_to_run
-              #assert False
-              rc = client.cmd(node, 'cmd.run_all', [cmd_to_run])
-              if rc:
-                for node, ret in rc.items():
-                  #print ret
-                  if ret["retcode"] != 0:
-                    error = "Error bringing the disk with serial number %s offline on %s : "%(serial_number, node)
-                    if "stderr" in ret:
-                      error += ret["stderr"]
-                    raise Exception(error)
-              #print rc
-              #if disk_status == "Disk Missing":
-              #  #Issue a reboot now, wait for a couple of seconds for it to shutdown and then redirect to the template to wait for reboot..
-              #  pass
-              audit_str = "Disk replacement of old disk(sno %s) on GRIDCell %s - disk taken offline."%(serial_number, node)
-              ret, err = audit.audit("replace_disk_offline_disk", audit_str, request.META["REMOTE_ADDR"])
-              if err:
-                raise Exception(err)
-              return_dict["serial_number"] = serial_number
-              return_dict["node"] = node
-              return_dict["pool"] = pool
-              return_dict["old_id"] = disk_id
-              template = "replace_disk_prompt.html"
-  
-          elif step == "scan_for_new_disk":
-  
-            #they have replaced the disk so scan for the new disk
-            # and prompt for a confirmation of the new disk serial number
-  
-            pool = request.POST["pool"]
-            old_id = request.POST["old_id"]
-            return_dict["node"] = node
-            return_dict["serial_number"] = serial_number
-            return_dict["pool"] = pool
-            return_dict["old_id"] = old_id
-            old_disks = si[node]["disks"].keys()
-            client = salt.client.LocalClient()
-            rc = client.cmd(node, 'integralstor.disk_info_and_status')
-            if rc and node in rc:
-              new_disks = rc[node].keys()
-              if new_disks:
-                for disk in new_disks:
-                  if disk not in old_disks:
-                    return_dict["inserted_disk_serial_number"] = disk
-                    return_dict["new_id"] = rc[node][disk]["id"]
-                    break
-                if "inserted_disk_serial_number" not in return_dict:
-                  raise Exception("Could not detect any new disk.")
-                else:
-                  template = "replace_disk_confirm_new_disk.html"
-  
-  
-          elif step == "online_new_disk":
-  
-            #they have confirmed the new disk serial number
-            #get the id of the disk and
-            #zpool replace poolname old disk new disk
-            #zpool clear poolname to clear old errors
-            #return a result screen
-            pool = request.POST["pool"]
-            old_id = request.POST["old_id"]
-            new_id = request.POST["new_id"]
-            new_serial_number = request.POST["new_serial_number"]
-            cmd1 = "zpool replace -f %s %s %s"%(pool, old_id, new_id)
-            cmd2 = 'zpool online %s %s'%(pool, new_id)
-            cmd3 = '%s/generate_manifest.py'%common_python_scripts_path
-            cmd4 = '%s/generate_status.py'%common_python_scripts_path
-            #print 'Running %s'%cmd_to_run
-            db_path, err = common.get_db_path()
-            if err:
-              raise Exception('Error scheduling a job - getting database location : %s'%err)
-            job_id, err = scheduler_utils.schedule_a_job(db_path, 'Disk replacement on GRIDCell %s'%node, [{'Disk Replacement': cmd1}, {'Disk onlining':cmd2}], node=node, extra={'deleteable':0})
-            if err:
-              raise Exception('Error scheduling the disk replacement : %s'%err)
-            new_job_id, err = scheduler_utils.schedule_a_job(db_path, 'Regeneration of system configuration', [{'Regeneration of system configuration':cmd3}, {'Regeneration of system status':cmd4}], extra = {'execute_after': job_id, 'deleteable':0})
-            '''
-            client = salt.client.LocalClient()
-            rc = client.cmd(node, 'cmd.run_all', [cmd_to_run])
-            if rc:
-              #print rc
-              for node, ret in rc.items():
-                #print ret
-                if ret["retcode"] != 0:
-                  error = "Error replacing the disk on %s : "%(node)
-                  if "stderr" in ret:
-                    error += ret["stderr"]
-                  rc = client.cmd(node, 'cmd.run', ['zpool online %s %s'%(pool, old_id)])
-                  raise Exception(error)
-            else:
-              raise Exception("Error replacing the disk on %s : "%(node))
-
-            '''
-            '''
-            cmd_to_run = "zpool set autoexpand=on %s"%pool
-            print 'Running %s'%cmd_to_run
-            rc = client.cmd(node, 'cmd.run_all', [cmd_to_run])
-            if rc:
-              for node, ret in rc.items():
-                #print ret
-                if ret["retcode"] != 0:
-                  error = "Error setting pool autoexpand on %s : "%(node)
-                  if "stderr" in ret:
-                    error += ret["stderr"]
-                  raise Exception(error)
-            print rc
-            if new_serial_number in si[node]["disks"]:
-              disk = si[node]["disks"][new_serial_number]
-              disk_id = disk["id"]
-            '''
-            '''
-            cmd_to_run = 'zpool online %s %s'%(pool, new_id)
-            #print 'Running %s'%cmd_to_run
-            rc = client.cmd(node, 'cmd.run_all', [cmd_to_run])
-            if rc:
-              #print rc
-              for node, ret in rc.items():
-                #print ret
-                if ret["retcode"] != 0:
-                  error = "Error bringing the new disk online on %s : "%(node)
-                  if "stderr" in ret:
-                    error += ret["stderr"]
-                  raise Exception(error)
-            else:
-              raise Exception("Error bringing the new disk online on %s : "%(node))
-            (ret, rc), err = command.execute_with_rc('%s/generate_manifest.py'%common_python_scripts_path)
-            if err:
-              raise Exception(err)
-            #print ret
-            if rc != 0:
-              #print ret
-              raise Exception("Could not regenrate the new hardware configuration. Error generating manifest. Return code %d"%rc)
-            else:
-              (ret, rc), err = command.execute_with_rc('%s/generate_status.py'%common_python_scripts_path)
-              if err:
-                raise Exception(err)
-              if rc != 0:
-                #print ret
-                raise Exception("Could not regenrate the new hardware configuration. Error generating status. Return code %d"%rc)
-              si, err = system_info.load_system_config()
-              if err:
-                raise Exception(err)
-            '''
-            return_dict["node"] = node
-            return_dict["old_serial_number"] = serial_number
-            return_dict["new_serial_number"] = new_serial_number
-            audit_str = "Scheduled replacement of old disk(sno %s) with new disk(sno %s) on GRIDCell %s."%(serial_number, new_serial_number, node)
-            ret, err = audit.audit("replace_disk_scheduled", audit_str, request.META["REMOTE_ADDR"])
-            if err:
-              raise Exception(err)
-            template = "replace_disk_success.html"
-  
-          return django.shortcuts.render_to_response(template, return_dict, context_instance = django.template.context.RequestContext(request))
-          
-      else:
-        if "node" not in request.POST or  "serial_number" not in request.POST:
-          raise Exception("Incorrect access method. Please use the menus")
-        else:
-          return_dict["node"] = request.POST["node"]
-          return_dict["serial_number"] = request.POST["serial_number"]
-          template = "replace_disk_conf.html"
-    return django.shortcuts.render_to_response(template, return_dict, context_instance=django.template.context.RequestContext(request))
-  except Exception, e:
-    s = str(e)
-    if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
-    else:
-      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
-    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
-  finally:
-    lock.release_lock('gluster_commands')
-
-  
-    
-def expand_volume(request):
-
-  return_dict = {}
-  try:
-    gluster_lck, err = lock.get_lock('gluster_commands')
-    if err:
-      raise Exception(err)
-
-    if not gluster_lck:
-      raise Exception('This action cannot be performed as an underlying storage command is being run. Please retry this operation after a few seconds.')
-
-    return_dict['base_template'] = "volume_base.html"
-    return_dict['tab'] = 'volume_configuration_tab'
-    return_dict["page_title"] = 'Expand a volume'
-    return_dict["error"] = 'Error expanding a volume'
-    form = None
-  
-    vil, err = volume_info.get_volume_info_all()
-    if err:
-      raise Exception(err)
-    if not vil:
-      raise Exception('Could not load volume information')
-  
-    if request.method == "GET":
-      # Disallowed GET method so return error.
-      raise Exception("Invalid request. Please use the menu options.")
-    else:
-      # POST method processing
-  
-      if "cmd" not in request.POST or "vol_name" not in request.POST or "count" not in request.POST:
-        raise Exception("Invalid request. Please use the menu options.")
-  
-      cmd = request.POST['cmd']
-      dsl = request.POST.getlist('dataset_list')
-      dataset_dict = {}
-      for ds in dsl:
-        tl = ds.split(':')
-        dataset_dict[tl[0]] = tl[1]
-      vol_name = request.POST['vol_name']
-      count = request.POST['count']
-      #First create the datasets on which the bricks will reside
-      client = salt.client.LocalClient()
-      revert_list = []
-      errors = ""
-      for node, dataset in dataset_dict.items():
-        dataset_cmd = 'zfs create %s'%dataset
-        dataset_revert_cmd = 'zfs destroy %s'%dataset
-        print dataset_cmd
-        print dataset_revert_cmd
-        r1 = client.cmd(node, 'cmd.run_all', [dataset_cmd])
-        if r1:
-          for node, ret in r1.items():
-            #print ret
-            if ret["retcode"] != 0:
-              errors += ", Error creating the underlying storage brick on %s"%node
-              print errors
-            else:
-              revert_list.append({node:dataset_revert_cmd})
-  
-      if errors != "":
-        if revert_list:
-          #Undo the creation of the datasets
-          for revert in revert_list:
-            for node, dsr_cmd in revert.items():
-              r1 = client.cmd(node, 'cmd.run_all', [dsr_cmd])
-              if r1:
-                for node, ret in r1.items():
-                  #print ret
-                  if ret["retcode"] != 0:
-                    errors += ", Error undoing the creating the underlying storage brick on %s"%node
-        raise Exception(errors)
-  
-  
-      iv_logging.info("Running volume expand : %s"%cmd)
-      devel_files_path, err = common.get_devel_files_path()
-      print cmd
-      d, err = gluster_commands.run_gluster_command(cmd, "%s/add_brick.xml"%devel_files_path, "Volume expansion")
-      print d, err
-      if err:
-        raise Exception(err)
-  
-      if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
-        #Success so audit the change
-        audit_str = "Expanded volume %s by adding %s storage units."%(vol_name, count)
-        ret, err = audit.audit("expand_volume", audit_str, request.META["REMOTE_ADDR"])
-        if err:
-          raise Exception(err)
-      else:
-        if revert_list:
-          #Undo the creation of the datasets
-          print 'undoing'
-          for revert in revert_list:
-            print revert
-            for node, dsr_cmd in revert.items():
-              r1 = client.cmd(node, 'cmd.run_all', [dsr_cmd])
-              if r1:
-                for node, ret in r1.items():
-                  #print ret
-                  if ret["retcode"] != 0:
-                    errors += ", Error undoing the creating the underlying storage brick on %s"%node
-  
-      if d:
-        d["command"] = "Volume expansion of %s by adding %s storage units."%(vol_name, count)
-  
-      return_dict['result_dict'] = d 
-      if settings.APP_DEBUG:
-        return_dict['app_debug'] = True 
-  
-      return_dict['base_template'] = 'volume_base.html'
-      return_dict['op'] = 'vol_expand'
-      return django.shortcuts.render_to_response('render_op_xml_results.html', return_dict, context_instance = django.template.context.RequestContext(request))
-  except Exception, e:
-    s = str(e)
-    if "Another transaction is in progress".lower() in s.lower():
-      return_dict["error_details"] = "An underlying storage operation has locked a volume so we are unable to process this request. Please try after a couple of seconds"
-    else:
-      return_dict["error_details"] = "An error occurred when processing your request : %s"%s
-    return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
-  finally:
-    lock.release_lock('gluster_commands')
-
+'''
 

@@ -36,7 +36,7 @@ class VolumeNameForm(forms.Form):
 
   def __init__(self, *args, **kwargs):
     vl = None
-    if kwargs:
+    if kwargs and 'vol_list' in kwargs:
       vl = kwargs.pop('vol_list')
     super(VolumeNameForm, self).__init__(*args, **kwargs)
     ch = []
@@ -94,6 +94,12 @@ class ReplaceNodeForm(forms.Form):
     if src_node == dest_node:
       raise forms.ValidationError("Source and replacement GRIDCells should be different")
     return cleaned_data
+
+
+class CreateVolumeDirForm(forms.Form):
+  vol_name = forms.CharField(widget=forms.HiddenInput)
+  path = forms.CharField(widget=forms.HiddenInput)
+  dir_name = forms.CharField()
 
 
 '''

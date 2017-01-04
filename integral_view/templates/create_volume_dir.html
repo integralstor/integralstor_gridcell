@@ -1,133 +1,36 @@
 {% extends 'volume_base.html' %}
 
-
-{%block status_selected%}
-  style="background-color:white;color:white;"
-{%endblock%}
-
 {%block tab_header%}
   Create a directory within a volume
 {%endblock%}
 
 {%block inside_content %}
-<br><br>
-
-{%if conf_message%}
-<div class="alert alert-success alert-dismissable">
-  <i class="fa fa-check"></i>
-    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
-    <b> Success !</b> {{conf_message}}
-</div>  
-{%endif%}
 
   <form class="form-horizontal" role="form" name="create_form" action="" method="post">
-    <table  class="table " style="width:800px">
+    {{form.vol_name}}
+    {{form.path}}
+    <table  class="table " style="width:90%">
       <tr>
-        <td>
-          <label for="id_name">New directory name :</label>
-        </td>
-        <td>
-          <input type="text"  name="name" class="form-control" id="id_name" placeholder="Name of the directory that you want to create"> 
-        </td>
-        <td>
-          {{ form.name.errors }}
-        </td>
+        <td> <label >Volume name :</label> </td> 
+        <td> {{form.vol_name.value}}</td>
+        <td> &nbsp; </td>
+      </tr>
+      <tr>
+        <td> <label >Parent directory in volume :</label> </td> 
+        <td> {{form.path.value}}</td>
+        <td> &nbsp; </td>
+      </tr>
+      <tr>
+        <td> <label for="id_dir_name">New directory name :</label> </td> 
+        <td> <input type="text"  name="dir_name" class="form-control" id="id_dir_name" placeholder="Name of the directory that you want to create"> </td>
+        <td> {{ form.dir_name.errors }} </td>
       </tr>
 
-      <tr>
-        <td>
-          <label for="id_vol">Volume :</label>
-        </td>
-        <td>
-          <select id="id_vol" name="vol" class="form-control">
-          {% for choice in form.vol_name.field.choices %} 
-            <option value="{{choice.0}}" {%if form.initial.vol_name == choice.0%} selected="selected" {%endif%}>{{choice.1}}</option>
-          {%endfor%}
-          </select>
-        </td>
-        <td>
-      {{ form.vol.errors }}
-        </td>
-      </tr>
-
-      <tr>
-        <td>
-          <label for="id_path">Select parent directory :</label>
-        </td>
-        <td>
-          <input type="text"  name="path" class="form-control" id="id_path" placeholder="Click the Browse button to choose the parent directory" disabled> 
-          <a href="#" class="btn btn-info" onClick="displayTree();return true;"> Browse..</a>
-          <div id="pathdiv" style="display:inline"></div>
-        </td>
-        <td>
-          {{ form.path.errors }}
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <label for="id_final_path">Final Path :</label>
-        </td>
-        <td>
-          <input id="id_selected_path" class="form-control" readonly style="display:none;">
-          <input id="id_final_path" name="final_path" class="form-control" readonly>
-        </td>
-        <td>
-        </td>
-      </tr>
     </table>
-    <button type="submit" class="btn btn-primary cover-page" onClick="document.getElementById('id_path').disabled = false;return true;")> Create</button>
+    <div class="btn-group btn-group-sm " >
+      <a href="/view_volume?vol_name={{form.vol_name.value}}" role="button" class="btn btn-default"> Cancel</a>&nbsp;&nbsp;
+      <button type="submit" class="btn btn-primary cover-page" > Create</button>
   </form>
-
-  <script src="/static/jstree/dist/jstree.js"></script>
-  <script>
-    function displayTree() {
-        $('#pathdiv').jstree({ 'core' : {
-          'multiple':false,
-          'data' : {
-            'full_path': 'dummy',
-            'url' : function (node) {
-              return node.id === '#' ? 
-                '/show/dir_contents?first=1&dir=/' : 
-                '/show/dir_contents'; 
-            },
-            'data' : function (node) {
-              var e = document.getElementById("id_vol");
-              if (node.data) {
-                return {  'dir' : node.data['dir'] , 'id':node.id, "vol_name": e.options[e.selectedIndex].value};
-              }
-              else
-                return { 'dir' : node.text , 'id':node.id, "vol_name": e.options[e.selectedIndex].value};
-            }
-          }
-        }
-      });
-   $(function () {
-      $('#pathdiv').on('changed.jstree', function (e, data) {
-          var i, j, r = [];
-          var e = document.getElementById("id_vol");
-          r = data.instance.get_node(data.selected[0]).text;
-          rfp = data.instance.get_node(data.selected[0]).data["dir"];
-          document.forms["create_form"].elements["path"].value = rfp;
-          document.getElementById("id_selected_path").value = "/"+e.options[e.selectedIndex].value+rfp;
-          document.getElementById("pathdiv").style.display = "none";
-	  $("#id_name").trigger('input')
-        })
-        .jstree();
-    });
-    }  
-    $("#id_name").on('input',function(){
-	var final_path = $("#id_selected_path").val()
-	if (final_path === ""){
-                var e = document.getElementById("id_vol");
-                var vol_name = e.options[e.selectedIndex].value;
-		$("#id_final_path").val("/"+vol_name+$(this).val())
-	}
-	else{
-		$("#id_final_path").val(final_path+$(this).val())
-	}
-});
-  
-  </script>
 
 {%endblock%}
 
@@ -138,8 +41,9 @@
 {%block help_body%}
   <p>Use this screen to browse a volume and create a directory at any point in the directory tree.</p>
 {%endblock%}
+
 {% block tab_active %}
   <script>
-    make_tab_active('create_volume_dir_tab')
+    make_tab_active('view_volumes_tab')
   </script>
 {% endblock %}

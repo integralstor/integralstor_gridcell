@@ -1,0 +1,47 @@
+{% extends 'gridcell_base.html' %}
+
+{%block tab_header%}
+  Add GRIDCells to grid - result
+{%endblock%}
+
+{%block inside_content%}
+
+  <table style="width:60%" class="table table-condensed table-bordered" >
+    <tr>
+      <th> GRIDCell </th>
+      <th> Result </th>
+    </tr>
+    {% for d in success %}
+      <tr>
+        <td> {{d}} </td>
+        <td> <span class="bigger-300"><i class="fa fa-check-circle-o green"></i></span> </td>
+      </tr>
+    {%endfor%}
+    {% for d in failed %}
+      <tr>
+        <td> {{d}} </td>
+        <td> <span class="bigger-300"><i class="fa fa-times-circle-o red"></i></span> </td>
+      </tr>
+    {%endfor%}
+
+    {%if errors %}
+      {{errors}}
+    {%endif%}
+  </table>
+
+{%endblock%}
+
+
+{%block help_header%}
+  Add GRIDCells - results 
+{%endblock%}
+
+{%block help_body%}
+  This screen displays the results of adding new GRIDCells to the grid. The process of adding new GRIDCells to the grid involves multiple operations like key exchanges, internal DNS additions, GRIDCell initialization and GRIDCell configuration and status population. A failure in adding a new GRIDCell could be from any one of these steps. </p>
+{%endblock%}
+
+{% block tab_active %}
+  <script>
+    make_tab_active('gridcell_list_tab')
+  </script>
+{% endblock %}
