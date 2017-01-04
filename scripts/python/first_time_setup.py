@@ -176,7 +176,6 @@ def establish_default_configuration(client, si, admin_gridcells):
     shutil.move("%s/master.manifest"%tmp_path, ss_path)
     shutil.move("%s/master.status"%tmp_path, ss_path)
 
-    os.mkdir("%s/batch_processes"%config_dir)
     
     print "Copying the default configuration onto the IntegralStor administration volume... Done."
     print
@@ -187,6 +186,7 @@ def establish_default_configuration(client, si, admin_gridcells):
     os.mkdir("%s/lock"%config_dir)
     os.mkdir("%s/samba"%config_dir)
 
+    os.mkdir("%s/logs/task_logs"%config_dir, 0777)
 
     print "Creating CTDB config file"
     rc, errors = ctdb.create_config_file()

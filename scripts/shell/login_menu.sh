@@ -90,6 +90,39 @@ configure_zfs_pool() {
   esac
 }
 
+gluster_split_brain_info() {
+  clear
+  echo
+  echo
+  read -p " Please enter the volume name  : " input
+  python /opt/integralstor/integralstor_gridcell/scripts/python/self_heal.py $input info;pause;
+}
+
+gluster_split_brain_heal() {
+  clear
+  echo
+  echo
+  read -p " Please enter the volume name  : " input
+  python /opt/integralstor/integralstor_gridcell/scripts/python/self_heal.py $input heal;pause;
+}
+
+admin_volume_stop() {
+  clear
+  echo
+  echo
+  read -p "Stopping the admin volume can cause a disruption to IntegralView access.. Are you sure you want to stop the volume (y/n)? : " input
+  case $input in
+    y)python /opt/integralstor/integralstor_gridcell/scripts/python/gluster_volume_start_stop.py integralstor_admin_vol stop;pause;;
+  esac
+}
+
+admin_volume_start() {
+  clear
+  echo
+  echo
+  python /opt/integralstor/integralstor_gridcell/scripts/python/gluster_volume_start_stop.py integralstor_admin_vol start;pause;
+}
+
 salt_minion_restart(){
   clear
   echo
@@ -206,7 +239,8 @@ show_menu() {
   echo " Check IntegralView services "
   echo " --------------------------- "
   echo " 30. Check admin services            31. Check web services              32. Check admin volume status"
-  echo " 33. Check admin volume services     34. Check admin volume mountpoint"
+  echo " 33. Check admin volume services     34. Check admin volume mountpoint   35. Stop admin volume"
+  echo " 36. Start admin volume "
   echo
   echo " Check grid accessibility"
   echo " ------------------------"
@@ -221,6 +255,10 @@ show_menu() {
   echo " -------------------------"
   echo " 60. Check on-disk ZFS filesystem     61. Check Windows storage services             62. Check distributed storage services"
   echo " 63. Check status of grid peers       64. Check distributed Windows access status"
+  echo
+  echo " Volume actions"
+  echo " ----------------"
+  echo " 70. Volume split brain status  71. Volume split brain heal"
   echo
   echo
 
@@ -245,6 +283,8 @@ read_input(){
     32) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py admin_vol_started;pause;;
     33) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py admin_vol_status;pause;;
     34) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py admin_vol_mountpoint;pause;;
+    35) admin_volume_stop;;
+    36) admin_volume_start;;
     40) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py ping;pause;;
     41) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py dns;pause;;
     50) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py disks;pause;;
@@ -254,6 +294,8 @@ read_input(){
     62) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py gluster_processes;pause;;
     63) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py gluster_peer_status;pause;;
     64) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py ctdb;pause;;
+    70) gluster_split_brain_info ;;
+    71) gluster_split_brain_heal ;;
     91) configure_networking ;;
     92) configure_zfs_pool ;;
     93) configure_initial_salt_master ;;

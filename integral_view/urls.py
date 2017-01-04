@@ -20,7 +20,7 @@ from integral_view.views.common import dashboard, access_shell
 
 from integral_view.views.services_management import view_services,change_service_status_on_gridcell, view_ntp_settings, edit_ntp_settings
 
-from integral_view.views.scheduler_management import schedule_scrub,view_scheduled_jobs,view_scheduled_job,remove_scheduled_job
+from integral_view.views.scheduler_management import schedule_scrub,view_tasks,view_task,remove_task
 
 from integral_view.views.log_management import download_vol_log, download_sys_log, rotate_log, view_rotated_log_list, view_rotated_log_file, refresh_alerts, raise_alert, internal_audit, download_system_configuration
 
@@ -98,8 +98,9 @@ urlpatterns = patterns('',
 
     #From scheduler_management
     url(r'^schedule_scrub/', login_and_admin_vol_mountpoint_required(schedule_scrub)),
-    url(r'^view_scheduled_jobs/',login_and_admin_vol_mountpoint_required(view_scheduled_jobs)),
-    url(r'^view_scheduled_job/([0-9]*)',login_and_admin_vol_mountpoint_required(view_scheduled_job)),
+    url(r'^view_tasks/',login_and_admin_vol_mountpoint_required(view_tasks)),
+    url(r'^view_task/([0-9]*)',login_and_admin_vol_mountpoint_required(view_task)),
+    url(r'^remove_task/',login_and_admin_vol_mountpoint_required(remove_task)),
 
     #From services_management
     url(r'^view_services/', login_and_admin_vol_mountpoint_required(view_services)),
@@ -156,7 +157,6 @@ urlpatterns = patterns('',
     #url(r'^first_login/', login_and_admin_vol_mountpoint_required(hardware_scan)),
 
 
-    url(r'^remove_scheduled_job/',login_and_admin_vol_mountpoint_required(remove_scheduled_job)),
     #url(r'^view_task_details/([0-9]*)', login_and_admin_vol_mountpoint_required(view_task_details)),
     
 )

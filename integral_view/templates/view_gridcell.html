@@ -480,10 +480,10 @@
                               <input type="hidden" name="node" value="{{gridcell_name}}">
                               <input type="hidden" name="serial_number" value="{{sn}}">
                               <input type="hidden" name="step" value="offline_disk">
-                                <button type="submit" class="btn btn-primary cover-page" > Replace (swap out) this disk </button>
+                                <button type="submit" class="btn btn-primary btn-sm cover-page" > Replace (swap out) this disk </button>
                             </form>
                           {%else%}
-                            <button  class="btn btn-primary" onClick ="alert('This disk is not part of any ZFS pool so you can go ahead and replace it safely');"> Replace (swap out) this disk </button>
+                            <button  class="btn btn-primary btn-sm" onClick ="alert('This disk is not part of any ZFS pool so you can go ahead and replace it safely');"> Replace (swap out) this disk </button>
                           {%endif%}
                         {%else%}
                           Healthy disk. No replacement necessary.

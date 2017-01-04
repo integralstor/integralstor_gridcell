@@ -10,7 +10,7 @@ from integral_view.utils import iv_logging
 
 import integralstor_gridcell
 from integralstor_gridcell import gluster_volumes, system_info, grid_ops, gluster_trusted_pools
-from integralstor_common import audit, lock
+from integralstor_common import audit, lock, common, scheduler_utils
 
 import salt.client
 
@@ -764,10 +764,12 @@ def replace_disk(request):
             db_path, err = common.get_db_path()
             if err:
               raise Exception('Error scheduling a job - getting database location : %s'%err)
-            job_id, err = scheduler_utils.schedule_a_job(db_path, 'Disk replacement on GRIDCell %s'%node, [{'Disk Replacement': cmd1}, {'Disk onlining':cmd2}], node=node, extra={'deleteable':0})
+            #job_id, err = scheduler_utils.schedule_a_job(db_path, 'Disk replacement on GRIDCell %s'%node, [{'Disk Replacement': cmd1}, {'Disk onlining':cmd2}], node=node, extra={'deleteable':0})
+            #new_job_id, err = scheduler_utils.schedule_a_job(db_path, 'Regeneration of system configuration', [{'Regeneration of system configuration':cmd3}, {'Regeneration of system status':cmd4}], extra = {'execute_after': job_id, 'deleteable':0})
+
+            job_id, err = scheduler_utils.add_task('Disk replacement on GRIDCell %s'%node, [{'Disk Replacement': cmd1}, {'Disk onlining':cmd2}, {'Regeneration of system configuration':cmd3}, {'Regeneration of system status':cmd4}], task_type_id = 1, node=node)
             if err:
               raise Exception('Error scheduling the disk replacement : %s'%err)
-            new_job_id, err = scheduler_utils.schedule_a_job(db_path, 'Regeneration of system configuration', [{'Regeneration of system configuration':cmd3}, {'Regeneration of system status':cmd4}], extra = {'execute_after': job_id, 'deleteable':0})
             '''
             client = salt.client.LocalClient()
             rc = client.cmd(node, 'cmd.run_all', [cmd_to_run])

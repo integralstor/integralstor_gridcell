@@ -1,7 +1,8 @@
 import django
 from django.conf import settings
 from integralstor_gridcell import system_info
-from integralstor_common import scheduler_utils,common, lock
+from integralstor_common import scheduler_utils,common, lock, command
+import os
 
 def schedule_scrub(request):
   return_dict = {}
@@ -32,7 +33,7 @@ def schedule_scrub(request):
       err_list = []
       success = 0
       for node in si.keys():
-        status,err = scheduler_utils.schedule_a_job(db_path,'ZFS Scrub on %s'%node,[{'scrub':'/sbin/zpool scrub frzpool'}],node=node,execute_time=int(dt))
+        status,err = scheduler_utils.add_task('ZFS Scrub on %s'%node,[{'scrub':'/sbin/zpool scrub frzpool'}],task_type_id = 3, node=node,initiate_time=int(dt))
         if err:
           err_list.append(err)
         else:
@@ -53,46 +54,69 @@ def schedule_scrub(request):
   finally:
     lock.release_lock('gluster_commands')
 
-def view_scheduled_jobs(request):
+def view_tasks(request):
   return_dict = {}
   try:
-    db_path = settings.DATABASES["default"]["NAME"]
-    back_jobs,err = scheduler_utils.get_background_jobs(db_path)
+    tasks,err = scheduler_utils.get_tasks()
     if err:
       raise Exception(err)
     if "ack" in request.GET:
       if request.GET["ack"] == "deleted":
-        return_dict['ack_message'] = "Scheduled job successfully removed."
+        return_dict['ack_message'] = "Task successfully removed."
       elif request.GET["ack"] == "scheduled":
         if 'err' in request.GET:
-          return_dict['ack_message'] = "Job successfully scheduled with the following errors : %s."%request.GET['err']
+          return_dict['ack_message'] = "Task successfully scheduled with the following errors : %s."%request.GET['err']
         else:
           return_dict['ack_message'] = "Job successfully scheduled."
-    return_dict["back_jobs"] = back_jobs
-    return django.shortcuts.render_to_response("view_scheduled_jobs.html", return_dict, context_instance=django.template.context.RequestContext(request))
+    return_dict["tasks"] = tasks
+    return django.shortcuts.render_to_response("view_tasks.html", return_dict, context_instance=django.template.context.RequestContext(request))
   except Exception, e:
     return_dict['base_template'] = "batch_base.html"
-    return_dict["page_title"] = 'Scheduled jobs'
+    return_dict["page_title"] = 'Background tasks'
     return_dict['tab'] = 'scheduled_jobs_tab'
-    return_dict["error"] = 'Error retriving scheduled tasks'
+    return_dict["error"] = 'Error retriving background tasks'
     return_dict["error_details"] = str(e)
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
-def view_scheduled_job(request, *args):
+def view_task(request, *args):
   return_dict = {}
-  db_path = settings.DATABASES["default"]["NAME"]
   try:
     task_id = '-1'
     if args:
       task_id = args[0]
-    task_name,err = scheduler_utils.get_background_job(db_path,int(task_id))
-    return_dict["task"] = task_name[0]
-    commands,err = scheduler_utils.get_task_details(db_path,int(task_id))
+    task,err = scheduler_utils.get_task(int(task_id))
+    return_dict["task"] = task
+    subtasks,err = scheduler_utils.get_subtasks(int(task_id))
     if err:
-      return_dict["error"] = "Error loading Backgorund jobs"
-      return_dict["error_details"] = err
-    return_dict["commands"] = commands 
-    return django.shortcuts.render_to_response("view_scheduled_job.html", return_dict, context_instance=django.template.context.RequestContext(request))
+      raise Exception(err)
+    return_dict["subtasks"] = subtasks 
+    task_output = ""
+    log_path, err = common.get_log_folder_path()
+    if err:
+      raise Exception(err)
+    log_dir = '%s/task_logs'%log_path
+    log_file_path = '%s/%d.log'%(log_dir, int(task_id))
+    if os.path.isfile(log_file_path):
+      lines,err = command.get_command_output("wc -l %s"%log_file_path)
+      no_of_lines = lines[0].split()[0]
+      #print no_of_lines
+      if int(no_of_lines) <= 41:
+        # This code always updates the 0th element of the command list. This is assuming that we will only have one long running command.
+        with open(log_file_path) as output:
+          task_output = task_output + ''.join(output.readlines())
+      else:
+        first,err = command.get_command_output("head -n 5 /tmp/%d.log"%int(task_id), shell=True)
+        if err:
+          print err
+        last,err = command.get_command_output("tail -n 20 /tmp/%d.log"%int(task_id), shell=True)
+        if err:
+          print err
+        #print last
+        task_output = task_output + '\n'.join(first)
+        task_output = task_output + "\n.... \n ....\n"
+        task_output = task_output + '\n'.join(last)
+    return_dict['task_output'] = task_output
+    return django.shortcuts.render_to_response("view_task.html", return_dict, context_instance=django.template.context.RequestContext(request))
   except Exception, e:
     return_dict['base_template'] = "batch_base.html"
     return_dict["page_title"] = 'View scheduled job details'
@@ -101,19 +125,18 @@ def view_scheduled_job(request, *args):
     return_dict["error_details"] = str(e)
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
-def remove_scheduled_job(request):
+def remove_task(request):
   return_dict = {}
   try:
-    db_path = settings.DATABASES["default"]["NAME"]
     task_id = request.REQUEST.get('task_id')
-    status,err = scheduler_utils.delete_task(int(task_id))
+    status,err = scheduler_utils.remove_task(int(task_id))
     if err:
       raise Exception(err)
-    return django.http.HttpResponseRedirect('/view_scheduled_jobs?ack=deleted') 
+    return django.http.HttpResponseRedirect('/view_tasks?ack=deleted') 
   except Exception,e:
     return_dict['base_template'] = "batch_base.html"
-    return_dict["page_title"] = 'Remove a scheduled job'
+    return_dict["page_title"] = 'Remove a task'
     return_dict['tab'] = 'view_background_tasks_tab'
-    return_dict["error"] = 'Error removing schedued job'
+    return_dict["error"] = 'Error removing task'
     return_dict["error_details"] = str(e)
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))

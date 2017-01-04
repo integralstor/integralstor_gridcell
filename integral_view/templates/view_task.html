@@ -1,0 +1,56 @@
+{% extends 'batch_base.html' %}
+
+{% block tab_header %}
+  Task - {{task.description}} ({{task.status|title}})
+{% endblock %}
+
+{%block global_actions %}
+  <div class="btn-group btn-group-sm pull-right" >
+    <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Click for actions" href="#"> <i class="fa fa-cog fa-fw"></i> Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+    <ul class="dropdown-menu">
+      {% if task.status == "queued" %}
+        <li><a  class="action-dropdown" href="/remove_task?task_id={{task.task_id}}"   title="Remove this task" style="color:red"> <i class="fa fa-trash fa-fw"></i>Remove this job</a>
+      {% endif %}
+      <li><a  class="action-dropdown" href="/view_tasks"   title="Back to task list" > <i class="fa fa-list fa-fw"></i>Task list</a>
+    </ul>
+  </div>
+{%endblock%}
+
+{% block inside_content %}
+  {%for subtask in subtasks %}
+    <div class="panel box {%if subtask.return_code == '0'%} box-success {%else%} box-danger{%endif%}">
+      <div class="box-header with-border">
+        <h4 class="box-title">
+          <a class="" aria-expanded="true" data-toggle="collapse" data-parent="#accordion" href="#pool_{{forloop.counter}}">
+            {{subtask.command}}
+          </a> 
+        </h4>
+      </div>
+      <div style="" aria-expanded="true" id="pool_{{forloop.counter}}" class="panel-collapse collapse in">
+        <div class="box-body">
+          <table>
+          <tbody>
+            <tr>
+              <td colspan=1> Command </td>
+              <td> {{subtask.command}} </td>
+            </tr>
+            <tr>
+              <td colspan=1> Status </td>
+              <td> {{subtask.status}} </td>
+            </tr>
+          </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+  <h4> Task output </h4>
+  {{task_output|linebreaksbr}}
+{% endblock %}
+
+{% block tab_active %}
+  <script>
+    make_tab_active("scheduled_jobs_tab")
+  </script>
+{% endblock%}
+
