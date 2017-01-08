@@ -52,7 +52,6 @@ def create_local_user(request):
       return django.shortcuts.render_to_response("create_local_user.html", return_dict, context_instance = django.template.context.RequestContext(request))
     else:
       #Form submission so create
-      return_dict = {}
       form = local_user_forms.LocalUserForm(request.POST)
       if form.is_valid():
         cd = form.cleaned_data
