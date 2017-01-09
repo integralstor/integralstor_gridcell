@@ -188,6 +188,8 @@ def establish_default_configuration(client, si, admin_gridcells):
 
     os.mkdir("%s/logs/task_logs"%config_dir, 0777)
 
+    '''
+    Commenting out as we wont use CTDB for this release
     print "Creating CTDB config file"
     rc, errors = ctdb.create_config_file()
     if not rc:
@@ -241,6 +243,7 @@ def establish_default_configuration(client, si, admin_gridcells):
           raise Exception(errors)
     print "Linking CTDB nodes files. Done.."
     print
+    '''
 
     print "Linking smb.conf files"
     shutil.copyfile('%s/samba/smb.conf'%defaults_dir,'%s/lock/smb.conf'%config_dir)

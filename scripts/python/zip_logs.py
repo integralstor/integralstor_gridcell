@@ -4,7 +4,8 @@ from os.path import basename
 from integralstor_common import common, command
 
 # Files go in the format of , path where the file exists, and the regex to match for the files
-files = ["/var/log/*message*","/var/log/*boot.log*","/var/log/nginx/*error.log*","/var/log/*smblog.vfs*","/var/log/*log.ctdb*","/var/log/*dmesg*"]
+#files = ["/var/log/*message*","/var/log/*boot.log*","/var/log/nginx/*error.log*","/var/log/*smblog.vfs*","/var/log/*log.ctdb*","/var/log/*dmesg*"]
+files = ["/var/log/*message*","/var/log/*boot.log*","/var/log/nginx/*error.log*","/var/log/*smblog.vfs*","/var/log/*dmesg*"]
 
 folders = ["/var/log/glusterfs","/var/log/samba","/var/log/integralstor","/var/log/salt","/var/spool/mail"]
 

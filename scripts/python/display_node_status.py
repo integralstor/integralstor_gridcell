@@ -23,18 +23,24 @@ def display_status():
     if err:
       raise Exception(err)
     print '\n'.join(status)
+    '''
+    #Commenting out as we wont support CTDB for this release
     status, err = command.get_command_output('service ctdb status')
     if err:
       raise Exception(err)
     print '\n'.join(status)
+    '''
     status, err = command.get_command_output('service glusterd status')
     if err:
       raise Exception(err)
     print '\n'.join(status)
+    '''
+    #Commenting out as we wont support CTDB for this release
     status, err = command.get_command_output('ctdb status')
     if err:
       raise Exception(err)
     print '\n'.join(status)
+    '''
   except Exception, e:
     return False,  "Error displaying GRIDCell status : %s"%e
   else:

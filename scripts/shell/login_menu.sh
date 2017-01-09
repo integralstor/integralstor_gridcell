@@ -243,7 +243,8 @@ show_menu() {
   echo " ----------------"
   echo " 20. Restart distributed storage services     21. Restart IntegralView services     22. Update date using NTP"
   echo " 23. Shutdown GRIDCell                        24. Reboot GRIDCell                   25. Restart admin agent"
-  echo " 26. Restart CTDB                             27. Restart Winbind                   28. Restart smb"
+#  echo " 26. Restart CTDB                             27. Restart Winbind                   28. Restart smb"
+  echo " 27. Restart Winbind                   28. Restart smb"
   echo
   echo " Check IntegralView services "
   echo " --------------------------- "
@@ -263,7 +264,8 @@ show_menu() {
   echo " Check grid storage status"
   echo " -------------------------"
   echo " 60. Check on-disk ZFS filesystem     61. Check Windows storage services             62. Check distributed storage services"
-  echo " 63. Check status of grid peers       64. Check distributed Windows access status"
+  echo " 63. Check status of grid peers"
+#  echo " 63. Check status of grid peers       64. Check distributed Windows access status"
   echo
   echo " Volume actions"
   echo " ----------------"
@@ -286,7 +288,7 @@ read_input(){
     23) do_shutdown;;
     24) do_reboot;;
     25) salt_minion_restart;;
-    26) ctdb_restart;;
+#    26) ctdb_restart;;
     27) winbind_restart;;
     28) smb_restart;;
     30) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py salt;pause;;
@@ -304,7 +306,7 @@ read_input(){
     61) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py windows_processes;pause;;
     62) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py gluster_processes;pause;;
     63) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py gluster_peer_status;pause;;
-    64) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py ctdb;pause;;
+#    64) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py ctdb;pause;;
     70) gluster_split_brain_info ;;
     71) gluster_split_brain_heal ;;
     91) configure_networking ;;

@@ -83,6 +83,7 @@
         </div><!--panel-collapse-->
       </div><!--panel-->
 
+<!-- Commenting out as we wont use ctdb for this build
       <div class="panel panel-default">
         <div class="panel-heading" {%if num_bad_ctdb_nodes %} style="padding: 15px 30px 15px 15px; border-left: 5px solid #c87f0a;"{%endif%} role="tab" id="heading3">
           <h5 class="panel-title ">
@@ -96,7 +97,7 @@
             <span class="caret"></span>
           </a>
           </h5>
-        </div> <!--panel-heading-->
+        </div> 
         <div id="ctdb_status" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading3">
           <div class="panel-body">
             <table class="table ">
@@ -115,9 +116,10 @@
                 </tr>
               {%endfor%}
             </table>
-          </div><!--panel-body-->
-        </div><!--panel-collapse-->
-      </div><!--panel-->
+          </div>
+        </div>
+      </div>
+-->
 
       <div class="panel panel-default">
         <div class="panel-heading" {%if num_bad_volumes or num_quotas_exceeded %} style="padding: 15px 30px 15px 15px; border-left: 5px solid #c87f0a;"{%endif%} role="tab" id="heading4">

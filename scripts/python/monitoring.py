@@ -204,10 +204,13 @@ def check_windows_processes_status(print_to_stdout = True, separator = '\n'):
     if err:
       raise Exception(err)
     ret_list.append('Time sync (NTP) process status : %s'%', '.join(out))
+    '''
+    Commenting out as we wont use CTDB for this release
     out, err = command.get_command_output('service ctdb status', False)
     if err:
       raise Exception(err)
     ret_list.append('Clustered windows access (CTDB) process status : %s'%', '.join(out))
+    '''
     if print_to_stdout:
       print separator.join(ret_list)
   except Exception, e:
@@ -352,12 +355,15 @@ def generate_status_file():
       rl, err = check_gluster_peer_status(False, '<br/>')
       if rl:
         f.write('<br/>\n'.join(rl))
+      '''
+      Commenting out as we wont use CTDB for this release
       f.write( '<hr>\n')
       f.write( '<h4>Clustered Windows access status of known GRIDCells</h4>\n')
       rl, err = check_ctdb_status(False, '<br/>')
       if rl:
         f.write('<br/>\n'.join(rl))
       f.write( '<hr>\n')
+      '''
 
       f.write( '<h2>IntegralView status</h2>\n')
       f.write( '<h4>Admin agent status of known GRIDCells</h4>\n')
@@ -395,7 +401,9 @@ def generate_status_file():
 def main():
   err = None
   if len(sys.argv) != 2:
-    print 'Usage: python monitoring.py <salt|ping|admin_vol_mountpoint|admin_vol_started|admin_vol_status|zfs|ipmi|disks|windows_processes|ctdb|gluster_peer_status|integralview_processes|gluster_processes|dns|generate_status_file>'
+    #Commenting out as we wont use CTDB for this release
+    #print 'Usage: python monitoring.py <salt|ping|admin_vol_mountpoint|admin_vol_started|admin_vol_status|zfs|ipmi|disks|windows_processes|ctdb|gluster_peer_status|integralview_processes|gluster_processes|dns|generate_status_file>'
+    print 'Usage: python monitoring.py <salt|ping|admin_vol_mountpoint|admin_vol_started|admin_vol_status|zfs|ipmi|disks|windows_processes|gluster_peer_status|integralview_processes|gluster_processes|dns|generate_status_file>'
     sys.exit(0)
   if sys.argv[1] == 'salt':
     ret, err = check_salt_status()
@@ -413,8 +421,6 @@ def main():
     ret, err = check_disks_status()
   elif sys.argv[1] == 'windows_processes':
     ret, err = check_windows_processes_status()
-  elif sys.argv[1] == 'ctdb':
-    ret, err = check_ctdb_status()
   elif sys.argv[1] == 'gluster_peer_status':
     ret, err = check_gluster_peer_status()
   elif sys.argv[1] == 'integralview_processes':
@@ -427,6 +433,11 @@ def main():
     ret, err = generate_status_file()
   elif sys.argv[1] == 'ipmi':
     ret, err = check_ipmi()
+  '''
+  Commenting out as we wont use CTDB for this release
+  elif sys.argv[1] == 'ctdb':
+    ret, err = check_ctdb_status()
+  '''
   if err:
     print 'Error processing request : %s'%err
     sys.exit(-1)

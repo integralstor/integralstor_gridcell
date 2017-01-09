@@ -41,12 +41,12 @@ def schedule_scrub(request):
       if err_list:
         if success > 0:
           #Some succeeded
-          return django.http.HttpResponseRedirect('/view_scheduled_jobs?ack=scheduled&err=%s'%','.join(err_list))
+          return django.http.HttpResponseRedirect('/view_tasks?ack=scheduled&err=%s'%','.join(err_list))
         else:
           #All failed
           raise Exception(','.join(err_list))
       #All succeeded
-      return django.http.HttpResponseRedirect('/view_scheduled_jobs?ack=scheduled')
+      return django.http.HttpResponseRedirect('/view_tasks?ack=scheduled')
   except Exception, e:
     return_dict["error"] = 'Unable to retrive the status of services'
     return_dict["error_details"] = "An error occurred when processing your request : %s"%e

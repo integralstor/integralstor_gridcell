@@ -1,6 +1,6 @@
 
 import os, socket, sys, subprocess, logging
-from integralstor_common import common, networking, command, logger
+from integralstor_common import common, networking, command, logger, services_management
 from integralstor_gridcell import grid_ops
 
 def mount_and_configure():
@@ -39,8 +39,9 @@ def mount_and_configure():
             (ret, rc), err = command.execute_with_rc('mount -t glusterfs %s:/%s %s'%(admin_gridcell, admin_vol_name, config_dir))
             if (not err) and (rc == 0):
               mounted = True
-              subprocess.call(['service', 'ctdb', 'restart'], shell=False)
+              #subprocess.call(['service', 'ctdb', 'restart'], shell=False)
               subprocess.call(['service', 'winbind', 'restart'], shell=False)
+              subprocess.call(['service', 'smb', 'restart'], shell=False)
               subprocess.call(['service', 'nginx', 'restart'], shell=False)
               subprocess.call(['service', 'uwsgi', 'restart'], shell=False)
               if ag:
@@ -49,11 +50,25 @@ def mount_and_configure():
               break
             else:
               str =  'Mount from %s failed.'%admin_gridcell
-              logger.log_or_print(str, lg, level='warning')
+              logger.log_or_print(str, lg, level='error')
         if not mounted:
           str =  'Failed to mounted admin volume!'
           logger.log_or_print(str, lg, level='critical')
       else:
+        logger.log_or_print('Checking services', lg, level='debug')
+        for service in ['nginx', 'winbind', 'smb']:
+          status, err = services_management.get_service_status([service])
+          if err:
+            raise Exception(err)
+          logger.log_or_print('Service %s status is %s'%(service, status['status_code']), lg, level='debug')
+          if status['status_code'] != 0:
+            logger.log_or_print('Service %s not started so restarting'%service, lg, level='error')
+            subprocess.call(['service', service, 'restart'], shell=False)
+        #UWSGI service config not complete so need to check against the actual process name
+        (ret, rc), err = command.execute_with_rc('pidof uwsgi', shell=True)
+        if rc != 0:
+          logger.log_or_print('Service uwsgi not started so restarting', lg, level='error')
+          subprocess.call(['service', 'uwsgi', 'restart'], shell=False)
         str =  'Admin volume is already mounted'
         logger.log_or_print(str, lg, level='info')
 
@@ -69,9 +84,9 @@ def mount_and_configure():
         raise Exception('Could not mount the admin volume')
       '''
   except Exception, e:
-    str = 'Error mounting admin volume : %s'%str(e)
-    logger.log_or_print(str, lg, level='critical')
-    return False, str(e)
+    st = 'Error mounting admin volume : %s'%e
+    logger.log_or_print(st, lg, level='critical')
+    return False, st
   else:
     str = 'Admin volume mounter completed.'
     logger.log_or_print(str, lg, level='info')

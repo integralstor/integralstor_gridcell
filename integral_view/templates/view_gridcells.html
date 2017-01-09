@@ -21,7 +21,7 @@
         <th> Name </th>
         <th> Hardware status</th>
         <th> Storage pool status </th>
-        <th> Clustered Windows access status </th>
+<!-- Commenting out as we wont use ctdb for this build        <th> Clustered Windows access status </th> -->
         <th> Volumes on GRIDCell</th>
         <th> Actions</th>
       </tr>
@@ -46,6 +46,7 @@
                 Not part of storage pool.
               {%endif%}
             </td>
+<!-- Commenting out as we wont use ctdb for this build
             <td>
               {%if gridcell_info.ctdb_status%}
                 {{gridcell_info.ctdb_status}}
@@ -53,6 +54,7 @@
                 Not part of clustered windows access.
               {%endif%}
             </td>
+-->
             <td>
               {%if gridcell_info.volume_list%}
                 {%for volume_name in gridcell_info.volume_list %}

@@ -113,6 +113,8 @@ def dashboard(request):
     else:
       return_dict['num_targets'] = 0
 
+    '''
+    #Commenting out as we wont use ctdb for this build
     ctdb_status, err = ctdb.get_status()
     #print ctdb_status, err
     if err:
@@ -125,10 +127,11 @@ def dashboard(request):
           num_bad_ctdb_nodes += 1
 
     return_dict["ctdb_status"] = ctdb_status
+    '''
     return_dict["num_quotas_exceeded"] = num_quotas_exceeded
     return_dict["soft_quota_exceeded_vols"] = soft_quota_exceeded_vols
     return_dict["hard_quota_exceeded_vols"] = hard_quota_exceeded_vols
-    return_dict["num_ctdb_nodes"] = num_ctdb_nodes
+    #return_dict["num_ctdb_nodes"] = num_ctdb_nodes
     return_dict["num_bad_ctdb_nodes"] = num_bad_ctdb_nodes
     return_dict["num_nodes_bad"] = num_nodes_bad
     return_dict["bad_nodes"] = bad_nodes

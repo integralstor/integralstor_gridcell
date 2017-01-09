@@ -163,8 +163,13 @@ def view_gridcell(request):
         break
     if si[gridcell_name]['in_cluster'] and si[gridcell_name]['cluster_status'] != 1:
       return_dict['flag_gluster_ctdb'] = True
+
+    '''
+    #Commenting out as we wont use CTDB for this build
     if 'ctdb_status' in si[gridcell_name] and si[gridcell_name]['ctdb_status'].lower() != 'ok':
       return_dict['flag_gluster_ctdb'] = True
+    '''
+
     for did, disk_info in si[gridcell_name]['disks'].items():
       #print did, disk_info['status'].lower()
       if disk_info['status'] and disk_info['status'].lower() not in ['passed', 'ok']:
