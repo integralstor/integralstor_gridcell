@@ -1,6 +1,10 @@
 
 import sys
-from integralstor_common import common, command
+from integralstor_common import common, command, lock
+from integralstor_gridcell import gluster_volumes
+
+import atexit
+atexit.register(lock.release_lock, 'gluster_commands')
 
 def volume_start_stop(vol_name, operation):
   try:
@@ -40,18 +44,37 @@ def volume_start_stop(vol_name, operation):
 
 def main():
   try:
-    if len(sys.argv) != 3:
-      print 'Usage : python gluster_volume_start_stop.py <vol_name> [start|stop]'
+    if len(sys.argv) < 2:
+      print 'Usage : python gluster_volume_start_stop.py [start|stop|restart_all] <vol_name>'
       sys.exit(0)
-    vol_name = sys.argv[1]
-    ret, err = volume_start_stop(vol_name, sys.argv[2])
+    if sys.argv[1] not in ['start', 'stop', 'restart_all']:
+      print 'Usage : python gluster_volume_start_stop.py [start|stop|restart_all] <vol_name>'
+      sys.exit(0)
+    if sys.argv[1] in ['start', 'stop'] and (len(sys.argv) != 3):
+      print 'Usage : python gluster_volume_start_stop.py [start|stop|restart_all] <vol_name>'
+      sys.exit(0)
+
+    gluster_lck, err = lock.get_lock('gluster_commands')
     if err:
       raise Exception(err)
+
+    if sys.argv[1] == 'restart_all':
+      ret, err = gluster_volumes.restart_all_volumes()
+      if err:
+        raise Exception(err)
+      sys.exit(0)
+    else:
+      vol_name = sys.argv[2]
+      ret, err = volume_start_stop(vol_name, sys.argv[1])
+      if err:
+        raise Exception(err)
   except Exception, e:
     print e
     sys.exit(-1)
   else:
     sys.exit(0)
+  finally:
+    lock.release_lock('gluster_commands')
 
 if __name__ == '__main__':
   main()

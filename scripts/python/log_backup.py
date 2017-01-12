@@ -69,10 +69,14 @@ def zip_grid_logs():
     if err:
       raise Exception(err)
     zf = zipfile.ZipFile('/tmp/grid_logs_tmp.zip', 'w', zipfile.ZIP_DEFLATED)
+
     for root, dirs, files in os.walk('%s/logs_backup/gridcells'%log_dir):
       for file in files:
         #print file
         zf.write(os.path.join(root, file), file)
+
+    if not os.path.exists('%s/task_logs'%log_dir):
+      os.makedirs('%s/task_logs'%log_dir)
 
     alerts_dir, err = common.get_alerts_dir()
     if err:
@@ -80,7 +84,9 @@ def zip_grid_logs():
     audit_dir, err = common.get_audit_dir()
     if err:
       raise Exception(err)
-    for d in [('audit', audit_dir), ('alerts', alerts_dir)]:
+    tasks_log_dir = '%s/task_logs'%log_dir
+
+    for d in [('audit', audit_dir), ('alerts', alerts_dir), ('task_logs', tasks_log_dir)]:
       for root, dirs, files in os.walk(d[1]):
         for file in files:
           full_path = os.path.join(root, file)

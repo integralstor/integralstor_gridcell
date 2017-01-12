@@ -106,13 +106,23 @@ gluster_split_brain_heal() {
   python /opt/integralstor/integralstor_gridcell/scripts/python/self_heal.py $input heal;pause;
 }
 
+restart_all_data_volumes() {
+  clear
+  echo
+  echo
+  read -p "Restarting all data volumes will cause a disruption to data access! Are you sure you want to restart all the volumes (y/n)? : " input
+  case $input in
+    y)python /opt/integralstor/integralstor_gridcell/scripts/python/gluster_volume_start_stop.py restart_all;pause;;
+  esac
+}
+
 admin_volume_stop() {
   clear
   echo
   echo
   read -p "Stopping the admin volume can cause a disruption to IntegralView access.. Are you sure you want to stop the volume (y/n)? : " input
   case $input in
-    y)python /opt/integralstor/integralstor_gridcell/scripts/python/gluster_volume_start_stop.py integralstor_admin_vol stop;pause;;
+    y)python /opt/integralstor/integralstor_gridcell/scripts/python/gluster_volume_start_stop.py stop integralstor_admin_vol;pause;;
   esac
 }
 
@@ -120,7 +130,7 @@ admin_volume_start() {
   clear
   echo
   echo
-  python /opt/integralstor/integralstor_gridcell/scripts/python/gluster_volume_start_stop.py integralstor_admin_vol start;pause;
+  python /opt/integralstor/integralstor_gridcell/scripts/python/gluster_volume_start_stop.py start integralstor_admin_vol;pause;
 }
 
 salt_minion_restart(){
@@ -269,7 +279,7 @@ show_menu() {
   echo
   echo " Volume actions"
   echo " ----------------"
-  echo " 70. Volume split brain status  71. Volume split brain heal"
+  echo " 70. Volume split brain status  71. Volume split brain heal 72. Restart all data volumes"
   echo
   echo
 
@@ -309,6 +319,7 @@ read_input(){
 #    64) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py ctdb;pause;;
     70) gluster_split_brain_info ;;
     71) gluster_split_brain_heal ;;
+    72) restart_all_data_volumes ;;
     91) configure_networking ;;
     92) configure_zfs_pool ;;
     93) configure_initial_salt_master ;;
