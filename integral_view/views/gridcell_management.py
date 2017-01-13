@@ -133,6 +133,9 @@ def view_gridcell(request):
       raise Exception(err)
     return_dict['can_remove_from_trusted_pool'] = ret
 
+    if si[gridcell_name]['node_status'] == -1:
+      raise Exception('GRIDCells details cannot be loaded as the GRIDCell seems to be down.')
+
     ret, err = gluster_trusted_pools.can_add_gridcell_to_storage_pool(gridcell_name, si)
     if err:
       raise Exception(err)

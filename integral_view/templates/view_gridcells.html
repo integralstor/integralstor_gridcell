@@ -65,24 +65,28 @@
               {%endif%}
             </td>
             <td>
-              <div class="btn-group btn-group-xs " >
-                <a class="btn btn-default dropdown-toggle " data-toggle="dropdown" href="#" title="Click to view GRIDCell actions "> <i class="fa fa-cog fa-fw"></i>Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
-                <ul class="dropdown-menu pull-right">
-                  <li><a  class="action-dropdown" href="/view_gridcell?gridcell_name={{gridcell_name}}"  title="View GRIDCell details" > <i class="fa fa-cog fa-fw"></i>GRIDCell details</a>
-                  {%if gluster_removable_gridcells and gridcell_name in gluster_removable_gridcells %}
-                    <li><a  class="action-dropdown" href="/remove_a_gridcell_from_storage_pool?gridcell_name={{gridcell_name}}"  style="color:red" title="Remove this GRIDCell from the storage pool" > <i class="fa fa-trash-o fa-fw"></i>Remove from storage pool</a>
-                  {%endif%}
-                  {%if gluster_addable_gridcells  and gridcell_name in gluster_addable_gridcells%}
-                    <li><a  class="action-dropdown" href="/add_a_gridcell_to_storage_pool?gridcell_name={{gridcell_name}}"  title="Add this GRIDCell to the storage pool" > <i class="fa fa-plus fa-fw"></i>Add to storage pool</a>
-                  {%endif%}
-                  {%if gridcell_name not in admin_gridcells and not gridcell_info.in_cluster%}
-                    <li><a  class="action-dropdown" href="/remove_a_gridcell_from_grid?gridcell_name={{gridcell_name}}"  style="color:red" title="Remove this GRIDCell from the grid" > <i class="fa fa-trash-o fa-fw"></i>Remove from grid</a>
-                  {%endif%}
-                  {%if gridcell_name not in admin_gridcells and gridcell_info.volume_list%}
-                    <li><a  class="action-dropdown" href="/replace_gridcell?gridcell_name={{gridcell_name}}"  style="color:red" title="Replace this GRIDCell with another" > <i class="fa fa-exchange-o fa-fw"></i>Replace with another GRIDCell</a>
-                  {%endif%}
-                </ul>
-              </div>
+              {%if gridcell_info.node_status != -1 %}
+                <div class="btn-group btn-group-xs " >
+                  <a class="btn btn-default dropdown-toggle " data-toggle="dropdown" href="#" title="Click to view GRIDCell actions "> <i class="fa fa-cog fa-fw"></i>Actions&nbsp;<span class="fa fa-caret-down" title="Toggle dropdown menu"></span> </a>
+                  <ul class="dropdown-menu pull-right">
+                      <li><a  class="action-dropdown" href="/view_gridcell?gridcell_name={{gridcell_name}}"  title="View GRIDCell details" > <i class="fa fa-cog fa-fw"></i>GRIDCell details</a>
+                    {%if gluster_removable_gridcells and gridcell_name in gluster_removable_gridcells %}
+                      <li><a  class="action-dropdown" href="/remove_a_gridcell_from_storage_pool?gridcell_name={{gridcell_name}}"  style="color:red" title="Remove this GRIDCell from the storage pool" > <i class="fa fa-trash-o fa-fw"></i>Remove from storage pool</a>
+                    {%endif%}
+                    {%if gluster_addable_gridcells  and gridcell_name in gluster_addable_gridcells%}
+                      <li><a  class="action-dropdown" href="/add_a_gridcell_to_storage_pool?gridcell_name={{gridcell_name}}"  title="Add this GRIDCell to the storage pool" > <i class="fa fa-plus fa-fw"></i>Add to storage pool</a>
+                    {%endif%}
+                    {%if gridcell_name not in admin_gridcells and not gridcell_info.in_cluster%}
+                      <li><a  class="action-dropdown" href="/remove_a_gridcell_from_grid?gridcell_name={{gridcell_name}}"  style="color:red" title="Remove this GRIDCell from the grid" > <i class="fa fa-trash-o fa-fw"></i>Remove from grid</a>
+                    {%endif%}
+                    {%if gridcell_name not in admin_gridcells and gridcell_info.volume_list%}
+                      <li><a  class="action-dropdown" href="/replace_gridcell?gridcell_name={{gridcell_name}}"  style="color:red" title="Replace this GRIDCell with another" > <i class="fa fa-exchange-o fa-fw"></i>Replace with another GRIDCell</a>
+                    {%endif%}
+                  </ul>
+                </div>
+              {%else%}
+                GRIDcell down?
+              {%endif%}
            </td>
         {%endfor%}
       </tbody>

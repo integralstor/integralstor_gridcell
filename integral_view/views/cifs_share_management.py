@@ -372,7 +372,7 @@ def create_cifs_share(request):
           ret, err = gluster_gfapi.create_gluster_dir(vol,path)
           if err:
             raise Exception(err)
-        print users, groups
+        #print users, groups
         ret, err = cifs_common.create_share(name, comment, guest_ok, read_only, path, "", browseable, users, groups, vol)
         if err:
           raise Exception(err)

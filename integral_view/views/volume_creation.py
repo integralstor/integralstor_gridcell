@@ -300,6 +300,7 @@ def create_volume(request):
       if err:
         raise Exception('Error starting volume : %s'%err)
 
+      '''
       #Set the client side quorum count
       cmd = "gluster volume set %s quorum-count 2 --xml"%request.POST['vol_name']
       d, err = xml_parse.run_gluster_command(cmd)
@@ -311,6 +312,7 @@ def create_volume(request):
       d, err = xml_parse.run_gluster_command(cmd)
       if err:
         raise Exception('Errot setting volume client side quorum type : %s'%err)
+      '''
 
       #Temporarily mount the volume
       (ret, rc), err = command.execute_with_rc("mount -t glusterfs localhost:/"+request.POST['vol_name']+" /mnt")
