@@ -195,6 +195,26 @@ first_time_setup(){
   esac
 }
 
+regenerate_manifest(){
+  clear
+  echo
+  echo
+  read -p "Are you sure you want to regenerate gridcell manifest(y/n)? : " input
+  case $input in
+    y) echo "Regenerating gridcell manifest.. ";python /opt/integralstor/integralstor_common/scripts/python/generate_manifest.py;pause;;
+  esac
+}
+
+regenerate_status(){
+  clear
+  echo
+  echo
+  read -p "Are you sure you want to regenerate gridcell status(y/n)? : " input
+  case $input in
+    y) echo "Regenerating gridcell status.. ";python /opt/integralstor/integralstor_common/scripts/python/generate_status.py;pause;;
+  esac
+}
+
 view_node_status(){
   python /opt/integralstor/integralstor_gridcell/scripts/python/display_node_status.py
   pause
@@ -251,35 +271,35 @@ show_menu() {
   echo
   echo " GRIDCell actions"
   echo " ----------------"
-  echo " 20. Restart distributed storage services     21. Restart IntegralView services     22. Update date using NTP"
-  echo " 23. Shutdown GRIDCell                        24. Reboot GRIDCell                   25. Restart admin agent"
-#  echo " 26. Restart CTDB                             27. Restart Winbind                   28. Restart smb"
-  echo " 27. Restart Winbind                   28. Restart smb"
+  echo " 20. Restart distributed storage services	21. Restart IntegralView services	22. Update date using NTP"
+  echo " 23. Shutdown GRIDCell				24. Reboot GRIDCell			25. Restart admin agent"
+#  echo " 26. Restart CTDB				27. Restart Winbind			28. Restart smb"
+  echo " 27. Restart Winbind				28. Restart smb"
   echo
   echo " Check IntegralView services "
   echo " --------------------------- "
-  echo " 30. Check admin services            31. Check web services              32. Check admin volume status"
-  echo " 33. Check admin volume services     34. Check admin volume mountpoint   35. Stop admin volume"
+  echo " 30. Check admin services			31. Check web services			32. Check admin volume status"
+  echo " 33. Check admin volume services		34. Check admin volume mountpoint	35. Stop admin volume"
   echo " 36. Start admin volume "
   echo
   echo " Check grid accessibility"
   echo " ------------------------"
-  echo " 40. Check GRIDCell network accessibility     41. Check GRIDCell name/address mapping"
+  echo " 40. Check GRIDCell network accessibility	41. Check GRIDCell name/address mapping"
   echo
   echo " Check underlying GRIDCell hardware"
   echo " ----------------------------------"
-  echo " 50. Check hard drive status     51. Check hardware components"
+  echo " 50. Check hard drive status			51. Check hardware components"
   echo
 
   echo " Check grid storage status"
   echo " -------------------------"
-  echo " 60. Check on-disk ZFS filesystem     61. Check Windows storage services             62. Check distributed storage services"
+  echo " 60. Check on-disk ZFS filesystem		61. Check Windows storage services	62. Check distributed storage services"
   echo " 63. Check status of grid peers"
-#  echo " 63. Check status of grid peers       64. Check distributed Windows access status"
+#  echo " 63. Check status of grid peers		64. Check distributed Windows access status"
   echo
   echo " Volume actions"
   echo " ----------------"
-  echo " 70. Volume split brain status  71. Volume split brain heal 72. Restart all data volumes"
+  echo " 70. Volume split brain status			71. Volume split brain heal		72. Restart all data volumes"
   echo
   echo
 
@@ -292,6 +312,8 @@ read_input(){
   read -p "Enter the number corresponding to the desired choice : " input 
   case $input in
     10) view_node_config;;
+    11) regenerate_manifest;;
+    12) regenerate_status;;
     20) gluster_restart;;
     21) integralview_restart;;
     22) update_ntp_date;;
