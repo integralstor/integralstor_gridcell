@@ -843,7 +843,7 @@ def set_dir_quota(request):
         if quota_dict and request.REQUEST['dir'] in quota_dict:
           q = quota_dict[request.REQUEST['dir']]
           #print q
-          return_dict['current_quota'] = filesize.naturalsize(q['hard_limit'])
+          return_dict['current_quota'] = filesize.naturalsize(q['hard_limit'], binary=True)
       form = volume_management_forms.VolumeQuotaForm(initial=init)
       return_dict["form"] = form
       if vol_name and dir:
