@@ -76,7 +76,7 @@ def check_admin_vol_started(print_to_stdout = True, separator = '\n'):
   try:
     if print_to_stdout:
       ret_list.append('Admin volume status : ')
-    out, err = command.get_command_output('gluster volume info integralstor_admin_vol | grep Status')
+    out, err = command.get_command_output('gluster volume info integralstor_admin_vol | grep Status', shell=True)
     if err:
       raise Exception(err)
     ret_list.append(out[0])

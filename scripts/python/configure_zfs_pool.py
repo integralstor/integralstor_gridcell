@@ -124,6 +124,10 @@ def configure_zfs_pool():
     #print 'create compr', ret, err
     if err:
       raise Exception(err)
+    ret, err = zfs.create_dataset('frzpool', 'local_storage', None)
+    if err:
+      raise Exception(err)
+    os.system('chmod 775 /frzpool/local_storage')
     print 'Creating ZFS filesystems.. Done.'
     print
 
