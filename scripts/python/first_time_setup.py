@@ -641,7 +641,7 @@ def display_initial_screen():
   while i < 10:
     print
     i += 1
-  print "Please ensure that you have selected three (3) GRIDCells to be your administration GRIDCells, that they are connected to the network, the ZFS pool has been created and the network configuration done on all of them.".center(80, ' ')
+  print "Please ensure that you have selected two (2) GRIDCells to be your administration GRIDCells, that they are connected to the network, the ZFS pool has been created and the network configuration done on all of them.".center(80, ' ')
   print
   print
   print
