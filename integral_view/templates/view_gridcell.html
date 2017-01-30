@@ -435,7 +435,13 @@
                       <td> {{sn}}  (OS disk) </td>
                       <td>
                         {% if disk.hw_raid%}
-                          Under hardware RAID so no S.M.A.R.T status.
+                          Disk hardware status - <b>{{disk.status}}</b> 
+                          {%if disk.status.lower == 'ok'%}
+                            <i class="fa fa-check green fa-2x"></i>
+                          {%else%}
+                            <i class="fa fa-remove red fa-2x"></i>
+                          {%endif%}<br/>
+                          (Under hardware RAID so no S.M.A.R.T status available.)
                         {%else%}
                           {{disk.status}} &nbsp;&nbsp;
                           {%if disk.status == 'PASSED' or disk.status == 'OK'%}
