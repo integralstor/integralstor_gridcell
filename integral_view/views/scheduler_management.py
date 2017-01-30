@@ -74,7 +74,7 @@ def view_tasks(request):
     return_dict['base_template'] = "batch_base.html"
     return_dict["page_title"] = 'Background tasks'
     return_dict['tab'] = 'scheduled_jobs_tab'
-    return_dict["error"] = 'Error retriving background tasks'
+    return_dict["error"] = 'Error retrieving background tasks'
     return_dict["error_details"] = str(e)
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
@@ -105,10 +105,10 @@ def view_task(request, *args):
         with open(log_file_path) as output:
           task_output = task_output + ''.join(output.readlines())
       else:
-        first,err = command.get_command_output("head -n 5 /tmp/%d.log"%int(task_id), shell=True)
+        first,err = command.get_command_output("head -n 5 %s"%log_file_path, shell=True)
         if err:
           print err
-        last,err = command.get_command_output("tail -n 20 /tmp/%d.log"%int(task_id), shell=True)
+        last,err = command.get_command_output("tail -n 20 %s"%log_file_path, shell=True)
         if err:
           print err
         #print last
@@ -121,7 +121,7 @@ def view_task(request, *args):
     return_dict['base_template'] = "batch_base.html"
     return_dict["page_title"] = 'View scheduled job details'
     return_dict['tab'] = 'scheduled_jobs_tab'
-    return_dict["error"] = 'Error retriving scheduled job details'
+    return_dict["error"] = 'Error retrieving scheduled job details'
     return_dict["error_details"] = str(e)
     return django.shortcuts.render_to_response("logged_in_error.html", return_dict, context_instance=django.template.context.RequestContext(request))
 
