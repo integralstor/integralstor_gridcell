@@ -94,6 +94,7 @@ def configure_zfs_pool():
     print 'Creating ZFS pool.. Done.'
     print
 
+    '''
     quota_str = None
     pd, err = zfs.get_pool('frzpool')
     if err:
@@ -110,6 +111,7 @@ def configure_zfs_pool():
       else:
         quota_str = '%.2f'%(val*0.85)
     #print 'quota str', quota_str
+    '''
 
     print 'Creating ZFS filesystems..'
     ret, err = zfs.create_dataset('frzpool', 'normal', None)
@@ -132,6 +134,7 @@ def configure_zfs_pool():
     print
 
 
+    '''
     print 'Setting ZFS pool quota..'
     if quota_str:
       ret, err = zfs.set_property('frzpool', 'quota', quota_str)
@@ -152,6 +155,7 @@ def configure_zfs_pool():
       #print 'setting compressed quota ', ret, err
     print 'Setting ZFS pool quota.. Done.'
     print
+    '''
 
     print 'Setting ZFS pool properties..'
     ret, err = zfs.set_property('frzpool', 'acltype', 'posixacl')
