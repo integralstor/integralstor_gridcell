@@ -363,7 +363,7 @@ read_input(){
 
 }
  
-#trap '' SIGINT SIGQUIT SIGTSTP
+trap '' SIGINT SIGQUIT SIGTSTP
  
 while true
 do
