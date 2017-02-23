@@ -254,7 +254,7 @@ def establish_default_configuration(client, si, admin_gridcells):
     print "Placing CTDB public_addresses files"
     # next line is redundant?
     shutil.copyfile('%s/lock/public_addresses'%config_dir, '/etc/ctdb/public_addresses')
-    r2 = client.cmd('*', 'cmd.run_all', ['rm -f /etc/ctdb/nodes'])
+    r2 = client.cmd('*', 'cmd.run_all', ['rm -f /etc/ctdb/public_addresses'])
     r2 = client.cmd('*', 'cmd.run_all', ['cp %s/lock/public_addresses /etc/ctdb/public_addresses'%config_dir])
     if r2:
       for node, ret in r2.items():
