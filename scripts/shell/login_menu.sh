@@ -4,6 +4,13 @@ pause(){
   read -p "Press [Enter] key to continue..." key
 }
 
+configure_public_addresses(){
+  clear
+  echo
+  echo
+  python /opt/integralstor/integralstor_gridcell/scripts/python/configure_public_addresses.py
+}
+
 update_ntp_date(){
   clear
   echo
@@ -273,8 +280,9 @@ show_menu() {
   echo " ----------------"
   echo " 20. Restart distributed storage services	21. Restart IntegralView services	22. Update date using NTP"
   echo " 23. Shutdown GRIDCell				24. Reboot GRIDCell			25. Restart admin agent"
-#  echo " 26. Restart CTDB				27. Restart Winbind			28. Restart smb"
-  echo " 27. Restart Winbind				28. Restart smb"
+  echo " 26. Restart CTDB" 
+#  echo " 27. Restart Winbind				28. Restart smb"
+  echo " 29. Configure Public Addresses" 
   echo
   echo " Check IntegralView services "
   echo " --------------------------- "
@@ -320,9 +328,10 @@ read_input(){
     23) do_shutdown;;
     24) do_reboot;;
     25) salt_minion_restart;;
-#    26) ctdb_restart;;
+    26) ctdb_restart;;
     27) winbind_restart;;
     28) smb_restart;;
+    29) configure_public_addresses;;
     30) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py salt;pause;;
     31) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py integralview_processes;pause;;
     32) python /opt/integralstor/integralstor_gridcell/scripts/python/monitoring.py admin_vol_started;pause;;
@@ -354,7 +363,7 @@ read_input(){
 
 }
  
-trap '' SIGINT SIGQUIT SIGTSTP
+#trap '' SIGINT SIGQUIT SIGTSTP
  
 while true
 do

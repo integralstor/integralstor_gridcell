@@ -188,8 +188,7 @@ def establish_default_configuration(client, si, admin_gridcells):
 
     os.mkdir("%s/logs/task_logs"%config_dir, 0777)
 
-    '''
-    Commenting out as we wont use CTDB for this release
+    
     print "Creating CTDB config file"
     rc, errors = ctdb.create_config_file()
     if not rc:
@@ -216,34 +215,55 @@ def establish_default_configuration(client, si, admin_gridcells):
     print "Creating CTDB nodes file... Done"
     print
 
-    print "Linking CTDB files"
-    shutil.move('/etc/sysconfig/ctdb', '%s/lock/ctdb'%config_dir)
+    # Create an empty public_addresses file. Entries to the file will be added later from the menus.
+    print "Creating CTDB public_addresses file(blank)"
+    rc, err = ctdb.mod_public_addresses (None, action = 'create')
+    if err:
+      raise Exception (err)
+    print "Creating CTDB public_addresses file(blank)... Done"
+    
+    print "Placing CTDB files"
+    shutil.copyfile('/etc/sysconfig/ctdb', '%s/lock/ctdb'%config_dir)
     r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/sysconfig/ctdb'])
-    r2 = client.cmd('*', 'cmd.run_all', ['ln -s %s/lock/ctdb /etc/sysconfig/ctdb'%config_dir])
+    r2 = client.cmd('*', 'cmd.run_all', ['cp %s/lock/ctdb /etc/sysconfig/ctdb'%config_dir])
     if r2:
       for node, ret in r2.items():
         if ret["retcode"] != 0:
           print r2
-          errors = "Error linking to the CTDB config file on %s"%node
+          errors = "Error placing the CTDB config file on %s"%node
           raise Exception(errors)
-    print "Linking CTDB files.. Done."
+    print "Placing CTDB files.. Done."
     print
 
-    # The initial add_nodes created the initial nodes file. So move this into the admin vol and link it all          
+    # The initial add_to_nodes_file created the initial nodes file in admin vol. So pull it to corresponding /etc/ctdb/ path on all nodes
 
-    print "Linking CTDB nodes files"
-    #shutil.move('/etc/ctdb/nodes', '%s/lock/nodes'%config_dir)
+    print "Placing CTDB nodes files"
+    # next line is redundant?
+    shutil.copyfile('%s/lock/nodes'%config_dir, '/etc/ctdb/nodes')
     r2 = client.cmd('*', 'cmd.run_all', ['rm -f /etc/ctdb/nodes'])
-    r2 = client.cmd('*', 'cmd.run_all', ['ln -s %s/lock/nodes /etc/ctdb/nodes'%config_dir])
+    r2 = client.cmd('*', 'cmd.run_all', ['cp %s/lock/nodes /etc/ctdb/nodes'%config_dir])
     if r2:
       for node, ret in r2.items():
         if ret["retcode"] != 0:
           print r2
           errors = "Error linking to the CTDB nodes file on %s"%node
           raise Exception(errors)
-    print "Linking CTDB nodes files. Done.."
+    print "Placing CTDB nodes files. Done.."
     print
-    '''
+    
+    print "Placing CTDB public_addresses files"
+    # next line is redundant?
+    shutil.copyfile('%s/lock/public_addresses'%config_dir, '/etc/ctdb/public_addresses')
+    r2 = client.cmd('*', 'cmd.run_all', ['rm -f /etc/ctdb/nodes'])
+    r2 = client.cmd('*', 'cmd.run_all', ['cp %s/lock/public_addresses /etc/ctdb/public_addresses'%config_dir])
+    if r2:
+      for node, ret in r2.items():
+        if ret["retcode"] != 0:
+          print r2
+          errors = "Error linking to the CTDB nodes file on %s"%node
+          raise Exception(errors)
+    print "Placing CTDB public_addresses files. Done.."
+    print
 
     print "Linking smb.conf files"
     shutil.copyfile('%s/samba/smb.conf'%defaults_dir,'%s/lock/smb.conf'%config_dir)
@@ -665,7 +685,7 @@ def main():
   print
   print
 
+ 
 if __name__ == "__main__":
   main()
-
 
