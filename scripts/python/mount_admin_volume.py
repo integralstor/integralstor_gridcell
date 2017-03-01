@@ -59,9 +59,10 @@ def mount_and_configure():
       if status['status_code'] != 0:
 	logger.log_or_print('Service %s not started so restarting'%service, lg, level='error')
 	subprocess.call(['service', service, 'restart'], shell=False)
-	admin_vol_name, err = common.get_admin_vol_name()
-	if err:
-	  raise Exception(err)
+
+      admin_vol_name, err = common.get_admin_vol_name()
+      if err:
+        raise Exception(err)
 
       #Get the config dir - the mount point.
       config_dir, err = common.get_config_dir()
