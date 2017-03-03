@@ -553,6 +553,21 @@ def initiate_setup():
             errors = "Error restarting uwsgi service on %s"%node
             print errors
 
+    do = raw_input("Enable(chkconfig) services at startup?")
+    if do == 'y':
+      #Start CTDB, samba and/or winbind on the nodes..
+      print "Enabling services.."
+      rc, error = grid_ops.chkconfig_services(client, admin_gridcells, 'on')
+      if not rc:
+        e = None
+        if err:
+          e =  "Error enabling(chkconfig) services on the GRIDCells : %s"%err
+        else:
+          e =  "Error enabling(chkconfig) services on the GRIDCells"
+        raise Exception(e)
+      print "Enabling services.. Done."
+      print
+
     do = raw_input("Setup cron on the admin GRIDCells?")
     if do == 'y':
       print
