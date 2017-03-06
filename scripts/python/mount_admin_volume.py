@@ -22,16 +22,18 @@ def sync_ctdb_files ():
     if err:
       raise Exception (err)
   
-    (ret, rc), err = command.execute_with_rc ('diff "/etc/sysconfig/ctdb" "%s/lock/ctdb"' %str(config_dir))
-    if (not err) and (rc != 0):
+    out, err = command.get_command_output('diff "/etc/sysconfig/ctdb" "%s/lock/ctdb"'%str(config_dir), True, True)
+    if err:
       shutil.copyfile ('%s/lock/ctdb'%str(config_dir), '/etc/sysconfig/ctdb')
       is_change = True
-    (ret, rc), err = command.execute_with_rc ('diff "/etc/ctdb/nodes" "%s/lock/nodes"' %str(config_dir))
-    if (not err) and (rc != 0):
+
+    out, err = command.get_command_output('diff "/etc/ctdb/nodes" "%s/lock/nodes"'%str(config_dir), True, True)
+    if err:
       shutil.copyfile ('%s/lock/nodes'%str(config_dir), '/etc/ctdb/nodes')
       is_change = True
-    (ret, rc), err = command.execute_with_rc ('diff "/etc/ctdb/public_addresses" "%s/lock/public_addresses"' %str(config_dir))
-    if (not err) and (rc != 0):
+
+    out, err = command.get_command_output('diff "/etc/ctdb/public_addresses" "%s/lock/public_addresses"'%str(config_dir), True, True)
+    if err:
       shutil.copyfile ('%s/lock/public_addresses'%str(config_dir), '/etc/ctdb/public_addresses')
       is_change = True
   except Exception, e:
@@ -58,11 +60,15 @@ def mount_and_configure():
       logger.log_or_print('Service %s status is %s'%(service, status['status_code']), lg, level='debug')
       if status['status_code'] != 0:
 	logger.log_or_print('Service %s not started so restarting'%service, lg, level='error')
-	subprocess.call(['service', service, 'restart'], shell=False)
+        out, err = command.get_command_output('service %s restart'%service, False, True)
+        if not err and out:
+          logger.log_or_print('Service %s: %s'%(service, out), lg, level='debug')
+	else:
+          logger.log_or_print('Service %s error : %s'%(service, err), lg, level='error')
 
       admin_vol_name, err = common.get_admin_vol_name()
       if err:
-        raise Exception(err)
+	raise Exception(err)
 
       #Get the config dir - the mount point.
       config_dir, err = common.get_config_dir()
@@ -95,22 +101,61 @@ def mount_and_configure():
 		  #raise Exception (err)
 		  pass
 		if sync == True and is_change == True:
-		  subprocess.call(['service', 'ctdb', 'restart'], shell=False)
+	          logger.log_or_print('ctdb related files were synced.', lg, level='info')
+	          logger.log_or_print('Restarting ctdb.', lg, level='debug')
+		  out, err = command.get_command_output('service ctdb restart', False, True)
+		  if not err and out:
+		    logger.log_or_print('Service ctdb: %s'%out, lg, level='debug')
+		  else:
+		    logger.log_or_print('Service ctdb error : %s'%err, lg, level='error')
 
-		#subprocess.call(['service', 'ctdb', 'restart'], shell=False)
-		#subprocess.call(['service', 'winbind', 'restart'], shell=False)
-		#subprocess.call(['service', 'smb', 'restart'], shell=False)
-		subprocess.call(['service', 'nginx', 'restart'], shell=False)
-		subprocess.call(['service', 'uwsgi', 'restart'], shell=False)
+                """
+                # Restart winbind
+                out, err = command.get_command_output('service winbind restart', False, True)
+		if not err and out:
+		  logger.log_or_print('Service winbind: %s'%out, lg, level='debug')
+		else:
+		  logger.log_or_print('Service winbind error : %s'%err, lg, level='error')
+                # Restart smb
+                out, err = command.get_command_output('service smb restart', False, True)
+		if not err and out:
+		  logger.log_or_print('Service smb: %s'%out, lg, level='debug')
+		else:
+		  logger.log_or_print('Service smb error : %s'%err, lg, level='error')
+                """
+
+		# Restart nginx
+                out, err = command.get_command_output('service nginx restart', False, True)
+		if not err and out:
+		  logger.log_or_print('Service nginx: %s'%out, lg, level='debug')
+		else:
+		  logger.log_or_print('Service nginx error : %s'%err, lg, level='error')
+                # Restart uwsgi
+                out, err = command.get_command_output('service uwsgi restart', False, True)
+		if not err and out:
+		  logger.log_or_print('Service uwsgi: %s'%out, lg, level='debug')
+		else:
+		  logger.log_or_print('Service uwsgi error : %s'%err, lg, level='error')
+
 		if ag:
-		  subprocess.call(['service', 'salt-master', 'restart'], shell=False)
-		  subprocess.call(['service', 'salt-minion', 'restart'], shell=False)
+		  # Restart salt-master
+		  out, err = command.get_command_output('service salt-master restart', False, True)
+		  if not err and out:
+		    logger.log_or_print('Service salt-master: %s'%out, lg, level='debug')
+		  else:
+		    logger.log_or_print('Service salt-master error : %s'%err, lg, level='error')
+                  # Restart salt-minion
+		  out, err = command.get_command_output('service salt-minion restart', False, True)
+		  if not err and out:
+		    logger.log_or_print('Service salt-minion: %s'%out, lg, level='debug')
+		  else:
+		    logger.log_or_print('Service salt-minion error : %s'%err, lg, level='error')
 		break
 	      else:
 		str =  'Mount from %s failed.'%admin_gridcell
 		logger.log_or_print(str, lg, level='error')
 	  if not mounted:
-	    str =  'Failed to mounted admin volume!'
+	    str =  'Failed to mount admin volume!'
 	    logger.log_or_print(str, lg, level='critical')
 	else:
 	  sync, is_change, err = sync_ctdb_files ()
@@ -119,22 +164,37 @@ def mount_and_configure():
 	  if sync == False:
 	    raise Exception (err)
 	  if sync == True and is_change == True:
-	    subprocess.call(['service', 'ctdb', 'restart'], shell=False)
+	    logger.log_or_print('ctdb related files were synced.', lg, level='info')
+	    logger.log_or_print('Restarting ctdb.', lg, level='debug')
+            out, err = command.get_command_output('service ctdb restart', False, True)
+            if not err and out:
+              logger.log_or_print('Service ctdb: %s'%out, lg, level='debug')
+            else:
+              logger.log_or_print('Service ctdb error : %s'%err, lg, level='error')
 
 	  logger.log_or_print('Checking services', lg, level='debug')
-	  for service in ['nginx']:
+	  for service in ['nginx', 'ctdb']:
 	    status, err = services_management.get_service_status([service])
 	    if err:
 	      raise Exception(err)
 	    logger.log_or_print('Service %s status is %s'%(service, status['status_code']), lg, level='debug')
 	    if status['status_code'] != 0:
-	      logger.log_or_print('Service %s not started so restarting'%service, lg, level='error')
-	      subprocess.call(['service', service, 'restart'], shell=False)
+	      logger.log_or_print('Service %s is not active, restarting'%service, lg, level='error')
+	      out, err = command.get_command_output('service %s restart'%service, False, True)
+	      if not err and out:
+		logger.log_or_print('Service %s: %s'%(service, out), lg, level='debug')
+	      else:
+		logger.log_or_print('Service %s error : %s'%(service, err), lg, level='error')
+
 	  #UWSGI service config not complete so need to check against the actual process name
 	  (ret, rc), err = command.execute_with_rc('pidof uwsgi', shell=True)
 	  if rc != 0:
-	    logger.log_or_print('Service uwsgi not started so restarting', lg, level='error')
-	    subprocess.call(['service', 'uwsgi', 'restart'], shell=False)
+	    logger.log_or_print('Service uwsgi is not active, restarting', lg, level='error')
+            out, err = command.get_command_output('service uwsgi restart', False, True)
+            if not err and out:
+              logger.log_or_print('Service uwsgi: %s'%out, lg, level='debug')
+            else:
+              logger.log_or_print('Service uwsgi error : %s'%err, lg, level='error')
 	  str =  'Admin volume is already mounted'
 	  logger.log_or_print(str, lg, level='info')
 
@@ -164,7 +224,7 @@ def main():
   if err:
     print err
     sys.exit(-1)
-    
+   
 
 if __name__ == '__main__':
   main()
