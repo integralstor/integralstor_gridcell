@@ -33,14 +33,25 @@ def get_admin_gridcells():
       print '%d. %s'%(index, minion)
     print
 
-    str_to_print = 'Enter the number corresponding to one other GRIDCells from the above list that will act as admin GRIDCells : '
-
     valid_input = False
     while not valid_input:
       admin_server_list = []
+      num_admin_servers = None
+      try:
+        num_admin_servers = int(raw_input('How many additional admin GRIDCells required? '))
+        if (num_admin_servers > len(pending_minions)-1) or (num_admin_servers < 1):
+          raise Exception()
+        if not num_admin_servers:
+          raise Exception()
+      except Exception, e:
+        print 'Invalid input. Retry\n'
+        continue
+      print '%s additional admin GRIDCells will be provisioned'%num_admin_servers
+      str_to_print = 'Enter index-numbers corresponding to %s other GRIDCells from the above list that will act as admin GRIDCells: '%num_admin_servers
       input = raw_input(str_to_print)
       if input:
         try:
+          '''
           admin_server_index = int(input.strip())
         except Exception, e:
           print 'Please enter a valid number from the list above'
@@ -50,17 +61,16 @@ def get_admin_gridcells():
           continue
         admin_server_list.append(pending_minions[admin_server_index-1])
         '''
-        try:
           admin_server_index_list = [x.strip() for x in input.split(',')]
         except Exception, e:
           print "Invalid value. Please try again."
           continue
         #Check for uniqueness now
         if (len(admin_server_index_list) > len(set(admin_server_index_list))):
-          print "Please enter two distinct GRIDCell numbers."
+          print "Please enter %s distinct GRIDCell numbers."%num_admin_servers
           continue
-        if len(admin_server_index_list) != 2:
-          print "Please enter exactly two other GRIDCell numbers."
+        if len(admin_server_index_list) != num_admin_servers:
+          print "Please enter exactly %s other GRIDCell numbers."%num_admin_servers
           continue
         admin_server_list = []
         all_ok = True
@@ -76,7 +86,6 @@ def get_admin_gridcells():
           admin_server_list.append(pending_minions[admin_server_index-1])
         if not all_ok:
           continue
-        '''
         admin_server_list.append(me)
         print "\nThe following are the choices that you have made :"
         print
@@ -552,6 +561,21 @@ def initiate_setup():
           if ret["retcode"] != 0:
             errors = "Error restarting uwsgi service on %s"%node
             print errors
+
+    do = raw_input("Enable(chkconfig) services at startup?")
+    if do == 'y':
+      #Start CTDB, samba and/or winbind on the nodes..
+      print "Enabling services.."
+      rc, error = grid_ops.chkconfig_services(client, admin_gridcells, 'on')
+      if not rc:
+        e = None
+        if err:
+          e =  "Error enabling(chkconfig) services on the GRIDCells : %s"%err
+        else:
+          e =  "Error enabling(chkconfig) services on the GRIDCells"
+        raise Exception(e)
+      print "Enabling services.. Done."
+      print
 
     do = raw_input("Setup cron on the admin GRIDCells?")
     if do == 'y':
