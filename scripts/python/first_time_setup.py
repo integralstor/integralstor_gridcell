@@ -39,14 +39,17 @@ def get_admin_gridcells():
       num_admin_servers = None
       try:
         num_admin_servers = int(raw_input('How many additional admin GRIDCells required? '))
-        if (num_admin_servers > len(pending_minions)-1) or (num_admin_servers < 1):
-          raise Exception()
         if not num_admin_servers:
           raise Exception()
+        if (num_admin_servers > len(pending_minions)) or (num_admin_servers < 1):
+          raise Exception()
+        if num_admin_servers == -99:
+          break
       except Exception, e:
         print 'Invalid input. Retry\n'
         continue
       print '%s additional admin GRIDCells will be provisioned'%num_admin_servers
+      print
       str_to_print = 'Enter index-numbers corresponding to %s other GRIDCells from the above list that will act as admin GRIDCells: '%num_admin_servers
       input = raw_input(str_to_print)
       if input:
@@ -108,6 +111,8 @@ def get_admin_gridcells():
   
         if commit == 'y':
           valid_input = True
+    if not valid_input:
+      raise Exception('Did not complete adding admin gridcells!')
   except Exception, e:
     return None, 'Error getting admin GRIDCells selection : %s'%str(e)
   else:
@@ -685,7 +690,7 @@ def display_initial_screen():
   while i < 10:
     print
     i += 1
-  print "Please ensure that you have selected two (2) GRIDCells to be your administration GRIDCells, that they are connected to the network, the ZFS pool has been created and the network configuration done on all of them.".center(80, ' ')
+  print "Please ensure that you have selected atleast two (2) GRIDCells to be your administration GRIDCells, that they are connected to the network, the ZFS pool has been created and the network configuration done on all of them.".center(80, ' ')
   print
   print
   print
