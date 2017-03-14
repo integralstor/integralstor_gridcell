@@ -203,6 +203,12 @@ def establish_default_configuration(client, si, admin_gridcells):
     os.mkdir("%s/logs/task_logs"%config_dir, 0777)
 
     
+    print "Creating assert_admin_vol_mount file"
+    with open('%s/lock/assert_admin_vol_mount'%config_dir, 'w') as f:
+      f.close()
+    print "Creating assert_admin_vol_mount file... Done"
+    print 
+
     print "Creating CTDB config file"
     rc, errors = ctdb.create_config_file()
     if not rc:
@@ -246,7 +252,7 @@ def establish_default_configuration(client, si, admin_gridcells):
           print r2
           errors = "Error placing the CTDB config file on %s"%node
           raise Exception(errors)
-    print "Placing CTDB files.. Done."
+    print "Placing CTDB files... Done"
     print
 
     # The initial add_to_nodes_file created the initial nodes file in admin vol. So pull it to corresponding /etc/ctdb/ path on all nodes
@@ -262,7 +268,7 @@ def establish_default_configuration(client, si, admin_gridcells):
           print r2
           errors = "Error linking to the CTDB nodes file on %s"%node
           raise Exception(errors)
-    print "Placing CTDB nodes files. Done.."
+    print "Placing CTDB nodes files... Done"
     print
     
     print "Placing CTDB public_addresses files"
@@ -276,7 +282,7 @@ def establish_default_configuration(client, si, admin_gridcells):
           print r2
           errors = "Error linking to the CTDB nodes file on %s"%node
           raise Exception(errors)
-    print "Placing CTDB public_addresses files. Done.."
+    print "Placing CTDB public_addresses files... Done"
     print
 
     print "Linking smb.conf files"
