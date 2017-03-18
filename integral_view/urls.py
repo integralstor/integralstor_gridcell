@@ -4,9 +4,9 @@ from django.conf.urls import patterns, include, url
 
 from integral_view.views.stgt_iscsi_management import view_iscsi_targets, view_iscsi_target, create_iscsi_target, delete_iscsi_target, add_iscsi_user_authentication, remove_iscsi_user_authentication, create_iscsi_lun, delete_iscsi_lun, add_iscsi_acl, remove_iscsi_acl
 
-from integral_view.views.admin_auth  import login, logout, change_admin_password, configure_email_settings, view_email_settings
+from integral_view.views.admin_auth import login, logout, change_admin_password, configure_email_settings, view_email_settings
 
-from integral_view.views.gridcell_management  import view_gridcells, view_gridcell, remove_a_gridcell_from_storage_pool, add_a_gridcell_to_storage_pool, remove_a_gridcell_from_grid, scan_for_new_gridcells, replace_gridcell, replace_disk, identify_gridcell, identify_disk
+from integral_view.views.gridcell_management import view_gridcells, view_gridcell, remove_a_gridcell_from_storage_pool, add_a_gridcell_to_storage_pool, remove_a_gridcell_from_grid, scan_for_new_gridcells, replace_gridcell, replace_disk, identify_gridcell, identify_disk
 
 from integral_view.views.volume_creation import volume_creation_wizard, create_volume, create_volume_conf
 
@@ -18,13 +18,13 @@ from integral_view.views.log_management import view_audit_trail, view_alerts, ro
 
 from integral_view.views.common import dashboard, access_shell
 
-from integral_view.views.services_management import view_services,change_service_status_on_gridcell, view_ntp_settings, edit_ntp_settings
+from integral_view.views.services_management import view_services, change_service_status_on_gridcell, view_ntp_settings, edit_ntp_settings
 
-from integral_view.views.scheduler_management import schedule_scrub,view_tasks,view_task,remove_task
+from integral_view.views.scheduler_management import schedule_scrub, view_tasks, view_task, remove_task
 
 from integral_view.views.log_management import download_vol_log, download_sys_log, rotate_log, view_rotated_log_list, view_rotated_log_file, refresh_alerts, raise_alert, internal_audit, download_system_configuration
 
-from integral_view.views.cifs_share_management import view_cifs_shares, create_cifs_share, view_cifs_share, edit_cifs_share, delete_cifs_share, edit_cifs_authentication_method , view_cifs_authentication_settings, edit_cifs_authentication_settings
+from integral_view.views.cifs_share_management import view_cifs_shares, create_cifs_share, view_cifs_share, edit_cifs_share, delete_cifs_share, edit_cifs_authentication_method, view_cifs_authentication_settings, edit_cifs_authentication_settings
 
 from integral_view.views.local_user_management import view_local_users, create_local_user, change_local_user_password, delete_local_user
 
@@ -36,130 +36,210 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    url(r'^admin/', include(admin.site.urls)),
-    #From admin_auth
-    url(r'^login/', login),
-    url(r'^logout/', logout),
-    url(r'^$', login),
-    url(r'^change_admin_password/', login_and_admin_vol_mountpoint_required(change_admin_password),name="change_admin_password"),
-    url(r'^view_email_settings/', login_and_admin_vol_mountpoint_required(view_email_settings)),
-    url(r'^configure_email_settings/', login_and_admin_vol_mountpoint_required(configure_email_settings)),
+                       url(r'^admin/', include(admin.site.urls)),
+                       # From admin_auth
+                       url(r'^login/', login),
+                       url(r'^logout/', logout),
+                       url(r'^$', login),
+                       url(r'^change_admin_password/', login_and_admin_vol_mountpoint_required(
+                           change_admin_password), name="change_admin_password"),
+                       url(r'^view_email_settings/',
+                           login_and_admin_vol_mountpoint_required(view_email_settings)),
+                       url(r'^configure_email_settings/',
+                           login_and_admin_vol_mountpoint_required(configure_email_settings)),
 
 
-    #From batch_process_management
-    url(r'^view_batch_processes/', login_and_admin_vol_mountpoint_required(view_batch_processes)),
-    url(r'^view_batch_process/', login_and_admin_vol_mountpoint_required(view_batch_process)),
+                       # From batch_process_management
+                       url(r'^view_batch_processes/',
+                           login_and_admin_vol_mountpoint_required(view_batch_processes)),
+                       url(r'^view_batch_process/',
+                           login_and_admin_vol_mountpoint_required(view_batch_process)),
 
-    #From cifs_share_management
-    url(r'^view_cifs_shares/', login_and_admin_vol_mountpoint_required(view_cifs_shares)),
-    url(r'^view_cifs_share/', login_and_admin_vol_mountpoint_required(view_cifs_share)),
-    url(r'^edit_cifs_share/', login_and_admin_vol_mountpoint_required(edit_cifs_share)),
-    url(r'^create_cifs_share/', login_and_admin_vol_mountpoint_required(create_cifs_share)),
-    url(r'^delete_cifs_share/', login_and_admin_vol_mountpoint_required(delete_cifs_share)),
-    url(r'^edit_cifs_authentication_method/', login_and_admin_vol_mountpoint_required(edit_cifs_authentication_method)),
-    url(r'^view_cifs_authentication_settings/', login_and_admin_vol_mountpoint_required(view_cifs_authentication_settings)),
-    url(r'^edit_cifs_authentication_settings/', login_and_admin_vol_mountpoint_required(edit_cifs_authentication_settings)),
+                       # From cifs_share_management
+                       url(r'^view_cifs_shares/',
+                           login_and_admin_vol_mountpoint_required(view_cifs_shares)),
+                       url(r'^view_cifs_share/',
+                           login_and_admin_vol_mountpoint_required(view_cifs_share)),
+                       url(r'^edit_cifs_share/',
+                           login_and_admin_vol_mountpoint_required(edit_cifs_share)),
+                       url(r'^create_cifs_share/',
+                           login_and_admin_vol_mountpoint_required(create_cifs_share)),
+                       url(r'^delete_cifs_share/',
+                           login_and_admin_vol_mountpoint_required(delete_cifs_share)),
+                       url(r'^edit_cifs_authentication_method/',
+                           login_and_admin_vol_mountpoint_required(edit_cifs_authentication_method)),
+                       url(r'^view_cifs_authentication_settings/',
+                           login_and_admin_vol_mountpoint_required(view_cifs_authentication_settings)),
+                       url(r'^edit_cifs_authentication_settings/',
+                           login_and_admin_vol_mountpoint_required(edit_cifs_authentication_settings)),
 
-    #From common
-    url(r'^dashboard/', dashboard),
-    url(r'^access_shell/', login_and_admin_vol_mountpoint_required(access_shell)),
+                       # From common
+                       url(r'^dashboard/', dashboard),
+                       url(r'^access_shell/',
+                           login_and_admin_vol_mountpoint_required(access_shell)),
 
-    #From gridcell_management
-    url(r'^view_gridcells/', login_and_admin_vol_mountpoint_required(view_gridcells)),
-    url(r'^view_gridcell/', login_and_admin_vol_mountpoint_required(view_gridcell)),
-    url(r'^scan_for_new_gridcells/', login_and_admin_vol_mountpoint_required(scan_for_new_gridcells)),
-    url(r'^remove_a_gridcell_from_grid/', login_and_admin_vol_mountpoint_required(remove_a_gridcell_from_grid)),
-    url(r'^add_a_gridcell_to_storage_pool/', login_and_admin_vol_mountpoint_required(add_a_gridcell_to_storage_pool)),
-    url(r'^remove_a_gridcell_from_storage_pool/', login_and_admin_vol_mountpoint_required(remove_a_gridcell_from_storage_pool)),
-    url(r'^replace_gridcell/', login_and_admin_vol_mountpoint_required(replace_gridcell)),
-    url(r'^replace_disk/', login_and_admin_vol_mountpoint_required(replace_disk)),
-    url(r'^identify_gridcell/', login_and_admin_vol_mountpoint_required(identify_gridcell)),
-    url(r'^identify_disk/', login_and_admin_vol_mountpoint_required(identify_disk)),
+                       # From gridcell_management
+                       url(r'^view_gridcells/',
+                           login_and_admin_vol_mountpoint_required(view_gridcells)),
+                       url(r'^view_gridcell/',
+                           login_and_admin_vol_mountpoint_required(view_gridcell)),
+                       url(r'^scan_for_new_gridcells/',
+                           login_and_admin_vol_mountpoint_required(scan_for_new_gridcells)),
+                       url(r'^remove_a_gridcell_from_grid/',
+                           login_and_admin_vol_mountpoint_required(remove_a_gridcell_from_grid)),
+                       url(r'^add_a_gridcell_to_storage_pool/',
+                           login_and_admin_vol_mountpoint_required(add_a_gridcell_to_storage_pool)),
+                       url(r'^remove_a_gridcell_from_storage_pool/',
+                           login_and_admin_vol_mountpoint_required(remove_a_gridcell_from_storage_pool)),
+                       url(r'^replace_gridcell/',
+                           login_and_admin_vol_mountpoint_required(replace_gridcell)),
+                       url(r'^replace_disk/',
+                           login_and_admin_vol_mountpoint_required(replace_disk)),
+                       url(r'^identify_gridcell/',
+                           login_and_admin_vol_mountpoint_required(identify_gridcell)),
+                       url(r'^identify_disk/',
+                           login_and_admin_vol_mountpoint_required(identify_disk)),
 
-    #From local_user_management
-    url(r'^view_local_users/', login_and_admin_vol_mountpoint_required(view_local_users)),
-    url(r'^create_local_user/', login_and_admin_vol_mountpoint_required(create_local_user)),
-    url(r'^delete_local_user/', login_and_admin_vol_mountpoint_required(delete_local_user)),
-    url(r'^change_local_user_password/', login_and_admin_vol_mountpoint_required(change_local_user_password)),
+                       # From local_user_management
+                       url(r'^view_local_users/',
+                           login_and_admin_vol_mountpoint_required(view_local_users)),
+                       url(r'^create_local_user/',
+                           login_and_admin_vol_mountpoint_required(create_local_user)),
+                       url(r'^delete_local_user/',
+                           login_and_admin_vol_mountpoint_required(delete_local_user)),
+                       url(r'^change_local_user_password/',
+                           login_and_admin_vol_mountpoint_required(change_local_user_password)),
 
-    #From log_management
-    url(r'^view_alerts/', login_and_admin_vol_mountpoint_required(view_alerts)),
-    url(r'^view_audit_trail/', login_and_admin_vol_mountpoint_required(view_audit_trail)),
-    url(r'^rotate_log/([A-Za-z_]+)', login_and_admin_vol_mountpoint_required(rotate_log)),
-    url(r'^download_vol_log/', login_and_admin_vol_mountpoint_required(download_vol_log)),
-    url(r'^download_sys_log/', login_and_admin_vol_mountpoint_required(download_sys_log)),
-    url(r'^view_rotated_log_list/([A-Za-z_]+)', login_and_admin_vol_mountpoint_required(view_rotated_log_list)),
-    url(r'^view_rotated_log_file/([A-Za-z_]+)', login_and_admin_vol_mountpoint_required(view_rotated_log_file)),
-    #url(r'^refresh_alerts/([0-9_]*)', login_and_admin_vol_mountpoint_required(refresh_alerts)),
-    url(r'^refresh_alerts/', login_and_admin_vol_mountpoint_required(refresh_alerts)),
-    url(r'^raise_alert/', login_and_admin_vol_mountpoint_required(raise_alert)),
-    url(r'^internal_audit/', login_and_admin_vol_mountpoint_required(internal_audit)),
-    url(r'^download_system_configuration/', login_and_admin_vol_mountpoint_required(download_system_configuration)),
+                       # From log_management
+                       url(r'^view_alerts/',
+                           login_and_admin_vol_mountpoint_required(view_alerts)),
+                       url(r'^view_audit_trail/',
+                           login_and_admin_vol_mountpoint_required(view_audit_trail)),
+                       url(r'^rotate_log/([A-Za-z_]+)',
+                           login_and_admin_vol_mountpoint_required(rotate_log)),
+                       url(r'^download_vol_log/',
+                           login_and_admin_vol_mountpoint_required(download_vol_log)),
+                       url(r'^download_sys_log/',
+                           login_and_admin_vol_mountpoint_required(download_sys_log)),
+                       url(r'^view_rotated_log_list/([A-Za-z_]+)',
+                           login_and_admin_vol_mountpoint_required(view_rotated_log_list)),
+                       url(r'^view_rotated_log_file/([A-Za-z_]+)',
+                           login_and_admin_vol_mountpoint_required(view_rotated_log_file)),
+                       #url(r'^refresh_alerts/([0-9_]*)', login_and_admin_vol_mountpoint_required(refresh_alerts)),
+                       url(r'^refresh_alerts/',
+                           login_and_admin_vol_mountpoint_required(refresh_alerts)),
+                       url(r'^raise_alert/',
+                           login_and_admin_vol_mountpoint_required(raise_alert)),
+                       url(r'^internal_audit/',
+                           login_and_admin_vol_mountpoint_required(internal_audit)),
+                       url(r'^download_system_configuration/',
+                           login_and_admin_vol_mountpoint_required(download_system_configuration)),
 
-    #From scheduler_management
-    url(r'^schedule_scrub/', login_and_admin_vol_mountpoint_required(schedule_scrub)),
-    url(r'^view_tasks/',login_and_admin_vol_mountpoint_required(view_tasks)),
-    url(r'^view_task/([0-9]*)',login_and_admin_vol_mountpoint_required(view_task)),
-    url(r'^remove_task/',login_and_admin_vol_mountpoint_required(remove_task)),
+                       # From scheduler_management
+                       url(r'^schedule_scrub/',
+                           login_and_admin_vol_mountpoint_required(schedule_scrub)),
+                       url(r'^view_tasks/',
+                           login_and_admin_vol_mountpoint_required(view_tasks)),
+                       url(r'^view_task/([0-9]*)',
+                           login_and_admin_vol_mountpoint_required(view_task)),
+                       url(r'^remove_task/',
+                           login_and_admin_vol_mountpoint_required(remove_task)),
 
-    #From services_management
-    url(r'^view_services/', login_and_admin_vol_mountpoint_required(view_services)),
-    url(r'^change_service_status_on_gridcell/', login_and_admin_vol_mountpoint_required(change_service_status_on_gridcell)),
-    url(r'^view_ntp_settings/', login_and_admin_vol_mountpoint_required(view_ntp_settings)),
-    url(r'^edit_ntp_settings/', login_and_admin_vol_mountpoint_required(edit_ntp_settings)),
+                       # From services_management
+                       url(r'^view_services/',
+                           login_and_admin_vol_mountpoint_required(view_services)),
+                       url(r'^change_service_status_on_gridcell/',
+                           login_and_admin_vol_mountpoint_required(change_service_status_on_gridcell)),
+                       url(r'^view_ntp_settings/',
+                           login_and_admin_vol_mountpoint_required(view_ntp_settings)),
+                       url(r'^edit_ntp_settings/',
+                           login_and_admin_vol_mountpoint_required(edit_ntp_settings)),
 
-    #From stgt_iscsi_management
-    url(r'^view_iscsi_targets/', login_and_admin_vol_mountpoint_required(view_iscsi_targets)),
-    url(r'^view_iscsi_target/', login_and_admin_vol_mountpoint_required(view_iscsi_target)),
-    url(r'^create_iscsi_target/', login_and_admin_vol_mountpoint_required(create_iscsi_target)),
-    url(r'^delete_iscsi_target/', login_and_admin_vol_mountpoint_required(delete_iscsi_target)),
-    url(r'^create_iscsi_lun/', login_and_admin_vol_mountpoint_required(create_iscsi_lun)),
-    url(r'^delete_iscsi_lun/', login_and_admin_vol_mountpoint_required(delete_iscsi_lun)),
-    url(r'^add_iscsi_user_authentication/', login_and_admin_vol_mountpoint_required(add_iscsi_user_authentication)),
-    url(r'^remove_iscsi_user_authentication/', login_and_admin_vol_mountpoint_required(remove_iscsi_user_authentication)),
-    url(r'^add_iscsi_acl/', login_and_admin_vol_mountpoint_required(add_iscsi_acl)),
-    url(r'^remove_iscsi_acl/', login_and_admin_vol_mountpoint_required(remove_iscsi_acl)),
+                       # From stgt_iscsi_management
+                       url(r'^view_iscsi_targets/',
+                           login_and_admin_vol_mountpoint_required(view_iscsi_targets)),
+                       url(r'^view_iscsi_target/',
+                           login_and_admin_vol_mountpoint_required(view_iscsi_target)),
+                       url(r'^create_iscsi_target/',
+                           login_and_admin_vol_mountpoint_required(create_iscsi_target)),
+                       url(r'^delete_iscsi_target/',
+                           login_and_admin_vol_mountpoint_required(delete_iscsi_target)),
+                       url(r'^create_iscsi_lun/',
+                           login_and_admin_vol_mountpoint_required(create_iscsi_lun)),
+                       url(r'^delete_iscsi_lun/',
+                           login_and_admin_vol_mountpoint_required(delete_iscsi_lun)),
+                       url(r'^add_iscsi_user_authentication/',
+                           login_and_admin_vol_mountpoint_required(add_iscsi_user_authentication)),
+                       url(r'^remove_iscsi_user_authentication/',
+                           login_and_admin_vol_mountpoint_required(remove_iscsi_user_authentication)),
+                       url(r'^add_iscsi_acl/',
+                           login_and_admin_vol_mountpoint_required(add_iscsi_acl)),
+                       url(r'^remove_iscsi_acl/',
+                           login_and_admin_vol_mountpoint_required(remove_iscsi_acl)),
 
-    #From volume_creation
-    url(r'^volume_creation_wizard/([A-Za-z_]+)', login_and_admin_vol_mountpoint_required(volume_creation_wizard)),
-    url(r'^create_volume_conf/', login_and_admin_vol_mountpoint_required(create_volume_conf)),
-    url(r'^create_volume/', login_and_admin_vol_mountpoint_required(create_volume)),
+                       # From volume_creation
+                       url(r'^volume_creation_wizard/([A-Za-z_]+)',
+                           login_and_admin_vol_mountpoint_required(volume_creation_wizard)),
+                       url(r'^create_volume_conf/',
+                           login_and_admin_vol_mountpoint_required(create_volume_conf)),
+                       url(r'^create_volume/',
+                           login_and_admin_vol_mountpoint_required(create_volume)),
 
-    #From volume_management
-    url(r'^view_volumes/', login_and_admin_vol_mountpoint_required(view_volumes)),
-    url(r'^volume_selector/', login_and_admin_vol_mountpoint_required(volume_selector)),
-    url(r'^view_volume/', login_and_admin_vol_mountpoint_required(view_volume)),
-    url(r'^volume_browser/', login_and_admin_vol_mountpoint_required(volume_browser)),
-    url(r'^create_volume_dir/', login_and_admin_vol_mountpoint_required(create_volume_dir)),
-    url(r'^remove_volume_dir/', login_and_admin_vol_mountpoint_required(remove_volume_dir)),
-    url(r'^retrieve_volume_subdirs/', login_and_admin_vol_mountpoint_required(retrieve_volume_subdirs)),
-    url(r'^change_volume_status/', login_and_admin_vol_mountpoint_required(change_volume_status)),
-    url(r'^delete_volume/', login_and_admin_vol_mountpoint_required(delete_volume)),
-    url(r'^expand_volume/', login_and_admin_vol_mountpoint_required(expand_volume)),
-    url(r'^initiate_volume_rebalance/', login_and_admin_vol_mountpoint_required(initiate_volume_rebalance)),
-    url(r'^set_volume_options/', login_and_admin_vol_mountpoint_required(set_volume_options)),
-    url(r'^set_dir_quota/', login_and_admin_vol_mountpoint_required(set_dir_quota)),
-    url(r'^remove_dir_quota/', login_and_admin_vol_mountpoint_required(remove_dir_quota)),
-    url(r'^change_quota_status/', login_and_admin_vol_mountpoint_required(change_quota_status)),
-    url(r'^create_snapshot/', login_and_admin_vol_mountpoint_required(create_snapshot)),
-    url(r'^delete_snapshot/', login_and_admin_vol_mountpoint_required(delete_snapshot)),
-    url(r'^restore_snapshot/', login_and_admin_vol_mountpoint_required(restore_snapshot)),
-    url(r'^deactivate_snapshot/', login_and_admin_vol_mountpoint_required(deactivate_snapshot)),
-    url(r'^activate_snapshot/', login_and_admin_vol_mountpoint_required(activate_snapshot)),
+                       # From volume_management
+                       url(r'^view_volumes/',
+                           login_and_admin_vol_mountpoint_required(view_volumes)),
+                       url(r'^volume_selector/',
+                           login_and_admin_vol_mountpoint_required(volume_selector)),
+                       url(r'^view_volume/',
+                           login_and_admin_vol_mountpoint_required(view_volume)),
+                       url(r'^volume_browser/',
+                           login_and_admin_vol_mountpoint_required(volume_browser)),
+                       url(r'^create_volume_dir/',
+                           login_and_admin_vol_mountpoint_required(create_volume_dir)),
+                       url(r'^remove_volume_dir/',
+                           login_and_admin_vol_mountpoint_required(remove_volume_dir)),
+                       url(r'^retrieve_volume_subdirs/',
+                           login_and_admin_vol_mountpoint_required(retrieve_volume_subdirs)),
+                       url(r'^change_volume_status/',
+                           login_and_admin_vol_mountpoint_required(change_volume_status)),
+                       url(r'^delete_volume/',
+                           login_and_admin_vol_mountpoint_required(delete_volume)),
+                       url(r'^expand_volume/',
+                           login_and_admin_vol_mountpoint_required(expand_volume)),
+                       url(r'^initiate_volume_rebalance/',
+                           login_and_admin_vol_mountpoint_required(initiate_volume_rebalance)),
+                       url(r'^set_volume_options/',
+                           login_and_admin_vol_mountpoint_required(set_volume_options)),
+                       url(r'^set_dir_quota/',
+                           login_and_admin_vol_mountpoint_required(set_dir_quota)),
+                       url(r'^remove_dir_quota/',
+                           login_and_admin_vol_mountpoint_required(remove_dir_quota)),
+                       url(r'^change_quota_status/',
+                           login_and_admin_vol_mountpoint_required(change_quota_status)),
+                       url(r'^create_snapshot/',
+                           login_and_admin_vol_mountpoint_required(create_snapshot)),
+                       url(r'^delete_snapshot/',
+                           login_and_admin_vol_mountpoint_required(delete_snapshot)),
+                       url(r'^restore_snapshot/',
+                           login_and_admin_vol_mountpoint_required(restore_snapshot)),
+                       url(r'^deactivate_snapshot/',
+                           login_and_admin_vol_mountpoint_required(deactivate_snapshot)),
+                       url(r'^activate_snapshot/',
+                           login_and_admin_vol_mountpoint_required(activate_snapshot)),
 
-    #url(r'^edit_integral_view_log_level/', login_and_admin_vol_mountpoint_required(edit_integral_view_log_level)),
-    #url(r'^auth_server_settings/', login_and_admin_vol_mountpoint_required(samba_server_settings)),
-    #url(r'^save_samba_server_settings/', login_and_admin_vol_mountpoint_required(save_samba_server_settings)),
-    #url(r'^show/([A-Za-z0-9_]+)/([a-zA-Z0-9_\-\.]*)', login_and_admin_vol_mountpoint_required(show),name="show_page"),
-    #url(r'^perform_op/([A-Za-z_]+)/([A-Za-z0-9_\-]*)/([A-Za-z0-9_\.\-\:\/]*)', login_and_admin_vol_mountpoint_required(perform_op.perform_op)),
-    #url(r'^volume_specific_op/([A-Za-z_]+)/([A-Za-z0-9_\-]*)', login_and_admin_vol_mountpoint_required(volume_specific_op)),
-    #url(r'^volume_specific_op/create_volume_dir/', login_and_admin_vol_mountpoint_required(volume_specific_op),name="create_vol_dir"),
-    #url(r'^first_login/', login_and_admin_vol_mountpoint_required(hardware_scan)),
+                       #url(r'^edit_integral_view_log_level/', login_and_admin_vol_mountpoint_required(edit_integral_view_log_level)),
+                       #url(r'^auth_server_settings/', login_and_admin_vol_mountpoint_required(samba_server_settings)),
+                       #url(r'^save_samba_server_settings/', login_and_admin_vol_mountpoint_required(save_samba_server_settings)),
+                       #url(r'^show/([A-Za-z0-9_]+)/([a-zA-Z0-9_\-\.]*)', login_and_admin_vol_mountpoint_required(show),name="show_page"),
+                       #url(r'^perform_op/([A-Za-z_]+)/([A-Za-z0-9_\-]*)/([A-Za-z0-9_\.\-\:\/]*)', login_and_admin_vol_mountpoint_required(perform_op.perform_op)),
+                       #url(r'^volume_specific_op/([A-Za-z_]+)/([A-Za-z0-9_\-]*)', login_and_admin_vol_mountpoint_required(volume_specific_op)),
+                       #url(r'^volume_specific_op/create_volume_dir/', login_and_admin_vol_mountpoint_required(volume_specific_op),name="create_vol_dir"),
+                       #url(r'^first_login/', login_and_admin_vol_mountpoint_required(hardware_scan)),
 
 
-    #url(r'^view_task_details/([0-9]*)', login_and_admin_vol_mountpoint_required(view_task_details)),
-    
-)
+                       #url(r'^view_task_details/([0-9]*)', login_and_admin_vol_mountpoint_required(view_task_details)),
+
+                       )
 
 """
     #url(r'^server_op/([A-Za-z_]+)', login_and_admin_vol_mountpoint_required(server_op)),
@@ -208,3 +288,5 @@ urlpatterns = patterns('',
     url(r'^iscsi_view_target_global_config/', login_required(iscsi_view_target_global_config)),
 
 """
+
+# vim: tabstop=8 softtabstop=0 expandtab ai shiftwidth=4 smarttab

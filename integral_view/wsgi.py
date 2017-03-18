@@ -13,7 +13,8 @@ middleware here, or combine a Django application with an application of another
 framework.
 
 """
-import os,sys
+import os
+import sys
 sys.path.append('/opt/integralstor/integralstor_gridcell')
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "integral_view.settings")
@@ -27,3 +28,5 @@ application = get_wsgi_application()
 # Apply WSGI middleware here.
 # from helloworld.wsgi import HelloWorldApplication
 # application = HelloWorldApplication(application)
+
+# vim: tabstop=8 softtabstop=0 expandtab ai shiftwidth=4 smarttab

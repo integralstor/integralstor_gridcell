@@ -1,37 +1,43 @@
 from django import forms
 from integralstor_gridcell import gluster_volumes
 
+
 class VolTypeForm(forms.Form):
-  ch = [('distributed', r'Distribute my files across disks(Higher performance, no reduncancy)'), ('replicated', r'Make copies of  my files across multiple disks (Redundancy with higher storage overhead)')]
-  vol_type = forms.ChoiceField(choices=ch, widget=forms.RadioSelect())
-  vol_name = forms.CharField(widget=forms.HiddenInput)
-  vol_access = forms.CharField(widget=forms.HiddenInput)
+    ch = [('distributed', r'Distribute my files across disks(Higher performance, no reduncancy)'),
+          ('replicated', r'Make copies of  my files across multiple disks (Redundancy with higher storage overhead)')]
+    vol_type = forms.ChoiceField(choices=ch, widget=forms.RadioSelect())
+    vol_name = forms.CharField(widget=forms.HiddenInput)
+    vol_access = forms.CharField(widget=forms.HiddenInput)
+
 
 class VolOndiskStorageForm(forms.Form):
-  ch = [('compressed', r'Enable compression'), ('deduplicated', r'Enable deduplication'), ('normal', r'None of the above')]
-  ondisk_storage = forms.ChoiceField(choices=ch, widget=forms.RadioSelect())
-  vol_name = forms.CharField(widget=forms.HiddenInput)
-  vol_access = forms.CharField(widget=forms.HiddenInput)
-  vol_type = forms.CharField(widget=forms.HiddenInput)
+    ch = [('compressed', r'Enable compression'), ('deduplicated',
+                                                  r'Enable deduplication'), ('normal', r'None of the above')]
+    ondisk_storage = forms.ChoiceField(choices=ch, widget=forms.RadioSelect())
+    vol_name = forms.CharField(widget=forms.HiddenInput)
+    vol_access = forms.CharField(widget=forms.HiddenInput)
+    vol_type = forms.CharField(widget=forms.HiddenInput)
+
 
 class VolAccessMethodForm(forms.Form):
-  ch = [('iscsi', r'ISCSI block device access'), ('file', r'File based access (NFS or CIFS)')]
-  vol_access = forms.ChoiceField(choices=ch, widget=forms.RadioSelect())
-  vol_name = forms.CharField(widget=forms.HiddenInput)
+    ch = [('iscsi', r'ISCSI block device access'),
+          ('file', r'File based access (NFS or CIFS)')]
+    vol_access = forms.ChoiceField(choices=ch, widget=forms.RadioSelect())
+    vol_name = forms.CharField(widget=forms.HiddenInput)
 
 
 class VolumeNameForm(forms.Form):
-  volume_name = forms.CharField()
+    volume_name = forms.CharField()
 
-  def clean_volume_name(self):
-    name = self.cleaned_data["volume_name"]
-    vol_exists, err = gluster_volumes.volume_exists(None, name)
-    if err:
-      raise Exception(err)
-    if vol_exists:
-      raise forms.ValidationError("A volume by this name already exists. Please select another name.")
-    return name
-
+    def clean_volume_name(self):
+        name = self.cleaned_data["volume_name"]
+        vol_exists, err = gluster_volumes.volume_exists(None, name)
+        if err:
+            raise Exception(err)
+        if vol_exists:
+            raise forms.ValidationError(
+                "A volume by this name already exists. Please select another name.")
+        return name
 
 
 '''
@@ -61,3 +67,5 @@ class CreateVolumeForm(forms.Form) :
   vol_type = forms.CharField(widget=forms.HiddenInput)
   vol_access = forms.CharField(widget=forms.HiddenInput)
 '''
+
+# vim: tabstop=8 softtabstop=0 expandtab ai shiftwidth=4 smarttab

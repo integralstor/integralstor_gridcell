@@ -9,6 +9,7 @@ suffixes = {
     'gnu': "KMGTPEZY",
 }
 
+
 def naturalsize(value, binary=False, gnu=False):
     """Format a number of byteslike a human readable filesize (eg. 10 kB).  By
     default, decimal suffixes (kB, MB) are used.  Passing binary=true will use
@@ -16,19 +17,25 @@ def naturalsize(value, binary=False, gnu=False):
     10**3.  If ``gnu`` is True, the binary argument is ignored and GNU-style
     (ls -sh style) prefixes are used (K, M) with the 2**10 definition.
     Non-gnu modes are compatible with jinja2's ``filesizeformat`` filter."""
-    if gnu: suffix = suffixes['gnu']
-    elif binary: suffix = suffixes['binary']
-    else: suffix = suffixes['decimal']
+    if gnu:
+        suffix = suffixes['gnu']
+    elif binary:
+        suffix = suffixes['binary']
+    else:
+        suffix = suffixes['decimal']
 
     base = 1024 if (gnu or binary) else 1000
     bytes = float(value)
 
-    if bytes == 1 and not gnu: return '1 Byte'
-    elif bytes < base and not gnu: return '%d Bytes' % bytes
-    elif bytes < base and gnu: return '%dB' % bytes
+    if bytes == 1 and not gnu:
+        return '1 Byte'
+    elif bytes < base and not gnu:
+        return '%d Bytes' % bytes
+    elif bytes < base and gnu:
+        return '%dB' % bytes
 
-    for i,s in enumerate(suffix):
-        unit = base ** (i+2)
+    for i, s in enumerate(suffix):
+        unit = base ** (i + 2)
         if bytes < unit and not gnu:
             return '%.1f %s' % ((base * bytes / unit), s)
         elif bytes < unit and gnu:
@@ -37,3 +44,5 @@ def naturalsize(value, binary=False, gnu=False):
         return '%.1f%s' % ((base * bytes / unit), s)
     return '%.1f %s' % ((base * bytes / unit), s)
 
+
+# vim: tabstop=8 softtabstop=0 expandtab ai shiftwidth=4 smarttab
