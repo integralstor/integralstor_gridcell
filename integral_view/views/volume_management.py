@@ -463,7 +463,7 @@ def delete_volume(request):
         vol_name = request.REQUEST['vol_name']
         return_dict['vol_name'] = vol_name
 
-        shares_list, err = cifs.load_shares_list()
+        shares_list, err = cifs.get_shares_list()
         if err:
             raise Exception(
                 "Unable to check for shares in the volume selected")
@@ -885,7 +885,7 @@ def set_dir_quota(request):
                 if quota_dict and request.REQUEST['dir'] in quota_dict:
                     q = quota_dict[request.REQUEST['dir']]
                     # print q
-                    return_dict['current_quota'] = filesize.naturalsize(
+                    return_dict['current_quota'] = filesize.get_naturalsize(
                         q['hard_limit'], binary=True)
             form = volume_management_forms.VolumeQuotaForm(initial=init)
             return_dict["form"] = form
@@ -1555,7 +1555,7 @@ def volume_specific_op(request, operation, vol_name=None):
         if operation in ['vol_stop', 'vol_delete']:
           # Check if a share exists before even letting a user delete a volume
           if operation == "vol_delete":
-            shares_list, err = cifs.load_shares_list()
+            shares_list, err = cifs.get_shares_list()
             if err:
               raise Exception("Unable to check for shares in the volume selected")
             for share in shares_list:

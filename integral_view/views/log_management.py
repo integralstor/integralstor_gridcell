@@ -23,7 +23,7 @@ from integral_view.utils import iv_logging
 def view_alerts(request):
     return_dict = {}
     try:
-        alerts_list, err = alerts.load_alerts()
+        alerts_list, err = alerts.get_alerts()
         if err:
             raise Exception(err)
         return_dict['alerts_list'] = alerts_list
@@ -342,7 +342,7 @@ def view_rotated_log_file(request, *args):
         return_dict["historical"] = True
         if log_type == "alerts":
             return_dict['tab'] = 'view_rotated_alert_log_list_tab'
-            l, err = alerts.load_alerts(file_name)
+            l, err = alerts.get_alerts(file_name)
             if err:
                 raise Exception(err)
             return_dict["alerts_list"] = l
@@ -387,7 +387,7 @@ def refresh_alerts(request):
         if err:
             raise Exception(err)
         if ret:
-            alerts_list, err = alerts.load_alerts()
+            alerts_list, err = alerts.get_alerts()
             if err:
                 raise Exception(err)
             new_alerts = json.dumps([dict(alert=pn) for pn in alerts_list])
@@ -611,7 +611,7 @@ def view_rotated_log_file(request, log_type):
     file_name = request.POST["file_name"]
   
     if log_type == "alerts":
-      l, err = alerts.load_alerts(file_name)
+      l, err = alerts.get_alerts(file_name)
       if err:
         raise Exception(err)
       return_dict['tab'] = 'system_log_view_older_alerts_tab'

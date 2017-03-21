@@ -115,7 +115,7 @@ def dashboard(request):
         # print soft_quota_exceeded_vols
         # print hard_quota_exceeded_vols
 
-        shares_list, err = cifs_common.load_shares_list()
+        shares_list, err = cifs_common.get_shares_list()
         if err:
             raise Exception(err)
         if shares_list:
@@ -581,7 +581,7 @@ def show(request, page, info=None):
             return_dict["error"] = 'Error loading system alerts'
 
             template = "view_alerts.html"
-            alerts_list, err = alerts.load_alerts()
+            alerts_list, err = alerts.get_alerts()
             if err:
                 raise Exception(err)
             return_dict['alerts_list'] = alerts_list
@@ -867,7 +867,7 @@ def require_admin_login(view):
               quota_exceeded_vols.append(vol['name'])
               break
 
-      shares_list, err = cifs_common.load_shares_list()
+      shares_list, err = cifs_common.get_shares_list()
       if err:
         raise Exception(err)
       if shares_list:

@@ -23,7 +23,7 @@ def view_cifs_shares(request):
         return_dict['tab'] = 'view_cifs_shares_tab'
         return_dict["error"] = 'Error viewing CIFS shares'
 
-        shares_list, err = cifs_common.load_shares_list()
+        shares_list, err = cifs_common.get_shares_list()
         if err:
             raise Exception(err)
 
@@ -68,10 +68,10 @@ def view_cifs_share(request):
             return_dict["ack_message"] = "Share properties updated successfully"
 
         valid_users_list = None
-        share, err = cifs_common.load_share_info(access_mode, index)
+        share, err = cifs_common.get_share_info(access_mode, index)
         if err:
             raise Exception(err)
-        valid_users_list, err = cifs_common.load_valid_users_list(
+        valid_users_list, err = cifs_common.get_valid_users_list(
             share["share_id"])
         if err:
             raise Exception(err)
@@ -126,10 +126,10 @@ def edit_cifs_share(request):
             if "share_id" not in request.GET:
                 raise Exception("Unknown share specified")
             share_id = request.GET["share_id"]
-            share_dict, err = cifs_common.load_share_info("by_id", share_id)
+            share_dict, err = cifs_common.get_share_info("by_id", share_id)
             if err:
                 raise Exception(err)
-            valid_users_list, err = cifs_common.load_valid_users_list(
+            valid_users_list, err = cifs_common.get_valid_users_list(
                 share_dict["share_id"])
             if err:
                 raise Exception(err)
@@ -208,7 +208,7 @@ def edit_cifs_share(request):
                 else:
                     groups = None
                 vol = cd["vol"]
-                ret, err = cifs_common.save_share(
+                ret, err = cifs_common.update_share(
                     share_id, name, comment, guest_ok, read_only, path, browseable, users, groups)
                 if err:
                     raise Exception(err)
@@ -427,7 +427,7 @@ def view_cifs_authentication_settings(request):
         return_dict['tab'] = 'service_cifs_access_tab'
         return_dict["error"] = 'Error configuring CIFS access'
 
-        d, err = cifs_common.load_auth_settings()
+        d, err = cifs_common.get_auth_settings()
         if err:
             raise Exception(err)
 
@@ -455,7 +455,7 @@ def edit_cifs_authentication_settings(request):
         return_dict["error"] = 'Error configuring CIFS access'
 
         if request.method == 'GET':
-            d, err = cifs_common.load_auth_settings()
+            d, err = cifs_common.get_auth_settings()
             if err:
                 raise Exception(err)
 
@@ -494,7 +494,7 @@ def edit_cifs_authentication_settings(request):
                 # print 'valid form!'
                 cd = form.cleaned_data
 
-                ret, err = cifs_common.save_auth_settings(cd)
+                ret, err = cifs_common.update_auth_settings(cd)
                 if err:
                     raise Exception(err)
                 # print '1'
@@ -601,7 +601,7 @@ def edit_cifs_authentication_method(request):
         return_dict["page_title"] = 'Configure CIFS access method'
         return_dict['tab'] = 'service_cifs_access_tab'
         return_dict["error"] = 'Error configuring CIFS access method'
-        d, err = cifs_common.load_auth_settings()
+        d, err = cifs_common.get_auth_settings()
         if err:
             raise Exception(err)
         return_dict["samba_global_dict"] = d
@@ -617,7 +617,7 @@ def edit_cifs_authentication_method(request):
                 raise Exception(
                     "Selected authentication method is the same as before.")
 
-            ret, err = cifs_common.change_auth_method(security)
+            ret, err = cifs_common.update_auth_method(security)
             if err:
                 raise Exception(err)
             if not ret:
@@ -666,7 +666,7 @@ def save_samba_server_settings(request):
     if form.is_valid():
       cd = form.cleaned_data
   
-      ret, err = cifs_common.save_auth_settings(cd)
+      ret, err = cifs_common.update_auth_settings(cd)
       if err:
         raise Exception(err)
       #print '1'

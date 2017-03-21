@@ -37,17 +37,13 @@ def login(request):
                 user = django.contrib.auth.authenticate(
                     username=username, password=password)
                 if user is not None and user.is_active:
-                    production, err = integralstor_common.common.is_production()
-                    if err:
-                        raise Exception(err)
-                    if production:
-                        # Clear the session if the user has been logged in
-                        # anywhere else.
-                        sessions = Session.objects.all()
-                        for s in sessions:
-                            if s.get_decoded() and (s.get_decoded()['_auth_user_id'] == user.id):
-                                # s.delete()
-                                pass
+                    # Clear the session if the user has been logged in
+                    # anywhere else.
+                    sessions = Session.objects.all()
+                    for s in sessions:
+                        if s.get_decoded() and (s.get_decoded()['_auth_user_id'] == user.id):
+                            # s.delete()
+                            pass
                     # authentication succeeded! Login and send to home screen
                     django.contrib.auth.login(request, user)
                     #iv_logging.info("Login request from user '%s' succeeded"%username)
