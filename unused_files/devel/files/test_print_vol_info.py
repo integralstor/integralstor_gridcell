@@ -33,3 +33,5 @@ print "Brick1: node-a1:/data/stripe"
 print "Brick2: node-a2:/data/stripe"
 print "Brick3: node-b1:/data/stripe"
 print "Brick4: node-b2:/data/stripe"
+
+# vim: tabstop=8 softtabstop=0 expandtab ai shiftwidth=4 smarttab

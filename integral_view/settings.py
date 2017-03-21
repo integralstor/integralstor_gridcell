@@ -11,8 +11,8 @@ LOGIN_URL = '/login/'
 
 platform_root, err = common.get_platform_root()
 DB_LOCATION, err = common.get_db_path()
-STATIC_DIR_PATH = '%s/integral_view/static'%platform_root
-TEMPLATE_DIR_PATH = "%s/integral_view/templates"%platform_root
+STATIC_DIR_PATH = '%s/integral_view/static' % platform_root
+TEMPLATE_DIR_PATH = "%s/integral_view/templates" % platform_root
 
 
 TEMPLATE_DEBUG = DEBUG
@@ -26,12 +26,16 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': DB_LOCATION,                      # Or path to database file if using sqlite3.
+        # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'ENGINE': 'django.db.backends.sqlite3',
+        # Or path to database file if using sqlite3.
+        'NAME': DB_LOCATION,
         'USER': '',                      # Not used with sqlite3.
         'PASSWORD': '',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        # Set to empty string for localhost. Not used with sqlite3.
+        'HOST': '',
+        # Set to empty string for default. Not used with sqlite3.
+        'PORT': '',
     }
 }
 
@@ -91,7 +95,7 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
 # Make this unique, and don't share it with anybody.
@@ -101,7 +105,7 @@ SECRET_KEY = 'cxxo99@m#_g$dj6h=tx0x(e%4-d1)qtdjf3_6=v54bo!w*ocf^'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
+    #     'django.template.loaders.eggs.Loader',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -142,16 +146,17 @@ INSTALLED_APPS = (
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
-  "django.contrib.auth.context_processors.auth",
-  "django.core.context_processors.debug",
-  "django.core.context_processors.i18n",
-  "django.core.context_processors.media",
-  "django.core.context_processors.static",
-  "django.core.context_processors.tz",
-  "django.contrib.messages.context_processors.messages",
-  'django.core.context_processors.request',
-  )
-TEMPLATE_CONTEXT_PROCESSORS += ("integral_view.context_processors.get_version", )
+    "django.contrib.auth.context_processors.auth",
+    "django.core.context_processors.debug",
+    "django.core.context_processors.i18n",
+    "django.core.context_processors.media",
+    "django.core.context_processors.static",
+    "django.core.context_processors.tz",
+    "django.contrib.messages.context_processors.messages",
+    'django.core.context_processors.request',
+)
+TEMPLATE_CONTEXT_PROCESSORS += (
+    "integral_view.context_processors.get_version", )
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
@@ -178,12 +183,12 @@ LOGGING = {
             'class': 'django.utils.log.AdminEmailHandler'
         },
         'file': {
-          'level': 'DEBUG',
-          'class': 'logging.handlers.RotatingFileHandler',
-          'filename': '/var/log/integralstor/integralstor_gridcell/integral_view.log',
-          'maxBytes': 1024*1024*5,
-          'backupCount': 5,
-          'formatter': 'standard'
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': '/var/log/integralstor/integralstor_gridcell/integral_view.log',
+            'maxBytes': 1024 * 1024 * 5,
+            'backupCount': 5,
+            'formatter': 'standard'
         }
     },
     'loggers': {
@@ -235,3 +240,5 @@ BATCH_COMMANDS_DIR = '%s/batch'%BASE_CONF_ROOT
 AUDIT_TRAIL_DIR = '%s/audit_trail'%BASE_CONF_ROOT
 ALERTS_DIR = '%s/alerts'%BASE_CONF_ROOT
 '''
+
+# vim: tabstop=8 softtabstop=0 expandtab ai shiftwidth=4 smarttab

@@ -38,3 +38,5 @@ print "Disk Space Free      : 134.7GB"
 print "Total Disk Space     : 135.0GB"
 print "Inode Count          : 8994816"
 print "Free Inodes          : 8959974"
+
+# vim: tabstop=8 softtabstop=0 expandtab ai shiftwidth=4 smarttab
