@@ -146,19 +146,19 @@ def configure_zfs_pool():
         '''
     print 'Setting ZFS pool quota..'
     if quota_str:
-      ret, err = zfs.set_property('frzpool', 'quota', quota_str)
+      ret, err = zfs.update_property('frzpool', 'quota', quota_str)
       #print 'setting pool quota ', ret, err
       if err:
         raise Exception(err)
-      ret, err = zfs.set_property('frzpool/normal', 'quota', quota_str)
+      ret, err = zfs.update_property('frzpool/normal', 'quota', quota_str)
       #print 'setting normal quota ', ret, err
       if err:
         raise Exception(err)
-      ret, err = zfs.set_property('frzpool/deduplicated', 'quota', quota_str)
+      ret, err = zfs.update_property('frzpool/deduplicated', 'quota', quota_str)
       #print 'setting dedup quota ', ret, err
       if err:
         raise Exception(err)
-      ret, err = zfs.set_property('frzpool/compressed', 'quota', quota_str)
+      ret, err = zfs.update_property('frzpool/compressed', 'quota', quota_str)
       if err:
         raise Exception(err)
       #print 'setting compressed quota ', ret, err
@@ -167,15 +167,15 @@ def configure_zfs_pool():
     '''
 
         print 'Setting ZFS pool properties..'
-        ret, err = zfs.set_property('frzpool', 'acltype', 'posixacl')
+        ret, err = zfs.update_property('frzpool', 'acltype', 'posixacl')
         # print 'setting acltype', ret, err
         if err:
             raise Exception(err)
-        ret, err = zfs.set_property('frzpool', 'xattr', 'sa')
+        ret, err = zfs.update_property('frzpool', 'xattr', 'sa')
         # print 'setting xattr', ret, err
         if err:
             raise Exception(err)
-        ret, err = zfs.set_property('frzpool', 'atime', 'off')
+        ret, err = zfs.update_property('frzpool', 'atime', 'off')
         # print 'setting atime', ret, err
         if err:
             raise Exception(err)

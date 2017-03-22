@@ -159,7 +159,7 @@ def configure_networking():
                 print "Invalid value. Please try again."
         print
 
-        jfe, err = networking.jumbo_frames_enabled('bond0')
+        jfe, err = networking.is_enabled_jumbo_frames('bond0')
         if jfe:
             jumbo_frames = 'y'
             jfe_str = "enabled"
@@ -246,7 +246,7 @@ def configure_networking():
                 ip_dict["mtu"] = 9000
             else:
                 ip_dict["mtu"] = 1500
-            rc, err = networking.set_bond_ip_info(ip_dict)
+            rc, err = networking.update_bond_ip(ip_dict)
             if not rc:
                 if err:
                     errors.append("Error setting IP configuration : %s" % err)
@@ -255,13 +255,13 @@ def configure_networking():
             restart_networking = True
 
         if change_hostname:
-            ret, err = networking.set_hostname(hostname, 'integralstor.lan')
+            ret, err = networking.update_hostname(hostname, 'integralstor.lan')
             if err:
                 raise Exception(err)
             restart_networking = True
 
         if change_hostname or change_ip:
-            ret, err = networking.set_hosts_file_entry(hostname, ip)
+            ret, err = networking.update_hosts_file_entry(hostname, ip)
             if err:
                 raise Exception(err)
 

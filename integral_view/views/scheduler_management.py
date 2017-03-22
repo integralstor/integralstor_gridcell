@@ -139,7 +139,7 @@ def remove_task(request):
     return_dict = {}
     try:
         task_id = request.REQUEST.get('task_id')
-        status, err = scheduler_utils.remove_task(int(task_id))
+        status, err = scheduler_utils.delete_task(int(task_id))
         if err:
             raise Exception(err)
         return django.http.HttpResponseRedirect('/view_tasks?ack=deleted')
