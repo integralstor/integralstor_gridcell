@@ -35,7 +35,7 @@ def schedule_scrub(request):
             err_list = []
             success = 0
             for node in si.keys():
-                status, err = scheduler_utils.add_task('ZFS Scrub on %s' % node, [
+                status, err = scheduler_utils.create_task('ZFS Scrub on %s' % node, [
                                                        {'scrub': '/sbin/zpool scrub frzpool'}], task_type_id=3, node=node, initiate_time=int(dt))
                 if err:
                     err_list.append(err)
