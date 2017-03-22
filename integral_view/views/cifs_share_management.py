@@ -71,7 +71,7 @@ def view_cifs_share(request):
         share, err = cifs_common.get_share_info(access_mode, index)
         if err:
             raise Exception(err)
-        valid_users_list, err = cifs_common.get_valid_users_list(
+        valid_users_list, err = cifs_gridcell.get_valid_users_list(
             share["share_id"])
         if err:
             raise Exception(err)
@@ -129,7 +129,7 @@ def edit_cifs_share(request):
             share_dict, err = cifs_common.get_share_info("by_id", share_id)
             if err:
                 raise Exception(err)
-            valid_users_list, err = cifs_common.get_valid_users_list(
+            valid_users_list, err = cifs_gridcell.get_valid_users_list(
                 share_dict["share_id"])
             if err:
                 raise Exception(err)
