@@ -842,7 +842,7 @@ def replace_disk(request):
                         #job_id, err = scheduler_utils.schedule_a_job(db_path, 'Disk replacement on GRIDCell %s'%node, [{'Disk Replacement': cmd1}, {'Disk onlining':cmd2}], node=node, extra={'deleteable':0})
                         #new_job_id, err = scheduler_utils.schedule_a_job(db_path, 'Regeneration of system configuration', [{'Regeneration of system configuration':cmd3}, {'Regeneration of system status':cmd4}], extra = {'execute_after': job_id, 'deleteable':0})
 
-                        job_id, err = scheduler_utils.add_task('Disk replacement on GRIDCell %s' % node, [{'Disk Replacement': cmd1}, {'Disk onlining': cmd2}, {
+                        job_id, err = scheduler_utils.create_task('Disk replacement on GRIDCell %s' % node, [{'Disk Replacement': cmd1}, {'Disk onlining': cmd2}, {
                                                                'Regeneration of system configuration': cmd3}, {'Regeneration of system status': cmd4}], task_type_id=1, node=node)
                         if err:
                             raise Exception(

@@ -40,7 +40,7 @@ def display_config():
             print 'Error retrieving bonding type : %s' % err
         if bonding_type:
             print "NIC Bonding mode : %d" % bonding_type
-        jfe, err = networking.jumbo_frames_enabled('bond0')
+        jfe, err = networking.is_enabled_jumbo_frames('bond0')
         if err:
             print 'Error retrieving jumbo frames setting'
         else:

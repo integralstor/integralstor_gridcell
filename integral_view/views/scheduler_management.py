@@ -35,7 +35,7 @@ def schedule_scrub(request):
             err_list = []
             success = 0
             for node in si.keys():
-                status, err = scheduler_utils.add_task('ZFS Scrub on %s' % node, [
+                status, err = scheduler_utils.create_task('ZFS Scrub on %s' % node, [
                                                        {'scrub': '/sbin/zpool scrub frzpool'}], task_type_id=3, node=node, initiate_time=int(dt))
                 if err:
                     err_list.append(err)
@@ -139,7 +139,7 @@ def remove_task(request):
     return_dict = {}
     try:
         task_id = request.REQUEST.get('task_id')
-        status, err = scheduler_utils.remove_task(int(task_id))
+        status, err = scheduler_utils.delete_task(int(task_id))
         if err:
             raise Exception(err)
         return django.http.HttpResponseRedirect('/view_tasks?ack=deleted')

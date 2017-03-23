@@ -8,37 +8,37 @@ from integralstor_utils import manifest_status, config, networking
 
 def disk_info_and_status():
 
-    disks, err = manifest_status.disk_info_and_status()
+    disks, err = manifest_status.get_disk_info_and_status()
     return disks
 
 
 def pool_status():
-    pools, err = manifest_status.pool_status()
+    pools, err = manifest_status.get_pool_status()
     return pools
 
 
 def interface_status():
-    int_status, err = manifest_status.interface_status()
+    int_status, err = manifest_status.get_interface_status()
     return int_status
 
 
 def load_avg():
-    lavg, err = manifest_status.load_avg()
+    lavg, err = manifest_status.get_load_avg()
     return lavg
 
 
 def mem_info():
-    meminfo, err = manifest_status.mem_info()
+    meminfo, err = manifest_status.get_mem_info()
     return meminfo
 
 
 def ipmi_status():
-    ipmi, err = manifest_status.ipmi_status()
+    ipmi, err = manifest_status.get_ipmi_status()
     return ipmi
 
 
 def status():
-    sd, err = manifest_status.status()
+    sd, err = manifest_status.get_status()
     return sd
 
 
@@ -214,7 +214,7 @@ def configure_name_servers(*ns_list):
     try:
         if not ns_list:
             raise Exception('No name servers specified')
-        ret, err = networking.set_name_servers(ns_list)
+        ret, err = networking.update_name_servers(ns_list)
         if err:
             raise Exception(err)
     except Exception, e:
