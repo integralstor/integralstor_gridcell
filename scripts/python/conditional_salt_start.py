@@ -1,7 +1,7 @@
 
 import sys
 import logging
-from integralstor_common import command, logger
+from integralstor_utils import command, logger
 from integralstor_gridcell import grid_ops
 
 

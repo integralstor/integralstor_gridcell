@@ -2,7 +2,7 @@
 import sys
 import os
 import re
-from integralstor_common import zfs
+from integralstor_utils import zfs
 
 
 def configure_zfs_pool():

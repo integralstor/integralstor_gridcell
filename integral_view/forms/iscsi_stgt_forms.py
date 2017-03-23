@@ -1,6 +1,5 @@
 
 from django import forms
-import integralstor_common
 
 
 class IscsiAuthenticationForm(forms.Form):

@@ -1,7 +1,7 @@
 import django
 from django.conf import settings
 from integralstor_gridcell import system_info
-from integralstor_common import scheduler_utils, common, lock, command
+from integralstor_utils import scheduler_utils, config, lock, command
 import os
 
 
@@ -27,7 +27,7 @@ def schedule_scrub(request):
         elif request.method == "POST":
             dt = request.POST.get('timestamp')
             poolname = 'frzpool'
-            db_path, err = common.get_db_path()
+            db_path, err = config.get_db_path()
             # Doing this to make sure each node has a zfs scrub scheduled
             si, err = system_info.load_system_config()
             if err:
@@ -96,7 +96,7 @@ def view_task(request, *args):
             raise Exception(err)
         return_dict["subtasks"] = subtasks
         task_output = ""
-        log_path, err = common.get_log_folder_path()
+        log_path, err = config.get_log_folder_path()
         if err:
             raise Exception(err)
         log_dir = '%s/task_logs' % log_path

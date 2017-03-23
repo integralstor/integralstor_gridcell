@@ -8,9 +8,9 @@ import integral_view
 from integral_view.forms import cifs_shares_forms
 from integralstor_gridcell import gluster_volumes, system_info, local_users, iscsi, gluster_gfapi
 from integralstor_gridcell import cifs as cifs_gridcell
-from integralstor_common import networking, audit, lock
-from integralstor_common import cifs as cifs_common
-from integralstor_common import common
+from integralstor_utils import networking, audit, lock
+from integralstor_utils import cifs as cifs_utils
+from integralstor_utils import config
 import os.path
 
 
@@ -23,7 +23,7 @@ def view_cifs_shares(request):
         return_dict['tab'] = 'view_cifs_shares_tab'
         return_dict["error"] = 'Error viewing CIFS shares'
 
-        shares_list, err = cifs_common.get_shares_list()
+        shares_list, err = cifs_utils.get_shares_list()
         if err:
             raise Exception(err)
 
@@ -68,7 +68,7 @@ def view_cifs_share(request):
             return_dict["ack_message"] = "Share properties updated successfully"
 
         valid_users_list = None
-        share, err = cifs_common.get_share_info(access_mode, index)
+        share, err = cifs_utils.get_share_info(access_mode, index)
         if err:
             raise Exception(err)
         valid_users_list, err = cifs_gridcell.get_valid_users_list(
@@ -126,7 +126,7 @@ def edit_cifs_share(request):
             if "share_id" not in request.GET:
                 raise Exception("Unknown share specified")
             share_id = request.GET["share_id"]
-            share_dict, err = cifs_common.get_share_info("by_id", share_id)
+            share_dict, err = cifs_utils.get_share_info("by_id", share_id)
             if err:
                 raise Exception(err)
             valid_users_list, err = cifs_gridcell.get_valid_users_list(
@@ -208,7 +208,7 @@ def edit_cifs_share(request):
                 else:
                     groups = None
                 vol = cd["vol"]
-                ret, err = cifs_common.update_share(
+                ret, err = cifs_utils.update_share(
                     share_id, name, comment, guest_ok, read_only, path, browseable, users, groups)
                 if err:
                     raise Exception(err)
@@ -263,7 +263,7 @@ def delete_cifs_share(request):
             return_dict["name"] = name
             return django.shortcuts.render_to_response("delete_cifs_share_conf.html", return_dict, context_instance=django.template.context.RequestContext(request))
         else:
-            ret, err = cifs_common.delete_share(share_id)
+            ret, err = cifs_utils.delete_share(share_id)
             if err:
                 raise Exception(err)
             if not ret:
@@ -388,7 +388,7 @@ def create_cifs_share(request):
                     if err:
                         raise Exception(err)
                 # print users, groups
-                ret, err = cifs_common.create_share(
+                ret, err = cifs_utils.create_share(
                     name, comment, guest_ok, read_only, path, "", browseable, users, groups, vol)
                 if err:
                     raise Exception(err)
@@ -427,7 +427,7 @@ def view_cifs_authentication_settings(request):
         return_dict['tab'] = 'service_cifs_access_tab'
         return_dict["error"] = 'Error configuring CIFS access'
 
-        d, err = cifs_common.get_auth_settings()
+        d, err = cifs_utils.get_auth_settings()
         if err:
             raise Exception(err)
 
@@ -455,7 +455,7 @@ def edit_cifs_authentication_settings(request):
         return_dict["error"] = 'Error configuring CIFS access'
 
         if request.method == 'GET':
-            d, err = cifs_common.get_auth_settings()
+            d, err = cifs_utils.get_auth_settings()
             if err:
                 raise Exception(err)
 
@@ -494,7 +494,7 @@ def edit_cifs_authentication_settings(request):
                 # print 'valid form!'
                 cd = form.cleaned_data
 
-                ret, err = cifs_common.update_auth_settings(cd)
+                ret, err = cifs_utils.update_auth_settings(cd)
                 if err:
                     raise Exception(err)
                 # print '1'
@@ -529,7 +529,7 @@ def edit_cifs_authentication_settings(request):
 
           # ... and on the secondary
           client = salt.client.LocalClient()
-          python_scripts_path, err = common.get_python_scripts_path()
+          python_scripts_path, err = config.get_python_scripts_path()
           if err:
             raise Exception(err)
           r2 = client.cmd('roles:secondary', 'cmd.run_all', ['python %s/create_secondary_named_config.py %s %s %s %s'%(python_scripts_path, nsl[0], nsl[1], ipinfo['netmask'], cd['password_server_ip'])], expr_form='grain')
@@ -541,7 +541,7 @@ def edit_cifs_authentication_settings(request):
 
                 # print '2'
                 if cd["security"] == "ads":
-                    ret, err = cifs_common.generate_krb5_conf()
+                    ret, err = cifs_utils.generate_krb5_conf()
                     if err:
                         raise Exception(err)
                     if not ret:
@@ -601,7 +601,7 @@ def edit_cifs_authentication_method(request):
         return_dict["page_title"] = 'Configure CIFS access method'
         return_dict['tab'] = 'service_cifs_access_tab'
         return_dict["error"] = 'Error configuring CIFS access method'
-        d, err = cifs_common.get_auth_settings()
+        d, err = cifs_utils.get_auth_settings()
         if err:
             raise Exception(err)
         return_dict["samba_global_dict"] = d
@@ -617,7 +617,7 @@ def edit_cifs_authentication_method(request):
                 raise Exception(
                     "Selected authentication method is the same as before.")
 
-            ret, err = cifs_common.update_auth_method(security)
+            ret, err = cifs_utils.update_auth_method(security)
             if err:
                 raise Exception(err)
             if not ret:
@@ -666,7 +666,7 @@ def save_samba_server_settings(request):
     if form.is_valid():
       cd = form.cleaned_data
   
-      ret, err = cifs_common.update_auth_settings(cd)
+      ret, err = cifs_utils.update_auth_settings(cd)
       if err:
         raise Exception(err)
       #print '1'
@@ -691,7 +691,7 @@ def save_samba_server_settings(request):
 
         # ... and on the secondary
         client = salt.client.LocalClient()
-        python_scripts_path, err = common.get_python_scripts_path()
+        python_scripts_path, err = config.get_python_scripts_path()
         if err:
           raise Exception(err)
         r2 = client.cmd('roles:secondary', 'cmd.run_all', ['python %s/create_secondary_named_config.py %s %s %s %s'%(python_scripts_path, nsl[0], nsl[1], ipinfo['netmask'], cd['password_server_ip'])], expr_form='grain')
@@ -702,7 +702,7 @@ def save_samba_server_settings(request):
 
       #print '2'
       if cd["security"] == "ads":
-        ret, err = cifs_common.generate_krb5_conf()
+        ret, err = cifs_utils.generate_krb5_conf()
         if err:
           raise Exception(err)
         if not ret:

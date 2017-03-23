@@ -168,7 +168,7 @@ set_cpu_cores(){
   echo "Online cores are:" $onlin
   echo
   read -p "Enter the number of cores to be disabled from [minimum 2][press 1 to reset]. " ip
-  sh /opt/integralstor/integralstor_common/scripts/shell/cpu_core_dis.sh $ip
+  sh /opt/integralstor/integralstor_utils/scripts/shell/cpu_core_dis.sh $ip
   sleep 1
 }
 
@@ -208,7 +208,7 @@ regenerate_manifest(){
   echo
   read -p "Are you sure you want to regenerate gridcell manifest(y/n)? : " input
   case $input in
-    y) echo "Regenerating gridcell manifest.. ";python /opt/integralstor/integralstor_common/scripts/python/generate_manifest.py;pause;;
+    y) echo "Regenerating gridcell manifest.. ";python /opt/integralstor/integralstor_utils/scripts/python/generate_manifest.py;pause;;
   esac
 }
 
@@ -218,7 +218,7 @@ regenerate_status(){
   echo
   read -p "Are you sure you want to regenerate gridcell status(y/n)? : " input
   case $input in
-    y) echo "Regenerating gridcell status.. ";python /opt/integralstor/integralstor_common/scripts/python/generate_status.py;pause;;
+    y) echo "Regenerating gridcell status.. ";python /opt/integralstor/integralstor_utils/scripts/python/generate_status.py;pause;;
   esac
 }
 

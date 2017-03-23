@@ -12,8 +12,7 @@ from django.contrib import auth
 import integralstor_gridcell
 from integralstor_gridcell import gluster_volumes, system_info
 
-import integralstor_common
-from integralstor_common import common, audit, alerts, lock, db
+from integralstor_utils import config, audit, alerts, lock, db
 
 import integral_view
 from integral_view.forms import volume_management_forms, log_management_forms
@@ -377,7 +376,7 @@ def refresh_alerts(request):
         cmd = ["INSERT OR REPLACE INTO admin_alerts (user, last_refresh_time) values (?,?);", (
             request.user.username, datetime.now())]
         cmd_list.append(cmd)
-        db_path, err = common.get_db_path()
+        db_path, err = config.get_db_path()
         if err:
             raise Exception(err)
         test, err = db.execute_iud("%s" % db_path, cmd_list)
@@ -448,7 +447,7 @@ def download_system_configuration(request):
         return_dict["error"] = 'Error downloading system configuration'
 
         if request.method == 'POST':
-            config_dir, err = common.get_config_dir()
+            config_dir, err = config.get_config_dir()
             if err:
                 raise Exception(err)
             # Remove trailing '/'

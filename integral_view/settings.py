@@ -1,5 +1,5 @@
 # Django settings for integral_view project.
-from integralstor_common import common
+from integralstor_utils import config
 
 DEBUG = True
 ALLOWED_HOSTS = ['*']
@@ -9,8 +9,8 @@ APP_DEBUG = False
 
 LOGIN_URL = '/login/'
 
-platform_root, err = common.get_platform_root()
-DB_LOCATION, err = common.get_db_path()
+platform_root, err = config.get_platform_root()
+DB_LOCATION, err = config.get_db_path()
 STATIC_DIR_PATH = '%s/integral_view/static' % platform_root
 TEMPLATE_DIR_PATH = "%s/integral_view/templates" % platform_root
 

@@ -4,7 +4,7 @@ import time
 import socket
 import logging
 
-from integralstor_common import common, alerts, lock, command, zfs, networking, logger
+from integralstor_utils import config, alerts, lock, command, zfs, networking, logger
 from integralstor_gridcell import system_info, gluster_volumes, grid_ops
 
 import atexit
@@ -46,7 +46,7 @@ def check_quotas():
 def check_for_gridcell_errors(si):
     alerts_list = []
     try:
-        platform, err = common.get_platform()
+        platform, err = config.get_platform()
         if err:
             raise Exception(err)
 

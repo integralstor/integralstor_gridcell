@@ -8,7 +8,7 @@ import struct
 import sys
 import shutil
 from integralstor_gridcell import grid_ops, system_info, ctdb, gluster_trusted_pools, xml_parse
-from integralstor_common import common, networking, command
+from integralstor_utils import config, networking, command
 import salt.client
 import distutils.dir_util
 from time import strftime, sleep
@@ -155,20 +155,20 @@ def empty_storage_pool(admin_gridcells):
 def establish_default_configuration(client, si, admin_gridcells):
     try:
 
-        platform_root, err = common.get_platform_root()
+        platform_root, err = config.get_platform_root()
         if err:
             raise Exception(err)
 
-        defaults_dir, err = common.get_defaults_dir()
+        defaults_dir, err = config.get_defaults_dir()
         if err:
             raise Exception(err)
-        config_dir, err = common.get_config_dir()
+        config_dir, err = config.get_config_dir()
         if err:
             raise Exception(err)
-        ss_path, err = common.get_system_status_path()
+        ss_path, err = config.get_system_status_path()
         if err:
             raise Exception(err)
-        tmp_path, err = common.get_tmp_path()
+        tmp_path, err = config.get_tmp_path()
         if err:
             raise Exception(err)
 
@@ -365,10 +365,10 @@ def establish_default_configuration(client, si, admin_gridcells):
 def undo_default_configuration(client):
 
     try:
-        platform_root, err = common.get_platform_root()
+        platform_root, err = config.get_platform_root()
         if err:
             raise Exception(err)
-        defaults_dir, err = common.get_defaults_dir()
+        defaults_dir, err = config.get_defaults_dir()
         if err:
             raise Exception(err)
 
@@ -721,7 +721,7 @@ def initiate_setup():
             print "Setting up high availability for the admin service.. Done."
             print
 
-        platform_root, err = common.get_platform_root()
+        platform_root, err = config.get_platform_root()
         if err:
             raise Exception(err)
 

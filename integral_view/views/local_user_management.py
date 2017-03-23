@@ -3,7 +3,7 @@ import django.template
 
 from integral_view.forms import local_user_forms
 from integralstor_gridcell import local_users
-from integralstor_common import audit
+from integralstor_utils import audit
 
 
 def view_local_users(request):

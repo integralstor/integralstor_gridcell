@@ -8,14 +8,14 @@ import sys
 import logging
 from os.path import basename
 
-from integralstor_common import common, logger
+from integralstor_utils import config, logger
 
 
 def zip_gridcell_gluster_config():
     zf = None
     try:
         hn = socket.getfqdn()
-        config_dir, err = common.get_config_dir()
+        config_dir, err = config.get_config_dir()
         if err:
             raise Exception(err)
 
@@ -42,7 +42,7 @@ def zip_gridcell_gluster_config():
 def zip_grid_gluster_config():
     zf = None
     try:
-        config_dir, err = common.get_config_dir()
+        config_dir, err = config.get_config_dir()
         if err:
             raise Exception(err)
         zf = zipfile.ZipFile('/tmp/grid_gluster_config.zip',

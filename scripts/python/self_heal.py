@@ -1,6 +1,6 @@
 
 import sys
-from integralstor_common import common, command
+from integralstor_utils import command
 
 
 def heal_info(vol_name):

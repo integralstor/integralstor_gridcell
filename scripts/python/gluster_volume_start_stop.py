@@ -1,6 +1,6 @@
 
 import sys
-from integralstor_common import common, command, lock
+from integralstor_utils import config, command, lock
 from integralstor_gridcell import gluster_volumes
 
 import atexit

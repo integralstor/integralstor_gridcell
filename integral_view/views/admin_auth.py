@@ -7,8 +7,7 @@ from django.contrib.sessions.models import Session
 from integral_view.forms import admin_forms
 #from integral_view.utils import iv_logging
 
-import integralstor_common
-from integralstor_common import audit, mail
+from integralstor_utils import audit, mail
 
 
 def login(request):

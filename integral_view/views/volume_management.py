@@ -10,8 +10,7 @@ import salt.client
 
 import integralstor_gridcell
 from integralstor_gridcell import gluster_volumes, system_info, gluster_batch, iscsi, gluster_quotas, gluster_snapshots, xml_parse, gluster_gfapi
-import integralstor_common
-from integralstor_common import command, audit, common, cifs, lock, filesize
+from integralstor_utils import command, audit, cifs, lock, filesize
 
 import integral_view
 from integral_view.forms import volume_management_forms

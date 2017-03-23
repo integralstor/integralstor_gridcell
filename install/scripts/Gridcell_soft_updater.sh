@@ -27,10 +27,10 @@ fi
 # Changing dir to /tmp dir
 cd /tmp
 rm -rf /tmp/integralstor_gridcell*
-rm -rf /tmp/integralstor_common*
+rm -rf /tmp/integralstor_utils*
 
 # To clone the integral-view.git
-git clone https://github.com/integralstor/integralstor_common.git
+git clone https://github.com/integralstor/integralstor_utils.git
 git clone https://github.com/integralstor/integralstor_gridcell.git
 echo
 
@@ -38,10 +38,10 @@ echo "Want to pull specific BRANCH and/or TAG? Press <YES> else Press <ENTER> to
 read input1
     if [[ $input1 == "y" || $input1 == "Y" || $input1 == "yes" || $input1 == "Yes" || $input1 == "YES" ]] ; then
 
-	echo "You are in 'integralstor_common' now. To pull from any branch, enter 'branch' else enter 'tag'"
+	echo "You are in 'integralstor_utils' now. To pull from any branch, enter 'branch' else enter 'tag'"
 	read input2
 	if [[ $input2 == "branch" ]] ; then
-	    	cd /tmp/integralstor_common
+	    	cd /tmp/integralstor_utils
 	    echo "Available Git 'branches' are:"
 	    echo
 	    	git branch -a
@@ -49,35 +49,35 @@ read input1
 	    read -p "Enter the required branch from above: " branchcmmn	# change the branch name as per the requirement
 	    echo
 	    	git checkout $branchcmmn 
-	    	touch /tmp/integralstor_common/version
-	    echo "$branchcmmn" > /tmp/integralstor_common/version	
+	    	touch /tmp/integralstor_utils/version
+	    echo "$branchcmmn" > /tmp/integralstor_utils/version	
 	    echo "Downloaded from Branch :"
 	    	git branch
 	    	cd /tmp
-		rm -rf /tmp/integralstor_common/.git*
-	    	tar czf integralstor_common.tar.gz integralstor_common/ 		# creating zip file of integralstor_common
-		yes | cp -r integralstor_common /root/gridcell_rpm/
+		rm -rf /tmp/integralstor_utils/.git*
+	    	tar czf integralstor_utils.tar.gz integralstor_utils/ 		# creating zip file of integralstor_utils
+		yes | cp -r integralstor_utils /root/gridcell_rpm/
 	    	mkdir -p /home/fractalio/integralstor/gridcell_soft_updaters/gridcell_code_back/$branchcmmn
-	    	yes | cp -rf /tmp/integralstor_common.tar.gz /home/fractalio/integralstor/gridcell_soft_updaters/gridcell_code_back/$branchcmmn
+	    	yes | cp -rf /tmp/integralstor_utils.tar.gz /home/fractalio/integralstor/gridcell_soft_updaters/gridcell_code_back/$branchcmmn
 	elif [[ $input2 == "tag" ]] ; then
-	    	cd /tmp/integralstor_common
+	    	cd /tmp/integralstor_utils
 	    echo "Available Git 'tags' are:"
 	    echo
 	    	git tag -l
 	    echo
 	    read -p "Enter the required tag from above: " tagcmmn	# change the branch name as per the requirement
-	    	cd /tmp/integralstor_common/
+	    	cd /tmp/integralstor_utils/
 	    	git checkout tags/$tagcmmn 
-	    	touch /tmp/integralstor_common/version
-	    echo "$tagcmmn" > /tmp/integralstor_common/version	
+	    	touch /tmp/integralstor_utils/version
+	    echo "$tagcmmn" > /tmp/integralstor_utils/version	
 	    echo "Downloaded from Tag : $tagcmmn"
 	   	#git tag
 	    	cd /tmp
-		rm -rf /tmp/integralstor_common/.git*
-	    	tar czf integralstor_common.tar.gz integralstor_common/ 		# creating zip file of integralstor_common
-		yes | cp -r integralstor_common /root/gridcell_rpm/
+		rm -rf /tmp/integralstor_utils/.git*
+	    	tar czf integralstor_utils.tar.gz integralstor_utils/ 		# creating zip file of integralstor_utils
+		yes | cp -r integralstor_utils /root/gridcell_rpm/
 	    	mkdir -p /home/fractalio/integralstor/gridcell_soft_updaters/gridcell_code_back/$tagcmmn
-	    	yes | cp -rf /tmp/integralstor_common.tar.gz /home/fractalio/integralstor/gridcell_soft_updaters/gridcell_code_back/$tagcmmn
+	    	yes | cp -rf /tmp/integralstor_utils.tar.gz /home/fractalio/integralstor/gridcell_soft_updaters/gridcell_code_back/$tagcmmn
 	else
 		"Go back and enter appropriate input."
 	fi
@@ -100,7 +100,7 @@ read input1
 	    	git branch
 	    	cd /tmp
 		rm -rf /tmp/integralstor_gridcell/.git*
-	    	tar czf integralstor_gridcell.tar.gz integralstor_gridcell/ 		# creating zip file of integralstor_common
+	    	tar czf integralstor_gridcell.tar.gz integralstor_gridcell/ 		# creating zip file of integralstor_gridcell
 		yes | cp -r integralstor_gridcell /root/gridcell_rpm/
 	    	mkdir -p /home/fractalio/integralstor/gridcell_soft_updaters/gridcell_code_back/$branchgrid
 	    	yes | cp -rf /tmp/integralstor_gridcell.tar.gz /home/fractalio/integralstor/gridcell_soft_updaters/gridcell_code_back/$branchgrid
@@ -120,7 +120,7 @@ read input1
 	    	#git tag
 	    	cd /tmp
 		rm -rf /tmp/integralstor_gridcell/.git*
-	    	tar czf integralstor_gridcell.tar.gz integralstor_gridcell/ 		# creating zip file of integralstor_common
+	    	tar czf integralstor_gridcell.tar.gz integralstor_gridcell/ 		# creating zip file of integralstor_gridcell
 		yes | cp -r integralstor_gridcell /root/gridcell_rpm/
 	    	mkdir -p /home/fractalio/integralstor/gridcell_soft_updaters/gridcell_code_back/$taggrid
 	    	yes | cp -rf /tmp/integralstor_gridcell.tar.gz /home/fractalio/integralstor/gridcell_soft_updaters/gridcell_code_back/$taggrid
@@ -130,19 +130,19 @@ read input1
 
     elif [[ $input1 == "n" || $input1 == "N" || $input1 == "no" || $input1 == "No" || $input1 == "NO" || $input1 == "" || $input1 == " " ]] ; then
 
-	cd /tmp/integralstor_common
+	cd /tmp/integralstor_utils
         TAGCMMN=$(git describe $(git rev-list --tags --max-count=1))
 	git checkout tags/$TAGCMMN
-	touch /tmp/integralstor_common/version
-	echo "$TAGCMMN" > /tmp/integralstor_common/version	
+	touch /tmp/integralstor_utils/version
+	echo "$TAGCMMN" > /tmp/integralstor_utils/version	
 	echo "Downloaded from Tag: $TAGCMMN"
 	#git tag
     	cd /tmp
-	rm -rf /tmp/integralstor_common/.git*
-    	tar czf integralstor_common.tar.gz integralstor_common/ 		# creating zip file of integralstor_common
-	yes | cp -r integralstor_common /root/gridcell_rpm/
+	rm -rf /tmp/integralstor_utils/.git*
+    	tar czf integralstor_utils.tar.gz integralstor_utils/ 		# creating zip file of integralstor_utils
+	yes | cp -r integralstor_utils /root/gridcell_rpm/
     	mkdir -p /home/fractalio/integralstor/gridcell_soft_updaters/gridcell_code_back/$TAGCMMN
-    	yes | cp -rf /tmp/integralstor_common.tar.gz /home/fractalio/integralstor/gridcell_soft_updaters/gridcell_code_back/$TAGCMMN
+    	yes | cp -rf /tmp/integralstor_utils.tar.gz /home/fractalio/integralstor/gridcell_soft_updaters/gridcell_code_back/$TAGCMMN
 	
 	cd /tmp/integralstor_gridcell
         TAGGRID=$(git describe $(git rev-list --tags --max-count=1))
@@ -154,11 +154,11 @@ read input1
 	#git tag
     	cd /tmp
 	rm -rf /tmp/integralstor_gridcell/.git*
-    	tar czf integralstor_gridcell.tar.gz integralstor_gridcell/ 		# creating zip file of integralstor_common
+    	tar czf integralstor_gridcell.tar.gz integralstor_gridcell/ 		# creating zip file of integralstor_gridcell
 	yes | cp -r integralstor_gridcell /root/gridcell_rpm/
     	mkdir -p /home/fractalio/integralstor/gridcell_soft_updaters/gridcell_code_back/$TAGGRID
     	yes | cp -rf /tmp/integralstor_gridcell.tar.gz /home/fractalio/integralstor/gridcell_soft_updaters/gridcell_code_back/$TAGGRID
     else
 	"Go back and enter appropriate input."
     fi
-cp -r /tmp/integralstor_common.tar.gz /tmp/integralstor_gridcell.tar.gz /var/www/html/netboot/distros/centos/6.6/x86_64/integralstor_gridcell/v1.0/tar_installs/
+cp -r /tmp/integralstor_utils.tar.gz /tmp/integralstor_gridcell.tar.gz /var/www/html/netboot/distros/centos/6.6/x86_64/integralstor_gridcell/v1.0/tar_installs/

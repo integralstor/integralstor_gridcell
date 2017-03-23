@@ -1,8 +1,7 @@
 
-import integralstor_common
 import time
 import os
-from integralstor_common import audit, zfs, command
+from integralstor_utils import audit, zfs, command
 from integralstor_gridcell import iscsi_stgt
 from integral_view.forms import iscsi_stgt_forms
 

@@ -4,7 +4,7 @@ import zipfile
 import shutil
 import socket
 from os.path import basename
-from integralstor_common import common, command
+from integralstor_utils import config, command
 from integralstor_gridcell import grid_ops
 
 local = salt.client.LocalClient()

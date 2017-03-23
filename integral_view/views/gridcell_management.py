@@ -12,7 +12,7 @@ from integral_view.utils import iv_logging
 
 import integralstor_gridcell
 from integralstor_gridcell import gluster_volumes, system_info, grid_ops, gluster_trusted_pools
-from integralstor_common import audit, lock, common, scheduler_utils
+from integralstor_utils import audit, lock, config, scheduler_utils
 
 import salt.client
 
@@ -694,10 +694,10 @@ def replace_disk(request):
             raise Exception('Could not load system information')
         return_dict['system_config_list'] = si
 
-        python_scripts_path, err = common.get_python_scripts_path()
+        python_scripts_path, err = config.get_python_scripts_path()
         if err:
             raise Exception(err)
-        common_python_scripts_path, err = common.get_common_python_scripts_path()
+        common_python_scripts_path, err = config.get_common_python_scripts_path()
         if err:
             raise Exception(err)
         if request.method == "GET":
@@ -835,7 +835,7 @@ def replace_disk(request):
                         cmd3 = '%s/generate_manifest.py' % common_python_scripts_path
                         cmd4 = '%s/generate_status.py' % common_python_scripts_path
                         # print 'Running %s'%cmd_to_run
-                        db_path, err = common.get_db_path()
+                        db_path, err = config.get_db_path()
                         if err:
                             raise Exception(
                                 'Error scheduling a job - getting database location : %s' % err)

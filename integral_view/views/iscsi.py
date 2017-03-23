@@ -1,8 +1,7 @@
 
 from integral_view.forms import iscsi_forms
 
-import integralstor_common
-from integralstor_common import audit
+from integralstor_utils import audit
 import integralstor_gridcell
 from integralstor_gridcell import volume_info, iscsi
 

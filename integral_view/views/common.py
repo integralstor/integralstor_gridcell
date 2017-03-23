@@ -19,9 +19,8 @@ import django
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 
-import integralstor_common
-from integralstor_common import db, common, audit, alerts, ntp, mail, lock, services_management
-from integralstor_common import cifs as cifs_common
+from integralstor_utils import db, config, audit, alerts, ntp, mail, lock, services_management
+from integralstor_utils import cifs as cifs_utils
 
 import integralstor_gridcell
 from integralstor_gridcell import batch, gluster_volumes, system_info, grid_ops, xml_parse, iscsi, ctdb, iscsi_stgt, gluster_gfapi, gluster_trusted_pools
@@ -115,7 +114,7 @@ def dashboard(request):
         # print soft_quota_exceeded_vols
         # print hard_quota_exceeded_vols
 
-        shares_list, err = cifs_common.get_shares_list()
+        shares_list, err = cifs_utils.get_shares_list()
         if err:
             raise Exception(err)
         if shares_list:
@@ -402,7 +401,7 @@ def show(request, page, info=None):
             if "manifest" not in request.GET:
                 raise Exception('Invalid request. No manifest file specified')
             manifest = request.GET["manifest"]
-            ss_path, err = common.get_system_status_path()
+            ss_path, err = config.get_system_status_path()
             if err:
                 raise Exception(err)
             with open("%s/%s" % (ss_path, manifest), "r") as f:
@@ -630,16 +629,16 @@ def show(request, page, info=None):
 def reset_to_factory_defaults(request):
   return_dict = {}
   try:
-    defaults_path, err = common.get_factory_defaults_path()
+    defaults_path, err = config.get_factory_defaults_path()
     if err:
       raise Exception(err)
-    ntp_conf_path, err = common.get_ntp_conf_path()
+    ntp_conf_path, err = config.get_ntp_conf_path()
     if err:
       raise Exception(err)
-    alerts_path, err = common.get_alerts_path()
+    alerts_path, err = config.get_alerts_path()
     if err:
       raise Exception(err)
-    batch_files_path, err = common.get_batch_files_path()
+    batch_files_path, err = config.get_batch_files_path()
     if err:
       raise Exception(err)
     if request.method == "GET":
@@ -666,13 +665,13 @@ def reset_to_factory_defaults(request):
 
       #Remove all shares
       try:
-        cifs_common.delete_all_shares()
+        cifs_utils.delete_all_shares()
       except Exception, e:
         #print str(e)
         raise Exception("Error deleting shares : %s."%e)
 
       try:
-        cifs_common.delete_auth_settings()
+        cifs_utils.delete_auth_settings()
       except Exception, e:
         raise Exception("Error deleting CIFS authentication settings : %s."%e)
       try:
@@ -867,7 +866,7 @@ def require_admin_login(view):
               quota_exceeded_vols.append(vol['name'])
               break
 
-      shares_list, err = cifs_common.get_shares_list()
+      shares_list, err = cifs_utils.get_shares_list()
       if err:
         raise Exception(err)
       if shares_list:

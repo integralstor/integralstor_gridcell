@@ -10,7 +10,7 @@ import sys
 import logging
 from xml.etree import ElementTree
 
-from integralstor_common import command, common, audit, lock, logger
+from integralstor_utils import command, config, audit, lock, logger
 from integralstor_gridcell import xml_parse, grid_ops
 
 import atexit
@@ -22,7 +22,7 @@ def get_heal_count(cmd, type):
     # Gets the number of files healed so far
     rl = []
     try:
-        batch_files_path, err = common.get_batch_files_path()
+        batch_files_path, err = config.get_batch_files_path()
         if err:
             raise Exception(err)
         r = None
@@ -61,7 +61,7 @@ def process_batch(d, file, logger=None):
     # Process each batch file
 
     try:
-        batch_files_path, err = common.get_batch_files_path()
+        batch_files_path, err = config.get_batch_files_path()
         if err:
             raise Exception(err)
         if not d:
@@ -360,7 +360,7 @@ def main():
                 'Not active admin GRIDCell so exiting.', lg, level='info')
             sys.exit(0)
 
-        batch_files_path, err = common.get_batch_files_path()
+        batch_files_path, err = config.get_batch_files_path()
         if err:
             raise Exception(err)
 

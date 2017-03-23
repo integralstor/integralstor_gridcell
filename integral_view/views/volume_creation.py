@@ -7,7 +7,7 @@ import salt.client
 
 import random
 from integralstor_gridcell import gluster_volumes, system_info, iscsi, xml_parse
-from integralstor_common import command, common, audit, lock
+from integralstor_utils import command, audit, lock
 
 from integral_view.utils import iv_logging
 

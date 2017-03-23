@@ -1,6 +1,6 @@
 from django import forms
 
-from integralstor_common import networking
+from integralstor_utils import networking
 import common_forms
 
 

@@ -4,7 +4,7 @@ import salt.client
 from integralstor_gridcell import services, system_info
 
 from integralstor_gridcell.services import default_services
-from integralstor_common import db, common, audit, ntp
+from integralstor_utils import db, config, audit, ntp
 from integral_view.forms import common_forms
 
 
@@ -107,7 +107,7 @@ def edit_ntp_settings(request):
         return_dict['tab'] = 'service_ntp_tab'
         return_dict["error"] = 'Error configuring NTP settings'
 
-        admin_vol_mountpoint, err = common.get_config_dir()
+        admin_vol_mountpoint, err = config.get_config_dir()
         if err:
             raise Exception(err)
         if err:

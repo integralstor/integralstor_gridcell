@@ -3,7 +3,7 @@ import socket
 import sys
 from time import strftime
 from integralstor_gridcell import grid_ops, dns
-from integralstor_common import networking, command, disks
+from integralstor_utils import networking, command, disks
 
 
 def check_salt_status(print_to_stdout=True, separator='\n'):

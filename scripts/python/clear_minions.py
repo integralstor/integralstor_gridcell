@@ -2,12 +2,12 @@ import salt.client
 import salt.wheel
 
 import sys
-from integralstor_common import common
+from integralstor_utils import config
 
 
 def clear_minions():
     try:
-        master, err = common.get_salt_master_config()
+        master, err = config.get_salt_master_config()
         if err:
             raise Exception(err)
         opts = salt.config.master_config(master)

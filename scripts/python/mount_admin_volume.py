@@ -5,7 +5,7 @@ import sys
 import subprocess
 import logging
 import shutil
-from integralstor_common import common, networking, command, logger, services_management
+from integralstor_utils import config, networking, command, logger, services_management
 from integralstor_gridcell import grid_ops, gluster_trusted_pools
 
 
@@ -24,7 +24,7 @@ def sync_ctdb_files():
 
     is_change = False
     try:
-        config_dir, err = common.get_config_dir()
+        config_dir, err = config.get_config_dir()
         if err:
             raise Exception(err)
 
@@ -86,12 +86,12 @@ def mount_and_configure():
                     logger.log_or_print('Service %s error : %s' % (
                         service, err), lg, level='error')
 
-            admin_vol_name, err = common.get_admin_vol_name()
+            admin_vol_name, err = config.get_admin_vol_name()
             if err:
                 raise Exception(err)
 
             # Get the config dir - the mount point.
-            config_dir, err = common.get_config_dir()
+            config_dir, err = config.get_config_dir()
             if err:
                 raise Exception(err)
 

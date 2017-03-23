@@ -8,7 +8,7 @@ import sys
 import logging
 from os.path import basename
 
-from integralstor_common import common, logger
+from integralstor_utils import config, logger
 from integralstor_gridcell import grid_ops
 
 
@@ -35,7 +35,7 @@ def zip_gridcell_logs():
     zf = None
     try:
         hn = socket.getfqdn()
-        log_dir, err = common.get_log_folder_path()
+        log_dir, err = config.get_log_folder_path()
         if err:
             raise Exception(err)
         patterns, err = get_patterns(log_dir)
@@ -77,7 +77,7 @@ def zip_gridcell_logs():
 def zip_grid_logs():
     zf = None
     try:
-        log_dir, err = common.get_log_folder_path()
+        log_dir, err = config.get_log_folder_path()
         if err:
             raise Exception(err)
         zf = zipfile.ZipFile('/tmp/grid_logs_tmp.zip',
@@ -91,10 +91,10 @@ def zip_grid_logs():
         if not os.path.exists('%s/task_logs' % log_dir):
             os.makedirs('%s/task_logs' % log_dir)
 
-        alerts_dir, err = common.get_alerts_dir()
+        alerts_dir, err = config.get_alerts_dir()
         if err:
             raise Exception(err)
-        audit_dir, err = common.get_audit_dir()
+        audit_dir, err = config.get_audit_dir()
         if err:
             raise Exception(err)
         tasks_log_dir = '%s/task_logs' % log_dir
@@ -167,7 +167,7 @@ def main():
 
 
 if __name__ == '__main__':
-    #alerts_dir, err = common.get_alerts_dir()
+    #alerts_dir, err = config.get_alerts_dir()
     # print alerts_dir
     print main()
 

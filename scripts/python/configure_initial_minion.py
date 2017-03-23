@@ -3,7 +3,7 @@ import socket
 import re
 import sys
 import shutil
-from integralstor_common import networking, command, common
+from integralstor_utils import networking, command, config
 import salt.client
 
 
@@ -71,7 +71,7 @@ def configure_minion():
             print "Discarding changes!"
 
         if commit == 'y':
-            platform_root, err = common.get_platform_root()
+            platform_root, err = config.get_platform_root()
             if err:
                 raise Exception(err)
 

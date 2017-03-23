@@ -2,7 +2,7 @@ import os
 import socket
 import re
 import sys
-from integralstor_common import networking, command
+from integralstor_utils import networking, command
 
 
 def configure_networking():

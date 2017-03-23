@@ -74,14 +74,14 @@ grep enabled=0 /etc/yum.repos.d/CentOS-Base.repo >> /tmp/tmp_Base_repo || echo "
 echo "######################	End of CentOS-Base repo status		######################"
 echo "######################	Directory and File Creation check	######################"
 
-DIR_LIST="/opt/integralstor /opt/integralstor/integralstor_gridcell/tmp /run/samba /var/log/integralstor/integralstor_gridcell /opt/integralstor/integralstor_gridcell/config /srv/salt/_modules /opt/integralstor/integralstor_gridcell /opt/integralstor/integralstor_common /usr/lib/python2.6/site-packages/integralstor_common /usr/lib/python2.6/site-packages/integralstor_gridcell /etc/nginx/sites-enabled /etc/uwsgi/vassals"
+DIR_LIST="/opt/integralstor /opt/integralstor/integralstor_gridcell/tmp /run/samba /var/log/integralstor/integralstor_gridcell /opt/integralstor/integralstor_gridcell/config /srv/salt/_modules /opt/integralstor/integralstor_gridcell /opt/integralstor/integralstor_utils /usr/lib/python2.6/site-packages/integralstor_utils /usr/lib/python2.6/site-packages/integralstor_gridcell /etc/nginx/sites-enabled /etc/uwsgi/vassals"
 for path in $DIR_LIST; do
     if [[ ! -d "$path" ]]; then
 	echo "'$path' Directory Does Not Exist"
     fi
 done
 
-FILE_LIST="/opt/integralstor/ramdisks.conf /opt/integralstor/platform /var/log/integralstor/integralstor_gridcell/integral_view.log /opt/integralstor/integralstor_common.tar.gz /opt/integralstor/integralstor_gridcell.tar.gz /etc/resolv.conf /etc/init/start-ttys.conf /etc/init/integralstor_gridcell_menu.conf /etc/nginx/sites-enabled/integral_view_nginx.conf /etc/uwsgi/vassals/integral_view_uwsgi.ini /etc/init.d/ramdisk /etc/modprobe.d/zfs.conf"
+FILE_LIST="/opt/integralstor/ramdisks.conf /opt/integralstor/platform /var/log/integralstor/integralstor_gridcell/integral_view.log /opt/integralstor/integralstor_utils.tar.gz /opt/integralstor/integralstor_gridcell.tar.gz /etc/resolv.conf /etc/init/start-ttys.conf /etc/init/integralstor_gridcell_menu.conf /etc/nginx/sites-enabled/integral_view_nginx.conf /etc/uwsgi/vassals/integral_view_uwsgi.ini /etc/init.d/ramdisk /etc/modprobe.d/zfs.conf"
 
 for path in $FILE_LIST; do
     if [[ ! -e "$path" ]]; then

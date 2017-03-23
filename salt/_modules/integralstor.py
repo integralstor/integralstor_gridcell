@@ -3,7 +3,7 @@ import shutil
 import os
 import time
 
-from integralstor_common import manifest_status, common, networking
+from integralstor_utils import manifest_status, config, networking
 
 
 def disk_info_and_status():
@@ -49,7 +49,7 @@ def configure_minion(*masters):
         if len(masters) > len(set(masters)):
             raise Exception('Duplicate masters specified')
 
-        platform_root, err = common.get_platform_root()
+        platform_root, err = config.get_platform_root()
         if err:
             raise Exception(err)
 
@@ -124,14 +124,14 @@ def disk_action(**kwargs):
         if 'action' not in kwargs or kwargs['action'] not in ['disk_blink', 'disk_unblink']:
             raise Exception('Invalid disk action')
 
-        our_hw_platform, err = common.get_hardware_platform()
+        our_hw_platform, err = config.get_hardware_platform()
         if err:
             raise Exception(err)
         if our_hw_platform == 'dell':
             if 'controller' not in kwargs or 'target_id' not in kwargs or 'channel' not in kwargs or 'enclosure_id' not in kwargs:
                 raise Exception(
                     'Insufficient information received for the specified action')
-            from integralstor_common.platforms import dell
+            from integralstor_utils.platforms import dell
             err = None
             if kwargs['action'] == 'disk_blink':
                 ret, err = dell.blink_unblink_disk(
