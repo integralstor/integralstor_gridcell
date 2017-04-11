@@ -431,7 +431,7 @@ def change_volume_status(request):
             audit_str = 'Stopped volume "%s"' % vol_name
             redirect_ack = 'stopped'
 
-        ret, err = audit.audit(audit_code, audit_str, request.META)
+        ret, err = audit.audit(audit_code, audit_str, request)
         if err:
             raise Exception(err)
 
@@ -514,7 +514,7 @@ def delete_volume(request):
             result_list.append(result_dict)
 
             ret, err = audit.audit(
-                "vol_delete", "Deleted volume %s" % (vol_name), request.META)
+                "vol_delete", "Deleted volume %s" % (vol_name), request)
             if err:
                 d["result"] = "Failed with error : %s" % estr
                 result_list.append(result_dict)
@@ -666,7 +666,7 @@ def expand_volume(request):
             # Success so audit the change
             audit_str = "Expanded volume %s by adding %s storage units." % (
                 vol_name, count)
-            ret, err = audit.audit("expand_volume", audit_str, request.META)
+            ret, err = audit.audit("expand_volume", audit_str, request)
 
             if err:
                 if revert_list:
@@ -720,7 +720,7 @@ def initiate_volume_rebalance(request):
         if err:
             raise Exception(err)
         ret, err = audit.audit(
-            "vol_rebalance_start", "Scheduled volume rebalance start for volume %s" % vol_name, request.META)
+            "vol_rebalance_start", "Scheduled volume rebalance start for volume %s" % vol_name, request)
         if err:
             raise Exception(err)
 
@@ -811,7 +811,7 @@ def set_volume_options(request):
                     if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
                         # Success so audit the change
                         ret, err = audit.audit(
-                            "set_vol_options", d["audit_str"], request.META)
+                            "set_vol_options", d["audit_str"], request)
                         if err:
                             raise Exception(err)
 
@@ -907,7 +907,7 @@ def set_dir_quota(request):
                     raise Exception(err)
                 result_message = 'Auto enabled quota for volume %s' % vol_name
                 ret, err = audit.audit(
-                    "change_quota_status", result_message, request.META)
+                    "change_quota_status", result_message, request)
             res, err = gluster_quotas.set_volume_dir_quota(
                 cd["vol_name"], cd["dir"], cd["limit"], cd["unit"])
             if err:
@@ -916,7 +916,7 @@ def set_dir_quota(request):
                 cd['dir'], cd['vol_name'], cd['limit'], cd['unit'])
             return_dict['result_message'] = result_message
             ret, err = audit.audit(
-                "set_vol_quota", result_message, request.META)
+                "set_vol_quota", result_message, request)
             return django.http.HttpResponseRedirect('/view_volume?vol_name=%s&ack=set_quota' % vol_name)
     except Exception, e:
         s = str(e)
@@ -961,7 +961,7 @@ def remove_dir_quota(request):
                 raise Exception(err)
             audit_str = 'Successfully removed quota for directory %s on volume %s' % (
                 dir, vol_name)
-            ret, err = audit.audit("remove_vol_quota", audit_str, request.META)
+            ret, err = audit.audit("remove_vol_quota", audit_str, request)
             return django.http.HttpResponseRedirect('/view_volume?vol_name=%s&ack=removed_quota' % vol_name)
     except Exception, e:
         s = str(e)
@@ -1006,7 +1006,7 @@ def change_quota_status(request):
                 action, vol_name)
             return_dict['result_message'] = result_message
             ret, err = audit.audit("change_quota_status",
-                                   result_message, request.META)
+                                   result_message, request)
             if action == 'enable':
                 ack = 'enabled_quota'
             else:
@@ -1067,7 +1067,7 @@ def create_snapshot(request):
             if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
                 # Success so audit the change
                 ret, err = audit.audit(
-                    "create_snapshot", d["display_command"], request.META)
+                    "create_snapshot", d["display_command"], request)
                 if err:
                     raise Exception(err)
                 return_dict["op"] = "Create snapshot"
@@ -1137,7 +1137,7 @@ def delete_snapshot(request):
                             return_dict["op"] = "Delete snapshot"
                             audit_str = "Deleted snapshot %s." % snapshot_name
                             ret, err = audit.audit(
-                                "delete_snapshot", audit_str, request.META)
+                                "delete_snapshot", audit_str, request)
                             if err:
                                 raise Exception(err)
                             template = "snapshot_op_result.html"
@@ -1211,7 +1211,7 @@ def restore_snapshot(request):
                             audit_str = "Restored snapshot %s onto volume %s." % (
                                 snapshot_name, vol_name)
                             ret, err = audit.audit(
-                                "restore_snapshot", audit_str, request.META)
+                                "restore_snapshot", audit_str, request)
                             if err:
                                 raise Exception(err)
                             template = "snapshot_op_result.html"
@@ -1282,7 +1282,7 @@ def deactivate_snapshot(request):
                             return_dict["op"] = "Deactivate snapshot"
                             audit_str = "Deactivated snapshot %s." % snapshot_name
                             ret, err = audit.audit(
-                                "deactivate_snapshot", audit_str, request.META)
+                                "deactivate_snapshot", audit_str, request)
                             if err:
                                 raise Exception(err)
                             template = "snapshot_op_result.html"
@@ -1347,7 +1347,7 @@ def activate_snapshot(request):
                             return_dict["op"] = "Activate snapshot"
                             audit_str = "Activated snapshot %s." % snapshot_name
                             ret, err = audit.audit(
-                                "activate_snapshot", audit_str, request.META)
+                                "activate_snapshot", audit_str, request)
                             if err:
                                 raise Exception(err)
                             template = "snapshot_op_result.html"
@@ -1642,7 +1642,7 @@ def volume_specific_op(request, operation, vol_name=None):
           if err:
             raise Exception(err)
           if not "error" in d:
-            ret, err = audit.audit("vol_rebalance_start", "Scheduled volume rebalance start for volume %s"%vol_name, request.META)
+            ret, err = audit.audit("vol_rebalance_start", "Scheduled volume rebalance start for volume %s"%vol_name, request)
             if err:
               raise Exception(err)
             return django.http.HttpResponseRedirect('/show/batch_start_conf/%s'%d["file_name"])
@@ -1744,7 +1744,7 @@ def set_volume_quota(request):
       for d in ol:
         if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
           #Success so audit the change
-          ret, err = audit.audit("set_vol_quota", d["display_command"], request.META)
+          ret, err = audit.audit("set_vol_quota", d["display_command"], request)
           if err:
             raise Exception(err)
     # This is setup so as to make sure windows share also reflect the quota applied on gluster volumes
@@ -1889,7 +1889,7 @@ def replace_node(request):
               else:
                 raise Exception('Error creating the replace batch command file')
             else:
-              ret, err = audit.audit("replace_node", "Scheduled replacement of GRIDCell %s with GRIDCell %s"%(src_node, dest_node), request.META)
+              ret, err = audit.audit("replace_node", "Scheduled replacement of GRIDCell %s with GRIDCell %s"%(src_node, dest_node), request)
               if err:
                 raise Exception(err)
               return django.http.HttpResponseRedirect('/show/batch_start_conf/%s'%d["file_name"])

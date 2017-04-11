@@ -221,7 +221,7 @@ def edit_cifs_share(request):
                     raise Exception('Error generating CIFS configuration file')
 
                 audit_str = "Modified share %s" % cd["name"]
-                ret, err = audit.audit("modify_share", audit_str, request.META)
+                ret, err = audit.audit("modify_share", audit_str, request)
                 if err:
                     raise Exception(err)
 
@@ -275,7 +275,7 @@ def delete_cifs_share(request):
                 raise Exception('Error generating CIFS configuration file')
 
             audit_str = "Deleted Windows share %s" % name
-            ret, err = audit.audit("delete_share", audit_str, request.META)
+            ret, err = audit.audit("delete_share", audit_str, request)
             if err:
                 raise Exception(err)
             return django.http.HttpResponseRedirect('/view_cifs_shares?ack=deleted')
@@ -401,7 +401,7 @@ def create_cifs_share(request):
                     raise Exception('Error generating CIFS configuration file')
 
                 audit_str = "Created Windows share %s" % name
-                ret, err = audit.audit("create_share", audit_str, request.META)
+                ret, err = audit.audit("create_share", audit_str, request)
                 if err:
                     raise Exception(err)
                 return django.http.HttpResponseRedirect('/view_cifs_shares?ack=created')
@@ -578,7 +578,7 @@ def edit_cifs_authentication_settings(request):
             # print '7'
             audit_str = "Modified share authentication settings"
             ret, err = audit.audit(
-                "modify_samba_settings", audit_str, request.META)
+                "modify_samba_settings", audit_str, request)
             if err:
                 raise Exception(err)
             #return_dict["conf_message"] = "Information successfully updated"
@@ -733,7 +733,7 @@ def save_samba_server_settings(request):
   
     #print '7'
     audit_str = "Modified share authentication settings"
-    ret, err = audit.audit("modify_samba_settings", audit_str, request.META)
+    ret, err = audit.audit("modify_samba_settings", audit_str, request)
     if err:
       raise Exception(err)
     return_dict["form"] = form

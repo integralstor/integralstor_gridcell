@@ -66,7 +66,7 @@ def create_local_user(request):
                     raise Exception('Error creating local user')
                 audit_str = "Created a local user %s" % cd["userid"]
                 r, err = audit.audit("create_local_user",
-                                     audit_str, request.META)
+                                     audit_str, request)
                 if err:
                     raise Exception(err)
                 url = '/view_local_users?ack=created'
@@ -108,7 +108,7 @@ def delete_local_user(request):
                 raise Exception('Error deleting local user')
             audit_str = "Deleted a local user %s" % request.POST["userid"]
             ret, err = audit.audit("delete_local_user",
-                                   audit_str, request.META)
+                                   audit_str, request)
             if err:
                 raise Exception(err)
             url = '/view_local_users?ack=deleted'
@@ -154,7 +154,7 @@ def change_local_user_password(request):
 
                 audit_str = "Changed password for local user %s" % cd["userid"]
                 ret, err = audit.audit(
-                    "change_local_user_password", audit_str, request.META)
+                    "change_local_user_password", audit_str, request)
                 if err:
                     raise Exception(err)
                 return django.http.HttpResponseRedirect('/view_local_users?ack=changed_password')

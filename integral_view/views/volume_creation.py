@@ -368,7 +368,7 @@ def create_volume(request):
                 audit_str = audit_str + "distributed  "
             audit_str = audit_str + \
                 " volume named %s" % request.POST["vol_name"]
-            ret, err = audit.audit("create_volume", audit_str, request.META)
+            ret, err = audit.audit("create_volume", audit_str, request)
             if err:
                 raise Exception(err)
         else:

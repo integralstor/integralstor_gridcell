@@ -431,7 +431,7 @@ def internal_audit(request):
             response.write("Insufficient information!")
         else:
             audit.audit(request.POST["audit_action"],
-                        request.POST["audit_str"], "0.0.0.0")
+                        request.POST["audit_str"], request)
         response.write("Success")
     return response
 

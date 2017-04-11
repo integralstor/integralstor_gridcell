@@ -299,7 +299,7 @@ def remove_a_gridcell_from_grid(request):
                 raise Exception(err)
 
             audit_str = "Removed GRIDCell %s from the grid." % (gridcell_name)
-            audit.audit("remove_gridcell_from_grid", audit_str, request.META)
+            audit.audit("remove_gridcell_from_grid", audit_str, request)
             return django.http.HttpResponseRedirect('/view_gridcells?ack=removed_from_grid')
     except Exception, e:
         s = str(e)
@@ -359,7 +359,7 @@ def add_a_gridcell_to_storage_pool(request):
         if d:
             if ("op_status" in d) and d["op_status"]["op_ret"] == 0:
                 audit.audit("add_storage", 'Added GRIDCell %s to the storage pool' %
-                            gridcell_name, request.META["REMOTE_ADDR"])
+                            gridcell_name, request)
             else:
                 err = 'Operation failed : Error number : %s, Error : %s, Output : %s, Additional info : %s' % (
                     d['op_status']['op_errno'], d['op_status']['op_errstr'], d['op_status']['output'], d['op_status']['error_list'])
@@ -422,7 +422,7 @@ def remove_a_gridcell_from_storage_pool(request):
             if not error:
                 audit_str = "Removed GRIDCell from the storage pool %s" % gridcell_name
                 audit.audit("remove_storage", audit_str,
-                            request.META["REMOTE_ADDR"])
+                            request)
             url = 'remove_gridcell_from_storage_pool_result.html'
 
         #return_dict['form'] = form
@@ -589,7 +589,7 @@ def replace_gridcell(request):
                                     'Error creating the replace batch command file')
                         else:
                             ret, err = audit.audit("replace_node", "Scheduled replacement of GRIDCell %s with GRIDCell %s" % (
-                                src_node, dest_node), request.META["REMOTE_ADDR"])
+                                src_node, dest_node), request)
                             if err:
                                 raise Exception(err)
                             return django.http.HttpResponseRedirect('/view_gridcells?ack=replaced_gridcell')
@@ -779,7 +779,7 @@ def replace_disk(request):
                             audit_str = "Disk replacement of old disk(sno %s) on GRIDCell %s - disk taken offline." % (
                                 serial_number, node)
                             ret, err = audit.audit(
-                                "replace_disk_offline_disk", audit_str, request.META)
+                                "replace_disk_offline_disk", audit_str, request)
                             if err:
                                 raise Exception(err)
                             return_dict["serial_number"] = serial_number
@@ -920,7 +920,7 @@ def replace_disk(request):
                         audit_str = "Scheduled replacement of old disk(sno %s) with new disk(sno %s) on GRIDCell %s." % (
                             serial_number, new_serial_number, node)
                         ret, err = audit.audit(
-                            "replace_disk_scheduled", audit_str, request.META)
+                            "replace_disk_scheduled", audit_str, request)
                         if err:
                             raise Exception(err)
                         template = "replace_disk_success.html"
@@ -1037,7 +1037,7 @@ def add_nodes_to_pool(request):
         d, errors = grid_ops.add_a_node_to_storage_pool(si, node["hostname"])
         if d:
           if d and ("op_status" in d) and d["op_status"]["op_ret"] == 0:
-            audit.audit("add_storage", d["audit_str"], request.META["REMOTE_ADDR"])
+            audit.audit("add_storage", d["audit_str"], request)
         hostname = node["hostname"]
         td['rc'] = rc
         td['d'] = rc

@@ -121,7 +121,7 @@ def iscsi_edit_initiator(request):
 
                 audit_str = "Modified initiator %s" % id
                 ret, err = audit.audit(
-                    "modify_initiator", audit_str, request.META["REMOTE_ADDR"])
+                    "modify_initiator", audit_str, request)
                 if err:
                     raise Exception(err)
                 return django.http.HttpResponseRedirect('/iscsi_view_initiator?access_mode=by_id&id=%s&action=saved' % id)
@@ -164,7 +164,7 @@ def iscsi_create_initiator(request):
 
                 audit_str = "Created an ISCSI initiator"
                 ret, err = audit.audit(
-                    "create_iscsi_initiator", audit_str, request.META["REMOTE_ADDR"])
+                    "create_iscsi_initiator", audit_str, request)
                 if err:
                     raise Exception(err)
                 return django.http.HttpResponseRedirect('/iscsi_display_initiators?action=created')
@@ -200,7 +200,7 @@ def iscsi_delete_initiator(request):
 
             audit_str = "Deleted ISCSI initiator %s" % id
             ret, err = audit.audit(
-                "delete_iscsi_initiator", audit_str, request.META["REMOTE_ADDR"])
+                "delete_iscsi_initiator", audit_str, request)
             if err:
                 raise Exception(err)
             return django.http.HttpResponseRedirect('/iscsi_display_initiators?action=deleted')
@@ -284,7 +284,7 @@ def iscsi_create_auth_access_group(request):
                         'Error creating authorized access user within the group')
                 audit_str = "Created an ISCSI authorized access group"
                 ret, err = audit.audit(
-                    "create_iscsi_auth_access_group", audit_str, request.META["REMOTE_ADDR"])
+                    "create_iscsi_auth_access_group", audit_str, request)
                 if err:
                     raise Exception(err)
                 return django.http.HttpResponseRedirect('/iscsi_display_auth_access_group_list?action=created')
@@ -330,7 +330,7 @@ def iscsi_create_auth_access_user(request):
                 audit_str = "Created an ISCSI authorized access user in group %s" % cd[
                     "auth_access_group_id"]
                 ret, err = audit.audit(
-                    "create_iscsi_auth_access_group", audit_str, request.META["REMOTE_ADDR"])
+                    "create_iscsi_auth_access_group", audit_str, request)
                 if err:
                     raise Exception(err)
                 return django.http.HttpResponseRedirect('/iscsi_display_auth_access_group_list?action=user_created')
@@ -400,7 +400,7 @@ def iscsi_delete_auth_access_group(request):
                 raise Exception('Error deleting group')
             audit_str = "Deleted ISCSI authorized access group %s" % auth_access_group_id
             ret, err = audit.audit(
-                "delete_iscsi_auth_access_group", audit_str, request.META["REMOTE_ADDR"])
+                "delete_iscsi_auth_access_group", audit_str, request)
             if err:
                 raise Exception(err)
             return django.http.HttpResponseRedirect('/iscsi_display_auth_access_group_list?action=deleted')
@@ -440,7 +440,7 @@ def iscsi_delete_auth_access_user(request):
 
             audit_str = "Deleted ISCSI authorized access user %s" % user_id
             ret, err = audit.audit(
-                "delete_iscsi_auth_access_user", audit_str, request.META["REMOTE_ADDR"])
+                "delete_iscsi_auth_access_user", audit_str, request)
             if err:
                 raise Exception(err)
             return django.http.HttpResponseRedirect('/iscsi_display_auth_access_group_list?action=user_deleted')
@@ -506,7 +506,7 @@ def iscsi_edit_auth_access_user(request):
 
                 audit_str = "Modified authorized access user in auth group %s" % auth_access_group_id
                 ret, err = audit.audit(
-                    "modify_iscsi_auth_access_user", audit_str, request.META["REMOTE_ADDR"])
+                    "modify_iscsi_auth_access_user", audit_str, request)
                 if err:
                     raise Exception(err)
 
@@ -591,7 +591,7 @@ def iscsi_edit_target_global_config(request):
 
                 audit_str = "Modified ISCSI global targets configuration%s" % id
                 ret, err = audit.audit(
-                    "modify_iscsi_global_target_conf", audit_str, request.META["REMOTE_ADDR"])
+                    "modify_iscsi_global_target_conf", audit_str, request)
                 if err:
                     raise Exception(err)
 
@@ -690,7 +690,7 @@ def iscsi_create_target(request):
 
                 audit_str = "Created an ISCSI target"
                 ret, err = audit.audit(
-                    "create_iscsi_target", audit_str, request.META["REMOTE_ADDR"])
+                    "create_iscsi_target", audit_str, request)
                 if err:
                     raise Exception(err)
                 return django.http.HttpResponseRedirect('/iscsi_display_targets?action=created')
@@ -773,7 +773,7 @@ def iscsi_edit_target(request):
                         'Error generating the ISCSI configuration file')
                 audit_str = "Modified target %s" % id
                 ret, err = audit.audit(
-                    "modify_target", audit_str, request.META["REMOTE_ADDR"])
+                    "modify_target", audit_str, request)
                 if err:
                     raise Exception(err)
 
@@ -843,7 +843,7 @@ def iscsi_delete_target(request):
                 raise Exception("Error deleting ISCSI target")
             audit_str = "Deleted ISCSI target %s" % id
             ret, err = audit.audit("delete_iscsi_target",
-                                   audit_str, request.META["REMOTE_ADDR"])
+                                   audit_str, request)
             if err:
                 raise Exception(err)
             return django.http.HttpResponseRedirect('/iscsi_display_targets?action=deleted')

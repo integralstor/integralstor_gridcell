@@ -716,7 +716,7 @@ def reset_to_factory_defaults(request):
         if err:
           raise Exception(err)
         if not "error" in d:
-          ret, err = audit.audit("factory_defaults_reset_start", "Scheduled reset of the system to factory defaults.",  request.META["REMOTE_ADDR"])
+          ret, err = audit.audit("factory_defaults_reset_start", "Scheduled reset of the system to factory defaults.",  request)
           if err:
             raise Exception(err)
           return django.http.HttpResponseRedirect('/show/batch_start_conf/%s'%d["file_name"])

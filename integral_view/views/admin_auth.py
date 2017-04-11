@@ -135,7 +135,7 @@ def change_admin_password(request):
                         #iv_logging.info("Admin password change request successful.")
                         audit_str = "Changed admin password"
                         audit.audit("modify_admin_password",
-                                    audit_str, request.META["REMOTE_ADDR"])
+                                    audit_str, request)
                         return django.http.HttpResponseRedirect('/change_admin_password?ack=modified')
                     else:
                         # Invalid old password
