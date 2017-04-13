@@ -1,5 +1,6 @@
 # Django settings for integral_view project.
 from integralstor_utils import config
+import os
 
 DEBUG = True
 ALLOWED_HOSTS = ['*']
@@ -10,10 +11,11 @@ APP_DEBUG = False
 LOGIN_URL = '/login/'
 
 platform_root, err = config.get_platform_root()
-DB_LOCATION, err = config.get_db_path()
+#DB_LOCATION, err = config.get_db_path()
 STATIC_DIR_PATH = '%s/integral_view/static' % platform_root
 TEMPLATE_DIR_PATH = "%s/integral_view/templates" % platform_root
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 TEMPLATE_DEBUG = DEBUG
 
@@ -29,7 +31,7 @@ DATABASES = {
         # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
         'ENGINE': 'django.db.backends.sqlite3',
         # Or path to database file if using sqlite3.
-        'NAME': DB_LOCATION,
+        'NAME': os.path.join(BASE_DIR, 'config/db/django.db'),
         'USER': '',                      # Not used with sqlite3.
         'PASSWORD': '',                  # Not used with sqlite3.
         # Set to empty string for localhost. Not used with sqlite3.

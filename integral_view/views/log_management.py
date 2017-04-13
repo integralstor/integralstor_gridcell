@@ -40,7 +40,9 @@ def view_audit_trail(request):
     return_dict = {}
     try:
         al = None
-        al, err = audit.get_lines()
+        al, err = audit.get_entries()
+        if err:
+            raise Exception(err)
         if err:
             raise Exception(err)
         return_dict["audit_list"] = al
