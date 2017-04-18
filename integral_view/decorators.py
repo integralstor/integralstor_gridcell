@@ -17,7 +17,7 @@ def login_and_admin_vol_mountpoint_required(f):
             if not ret:
                 raise Exception(
                     'We could not access the admin volume in order to process this request. Please ensure that the admin volume is mounted and try again.')
-            if request.user.is_authenticated:
+            if request.user.is_authenticated():
                 if args:
                     return f(request, *args)
                 else:
