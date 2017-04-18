@@ -253,7 +253,7 @@ def scan_for_new_gridcells(request):
                 if err:
                     raise Exception(err)
                 (success, failed), errors = grid_ops.add_gridcells_to_grid(
-                    request.META, cd["gridcells"], admin_gridcells)
+                    request, cd["gridcells"], admin_gridcells)
                 # print success, failed, errors
                 url = 'add_gridcells_to_grid_result.html'
                 return_dict["success"] = success
