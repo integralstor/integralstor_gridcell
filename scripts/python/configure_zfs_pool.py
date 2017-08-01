@@ -92,7 +92,7 @@ def configure_zfs_pool():
 
         print 'Creating ZFS pool..'
         result, err = zfs.create_pool(
-            'frzpool', selected_pool_type, vdev_list, dedup=True)
+            'frzpool', selected_pool_type, vdev_list, dedup=False)
         if not result:
             if not err:
                 raise Exception('Unknown error!')
