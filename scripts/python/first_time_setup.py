@@ -2,7 +2,6 @@
 import salt.wheel
 import sys
 import os
-import shutil
 import socket
 import struct
 import sys
@@ -163,8 +162,16 @@ def establish_default_configuration(client, si, admin_gridcells):
             raise Exception(err)
 
         print "\nCopying the default configuration onto the IntegralStor administration volume."
-
         shutil.copytree("%s/db" % defaults_dir, "%s/db" % config_dir)
+
+        # Create integral view DB
+        ret, err = command.get_command_output('rm -rf %s/db/integral_view_config.db' % config_dir, shell=True)
+        if err:
+            pass
+        ret, err = command.get_command_output('sqlite3 %s/db/integral_view_config.db < %s/db/integral_view_config.schema' % (config_dir,config_dir), shell=True)
+        if err:
+            raise Exception('Could not create DB: %s' % err)
+
         shutil.copytree("%s/ntp" % defaults_dir, "%s/ntp" % config_dir)
         shutil.copytree("%s/logs" % defaults_dir, "%s/logs" % config_dir)
 
