@@ -48,13 +48,13 @@ def get_admin_gridcells():
             num_admin_servers = None
             try:
                 num_admin_servers = int(
-                    raw_input('How many additional admin GRIDCells required? '))
+                    raw_input('How many additional admin GRIDCells required (-1 to exit)? '))
                 if not num_admin_servers:
                     raise Exception()
+                if num_admin_servers == -1:
+                    break
                 if (num_admin_servers > len(pending_minions)) or (num_admin_servers < 1):
                     raise Exception()
-                if num_admin_servers == -99:
-                    break
             except Exception, e:
                 print 'Invalid input. Retry\n'
                 continue
@@ -64,16 +64,6 @@ def get_admin_gridcells():
             input = raw_input(str_to_print)
             if input:
                 try:
-                    '''
-                    admin_server_index = int(input.strip())
-                  except Exception, e:
-                    print 'Please enter a valid number from the list above'
-                    continue
-                  if admin_server_index < 1 or admin_server_index > len(pending_minions):
-                    print 'Please enter a valid number from the list above'
-                    continue
-                  admin_server_list.append(pending_minions[admin_server_index-1])
-                  '''
                     admin_server_index_list = [x.strip()
                                                for x in input.split(',')]
                 except Exception, e:
