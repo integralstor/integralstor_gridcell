@@ -79,7 +79,7 @@ def configure_zfs_pool():
         if selected_pool_type in ['raid5', 'raid6']:
             vdev_list, err = zfs.create_pool_data_vdev_list(
                 selected_pool_type, num_raid_disks=num_free_disks)
-        elif cd['selected_pool_type'] == 'raid10':
+        elif selected_pool_type == 'raid10':
             vdev_list, err = zfs.create_pool_data_vdev_list(
                 selected_pool_type, stripe_width=num_free_disks / 2)
         else:
