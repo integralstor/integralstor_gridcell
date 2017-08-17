@@ -235,7 +235,12 @@ def mount_and_configure():
                         raise Exception(err)
 
                     logger.log_or_print('Checking services', lg, level='debug')
-                    for service in ['nginx', 'ctdb']:
+                    service_list = ['nginx','ctdb']
+                    if ag:
+                        service_list.append('salt-master')
+                        service_list.append('salt-minion')
+
+                    for service in service_list:
                         status, err = services_management.get_service_status([
                                                                              service])
                         if err:
