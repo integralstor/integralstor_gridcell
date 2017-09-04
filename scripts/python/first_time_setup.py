@@ -323,6 +323,21 @@ def establish_default_configuration(client, si, admin_gridcells):
         print "Linking smb.conf files... Done"
         print
 
+        print "Linking NFS exports file"
+        shutil.copyfile('%s/nfs/exports' % defaults_dir,
+                        '%s/lock/exports' % config_dir)
+        r2 = client.cmd('*', 'cmd.run_all', ['rm -f /etc/exports'])
+        r2 = client.cmd(
+            '*', 'cmd.run_all', ['ln -s %s/lock/exports /etc/exports' % config_dir])
+        if r2:
+            for node, ret in r2.items():
+                if ret["retcode"] != 0:
+                    print r2
+                    errors = "Error linking to the NFS exports file on %s" % node
+                    raise Exception(errors)
+        print "Linking NFS exports file... Done"
+        print
+
         print "Linking Kerberos config file"
         r2 = client.cmd('*', 'cmd.run_all', ['rm /etc/krb5.conf'])
         with open('%s/lock/krb5.conf' % config_dir, 'w') as f:
