@@ -43,6 +43,34 @@ def check_quotas():
         return alert_list, None
 
 
+def ret_fs_usage_alert(node_name, threshold_percent=85):
+    ret = []
+    try:
+        threshold_percent = int(threshold_percent)
+        lines, err = command.get_command_output("salt '%s' disk.percent" % node_name)
+        if err:
+            raise Exception(err)
+        if lines:
+            data = [line.strip() for line in lines[2:]]
+            s = ''
+            for idx, line in enumerate(data):
+                if ':' in line:
+                    s = 'Used percentage of %s' % line
+                    if data[idx+1] and int(data[idx+1].split('%')[0]) >= threshold_percent:
+                        s = '%s %s ' % (s, data[idx+1])
+                        ret.append(s)
+                    else:
+                        s = ''
+                else:
+                    continue
+
+    except Exception, e:
+        return None, 'Could not determine filesystem usage: %s' % e
+    else:
+        return ret, None
+
+
+
 def check_for_gridcell_errors(si):
     alerts_list = []
     try:
@@ -73,6 +101,12 @@ def check_for_gridcell_errors(si):
             if 'errors' in node and node['errors']:
                 alerts = True
                 msg += '. '.join(node['errors'])
+            ret_alert, err = ret_fs_usage_alert(node_name,85)
+            if err:
+                pass
+            if ret_alert:
+                alerts = True
+                msg += str(ret_alert)
 
             if alerts:
                 alerts_list.append(msg)

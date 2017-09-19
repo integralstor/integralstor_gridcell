@@ -214,14 +214,14 @@ def mount_and_configure():
                                 logger.log_or_print(
                                     'Service salt-master error : %s' % err, lg, level='error')
                             # Restart salt-minion
-                            out, err = command.get_command_output(
-                                'service salt-minion restart', False, True)
-                            if not err and out:
-                                logger.log_or_print(
-                                    'Service salt-minion: %s' % out, lg, level='debug')
-                            else:
-                                logger.log_or_print(
-                                    'Service salt-minion error : %s' % err, lg, level='error')
+                        out, err = command.get_command_output(
+                            'service salt-minion restart', False, True)
+                        if not err and out:
+                            logger.log_or_print(
+                                'Service salt-minion: %s' % out, lg, level='debug')
+                        else:
+                            logger.log_or_print(
+                                'Service salt-minion error : %s' % err, lg, level='error')
 
                     str = 'Admin vol is mounted'
                     logger.log_or_print(str, lg, level='info')
@@ -235,10 +235,9 @@ def mount_and_configure():
                         raise Exception(err)
 
                     logger.log_or_print('Checking services', lg, level='debug')
-                    service_list = ['nginx','ctdb']
+                    service_list = ['nginx','ctdb','salt-minion']
                     if ag:
                         service_list.append('salt-master')
-                        service_list.append('salt-minion')
 
                     for service in service_list:
                         status, err = services_management.get_service_status([
